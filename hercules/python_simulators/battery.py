@@ -79,6 +79,7 @@ class LIB:
             discharge_rate: discharge rate of the battery in MW
             max_SOC: upper boundary on battery SOC between 0 and 1
             min_SOC: lower boundary on battery SOC between 0 and 1
+            allow_grid_charging: boolean flag for allowing grid to charge the battery
             initial_conditions: {SOC: iniital SOC between 0 and 1}
         """
 
@@ -94,6 +95,12 @@ class LIB:
         self.SOC = inititial_conditions["SOC"]  # [fraction]
         self.SOC_max = input_dict["max_SOC"]
         self.SOC_min = input_dict["min_SOC"]
+
+        # Flag for allowing grid to charge the battery
+        if "allow_grid_charging" in input_dict.keys():
+            self.allow_grid_charging = input_dict["allow_grid_charging"]
+        else:
+            self.allow_grid_charging = True
 
         self.T = 25  # [C] temperature
         self.SOH = 1  # State of Health
@@ -243,14 +250,18 @@ class LIB:
         Inputs:
         - inputs: dictionary of inputs for the current time step which must have:
             - py_sims:{inputs:{battery_signal: ___ }} [kW] charging/discharging power desired
-            - py_sims:{inputs:{available_power: ___ }} [kW] power available for charging/discharging
+            - py_sims:{inputs:{locally_generated_power: ___ }} [kW] power available for
+                 charging/discharging that was generated onsite (not from grid)
 
         Outputs:
         - outptuts: see return_outputs() method
         """
 
         P_signal = inputs["py_sims"]["inputs"]["battery_signal"]  # [kW] requested power
-        P_avail = inputs["py_sims"]["inputs"]["available_power"]  # [kW] avaiable power
+        if self.allow_grid_charging:
+            P_avail = np.inf
+        else:
+            P_avail = inputs["py_sims"]["inputs"]["locally_generated_power"]  # [kW] available power
 
         # Calculate charging/discharging current [A] from power
         I_charge, I_reject = self.control(P_signal, P_avail)
@@ -400,6 +411,12 @@ class SimpleBattery:
         self.R_min = -np.inf
         self.R_max = np.inf
 
+        # Flag for allowing grid to charge the battery
+        if "allow_grid_charging" in input_dict.keys():
+            self.allow_grid_charging = input_dict["allow_grid_charging"]
+        else:
+            self.allow_grid_charging = True
+
         # Efficiency and self-discharge parameters
         if "roundtrip_efficiency" in input_dict.keys():
             self.eta_charge = np.sqrt(input_dict["roundtrip_efficiency"])
@@ -473,7 +490,10 @@ class SimpleBattery:
         # power available for the battery to use for charging (should be >=0)
         P_signal = inputs["py_sims"]["inputs"]["battery_signal"]
         # power signal desired by the controller
-        P_avail = inputs["py_sims"]["inputs"]["available_power"]
+        if self.allow_grid_charging:
+            P_avail = np.inf
+        else:
+            P_avail = inputs["py_sims"]["inputs"]["locally_generated_power"]  # [kW] available power
 
         P_charge, P_reject = self.control(P_avail, P_signal)
 

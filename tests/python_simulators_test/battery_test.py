@@ -14,6 +14,7 @@ def get_battery_params(battery_type):
         "max_SOC": 0.9,  # upper boundary on battery SOC
         "min_SOC": 0.1,  # lower boundary on battery SOC
         "initial_conditions": {"SOC": 0.102},
+        "allow_grid_charging": False,
     }
     dt = 1
     return battery_dict, dt
@@ -42,7 +43,7 @@ def LI():
 def step_inputs(P_avail, P_signal):
     return dict(
         {
-            "py_sims": {"inputs": {"available_power": P_avail, "battery_signal": P_signal}},
+            "py_sims": {"inputs": {"locally_generated_power": P_avail, "battery_signal": P_signal}},
         }
     )
 

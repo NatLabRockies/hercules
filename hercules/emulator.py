@@ -239,7 +239,7 @@ class Emulator(FederateAgent):
 
         # Assign Py_sim outputs
         if self.main_dict["py_sims"]:
-            self.main_dict["py_sims"]["inputs"]["available_power"] += wind_farm_power
+            self.main_dict["py_sims"]["inputs"]["locally_generated_power"] += wind_farm_power
             # print("sim_time_s_amr_wind = ", sim_time_s_amr_wind)
             self.main_dict["py_sims"]["inputs"]["sim_time_s"] = sim_time_s_amr_wind
             # print('self.main_dict[''py_sims''][''inputs''][''sim_time_s''] = ',

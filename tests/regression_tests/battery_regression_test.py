@@ -147,7 +147,7 @@ def test_SimpleBattery_regression_():
             "py_sims": {
                 "inputs": {
                     "battery_signal": powers_requested[i],
-                    "available_power": powers_requested[i]
+                    "locally_generated_power": powers_requested[i]
                 }
             }
         })
@@ -182,7 +182,7 @@ def test_LIB_regression_():
             "py_sims": {
                 "inputs": {
                     "battery_signal": powers_requested[i],
-                    "available_power": powers_requested[i]
+                    "locally_generated_power": powers_requested[i]
                 }
             }
         })
@@ -227,7 +227,7 @@ def test_SimpleBattery_usage_calc_regression():
     for i in range(len(power_avail)):
         step_input_dict = {
             "py_sims": {"inputs": {
-                "available_power": power_avail[i],
+                "locally_generated_power": power_avail[i],
                 "battery_signal": power_signal[i]
                 }
             },
@@ -256,7 +256,7 @@ def test_SimpleBattery_usage_calc_regression():
     for i in range(len(power_avail)):
         step_input_dict = {
             "py_sims": {"inputs": {
-                "available_power": power_avail[i],
+                "locally_generated_power": power_avail[i],
                 "battery_signal": 0
                 }
             },
