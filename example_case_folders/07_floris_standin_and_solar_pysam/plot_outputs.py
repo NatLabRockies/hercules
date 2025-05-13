@@ -41,8 +41,8 @@ fig, ax = plt.subplots()
 ax.plot(time / 3600, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.000"], label="WT000")
 ax.plot(time / 3600, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.001"], label="WT001")
 ax.plot(time / 3600, df["py_sims.solar_farm_0.outputs.power_mw"]*1000, label="solar PV")
-ax.plot(time / 3600, df["py_sims.inputs.available_power"], label="wind power")
-ax.plot(time / 3600, df["py_sims.inputs.available_power"]+\
+ax.plot(time / 3600, df["py_sims.inputs.locally_generated_power"], label="wind power")
+ax.plot(time / 3600, df["py_sims.inputs.locally_generated_power"]+\
     df["py_sims.solar_farm_0.outputs.power_mw"]*1000, label="available power")
 ax.set_ylabel("Power [kW]")
 ax.set_xlabel("Time [hr]")
