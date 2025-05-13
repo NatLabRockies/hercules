@@ -1,3 +1,5 @@
+import numpy as np
+
 # Electrolyzer plant module
 from electrolyzer.simulation.supervisor import Supervisor
 
@@ -48,7 +50,13 @@ class ElectrolyzerPlant:
         local_power = inputs["py_sims"]["inputs"][
             "locally_generated_power"
         ]  # TODO check what units this is in
-        power_command = inputs["py_sims"]["inputs"]["electrolyzer_signal"]
+        if "electrolyzer_signal" in inputs["py_sims"]["inputs"].keys():
+            power_command = inputs["py_sims"]["inputs"]["electrolyzer_signal"]
+        elif not self.allow_grid_charging:
+            # Assume electrolyzer should use as much local power as possible.
+            power_command = np.inf
+        else:
+            raise ValueError("electrolyzer_signal must be specified if allowing grid charging.")
 
         if self.allow_grid_charging:
             power_in = power_command

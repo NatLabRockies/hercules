@@ -11,7 +11,7 @@ fig, ax = plt.subplots()
 time = df["hercules_comms.amr_wind.wind_farm_0.sim_time_s_amr_wind"]
 ax.plot(time, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.000"], label="WT000",lw=3)
 ax.plot(time, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.001"], label="WT001")
-ax.plot(time, df["py_sims.inputs.available_power"], label="available power")
+ax.plot(time, df["py_sims.inputs.locally_generated_power"], label="Generated power")
 ax.set_ylabel("Power [kW]")
 ax.set_xlabel("Time")
 ax.legend()

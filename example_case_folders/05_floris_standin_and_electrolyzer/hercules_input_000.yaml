@@ -99,6 +99,7 @@ py_sims:
     initial_conditions:
       # Initial power input to electrolyzer 
       power_available_kw: 3000
+    allow_grid_charging: False
 
 controller:
 
