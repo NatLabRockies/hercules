@@ -28,7 +28,7 @@ for label, battery_col, ls, output_file in zip(labels, battery_cols, linestyles,
                      for t in range(n_wind_turbines)]].to_numpy().sum(axis=1) / 1e3
     battery_power = -df["py_sims.battery_0.outputs.power"] / 1e3 # discharging positive
 
-    power_output = df["py_sims.inputs.available_power"] / 1e3 + battery_power
+    power_output = df["py_sims.inputs.locally_generated_power"] / 1e3 + battery_power
 
     time = df["hercules_comms.amr_wind.wind_farm_0.sim_time_s_amr_wind"] / 60 # minutes
 
