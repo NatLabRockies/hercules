@@ -70,7 +70,9 @@ class ElectrolyzerPlant:
 
         # Run electrolyzer forward one step
         ######## Electrolyzer needs input in Watts ########
-        H2_produced, H2_mfr, power_left_w, power_curtailed_w = self.elec_sys.run_control(power_in_kw * 1e3)
+        H2_produced, H2_mfr, power_left_w, power_curtailed_w = self.elec_sys.run_control(
+            power_in_kw * 1e3
+            )
 
         # Collect outputs from electrolyzer step
         self.curtailed_power_kw = power_curtailed_w / 1e3
