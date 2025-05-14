@@ -11,10 +11,10 @@ class ElectrolyzerPlant:
         electrolyzer_dict["electrolyzer"] = input_dict["electrolyzer"]
         electrolyzer_dict["electrolyzer"]["dt"] = dt
 
-        if "allow_grid_charging" in input_dict.keys():
-            self.allow_grid_charging = input_dict["allow_grid_charging"]
+        if "allow_grid_power_consumption" in input_dict.keys():
+            self.allow_grid_power_consumption = input_dict["allow_grid_power_consumption"]
         else:
-            self.allow_grid_charging = True
+            self.allow_grid_power_consumption = False
 
         # Initialize electrolyzer plant
         self.elec_sys = Supervisor.from_dict(electrolyzer_dict["electrolyzer"])
@@ -52,13 +52,13 @@ class ElectrolyzerPlant:
         ]  # TODO check what units this is in
         if "electrolyzer_signal" in inputs["py_sims"]["inputs"].keys():
             power_command = inputs["py_sims"]["inputs"]["electrolyzer_signal"]
-        elif not self.allow_grid_charging:
+        elif not self.allow_grid_power_consumption:
             # Assume electrolyzer should use as much local power as possible.
             power_command = np.inf
         else:
             raise ValueError("electrolyzer_signal must be specified if allowing grid charging.")
 
-        if self.allow_grid_charging:
+        if self.allow_grid_power_consumption:
             power_in = power_command
         else:
             power_in = min(local_power, power_command)

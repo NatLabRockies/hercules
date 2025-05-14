@@ -48,12 +48,11 @@ test_input_dict = {
         },
       },
     },
-    "allow_grid_charging": False,
 }
 
 
-def test_allow_grid_charging():
-    # Test with allow_grid_charging = False
+def test_allow_grid_power_consumption():
+    # Test with allow_grid_power_consumption = False
     electrolyzer = ElectrolyzerPlant(test_input_dict, 1)
     
     step_inputs = {
@@ -87,7 +86,7 @@ def test_allow_grid_charging():
     assert H2_output_4000 == H2_output_3000
 
     # Now, allow grid charging and repeat tests
-    test_input_dict["allow_grid_charging"] = True
+    test_input_dict["allow_grid_power_consumption"] = True
     electrolyzer = ElectrolyzerPlant(test_input_dict, 1)
     
     step_inputs["py_sims"]["inputs"]["electrolyzer_signal"] = 2000

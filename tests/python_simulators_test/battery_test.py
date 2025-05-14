@@ -14,7 +14,6 @@ def get_battery_params(battery_type):
         "max_SOC": 0.9,  # upper boundary on battery SOC
         "min_SOC": 0.1,  # lower boundary on battery SOC
         "initial_conditions": {"SOC": 0.102},
-        "allow_grid_charging": False,
     }
     dt = 1
     return battery_dict, dt
@@ -327,10 +326,10 @@ def test_LI_constraints(LI):
     assert I_charge == -179.9999999998363
     assert I_reject == -220.0000000001637
 
-def test_allow_grid_charging(SB: SimpleBattery):
-    # Test with allow_grid_charging = True
+def test_allow_grid_power_consumption(SB: SimpleBattery):
+    # Test with allow_grid_power_consumption = True
     battery_dict, dt = get_battery_params(SimpleBattery)
-    battery_dict["allow_grid_charging"] = True
+    battery_dict["allow_grid_power_consumption"] = True
     SB = SimpleBattery(battery_dict, dt)
 
     # Ask exceeds rated power
@@ -338,7 +337,7 @@ def test_allow_grid_charging(SB: SimpleBattery):
     assert out["power"] == 2e3
     assert out["reject"] == 0.5e3
 
-    battery_dict["allow_grid_charging"] = False
+    battery_dict["allow_grid_power_consumption"] = False
     SB = SimpleBattery(battery_dict, dt)
 
     out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
@@ -350,13 +349,13 @@ def test_allow_grid_charging(SB: SimpleBattery):
     assert out["reject"] == 1.5e3
 
     # Ask is under rated power
-    battery_dict["allow_grid_charging"] = True
+    battery_dict["allow_grid_power_consumption"] = True
     SB = SimpleBattery(battery_dict, dt)
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
     assert out["power"] == 1e3 # Ignores P_avail, as expected
     assert out["reject"] == 0
 
-    battery_dict["allow_grid_charging"] = False
+    battery_dict["allow_grid_power_consumption"] = False
     SB = SimpleBattery(battery_dict, dt)
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
     assert out["power"] == 0.25e3 # Uses P_avail

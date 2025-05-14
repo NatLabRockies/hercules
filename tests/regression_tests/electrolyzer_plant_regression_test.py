@@ -53,7 +53,6 @@ test_input_dict = {
         },
       },
     },
-    "allow_grid_charging": False,
 }
 
 np.random.seed(0)
