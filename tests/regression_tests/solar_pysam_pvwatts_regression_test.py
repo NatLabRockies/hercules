@@ -1,8 +1,4 @@
 """Regression tests for 'SolarPySAM'."""
-<<<<<<< HEAD
-=======
-
->>>>>>> 1da6b62238dc274a93d16ec9f13e67c4d0193497
 import os
 
 import numpy as np
