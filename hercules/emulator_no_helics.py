@@ -14,6 +14,26 @@ Path("outputs").mkdir(parents=True, exist_ok=True)
 
 class EmulatorNoHelics:
     def __init__(self, controller, py_sims, input_dict, logger):
+        """
+        Initializes the emulator.
+
+        Args:
+            controller (object): The controller object responsible for managing the simulation.
+            py_sims (object): An object containing Python-based simulation components.
+            input_dict (dict): A dictionary containing configuration parameters for the emulator.
+                Required keys:
+                    - "dt" (float): The time step for the simulation in seconds.
+                    - "starttime" (float): The start time of the simulation in seconds.
+                    - "endtime" (float): The end time of the simulation in seconds.
+                Optional keys:
+                    - "output_file" (str): Path to the output CSV file.
+                        Defaults to "outputs/hercules_output.csv".
+                    - "external_data_file" (str): Path to an external data file
+                        for additional inputs.
+            logger (object): A logger instance for logging messages during the simulation.
+
+        """
+
         # Make sure output folder exists
         Path("outputs").mkdir(parents=True, exist_ok=True)
 
@@ -23,7 +43,7 @@ class EmulatorNoHelics:
         # Save the input dict to main dict
         self.main_dict = input_dict
 
-        # Initialize the flattend main_dict
+        # Initialize the flattened main_dict
         self.main_dict_flat = {}
 
         # Initialize the output file
@@ -42,20 +62,25 @@ class EmulatorNoHelics:
         self.csv_buffer_size = 1000
         self.csv_buffer = []
 
-        # Save time step
-        self.dt = input_dict["dt"]
-
-        # How often to update the user on current emulator time
-        self.time_log_interval = 600  # seconds
-        self.last_log_time = 0
-
         # Save time step, start time and end time
         self.dt = input_dict["dt"]
         self.starttime = input_dict["starttime"]
         self.endtime = input_dict["endtime"]
-        self.total_simulation_time = self.endtime - self.starttime
+        self.total_simulation_time = self.endtime - self.starttime  # In seconds
         self.total_simulation_days = self.total_simulation_time / 86400
-        self.time = 0.0
+        self.time = self.starttime
+
+        # Initialize the step
+        self.step = 0
+        self.n_steps = int(self.total_simulation_time / self.dt)
+
+        # How often to update the user on current emulator time
+        # In simulated time
+        self.time_log_interval = 600  # seconds
+        self.step_log_interval = self.time_log_interval / self.dt
+
+        # Round to step_log_interval to be an integer greater than 0
+        self.step_log_interval = np.max([1, np.round(self.step_log_interval)])
 
         # Initialize components
         self.controller = controller
@@ -63,10 +88,6 @@ class EmulatorNoHelics:
 
         # Update the input dict components
         self.main_dict["py_sims"] = self.py_sims.get_py_sim_dict()
-
-        # Initialize time # TODO - does this belong in 'initial conditions' instead?
-        if self.main_dict["py_sims"]:
-            self.main_dict["py_sims"]["inputs"]["sim_time_s"] = self.starttime
 
         # Read in any external data
         self.external_data_all = {}
@@ -76,6 +97,16 @@ class EmulatorNoHelics:
             self.main_dict["external_signals"] = {}
 
     def _read_external_data_file(self, filename):
+        """
+        Read and interpolate external data from a CSV file.
+
+        This method reads external data from the specified CSV file and interpolates it
+        according to the simulation time steps. The external data must include a 'time' column.
+        The interpolated data is stored in self.external_data_all.
+        Args:
+            filename (str): Path to the CSV file containing external data.
+        """
+
         # Read in the external data file
         df_ext = pd.read_csv(filename)
         if "time" not in df_ext.columns:
@@ -84,8 +115,8 @@ class EmulatorNoHelics:
         # Interpolate the external data according to time.
         # Goes to 1 time step past stoptime specified in the input file.
         times = np.arange(
-            self.helics_config_dict["starttime"],
-            self.helics_config_dict["stoptime"] + (2 * self.dt),
+            self.starttime,
+            self.endtime + (2 * self.dt),
             self.dt,
         )
         self.external_data_all["time"] = times
@@ -93,9 +124,68 @@ class EmulatorNoHelics:
             if c != "time":
                 self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
 
+    def _open_output_file(self):
+        """
+        Open the output file for writing with buffering.
+
+        This method creates the output directory if it doesn't exist,
+        opens the output file with buffering for improved performance,
+        and determines whether a header needs to be written based on
+        if the file is empty.
+        """
+        # Create directory if it doesn't exist
+        output_dir = os.path.dirname(os.path.abspath(self.output_file))
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Open the file with buffering
+        self.csv_file = open(self.output_file, "a", newline="", buffering=8192)  # 8KB buffer
+        self.csv_writer = csv.writer(self.csv_file)
+
+        # Check if file is empty to determine if header needs to be written
+        if os.path.getsize(self.output_file) == 0:
+            self.header_written = False
+        else:
+            self.header_written = True
+            # Read the header from file
+            with open(self.output_file, "r") as f:
+                self.header = f.readline().strip().split(",")
+
+    def _save_main_dict_as_text(self):
+        """
+        Save the main dictionary to a text file.
+
+        This method redirects stdout to a file, prints the main dictionary, and then
+        restores stdout to its original state. The dictionary is saved to
+        'outputs/main_dict.echo' to help with log interpretation.
+        """
+
+        # Echo the dictionary to a seperate file in case it is helpful
+        # to see full dictionary in interpreting log
+
+        original_stdout = sys.stdout
+        with open("outputs/main_dict.echo", "w") as f_i:
+            sys.stdout = f_i  # Change the standard output to the file we created.
+            print(self.main_dict)
+            sys.stdout = original_stdout  # Reset the standard output to its original value
+
     def enter_execution(self, function_targets=[], function_arguments=[[]]):
+        """
+        Execute the main simulation loop and handle timing and logging.
+
+        This method initiates the simulation execution, runs the main loop, and handles
+        all associated timing calculations, logging, and file operations. It ensures proper
+        cleanup of resources even if exceptions occur during simulation.
+
+        Args:
+            function_targets (list, optional): List of functions to execute during simulation.
+                Defaults to empty list.
+            function_arguments (list of lists, optional): List of argument lists to pass to each
+                corresponding function in function_targets.
+                Defaults to a list containing an empty list.
+        """
+
         # Open the output file
-        self.open_output_file()
+        self._open_output_file()
 
         # Wrap this effort in a try block so on failure or completion sure to purge csv buffer
         try:
@@ -140,18 +230,25 @@ class EmulatorNoHelics:
             self.close_output_file()
 
     def run(self):
+        """
+        Runs the emulation loop until the end time is reached.
+
+        """
+
         self.logger.info(" #### Entering main loop #### ")
 
         self.first_iteration = True
 
-        # Run simulation till endtime
-        # while self.absolute_helics_time < self.endtime:
-        while self.time < (self.endtime):
+        # Run simulation through steps
+        for self.step in range(self.n_steps):
+            # Compute the current time
+            self.time = self.starttime + (self.step * self.dt)
+
             # Log the current time
-            if self.time - self.last_log_time > self.time_log_interval or self.first_iteration:
-                self.last_log_time = self.time
+            if (self.step % self.step_log_interval == 0) or self.first_iteration:
                 self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
-                self.logger.info(f"--Percent completed: {100 * self.time / self.endtime:.2f}%")
+                self.logger.info(f"Step: {self.step} of {self.n_steps}")
+                self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
 
             for k in self.external_data_all:
                 self.main_dict["external_signals"][k] = self.external_data_all[k][
@@ -159,8 +256,8 @@ class EmulatorNoHelics:
                 ][0]
 
             # Update controller and py sims
-            # TODO: Update this when I've figured out time
             self.main_dict["time"] = self.time
+            self.main_dict["step"] = self.step
             self.main_dict = self.controller.step(self.main_dict)
             if self.main_dict["py_sims"]:
                 self.py_sims.step(self.main_dict)
@@ -173,13 +270,22 @@ class EmulatorNoHelics:
             # And turn off the first iteration flag
             if self.first_iteration:
                 self.logger.info(self.main_dict)
-                self.save_main_dict_as_text()
+                self._save_main_dict_as_text()
                 self.first_iteration = False
 
             # Update the time
             self.time = self.time + self.dt
 
     def recursive_flatten_main_dict(self, nested_dict, prefix=""):
+        """
+        Recursively flattens a nested dictionary and stores the flattened key-value pairs
+        in the `main_dict_flat` attribute.
+        Args:
+            nested_dict (dict): The nested dictionary to be flattened.
+            prefix (str, optional): The prefix to prepend to the keys in the flattened
+                dictionary. Defaults to an empty string.
+        """
+
         # Recursively flatten the input dict
         for k, v in nested_dict.items():
             if isinstance(v, dict):
@@ -194,25 +300,6 @@ class EmulatorNoHelics:
                 # If v is a string, int, or float, enter it directly
                 if isinstance(v, (int, np.integer, float)):
                     self.main_dict_flat[prefix + k] = v
-
-    def open_output_file(self):
-        """Open the output file with bufferinge."""
-        # Create directory if it doesn't exist
-        output_dir = os.path.dirname(os.path.abspath(self.output_file))
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Open the file with buffering
-        self.csv_file = open(self.output_file, "a", newline="", buffering=8192)  # 8KB buffer
-        self.csv_writer = csv.writer(self.csv_file)
-
-        # Check if file is empty to determine if header needs to be written
-        if os.path.getsize(self.output_file) == 0:
-            self.header_written = False
-        else:
-            self.header_written = True
-            # Read the header from file
-            with open(self.output_file, "r") as f:
-                self.header = f.readline().strip().split(",")
 
     def close_output_file(self):
         """Properly close the output file."""
@@ -235,6 +322,11 @@ class EmulatorNoHelics:
         self.csv_buffer = []
 
     def log_main_dict(self):
+        """
+        Logs the current state of the main dictionary to a CSV file.
+
+        """
+
         # Update the flattened input dict
         self.recursive_flatten_main_dict(self.main_dict)
 
@@ -247,7 +339,7 @@ class EmulatorNoHelics:
 
         # Ensure the output file is open
         if not self.csv_file:
-            self.open_output_file()
+            self._open_output_file()
 
         # Handle header
         if not self.header_written:
@@ -266,35 +358,6 @@ class EmulatorNoHelics:
         # Flush if buffer is full
         if len(self.csv_buffer) >= self.csv_buffer_size:
             self.flush_buffer()
-
-        # # If this is first iteration, write the keys as csv header
-        # if self.first_iteration:
-        #     with open(self.output_file, "w") as filex:
-        #         filex.write(",".join(keys) + os.linesep)
-
-        # # Load the csv header and check if it matches the current keys
-        # with open(self.output_file, "r") as filex:
-        #     header = filex.readline().strip().split(",")
-        #     if header != keys:
-        #         self.logger.warning(
-        #             "WARNING: Input dict keys have changed since first iteration.\
-        #                 Not writing to csv file."
-        #         )
-        #         return
-
-        # # Append the values to the csv file
-        # with open(self.output_file, "a") as filex:
-        #     filex.write(",".join([str(v) for v in values]) + os.linesep)
-
-    def save_main_dict_as_text(self):
-        # Echo the dictionary to a seperate file in case it is helpful
-        # to see full dictionary in interpreting log
-
-        original_stdout = sys.stdout
-        with open("outputs/main_dict.echo", "w") as f_i:
-            sys.stdout = f_i  # Change the standard output to the file we created.
-            print(self.main_dict)
-            sys.stdout = original_stdout  # Reset the standard output to its original value
 
     def parse_input_yaml(self, filename):
         pass

@@ -2,7 +2,7 @@
 
 
 class SimpleSolar:
-    def __init__(self, input_dict, dt):
+    def __init__(self, input_dict, dt, starttime=None, endtime=None):
         # Need dt, plant capacity and efficiency
         # Using base value of 1000 W/m^2 irradiance for sizing
 

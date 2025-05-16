@@ -7,6 +7,8 @@ test_input_dict = {
     "name": "test_input_dict",
     "description": "Test input dictionary for Hercules",
     "dt": 1,
+    "starttime": 0.0,
+    "endtime": 10.0,
     "hercules_comms": {
         "amr_wind": {
             "test_farm": {
@@ -71,6 +73,8 @@ def test_Emulator_instantiation():
     test_input_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_input_dict_2["output_file"] = "test_output.csv"
     test_input_dict_2["dt"] = 0.5
+    test_input_dict_2["starttime"] = 0.0
+    test_input_dict_2["endtime"] = 10.0
 
     emulator = Emulator(controller, py_sims, test_input_dict_2)
 

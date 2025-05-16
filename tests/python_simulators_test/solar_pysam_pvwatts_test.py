@@ -10,9 +10,10 @@ def get_solar_params():
     solar_dict = {
         "py_sim_type": SolarPySAM,
         "pysam_model": "pvwatts",
-        "weather_file_name": None,
+        "solar_input_filename": None,
         "weather_data_input": {
-        "Timestamp": ['2018-05-10 12:31:00+00:00'],
+        "time": [0],
+        "time_utc": ['2018-05-10 12:31:00+00:00'],
         "SRRL BMS Direct Normal Irradiance (W/m²_irr)": [330.8601989746094],
         "SRRL BMS Diffuse Horizontal Irradiance (W/m²_irr)": [32.576671600341804],
         "SRRL BMS Global Horizontal Irradiance (W/m²_irr)": [68.23037719726561],
@@ -38,7 +39,7 @@ def get_solar_params():
 
 def create_solar_pysam():
     solar_dict, dt = get_solar_params()
-    return SolarPySAM(solar_dict, dt)
+    return SolarPySAM(solar_dict, dt, starttime=0, endtime=0.5)
 
 @pytest.fixture
 def SPS():
@@ -47,7 +48,7 @@ def SPS():
 def test_init():
     # testing the `init` function: reading the inputs from input dictionary
     solar_dict, dt = get_solar_params()
-    SPS = SolarPySAM(solar_dict, dt)
+    SPS = SolarPySAM(solar_dict, dt, starttime=0, endtime=0.5)
 
     assert SPS.dt == dt
 
@@ -83,7 +84,7 @@ def test_return_outputs(SPS: SolarPySAM):
 
 def test_step(SPS: SolarPySAM):
     # testing the `step` function: calculating power based on inputs at first timestep
-    step_inputs = {"time": 0}
+    step_inputs = {"step": 0}
 
     SPS.step(step_inputs)
 
@@ -95,6 +96,6 @@ def test_step(SPS: SolarPySAM):
 
 def test_control(SPS: SolarPySAM):
     power_setpoint_mw = 10
-    step_inputs = {"time": 0, "py_sims": {"inputs": {"solar_setpoint_mw": power_setpoint_mw}}}
+    step_inputs = {"step": 0, "py_sims": {"inputs": {"solar_setpoint_mw": power_setpoint_mw}}}
     SPS.step(step_inputs)
     assert_almost_equal(SPS.power_mw, power_setpoint_mw, decimal=8)

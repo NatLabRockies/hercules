@@ -3,7 +3,7 @@ from electrolyzer.simulation.supervisor import Supervisor
 
 
 class ElectrolyzerPlant:
-    def __init__(self, input_dict, dt):
+    def __init__(self, input_dict, dt, starttime=None, endtime=None):
         electrolyzer_dict = {}
         electrolyzer_dict["general"] = input_dict["general"]
         electrolyzer_dict["electrolyzer"] = input_dict["electrolyzer"]

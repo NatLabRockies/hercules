@@ -9,14 +9,14 @@ SCRIPTS_DIR="../../scripts"
 # to ensure the Hercules environment is active
 source $SCRIPTS_DIR/activate_conda.sh
 
-# Pull the wind input from example 10
-if [ ! -f inputs/wind_input.csv ]; then
+# Pull the wind input from example 12
+if [ ! -f inputs/wind_input.p ]; then
     # Check if the file exists in the example 10 folder
-    if [ -f ../10_WindSimLongTerm_only/inputs/wind_input.csv ]; then
-        echo "Copying wind input from example 10"
-        cp ../10_WindSimLongTerm_only/inputs/wind_input.csv inputs/
+    if [ -f ../12_WindSimLongTerm_RealisticInflow/inputs/wind_input.p ]; then
+        echo "Copying wind input from example 12"
+        cp ../12_WindSimLongTerm_RealisticInflow/inputs/wind_input.p inputs/
     else
-        echo "Wind input file not found in example 10 folder. Please generate it first."
+        echo "Wind input file not found in example 12 folder. Please generate it first."
         exit 1
     fi
 fi

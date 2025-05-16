@@ -9,8 +9,11 @@ from hercules.python_simulators.wind_sim_long_term import WindSimLongTerm
 
 class PySims:
     def __init__(self, input_dict):
-        # Save timt step
+        # Save time information
         self.dt = input_dict["dt"]
+        self.starttime = input_dict["starttime"]
+        self.endtime = input_dict["endtime"]
+        
 
         # Grab py sim details
         self.py_sim_dict = input_dict["py_sims"]
@@ -45,19 +48,19 @@ class PySims:
 
     def get_py_sim(self, py_sim_obj_dict):
         if py_sim_obj_dict["py_sim_type"] == "SimpleSolar":
-            return SimpleSolar(py_sim_obj_dict, self.dt)
+            return SimpleSolar(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
 
         if py_sim_obj_dict["py_sim_type"] == "SolarPySAM":
-            return SolarPySAM(py_sim_obj_dict, self.dt)
+            return SolarPySAM(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
 
         if py_sim_obj_dict["py_sim_type"] in [ "SimpleBattery", "LIB"]:
-            return Battery(py_sim_obj_dict, self.dt)
+            return Battery(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
 
         if py_sim_obj_dict["py_sim_type"] == "ElectrolyzerPlant":
-            return ElectrolyzerPlant(py_sim_obj_dict, self.dt)
+            return ElectrolyzerPlant(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
         
         if py_sim_obj_dict["py_sim_type"] == 'WindSimLongTerm':
-            return WindSimLongTerm(py_sim_obj_dict, self.dt)
+            return WindSimLongTerm(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
 
         raise Exception("Unknown py_sim_type: ", py_sim_obj_dict["py_sim_type"])
 

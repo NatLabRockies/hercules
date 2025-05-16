@@ -46,7 +46,7 @@ def cycles_to_usage_rate(cycles):
 
 
 class Battery:
-    def __init__(self, input_dict, dt):
+    def __init__(self, input_dict, dt, starttime=None, endtime=None):
         if input_dict["py_sim_type"] == "SimpleBattery":
             self.battery = SimpleBattery(input_dict, dt)
         elif input_dict["py_sim_type"] == "LIB":
