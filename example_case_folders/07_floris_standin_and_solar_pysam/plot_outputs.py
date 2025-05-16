@@ -15,7 +15,7 @@ if "external_signals.solar_power_reference_mw" in df.columns:
 ac_power = df["py_sims.solar_farm_0.outputs.power_mw"]
 # dc_power = df["py_sims.solar_farm_0.outputs.dc_power_mw"]
 aoi = df["py_sims.solar_farm_0.outputs.aoi"]
-irradiance = df["py_sims.solar_farm_0.outputs.dni"]
+irradiance = df["py_sims.solar_farm_0.outputs.poa"]
 
 fig, ax = plt.subplots(3, 1, sharex="col")  # , figsize=[6,5], dpi=250)
 

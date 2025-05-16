@@ -39,6 +39,7 @@ py_sims:
 
       power: 25 # MW
       dni: 1000
+      poa: 1000
 
 
 controller:

@@ -85,7 +85,8 @@ def get_solar_params():
         "target_dc_ac_ratio": 1.33,
         "initial_conditions": {
             "power": 25, 
-            "dni": 1000
+            "dni": 1000,
+            "poa": 1000
         },
         "verbose": False
     }

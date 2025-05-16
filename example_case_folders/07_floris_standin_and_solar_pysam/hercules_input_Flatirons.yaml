@@ -33,7 +33,7 @@ hercules_comms:
         publication_interval: 1
         endpoint_interval: 1
         starttime: 0
-        stoptime: 20 # 100
+        stoptime: 20
         Agent: ControlCenter
 
 py_sims:
@@ -55,6 +55,7 @@ py_sims:
 
       power: 25 # MW
       dni: 1000
+      poa: 1000
 
 controller:
 

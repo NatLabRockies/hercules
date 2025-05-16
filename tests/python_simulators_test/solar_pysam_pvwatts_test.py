@@ -27,7 +27,8 @@ def get_solar_params():
         "target_dc_ac_ratio": 1.33,
         "initial_conditions": {
             "power": 25, 
-            "dni": 1000
+            "dni": 1000,
+            "poa": 1000
         },
     }
     
@@ -64,17 +65,20 @@ def test_return_outputs(SPS: SolarPySAM):
 
     assert outputs_init["power_mw"] == 25
     assert outputs_init["dni"] == 1000
+    assert outputs_init["poa"] == 1000
 
     # change PV power predictions and irradiance as if during simulation
     SPS.power_mw = 800
-    SPS.dni = 900
+    SPS.dni = 600
+    SPS.poa = 900
     SPS.aoi = 0
 
     # check that outputs return the changed PV outputs
     outputs_sim = SPS.return_outputs()
 
     assert outputs_sim["power_mw"] == 800
-    assert outputs_sim["dni"] == 900
+    assert outputs_sim["dni"] == 600
+    assert outputs_sim["poa"] == 900
     assert outputs_sim["aoi"] == 0
 
 def test_step(SPS: SolarPySAM):

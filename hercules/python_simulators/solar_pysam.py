@@ -112,6 +112,7 @@ class SolarPySAM:
         self.power_mw = input_dict["initial_conditions"]["power"]
         self.dc_power_mw = input_dict["initial_conditions"]["power"]
         self.dni = input_dict["initial_conditions"]["dni"]
+        self.poa = input_dict["initial_conditions"]["poa"]
         self.aoi = 0
 
         # dynamic sizing special treatment only required for pvsam model, not for pvwatts
@@ -145,6 +146,7 @@ class SolarPySAM:
         return {
             "power_mw": self.power_mw,
             "dni": self.dni,
+            "poa": self.poa,
             "aoi": self.aoi,
         }
 
@@ -259,13 +261,18 @@ class SolarPySAM:
         self.dni = self.system_model.Outputs.dn[0]  # direct normal irradiance
         self.dhi = self.system_model.Outputs.df[0]  # diffuse horizontal irradiance
         self.ghi = self.system_model.Outputs.gh[0]  # global horizontal irradiance
-        if self.verbose:
-            print("self.dni = ", self.dni)
+        
 
         if self.pysam_model == 'pvsam':
             self.aoi = self.system_model.Outputs.subarray1_aoi[0]  # angle of incidence
+            self.poa = self.system_model.Outputs.subarray1_poa_eff[0]  # plane of array irradiance (f(dni, dhi, ghi))
+
         elif self.pysam_model == 'pvwatts':
             self.aoi = self.system_model.Outputs.aoi[0]  # angle of incidence
+            self.poa = self.system_model.Outputs.poa[0]  # plane of array irradiance (f(dni, dhi, ghi))
+        
+        if self.verbose:
+            print("self.poa = ", self.poa)
 
         return self.return_outputs()
 
