@@ -1,0 +1,34 @@
+# Input YAML for hercules
+
+# Name
+name: example_010
+
+###
+# Describe this emulator setup
+description: Long run Only
+
+dt: 1.0
+starttime: 0.0
+endtime: 950.0
+
+
+py_sims:
+
+  # NOTE FOR PRESENT MOMENT WindSimLongTerm Must be first entry in py_sims
+  wind_farm_0: # The name of the WindSimLongTerm wind farm
+    py_sim_type: WindSimLongTerm
+    num_turbines: 3 #Not sure if needed
+    verbose: True
+    floris_input_file: inputs/floris_input.yaml
+    wind_input_filename: inputs/wind_input.csv
+    turbine_file_name: inputs/turbine_dof_1.yaml
+
+
+controller:
+
+
+
+
+
+
+

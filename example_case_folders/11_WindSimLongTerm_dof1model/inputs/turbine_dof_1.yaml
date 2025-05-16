@@ -1,0 +1,23 @@
+# Input YAML for turbine model
+
+# Name
+name: NREL 5MW - DOF1 Model
+
+turbine_model_type: dof1_model # Can be filter_model or dof1_model
+
+dof1_model:
+  rho: 1.225
+  rotor_inertia: 38677040.613 # [Kg m^2]
+  rated_power: 5 # [MW]
+  rated_rotor_speed: 12.1 # RPM
+  filterfreq_rotor_speed: 1.57 # rad/sec
+  max_torque_rate: 400000 # [Nm/s]
+  max_pitch_rate: 0.1745 # [rad/s]
+
+  gearbox_ratio: 97
+  cq_table_file: inputs/Cp_Ct_Cq_NREL5MW.txt # Copied from ROSCO examples
+  initial_rpm: 10 # [RPM]
+  controller:
+    r2_k_torque: 21944 #19710
+    r3_torque: 43,093
+    ki_pitch: 0.008068634
