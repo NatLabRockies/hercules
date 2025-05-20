@@ -313,8 +313,8 @@ class SolarPySAM:
         if "py_sims" in inputs and "solar_setpoint_mw" in inputs["py_sims"]["inputs"]:
             P_setpoint = inputs["py_sims"]["inputs"]["solar_setpoint_mw"]
         elif "external_signals" in inputs.keys():
-            if "solar_power_reference_mw" in inputs["external_signals"].keys():
-                P_setpoint = inputs["external_signals"]["solar_power_reference_mw"]
+            if "solar_power_reference" in inputs["external_signals"].keys():
+                P_setpoint = inputs["external_signals"]["solar_power_reference"]
             else:
                 P_setpoint = None
         else:
