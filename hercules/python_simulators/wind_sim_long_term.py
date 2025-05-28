@@ -473,6 +473,14 @@ class TurbineFilterModel:
         # Limit the instant power to be greater than 0
         instant_power = max(instant_power, 0.0)
 
+        # TEMP: why are NaNs occurring?
+        if np.isnan(instant_power):
+            print(
+                f"NaN instant power at wind speed {wind_speed} m/s, "
+                f"derating {derating} kW, prev power {self.prev_power} kW"
+            )
+            instant_power = self.prev_power
+
         # Update the power
         power = self.alpha * instant_power + (1 - self.alpha) * self.prev_power
 
