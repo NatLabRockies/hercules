@@ -12,7 +12,7 @@ source $SCRIPTS_DIR/activate_conda.sh
 # Pull the wind input from example 12
 if [ ! -f inputs/wind_input.p ]; then
     # Check if the file exists in the example 10 folder
-    if [ -f ../12_WindSimLongTerm_RealisticInflow/inputs/wind_input.p]; then
+    if [ -f ../12_WindSimLongTerm_RealisticInflow/inputs/wind_input.p ]; then
         echo "Copying wind input from example 12"
         cp ../12_WindSimLongTerm_RealisticInflow/inputs/wind_input.p inputs/
     else

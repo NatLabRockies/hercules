@@ -10,16 +10,16 @@ df = pd.read_csv("outputs/hercules_output.csv", index_col=False)
 # first test solar module outputs
 time = df["hercules_comms.amr_wind.wind_farm_0.sim_time_s_amr_wind"]
 
-if "external_signals.solar_power_reference_mw" in df.columns:
-    power_setpoint = df["external_signals.solar_power_reference_mw"]
+if "external_signals.solar_power_reference" in df.columns:
+    power_setpoint = df["external_signals.solar_power_reference"]
 ac_power = df["py_sims.solar_farm_0.outputs.power_mw"]
 # dc_power = df["py_sims.solar_farm_0.outputs.dc_power_mw"]
 aoi = df["py_sims.solar_farm_0.outputs.aoi"]
-irradiance = df["py_sims.solar_farm_0.outputs.dni"]
+irradiance = df["py_sims.solar_farm_0.outputs.poa"]
 
 fig, ax = plt.subplots(3, 1, sharex="col")  # , figsize=[6,5], dpi=250)
 
-if "external_signals.solar_power_reference_mw" in df.columns:
+if "external_signals.solar_power_reference" in df.columns:
     ax[0].plot(time / 3600, power_setpoint, "-", linewidth=1, label='setpoint', color="C0")
 ax[0].plot(time / 3600, ac_power, "--", label="power", color="C1")
 ax[0].set_ylabel("ac power")

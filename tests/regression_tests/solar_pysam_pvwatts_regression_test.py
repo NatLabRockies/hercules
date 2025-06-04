@@ -1,5 +1,4 @@
 """Regression tests for 'SolarPySAM'."""
-
 import os
 
 import numpy as np
@@ -83,7 +82,7 @@ def get_solar_params():
         "elev": 1829,
         "target_system_capacity_kW": 100002.58266599999,
         "target_dc_ac_ratio": 1.33,
-        "initial_conditions": {"power": 25, "dni": 1000},
+        "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
         "verbose": False,
     }
 
