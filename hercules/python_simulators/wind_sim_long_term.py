@@ -68,6 +68,41 @@ class WindSimLongTerm:
         self.wind_input_filename = input_dict["wind_input_filename"]
         self.turbine_file_name = input_dict["turbine_file_name"]
 
+        # Check for FLORIS timing configuration options in input_dict
+        if "floris_wd_threshold" in input_dict:
+            self.floris_wd_threshold = input_dict["floris_wd_threshold"]
+        else:
+            self.floris_wd_threshold = 3.0
+
+        if "floris_ws_threshold" in input_dict:
+            self.floris_ws_threshold = input_dict["floris_ws_threshold"]
+        else:
+            self.floris_ws_threshold = 1.0
+
+        if "floris_ti_threshold" in input_dict:
+            self.floris_ti_threshold = input_dict["floris_ti_threshold"]
+        else:
+            self.floris_ti_threshold = 0.1
+
+        if "floris_derating_threshold" in input_dict:
+            self.floris_derating_threshold = input_dict["floris_derating_threshold"]
+        else:
+            self.floris_derating_threshold = 10  # kW
+
+        if "floris_time_window_width_s" in input_dict:
+            self.floris_time_window_width_s = input_dict["floris_time_window_width_s"]
+            if self.floris_time_window_width_s < 1:
+                raise ValueError("FLORIS time window width must be at least 1 second")
+        else:
+            self.floris_time_window_width_s = 300.0  # Default to 5 minutes
+
+        if "floris_update_time_s" in input_dict:
+            self.floris_update_time_s = input_dict["floris_update_time_s"]
+            if self.floris_update_time_s < 1:
+                raise ValueError("FLORIS update time must be at least 1 second")
+        else:
+            self.floris_update_time_s = 60.0  # Default to 1 minute
+
         # Read in the weather file data
         # If a csv file is provided, read it in
         if self.wind_input_filename.endswith(".csv"):
@@ -123,20 +158,11 @@ class WindSimLongTerm:
         self.layout_y = self.fmodel.layout_y
         self.n_turbines = self.fmodel.n_turbines
 
-        # TODO Switch this to an input
-        self.floris_wd_threshold = 1.0
-        self.floris_ws_threshold = 0.5
-        self.floris_ti_threshold = 0.01
-        self.floris_derating_threshold = 10  # kW
-
-        # TODO Make this settable in the future
         # Establish the width of the FLORIS averaging window
-        self.floris_time_window_width_s = 30
         self.floris_time_window_width_steps = int(self.floris_time_window_width_s / self.dt)
         self.floris_time_window_width_steps = max(1, self.floris_time_window_width_steps)
 
         # How often to update the wake deficits
-        self.floris_update_time_s = 10
         self.floris_update_steps = int(self.floris_update_time_s / self.dt)
         self.floris_update_steps = max(1, self.floris_update_steps)
 
