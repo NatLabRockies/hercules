@@ -433,7 +433,7 @@ class TurbineFilterModel:
         self.filter_time_constant = turbine_dict["filter_model"]["time_constant"]
 
         # Solve for the filter alpha value given dt and the time constant
-        self.alpha = self.dt / (self.dt + self.filter_time_constant)
+        self.alpha = 1 - np.exp(-self.dt / self.filter_time_constant)
 
         # Grab the wind speed power curve from the fmodel and define a simple 1D LUT
         turbine_type = fmodel.core.farm.turbine_definitions[0]
