@@ -83,3 +83,15 @@ class PySims:
                 locally_generated_power += solar_power
 
         self.py_sim_dict["inputs"]["locally_generated_power"] = locally_generated_power
+
+    def calculate_plant_outputs(self, main_dict):
+        for py_sim_name in self.py_sim_names:
+            if "Electrolyzer" in self.py_sim_dict[py_sim_name]["py_sim_type"]:
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["hydrogen"] = \
+                    self.py_sim_dict[py_sim_name]["outputs"]["H2_output"]
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] -= \
+                    self.py_sim_dict[py_sim_name]["outputs"]["power_used_kw"] 
+            else:
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
+                    self.py_sim_dict[py_sim_name]["outputs"]["power_kw"] 
+                

@@ -43,6 +43,26 @@ class Emulator(FederateAgent):
         if self.main_dict["py_sims"]:
             self.main_dict["py_sims"]["inputs"]["sim_time_s"] = 0.0
 
+        self.main_dict["py_sims"]["inputs"]["plant_outputs"] = {}
+        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
+
+        # Initialize plant and grid variables
+        # balance_plant is a boolean variable that determines whether the plant will balance power
+        if "balance_plant" in input_dict.keys():
+            self.balance_plant = input_dict["balance_plant"]
+        else:
+            self.balance_plant = False
+
+        self.main_dict["balance_plant"] = self.balance_plant
+        if self.balance_plant:
+            self.plant_limit_kW = input_dict["plant_limit_kW"]
+            # Plant balance type determines how energy is curtailed if needed
+            # Choices are "wind_first", "solar_first", or "equal_split"
+            self.plant_balance_type = input_dict["plant_balance_type"]
+
+            self.main_dict["plant_limit_kW"] = self.plant_limit_kW
+            self.main_dict["plant_balance_type"] = self.plant_balance_type
+        
         # HELICS dicts
         self.hercules_comms_dict = input_dict["hercules_comms"]
         self.hercules_helics_dict = self.hercules_comms_dict["helics"]
@@ -200,6 +220,9 @@ class Emulator(FederateAgent):
 
             # Receive outputs back (for next time step)
             self.receive_amrwind_data()
+
+            # Calculate plant outputs
+            self.calculate_plant_outputs()
             
             # Log the current state
             self.log_main_dict()
@@ -299,8 +322,29 @@ class Emulator(FederateAgent):
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
             "wind_farm_power"
         ] = wind_farm_power
+        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
+            "power_kW"
+        ] = wind_farm_power
 
         return None
+    
+    def calculate_plant_outputs(self):
+
+        # Zero out outputs for this step
+        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
+
+        # Pull electrical outputs from py_sims
+        self.py_sims.calculate_plant_outputs(self.main_dict)
+
+        # Add wind farm power outpu
+        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
+        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
+            "power_kW"
+        ]
+
+        if self.balance_plant:
+            self.balance_plant_outputs()
+
 
     def recursive_flatten_main_dict(self, nested_dict, prefix=""):
         # Recursively flatten the input dict
@@ -507,3 +551,18 @@ class Emulator(FederateAgent):
                 )
 
         return return_dict
+    
+    def balance_plant_outputs(self):
+        if self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
+            < self.plant_limit_kW:
+            pass
+        else:
+            plant_difference = self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
+                - self.plant_limit_kW
+            print("*** Plant balancing not implementd yet ****")
+            print("The plant is ", plant_difference, " kW over the plant specified size")
+            # if self.plant_balance_type == "solar_first":
+
+
+
+

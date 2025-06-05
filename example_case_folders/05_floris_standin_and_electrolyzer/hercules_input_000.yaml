@@ -50,7 +50,7 @@ py_sims:
       initialize: True 
       initial_power_kW: 3000
       supervisor:
-        n_stacks: 10
+        n_stacks: 20
       stack: 
         # Type of electrolyzer cell: [PEM or alkaline]
         cell_type: PEM

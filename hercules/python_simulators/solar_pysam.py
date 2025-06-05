@@ -107,6 +107,7 @@ class SolarPySAM:
             # "dc_power_mw": self.dc_power_mw,
             "dni": self.dni,
             "aoi": self.aoi,
+            "power_kW": self.power_mw*1000
         }
 
     def control(self, power_setpoint_mw=None):

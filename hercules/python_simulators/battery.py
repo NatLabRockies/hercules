@@ -289,7 +289,8 @@ class LIB:
         return self.return_outputs()
 
     def return_outputs(self):
-        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC}
+        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC,
+                "power_kW": self.power_mw*1000}
 
     def control(self, P_signal, P_avail):
         """
@@ -639,4 +640,4 @@ class SimpleBattery:
     def return_outputs(self):
         return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC,
                 "usage_in_time": self.time_usage_perc, "usage_in_cycles": self.cycle_usage_perc,
-                "total_cycles":self.total_cycle_usage}
+                "total_cycles":self.total_cycle_usage, "power_kW": self.power_mw*1000}

@@ -84,6 +84,5 @@ class ElectrolyzerPlant:
         self.stacks_waiting = [self.elec_sys.stacks[i].stack_waiting for i in range(self.n_stacks)]
         self.H2_output = H2_produced
         self.H2_mfr = H2_produced / self.elec_sys.dt
-        print(self.elec_sys.dt)
 
         return self.return_outputs()

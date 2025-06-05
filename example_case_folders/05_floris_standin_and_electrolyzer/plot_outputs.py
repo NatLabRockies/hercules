@@ -13,6 +13,9 @@ time = df["hercules_comms.amr_wind.wind_farm_0.sim_time_s_amr_wind"]
 ax.plot(time, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.000"], label="WT000",lw=3)
 ax.plot(time, df["hercules_comms.amr_wind.wind_farm_0.turbine_powers.001"], label="WT001")
 ax.plot(time, df["py_sims.inputs.locally_generated_power"], label="Generated power")
+ax.plot(time, df["py_sims.inputs.plant_outputs.electricity"], label="Plant output")
+ax.plot(time, df["py_sims.electrolyzer_stack_0.outputs.power_used_kw"], \
+        label="Electrolyzer power used")
 ax.set_ylabel("Power [kW]")
 ax.set_xlabel("Time")
 ax.legend()
