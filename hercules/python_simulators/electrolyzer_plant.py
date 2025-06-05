@@ -38,6 +38,7 @@ class ElectrolyzerPlant:
         #           will that make it out of step of with the other sources?
         self.curtailed_power_kw = power_curtailed / 1e3
         self.H2_output = H2_produced
+        self.H2_mfr = H2_produced / dt
         self.power_left_kw = power_left / 1e3
         self.power_input_kw = power_in
         self.power_used_kw = self.power_input_kw - (self.curtailed_power_kw + self.power_left_kw)
@@ -46,7 +47,7 @@ class ElectrolyzerPlant:
         # return {'power_curtailed': self.curtailed_power, 'stacks_on': self.stacks_on, \
         #     'stacks_waiting': self.stacks_waiting, 'H2_output': self.H2_output}
 
-        return {"H2_output": self.H2_output, "stacks_on": self.stacks_on, 
+        return {"H2_output": self.H2_output, "H2_mfr":self.H2_mfr, "stacks_on": self.stacks_on, 
                 "stacks_waiting": self.stacks_waiting, "power_used_kw": self.power_used_kw,
                 "power_input_kw": self.power_input_kw}
 
@@ -82,5 +83,7 @@ class ElectrolyzerPlant:
         self.stacks_on = sum([self.elec_sys.stacks[i].stack_on for i in range(self.n_stacks)])
         self.stacks_waiting = [self.elec_sys.stacks[i].stack_waiting for i in range(self.n_stacks)]
         self.H2_output = H2_produced
+        self.H2_mfr = H2_produced / self.elec_sys.dt
+        print(self.elec_sys.dt)
 
         return self.return_outputs()

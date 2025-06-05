@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 # Read the Hercules output file
 df = pd.read_csv("hercules_output_control.csv", index_col=False)
@@ -21,7 +22,21 @@ ax.grid()
 
 fig, ax = plt.subplots()
 ax.plot(time, df["py_sims.electrolyzer_stack_0.outputs.H2_output"], label="H2 Output")
+ax.plot(time, df["py_sims.electrolyzer_stack_0.outputs.H2_mfr"], label="H2 Mass flow rate")
 ax.set_ylabel("H2 flowrate [kg/s]")
+ax.set_xlabel("Time")
+ax.legend()
+
+# Calculate total hydrogen produced
+cumulative_h2 = np.zeros(len(df["py_sims.electrolyzer_stack_0.outputs.H2_output"]))
+cumulative_h2[0] = df["py_sims.electrolyzer_stack_0.outputs.H2_output"][0]
+for i in range(1,len(df["py_sims.electrolyzer_stack_0.outputs.H2_output"])):
+    cumulative_h2[i] = cumulative_h2[i-1] + df["py_sims.electrolyzer_stack_0.outputs.H2_output"][i]
+
+
+fig, ax = plt.subplots()
+ax.plot(time, cumulative_h2, label="H2 Produced")
+ax.set_ylabel("H2 [kg]")
 ax.set_xlabel("Time")
 ax.legend()
 
