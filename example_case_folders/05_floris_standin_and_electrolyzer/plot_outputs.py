@@ -1,8 +1,8 @@
 # Plot the outputs of the simulation
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # Read the Hercules output file
 df = pd.read_csv("hercules_output_control.csv", index_col=False)
