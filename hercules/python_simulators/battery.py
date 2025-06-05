@@ -176,7 +176,7 @@ class LIB:
         )
 
         # initial state of battery outputs for hercules emulator
-        self.power_mw = 0
+        self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0
 
@@ -241,6 +241,7 @@ class LIB:
 
     def calc_power(self, I_bat):
         """Return battery power in kW"""
+        # NOTE: this might be in watts, ask Zack!
         return self.V_cell() * self.n_s * I_bat  # [kW]
 
     def step(self, inputs: dict):
@@ -275,22 +276,18 @@ class LIB:
         self.step_cell(i_charge)
 
         # Calculate actual power
-        self.power_mw = self.calc_power(I_charge) * 1e-3
-        self.P_reject = P_signal - self.power_mw
+        self.power_kw = self.calc_power(I_charge) * 1e-3
+        self.P_reject = P_signal - self.power_kw
 
         # Update power signal error integral
         if (P_signal < self.max_charge_power) & (P_signal > self.max_discharge_power):
             self.error_sum += self.P_reject * self.dt
 
-        # assert (
-        #     self.power_mw >= P_avail
-        # ), "Battery is charging with more power than available."
-
         return self.return_outputs()
 
     def return_outputs(self):
-        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC,
-                "power_kW": self.power_mw*1000}
+        return {"power": self.power_kw, "reject": self.P_reject, "soc": self.SOC,
+                "power_kW": -self.power_kw}
 
     def control(self, P_signal, P_avail):
         """
@@ -478,7 +475,7 @@ class SimpleBattery:
         self.current_batt_state = self.SOC * self.energy_capacity
         self.E = kWh2kJ(self.current_batt_state)
 
-        self.power_mw = 0
+        self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0
 
@@ -505,7 +502,7 @@ class SimpleBattery:
 
         self.current_batt_state = kJ2kWh(self.E)
 
-        self.power_mw = P_charge
+        self.power_kw = P_charge
         self.SOC = self.current_batt_state / self.energy_capacity
 
         self.P_charge_storage.append(P_charge)
@@ -638,6 +635,6 @@ class SimpleBattery:
         )
 
     def return_outputs(self):
-        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC,
+        return {"power": self.power_kw, "reject": self.P_reject, "soc": self.SOC,
                 "usage_in_time": self.time_usage_perc, "usage_in_cycles": self.cycle_usage_perc,
-                "total_cycles":self.total_cycle_usage, "power_kW": self.power_mw*1000}
+                "total_cycles":self.total_cycle_usage, "power_kW": -self.power_kw}

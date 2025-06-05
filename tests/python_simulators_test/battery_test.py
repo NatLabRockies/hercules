@@ -71,7 +71,7 @@ def test_SB_init():
     assert not SB.track_usage
     assert SB.usage_calc_interval == np.inf
 
-    assert SB.power_mw == 0
+    assert SB.power_kw == 0
     assert SB.P_reject == 0
     assert SB.P_charge == 0
 
@@ -106,7 +106,7 @@ def test_SB_return_outputs(SB: SimpleBattery):
     assert outputs_init["total_cycles"] == 0
 
     # change simple battery state as if during simulation
-    SB.power_mw = 35
+    SB.power_kw = 35000
     SB.P_reject = 2
     SB.SOC = 0.25
     SB.time_usage_perc = 23
@@ -116,7 +116,7 @@ def test_SB_return_outputs(SB: SimpleBattery):
     # check that outputs return the changed battery state
     outputs_sim = SB.return_outputs()
 
-    assert outputs_sim["power"] == 35
+    assert outputs_sim["power"] == 35000
     assert outputs_sim["reject"] == 2
     assert outputs_sim["soc"] == 0.25
     assert outputs_sim["usage_in_time"] == 23

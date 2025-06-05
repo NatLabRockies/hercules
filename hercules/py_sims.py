@@ -93,5 +93,5 @@ class PySims:
                     self.py_sim_dict[py_sim_name]["outputs"]["power_used_kw"] 
             else:
                 main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
-                    self.py_sim_dict[py_sim_name]["outputs"]["power_kw"] 
+                    self.py_sim_dict[py_sim_name]["outputs"]["power_kW"] 
                 
