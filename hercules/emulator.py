@@ -48,20 +48,12 @@ class Emulator(FederateAgent):
 
         # Initialize plant and grid variables
         # balance_plant is a boolean variable that determines whether the plant will balance power
-        if "balance_plant" in input_dict.keys():
-            self.balance_plant = input_dict["balance_plant"]
-        else:
-            self.balance_plant = False
-
-        self.main_dict["balance_plant"] = self.balance_plant
-        if self.balance_plant:
+        if "plant_limit_kW" in input_dict.keys():
             self.plant_limit_kW = input_dict["plant_limit_kW"]
-            # Plant balance type determines how energy is curtailed if needed
-            # Choices are "wind_first", "solar_first", or "equal_split"
-            self.plant_balance_type = input_dict["plant_balance_type"]
-
-            self.main_dict["plant_limit_kW"] = self.plant_limit_kW
-            self.main_dict["plant_balance_type"] = self.plant_balance_type
+        else:
+            self.plant_limit_kW = np.inf
+        self.main_dict["plant_limit_kW"] = self.plant_limit_kW
+        self.main_dict["plant_limit_overage"] = 0.0
         
         # HELICS dicts
         self.hercules_comms_dict = input_dict["hercules_comms"]
@@ -342,9 +334,13 @@ class Emulator(FederateAgent):
             "power_kW"
         ]
 
-        if self.balance_plant:
-            self.balance_plant_outputs()
-
+        if self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
+            < self.plant_limit_kW:
+            self.main_dict["plant_limit_overage"] = 0.0
+        else:
+            plant_difference = self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
+                - self.plant_limit_kW
+            self.main_dict["plant_limit_overage"] = plant_difference
 
     def recursive_flatten_main_dict(self, nested_dict, prefix=""):
         # Recursively flatten the input dict
@@ -552,16 +548,7 @@ class Emulator(FederateAgent):
 
         return return_dict
     
-    def balance_plant_outputs(self):
-        if self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
-            < self.plant_limit_kW:
-            pass
-        else:
-            plant_difference = self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
-                - self.plant_limit_kW
-            print("*** Plant balancing not implementd yet ****")
-            print("The plant is ", plant_difference, " kW over the plant specified size")
-            # if self.plant_balance_type == "solar_first":
+
 
 
 
