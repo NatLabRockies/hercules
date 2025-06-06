@@ -464,6 +464,7 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">charge_rate</span></code>: [kW]</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_SOC</span></code>: between 0 and 1</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">min_SOC</span></code>: between 0 and 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_grid_power_consumption</span></code>: True or False (defaults to True)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code></p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">SOC</span></code>: between <code class="docutils literal notranslate"><span class="pre">min_SOC</span></code> and <code class="docutils literal notranslate"><span class="pre">max_SOC</span></code></p></li>
@@ -476,7 +477,7 @@ document.write(`
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
 <p>Inputs are passed to <code class="docutils literal notranslate"><span class="pre">step()</span></code> as a dict named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>, which must have the following fields:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">py_sims</span><span class="p">:{</span><span class="n">inputs</span><span class="p">:{</span><span class="n">battery_signal</span><span class="p">:</span> <span class="n">____</span><span class="p">,</span>
-                 <span class="n">available_power</span><span class="p">:</span> <span class="n">____</span>
+                 <span class="n">locally_generated_power</span><span class="p">:</span> <span class="n">____</span>
                  <span class="p">}}}</span>
 </pre></div>
 </div>
