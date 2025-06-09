@@ -240,6 +240,7 @@ class SolarPySAM:
             "dni": self.dni,
             "poa": self.poa,
             "aoi": self.aoi,
+            "power_kW": self.power_mw*1e3
         }
 
     def control(self, power_setpoint_mw=None):

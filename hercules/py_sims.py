@@ -28,7 +28,7 @@ class PySims:
             self.py_sim_names = np.copy(list(self.py_sim_dict.keys()))
             self.py_sim_dict["inputs"] = {}
             self.py_sim_dict["inputs"][
-                "available_power"
+                "locally_generated_power"
             ] = 0  # Always calculate available power for py_sims
 
             # Collect the py_sim objects, inputs and outputs
@@ -69,7 +69,7 @@ class PySims:
 
     def step(self, main_dict):
         # Collect the py_sim objects
-        py_sims_available_power = 0.0
+        locally_generated_power = 0.0
         for py_sim_name in self.py_sim_names:
 
             self.py_sim_dict[py_sim_name]["outputs"] = self.py_sim_dict[py_sim_name]["object"].step(
@@ -81,6 +81,18 @@ class PySims:
                     solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power_mw"]*1000
                 except KeyError:
                     solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power"]*1000
-                py_sims_available_power += solar_power
+                locally_generated_power += solar_power
 
-        self.py_sim_dict["inputs"]["available_power"] = py_sims_available_power
+        self.py_sim_dict["inputs"]["locally_generated_power"] = locally_generated_power
+
+    def calculate_plant_outputs(self, main_dict):
+        for py_sim_name in self.py_sim_names:
+            if "Electrolyzer" in self.py_sim_dict[py_sim_name]["py_sim_type"]:
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["hydrogen"] = \
+                    self.py_sim_dict[py_sim_name]["outputs"]["H2_output"]
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] -= \
+                    self.py_sim_dict[py_sim_name]["outputs"]["power_used_kw"] 
+            else:
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
+                    self.py_sim_dict[py_sim_name]["outputs"]["power_kW"] 
+                

@@ -79,6 +79,7 @@ class LIB:
             discharge_rate: discharge rate of the battery in MW
             max_SOC: upper boundary on battery SOC between 0 and 1
             min_SOC: lower boundary on battery SOC between 0 and 1
+            allow_grid_power_consumption: boolean flag for allowing grid to charge the battery
             initial_conditions: {SOC: iniital SOC between 0 and 1}
         """
 
@@ -94,6 +95,12 @@ class LIB:
         self.SOC = inititial_conditions["SOC"]  # [fraction]
         self.SOC_max = input_dict["max_SOC"]
         self.SOC_min = input_dict["min_SOC"]
+
+        # Flag for allowing grid to charge the battery
+        if "allow_grid_power_consumption" in input_dict.keys():
+            self.allow_grid_power_consumption = input_dict["allow_grid_power_consumption"]
+        else:
+            self.allow_grid_power_consumption = False
 
         self.T = 25  # [C] temperature
         self.SOH = 1  # State of Health
@@ -169,7 +176,7 @@ class LIB:
         )
 
         # initial state of battery outputs for hercules emulator
-        self.power_mw = 0
+        self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0
 
@@ -234,6 +241,7 @@ class LIB:
 
     def calc_power(self, I_bat):
         """Return battery power in kW"""
+        # NOTE: this might be in watts, ask Zack!
         return self.V_cell() * self.n_s * I_bat  # [kW]
 
     def step(self, inputs: dict):
@@ -243,14 +251,18 @@ class LIB:
         Inputs:
         - inputs: dictionary of inputs for the current time step which must have:
             - py_sims:{inputs:{battery_signal: ___ }} [kW] charging/discharging power desired
-            - py_sims:{inputs:{available_power: ___ }} [kW] power available for charging/discharging
+            - py_sims:{inputs:{locally_generated_power: ___ }} [kW] power available for
+                 charging/discharging that was generated onsite (not from grid)
 
         Outputs:
         - outptuts: see return_outputs() method
         """
 
         P_signal = inputs["py_sims"]["inputs"]["battery_signal"]  # [kW] requested power
-        P_avail = inputs["py_sims"]["inputs"]["available_power"]  # [kW] avaiable power
+        if self.allow_grid_power_consumption:
+            P_avail = np.inf
+        else:
+            P_avail = inputs["py_sims"]["inputs"]["locally_generated_power"]  # [kW] available power
 
         # Calculate charging/discharging current [A] from power
         I_charge, I_reject = self.control(P_signal, P_avail)
@@ -264,21 +276,18 @@ class LIB:
         self.step_cell(i_charge)
 
         # Calculate actual power
-        self.power_mw = self.calc_power(I_charge) * 1e-3
-        self.P_reject = P_signal - self.power_mw
+        self.power_kw = self.calc_power(I_charge) * 1e-3
+        self.P_reject = P_signal - self.power_kw
 
         # Update power signal error integral
         if (P_signal < self.max_charge_power) & (P_signal > self.max_discharge_power):
             self.error_sum += self.P_reject * self.dt
 
-        # assert (
-        #     self.power_mw >= P_avail
-        # ), "Battery is charging with more power than available."
-
         return self.return_outputs()
 
     def return_outputs(self):
-        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC}
+        return {"power": self.power_kw, "reject": self.P_reject, "soc": self.SOC,
+                "power_kW": -self.power_kw}
 
     def control(self, P_signal, P_avail):
         """
@@ -400,6 +409,12 @@ class SimpleBattery:
         self.R_min = -np.inf
         self.R_max = np.inf
 
+        # Flag for allowing grid to charge the battery
+        if "allow_grid_power_consumption" in input_dict.keys():
+            self.allow_grid_power_consumption = input_dict["allow_grid_power_consumption"]
+        else:
+            self.allow_grid_power_consumption = False
+
         # Efficiency and self-discharge parameters
         if "roundtrip_efficiency" in input_dict.keys():
             self.eta_charge = np.sqrt(input_dict["roundtrip_efficiency"])
@@ -460,7 +475,7 @@ class SimpleBattery:
         self.current_batt_state = self.SOC * self.energy_capacity
         self.E = kWh2kJ(self.current_batt_state)
 
-        self.power_mw = 0
+        self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0
 
@@ -473,7 +488,10 @@ class SimpleBattery:
         # power available for the battery to use for charging (should be >=0)
         P_signal = inputs["py_sims"]["inputs"]["battery_signal"]
         # power signal desired by the controller
-        P_avail = inputs["py_sims"]["inputs"]["available_power"]
+        if self.allow_grid_power_consumption:
+            P_avail = np.inf
+        else:
+            P_avail = inputs["py_sims"]["inputs"]["locally_generated_power"]  # [kW] available power
 
         P_charge, P_reject = self.control(P_avail, P_signal)
 
@@ -484,7 +502,7 @@ class SimpleBattery:
 
         self.current_batt_state = kJ2kWh(self.E)
 
-        self.power_mw = P_charge
+        self.power_kw = P_charge
         self.SOC = self.current_batt_state / self.energy_capacity
 
         self.P_charge_storage.append(P_charge)
@@ -617,6 +635,6 @@ class SimpleBattery:
         )
 
     def return_outputs(self):
-        return {"power": self.power_mw, "reject": self.P_reject, "soc": self.SOC,
+        return {"power": self.power_kw, "reject": self.P_reject, "soc": self.SOC,
                 "usage_in_time": self.time_usage_perc, "usage_in_cycles": self.cycle_usage_perc,
-                "total_cycles":self.total_cycle_usage}
+                "total_cycles":self.total_cycle_usage, "power_kW": -self.power_kw}

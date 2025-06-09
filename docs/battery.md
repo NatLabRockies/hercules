@@ -11,6 +11,7 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 - `charge_rate`: [kW]
 - `max_SOC`: between 0 and 1
 - `min_SOC`: between 0 and 1
+- `allow_grid_power_consumption`: True or False (defaults to True)
 - `initial_conditions`
   - `SOC`: between `min_SOC` and `max_SOC`
 
@@ -22,7 +23,7 @@ Inputs are passed to `step()` as a dict named `inputs`, which must have the foll
 
 ```
 {py_sims:{inputs:{battery_signal: ____,
-                 available_power: ____
+                 locally_generated_power: ____
                  }}}
 ```
 

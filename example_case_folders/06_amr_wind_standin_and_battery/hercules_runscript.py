@@ -3,10 +3,8 @@ import sys
 from hercules.emulator import Emulator
 from hercules.py_sims import PySims
 from hercules.utilities import load_yaml
-from whoc.controllers.wind_battery_controller import (
-    WindBatteryController,
-)
-from whoc.interfaces.hercules_wind_battery_interface import HerculesWindBatteryInterface
+from whoc.controllers import WindBatteryController
+from whoc.interfaces import HerculesWindBatteryInterface
 
 # Check that command line arguments are provided
 if len(sys.argv) != 3:

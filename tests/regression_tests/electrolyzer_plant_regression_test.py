@@ -52,11 +52,11 @@ test_input_dict = {
             "rate_onoff": 1.47821515e-04,
         },
       },
-    }
+    },
 }
 
 np.random.seed(0)
-available_power_test = np.concatenate(
+locally_generated_power_test = np.concatenate(
     (
         np.linspace(500, 1000, 3), # Ramp up
         np.linspace(1000, 200, 3), # Ramp down
@@ -99,7 +99,8 @@ def test_ElectrolyzerPlant_regression_():
             "time": t,
             "py_sims": {
                 "inputs": {
-                    "available_power": available_power_test[i]
+                    "locally_generated_power": locally_generated_power_test[i],
+                    "electrolyzer_signal": np.inf # Use all locally generated power
                 }
             }
         })

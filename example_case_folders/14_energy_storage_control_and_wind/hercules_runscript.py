@@ -9,7 +9,7 @@ from whoc.controllers import (
     SolarPassthroughController,
     WindFarmPowerTrackingController,
 )
-from whoc.interfaces.hercules_hybrid_actuator_disk_interface import HerculesHybridADInterface
+from whoc.interfaces import HerculesHybridADInterface
 
 # Check that command line arguments are provided
 if len(sys.argv) != 3:

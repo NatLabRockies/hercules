@@ -42,7 +42,7 @@ def LI():
 def step_inputs(P_avail, P_signal):
     return dict(
         {
-            "py_sims": {"inputs": {"available_power": P_avail, "battery_signal": P_signal}},
+            "py_sims": {"inputs": {"locally_generated_power": P_avail, "battery_signal": P_signal}},
         }
     )
 
@@ -71,7 +71,7 @@ def test_SB_init():
     assert not SB.track_usage
     assert SB.usage_calc_interval == np.inf
 
-    assert SB.power_mw == 0
+    assert SB.power_kw == 0
     assert SB.P_reject == 0
     assert SB.P_charge == 0
 
@@ -106,7 +106,7 @@ def test_SB_return_outputs(SB: SimpleBattery):
     assert outputs_init["total_cycles"] == 0
 
     # change simple battery state as if during simulation
-    SB.power_mw = 35
+    SB.power_kw = 35000
     SB.P_reject = 2
     SB.SOC = 0.25
     SB.time_usage_perc = 23
@@ -116,7 +116,7 @@ def test_SB_return_outputs(SB: SimpleBattery):
     # check that outputs return the changed battery state
     outputs_sim = SB.return_outputs()
 
-    assert outputs_sim["power"] == 35
+    assert outputs_sim["power"] == 35000
     assert outputs_sim["reject"] == 2
     assert outputs_sim["soc"] == 0.25
     assert outputs_sim["usage_in_time"] == 23
@@ -325,3 +325,38 @@ def test_LI_constraints(LI):
     I_charge, I_reject = LI.constraints(I_signal=-400, I_avail=0)
     assert I_charge == -179.9999999998363
     assert I_reject == -220.0000000001637
+
+def test_allow_grid_power_consumption(SB: SimpleBattery):
+    # Test with allow_grid_power_consumption = True
+    battery_dict, dt = get_battery_params(SimpleBattery)
+    battery_dict["allow_grid_power_consumption"] = True
+    SB = SimpleBattery(battery_dict, dt)
+
+    # Ask exceeds rated power
+    out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
+    assert out["power"] == 2e3
+    assert out["reject"] == 0.5e3
+
+    battery_dict["allow_grid_power_consumption"] = False
+    SB = SimpleBattery(battery_dict, dt)
+
+    out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
+    assert out["power"] == 2e3
+    assert out["reject"] == 0.5e3
+
+    out = SB.step(step_inputs(P_avail=1e3, P_signal=2.5e3))
+    assert out["power"] == 1e3
+    assert out["reject"] == 1.5e3
+
+    # Ask is under rated power
+    battery_dict["allow_grid_power_consumption"] = True
+    SB = SimpleBattery(battery_dict, dt)
+    out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
+    assert out["power"] == 1e3 # Ignores P_avail, as expected
+    assert out["reject"] == 0
+
+    battery_dict["allow_grid_power_consumption"] = False
+    SB = SimpleBattery(battery_dict, dt)
+    out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
+    assert out["power"] == 0.25e3 # Uses P_avail
+    assert out["reject"] == 0.75e3 # "Rejects" the rest of the signal ask

@@ -19,6 +19,7 @@ class SimpleSolar:
 
         # Save the initial condition
         self.power_mw = input_dict["initial_conditions"]["power"]
+        self.power_kW = self.power_mw * 1000
         self.irradiance = input_dict["initial_conditions"]["irradiance"]
 
         # Define needed inputs as empty dict
@@ -28,7 +29,8 @@ class SimpleSolar:
         # self.compute_power()
 
     def return_outputs(self):
-        return {"power": self.power_mw, "irradiance": self.irradiance}
+        return {"power": self.power_mw, "irradiance": self.irradiance,
+                "power_kW": self.power_kW}
 
     def step(self, inputs):
         # TODO add tilt tracking - haven't gotten to this yet
@@ -51,6 +53,8 @@ class SimpleSolar:
         self.power_mw = irradiance * self.area * self.efficiency / 1e6 * self.dt
         if self.power_mw < 0.0:
             self.power_mw = 0.0
+        self.power_kW = self.power_mw * 1000
+
         # NOTE: need to talk about whether to have time step in here or not
         # Need to put outputs into input/output structure
 
