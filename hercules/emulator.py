@@ -42,9 +42,8 @@ class Emulator(FederateAgent):
         # Initialize time # TODO - does this belong in 'inital conditions' instead?
         if self.main_dict["py_sims"]:
             self.main_dict["py_sims"]["inputs"]["sim_time_s"] = 0.0
-
-        self.main_dict["py_sims"]["inputs"]["plant_outputs"] = {}
-        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
+            self.main_dict["py_sims"]["inputs"]["plant_outputs"] = {}
+            self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
 
         # Initialize plant and grid variables
         # balance_plant is a boolean variable that determines whether the plant will balance power
@@ -213,8 +212,9 @@ class Emulator(FederateAgent):
             # Receive outputs back (for next time step)
             self.receive_amrwind_data()
 
-            # Calculate plant outputs
-            self.calculate_plant_outputs()
+            # Calculate plant outputs if there are pysims
+            if self.main_dict["py_sims"]:
+                self.calculate_plant_outputs()
             
             # Log the current state
             self.log_main_dict()
