@@ -392,6 +392,7 @@ class WindSimLongTerm:
             "waked_velocity": self.waked_velocities,
             "floris_wind_speed": self.floris_wind_speed,
             "floris_wind_direction": self.floris_wind_direction,
+            "wind_farm_total_power": np.sum(self.power),
         }
 
     def step(self, inputs):
