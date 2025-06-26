@@ -126,6 +126,9 @@ class SolarPySAM:
         self.temp_array = self._get_solar_data_array(df_solar, "Temperature")
         self.wind_speed_array = self._get_solar_data_array(df_solar, "Wind Speed at")
 
+        # Save the system capacity
+        self.target_system_capacity_kw = input_dict["target_system_capacity_kW"]
+
         # set PV system model parameters
         if self.pysam_model == "pvsam":
             try:
@@ -320,6 +323,15 @@ class SolarPySAM:
                 P_setpoint = None
         else:
             P_setpoint = None
+
+        # Further the cap the P_setpoint by the room left after wind power is deducted
+        wind_farm_power = inputs['py_sims']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
+        available_interconnect_kw = self.target_system_capacity_kw - wind_farm_power
+
+        if P_setpoint is None:
+            P_setpoint = available_interconnect_kw / 1000
+        else:
+            P_setpoint = min(P_setpoint, available_interconnect_kw / 1000)
         self.control(P_setpoint)
 
         if self.power_mw < 0.0:
