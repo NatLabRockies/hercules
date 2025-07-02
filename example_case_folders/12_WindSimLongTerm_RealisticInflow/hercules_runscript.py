@@ -1,7 +1,7 @@
 import sys
 
-from hercules.controller_standin_no_helics import ControllerStandinNoHelics
-from hercules.emulator_no_helics import EmulatorNoHelics
+from hercules.controller_standin import ControllerStandinNoHelics
+from hercules.emulator import Emulator
 from hercules.py_sims import PySims
 from hercules.utilities import load_yaml, setup_logging
 
@@ -26,7 +26,7 @@ controller = ControllerStandinNoHelics(input_dict)
 py_sims = PySims(input_dict)
 
 
-emulator = EmulatorNoHelics(controller, py_sims, input_dict, logger)
+emulator = Emulator(controller, py_sims, input_dict, logger)
 
 emulator.enter_execution(function_targets=[], function_arguments=[[]])
 
