@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class ControllerStandin:
+class ControllerStandinNoHelics:
     """
     This class is a pass-through stand-in for a plant-level controller.
     Actual controllers should be implemented in WHOC
@@ -16,17 +16,26 @@ class ControllerStandin:
 
     def __init__(self, input_dict):
         # Get wind farm information (assumes exactly one wind farm)
-        self.wf_name = list(input_dict["hercules_comms"]["amr_wind"].keys())[0]
+        # Assumes WindSimLongTerm is first entry in py_sims
+        self.wf_name = list(input_dict["py_sims"].keys())[0]
 
     @abstractmethod
     def step(self, main_dict):
-        num_turbines = main_dict["hercules_comms"]["amr_wind"][self.wf_name]["num_turbines"]
+        num_turbines = main_dict["py_sims"][self.wf_name]["num_turbines"]
 
-        # Set turbine yaw angles based on current AMR-Wind wind direction
-        wd = main_dict["hercules_comms"]["amr_wind"][self.wf_name]["wind_direction"]
-        main_dict["hercules_comms"]["amr_wind"][self.wf_name]["turbine_yaw_angles"] = (
-            num_turbines * [wd]
-        )
+        # Set deratings very high for now
+        for t_idx in range(num_turbines):
+            main_dict["py_sims"]["inputs"][f"derating_{t_idx:03d}"] = 4000
+
+        # Lower t0 derating every other 100 seconds
+        if main_dict["time"] % 200 < 100:
+            main_dict["py_sims"]["inputs"]["derating_000"] = 500
+
+        # # Set turbine yaw angles based on current AMR-Wind wind direction
+        # wd = main_dict["hercules_comms"]["amr_wind"][self.wf_name]["wind_direction"]
+        # main_dict["hercules_comms"]["amr_wind"][self.wf_name]["turbine_yaw_angles"] = (
+        #     num_turbines * [wd]
+        # )
 
         # TODO: does there need to be a seperate "controller" dict?
         # Might make understanding the log easier?
