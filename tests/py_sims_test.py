@@ -1,13 +1,9 @@
 from hercules import py_sims
+from .test_inputs.h_dict import h_dict
 
 
-def test_init_pysim():
+def test_init_from_dict():
     # Test that a pysim can be initiated
 
-    input_dict = dict()
-    input_dict["dt"] = 0.1
-    input_dict["starttime"] = 0.0
-    input_dict["endtime"] = 1.0
-    input_dict["py_sims"] = None
 
-    py_sims.PySims(input_dict)
+    py_sims.PySims(h_dict)

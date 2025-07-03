@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
-from hercules.python_simulators.battery import LIB, SimpleBattery
+from hercules.python_simulators.lib import LIB
+from hercules.python_simulators.simple_battery import SimpleBattery
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 

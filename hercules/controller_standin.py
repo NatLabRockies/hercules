@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class ControllerStandinNoHelics:
+class ControllerStandin:
     """
     This class is a pass-through stand-in for a plant-level controller.
     Actual controllers should be implemented in WHOC

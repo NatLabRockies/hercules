@@ -1,7 +1,8 @@
 """Regression tests for 'SolarPySAM'."""
 
 import numpy as np
-from hercules.python_simulators.battery import LIB, SimpleBattery
+from hercules.python_simulators.lib import LIB
+from hercules.python_simulators.simple_battery import SimpleBattery
 
 PRINT_VALUES = True
 

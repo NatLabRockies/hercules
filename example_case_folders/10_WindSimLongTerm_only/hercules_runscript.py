@@ -1,6 +1,6 @@
 import sys
 
-from hercules.controller_standin import ControllerStandinNoHelics
+from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
 from hercules.py_sims import PySims
 from hercules.utilities import load_yaml, setup_logging
