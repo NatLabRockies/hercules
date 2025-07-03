@@ -17,6 +17,13 @@ def get_available_py_sim_names():
         "electrolyzer",
     ]
 
+# Note this is a subset of the py_sims
+def get_available_generator_names():
+    """Return a list of available generator names."""
+    return [
+        "wind_farm",
+        "solar_farm",
+    ]
 
 def get_available_py_sim_types():
     """Return a list of available py_sim types, by py_sim."""
