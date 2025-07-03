@@ -10,94 +10,69 @@ from hercules.utilities import interpolate_df, load_perffile, load_yaml
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
+from hercules.python_simulators.base_pysim import PySimBase
 
 RPM2RADperSec = 2 * np.pi / 60.0
 
 
-class WindSimLongTerm:
-    def __init__(self, input_dict, dt, starttime, endtime):
+class WindSimLongTerm(PySimBase):
+    def __init__(self, h_dict):
         """
         Initializes the WindSimLongTerm class.
         Args:
-            input_dict (dict): Dictionary containing input parameters. Must include:
-                - "floris_input_file" (str): Path to the FLORIS input file.
-                - "wind_input_filename" (str): Path to the wind input file
-                    (CSV, pickle, or Feather format).
-                - "turbine_file_name" (str): Path to the turbine configuration file.
-                Optional keys:
-                - "log_file_name" (str): Path to the log file.
-                     Defaults to "outputs/log_wind_sim.log".
-                - "verbose" (bool): Flag for verbose logging. Defaults to True.
-            dt (float): Time step size in seconds.
-            starttime (float): Simulation start time.
-            endtime (float): Simulation end time.
+            h_dict (dict): Dict containing values for the simulation
         """
 
-        # Check if log_file_name is defined in the input_dict
-        if "log_file_name" in input_dict:
-            self.log_file_name = input_dict["log_file_name"]
-        else:
-            self.log_file_name = "outputs/log_wind_sim.log"
+        # Store the name of this py_sim
+        self.py_sim_name = "wind_farm"
 
-        # Set up logging
-        self.logger = self._setup_logging(self.log_file_name)
+        # Store the type of this py_sim
+        self.py_sim_type = "WindSimLongTerm"
 
-        self.logger.info("trying to read in verbose flag")
-        if "verbose" in input_dict:
-            self.verbose = input_dict["verbose"]
-            self.logger.info(f"read in verbose flag = {self.verbose}")
-        else:
-            self.verbose = True  # default value
+        # Call the base class init
+        super().__init__(h_dict, self.py_sim_name)
 
-        # Define needed inputs as empty dict
-        self.needed_inputs = {}
-
-        # Save the time information
-        self.dt = dt
-        self.starttime = starttime
-        self.endtime = endtime
-
-        # Compute the number of time steps
-        self.n_steps = int((self.endtime - self.starttime) / self.dt)
+        # Add to the log outputs with specific outputs
+        self.log_outputs = self.log_outputs + ["turbine_outputs"]
 
         # Track the number of FLORIS calculation
         self.num_floris_calcs = 0
 
         # Read in the input file names
-        self.floris_input_file = input_dict["floris_input_file"]
-        self.wind_input_filename = input_dict["wind_input_filename"]
-        self.turbine_file_name = input_dict["turbine_file_name"]
+        self.floris_input_file = h_dict[self.py_sim_name]["floris_input_file"]
+        self.wind_input_filename = h_dict[self.py_sim_name]["wind_input_filename"]
+        self.turbine_file_name = h_dict[self.py_sim_name]["turbine_file_name"]
 
-        # Check for FLORIS timing configuration options in input_dict
-        if "floris_wd_threshold" in input_dict:
-            self.floris_wd_threshold = input_dict["floris_wd_threshold"]
+        # Check for FLORIS timing configuration options in h_dict[self.py_sim_name]
+        if "floris_wd_threshold" in h_dict[self.py_sim_name]:
+            self.floris_wd_threshold = h_dict[self.py_sim_name]["floris_wd_threshold"]
         else:
             self.floris_wd_threshold = 3.0
 
-        if "floris_ws_threshold" in input_dict:
-            self.floris_ws_threshold = input_dict["floris_ws_threshold"]
+        if "floris_ws_threshold" in h_dict[self.py_sim_name]:
+            self.floris_ws_threshold = h_dict[self.py_sim_name]["floris_ws_threshold"]
         else:
             self.floris_ws_threshold = 1.0
 
-        if "floris_ti_threshold" in input_dict:
-            self.floris_ti_threshold = input_dict["floris_ti_threshold"]
+        if "floris_ti_threshold" in h_dict[self.py_sim_name]:
+            self.floris_ti_threshold = h_dict[self.py_sim_name]["floris_ti_threshold"]
         else:
             self.floris_ti_threshold = 0.1
 
-        if "floris_derating_threshold" in input_dict:
-            self.floris_derating_threshold = input_dict["floris_derating_threshold"]
+        if "floris_derating_threshold" in h_dict[self.py_sim_name]:
+            self.floris_derating_threshold = h_dict[self.py_sim_name]["floris_derating_threshold"]
         else:
             self.floris_derating_threshold = 10  # kW
 
-        if "floris_time_window_width_s" in input_dict:
-            self.floris_time_window_width_s = input_dict["floris_time_window_width_s"]
+        if "floris_time_window_width_s" in h_dict[self.py_sim_name]:
+            self.floris_time_window_width_s = h_dict[self.py_sim_name]["floris_time_window_width_s"]
             if self.floris_time_window_width_s < 1:
                 raise ValueError("FLORIS time window width must be at least 1 second")
         else:
             self.floris_time_window_width_s = 300.0  # Default to 5 minutes
 
-        if "floris_update_time_s" in input_dict:
-            self.floris_update_time_s = input_dict["floris_update_time_s"]
+        if "floris_update_time_s" in h_dict[self.py_sim_name]:
+            self.floris_update_time_s = h_dict[self.py_sim_name]["floris_update_time_s"]
             if self.floris_update_time_s < 1:
                 raise ValueError("FLORIS update time must be at least 1 second")
         else:
@@ -253,47 +228,17 @@ class WindSimLongTerm:
                 for t_idx in range(self.n_turbines)
             ]
         else:
-            raise Exception("Turbine model type should be either fileter_model or dof1_model")
+            raise Exception("Turbine model type should be either filter_model or dof1_model")
 
         # Initialize the power array to the initial wind speeds
-        self.power = np.array(
+        self.turbine_powers = np.array(
             [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
         )
 
         # Update the user
         self.logger.info(f"Initialized WindSimLongTerm with {self.n_turbines} turbines")
 
-    def _setup_logging(self, log_file_name):
-        """
-        Sets up logging for the wind simulator.
 
-        This method configures a logger named "wind_sim" to log messages to a specified file.
-        It ensures the log directory exists, clears any existing handlers to avoid duplicates,
-        and formats log messages with timestamps, log levels, and messages.
-        Args:
-            log_file_name (str): The full path to the log file where log messages will be written.
-        Returns:
-            logging.Logger: Configured logger instance for the wind simulator.
-        """
-
-        # Split the logfile into directory and filename
-        log_dir = Path(log_file_name).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
-
-        # Get the logger for wind_sim, note that root logger already in use
-        logger = logging.getLogger("wind_sim")
-        logger.setLevel(logging.INFO)
-
-        # Clear any existing handlers to avoid duplicates
-        for handler in logger.handlers[:]:
-            logger.removeHandler(handler)
-
-        # Add file handler
-        file_handler = logging.FileHandler(log_file_name)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        logger.addHandler(file_handler)
-
-        return logger
 
     def update_wake_deficits(self, step):
         """
@@ -385,26 +330,17 @@ class WindSimLongTerm:
             self.derating_buffer_idx + 1
         ) % self.floris_time_window_width_steps
 
-    def return_outputs(self):
-        return {
-            "power": self.power,
-            "unwaked_velocity": self.unwaked_velocities,
-            "waked_velocity": self.waked_velocities,
-            "floris_wind_speed": self.floris_wind_speed,
-            "floris_wind_direction": self.floris_wind_direction,
-            "wind_farm_total_power": np.sum(self.power),
-        }
 
-    def step(self, inputs):
+    def step(self, h_dict):
         # Get the current  step
-        step = inputs["step"]
+        step = h_dict["step"]
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
         # Grab the instantaneous derating signal and update the derating buffer
         derating = np.array(
             [
-                inputs["py_sims"]["inputs"][f"derating_{t_idx:03d}"]
+                h_dict[self.py_sim_name][f"derating_{t_idx:03d}"]
                 for t_idx in range(self.n_turbines)
             ]
         )
@@ -424,7 +360,7 @@ class WindSimLongTerm:
         self.waked_velocities = self.ws_mat[step, :] - self.floris_wake_deficits
 
         # Update the turbine powers given the input wind speeds and derating
-        self.power = np.array(
+        self.turbine_powers = np.array(
             [
                 self.turbine_array[t_idx].step(
                     self.waked_velocities[t_idx],
@@ -434,7 +370,11 @@ class WindSimLongTerm:
             ]
         )
 
-        return self.return_outputs()
+        # Update the h_dict with outputs
+        h_dict[self.py_sim_name]["turbine_powers"] = self.turbine_powers
+        h_dict["self.py_sim_name"]["power"] = np.sum(self.turbine_powers)
+
+        return h_dict
 
 
 class TurbineFilterModel:
