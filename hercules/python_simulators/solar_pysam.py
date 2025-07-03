@@ -2,47 +2,36 @@
 # code originally copied from https://github.com/NREL/pysam/blob/main/Examples/NonAnnualSimulation.ipynb
 
 import json
-import logging
 import sys
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from hercules.python_simulators.base_pysim import PySimBase
 
-#import PySAM.Pvsamv1Tools # keep for when this is available on PyPi
+# import PySAM.Pvsamv1Tools # keep for when this is available on PyPi
 from hercules.tools.Pvsamv1Tools import size_electrical_parameters
 from hercules.utilities import interpolate_df
 
 
-class SolarPySAM:
-    def __init__(self, input_dict, dt, starttime, endtime):
+class SolarPySAM(PySimBase):
+    def __init__(self, h_dict):
         """
-        Initializes the SolarPySAM class.
+        Initializes the WindSimLongTerm class.
         Args:
-            input_dict (dict): Input dictionary containing parameters for the solar simulation.
-            dt (float): Time step for the simulation.
-            starttime (float): Start time for the simulation.
-            endtime (float): End time for the simulation.
+            h_dict (dict): Dict containing values for the simulation
         """
-        # Check if log_file_name is defined in the input_dict
-        if "log_file_name" in input_dict:
-            self.log_file_name = input_dict["log_file_name"]
-        else:
-            self.log_file_name = "outputs/log_solar_sim.log"
+        # Store the name of this py_sim
+        self.py_sim_name = "solar_farm"
 
-        # Set up logging
-        self.logger = self._setup_logging(self.log_file_name)
+        # Store the type of this py_sim
+        self.py_sim_type = "SolarPySAM"
 
-        self.logger.info("trying to read in verbose flag")
-        if "verbose" in input_dict:
-            self.verbose = input_dict["verbose"]
-            self.logger.info(f"read in verbose flag = {self.verbose}")
-        else:
-            self.verbose = True  # default value
+        # Call the base class init
+        super().__init__(h_dict, self.py_sim_name)
 
         # get pysam model from input file
-        if "pysam_model" in input_dict:
-            self.pysam_model = input_dict["pysam_model"]
+        if "pysam_model" in h_dict[self.py_sim_name]:
+            self.pysam_model = h_dict[self.py_sim_name]["pysam_model"]
         else:
             self.pysam_model = "pvsam"
             self.logger.info("No PySAM model specified. Setting to pvsam (detailed PV model).")
@@ -51,43 +40,39 @@ class SolarPySAM:
             import PySAM.Pvsamv1 as pvsam
         elif self.pysam_model == "pvwatts":
             import PySAM.Pvwattsv8 as pvwatts
-
-        # Save the time information
-        self.dt = dt
-        self.starttime = starttime
-        self.endtime = endtime
-
-        # Compute the number of time steps
-        self.n_steps = int((self.endtime - self.starttime) / self.dt)
+        else:
+            raise ValueError(
+                f"Unknown PySAM model: {self.pysam_model}. Supported models are 'pvsam' and 'pvwatts'."
+            )
 
         # Check that either
         # 1. There is solar_input_filename that is not None and no weather_data_input dictionary
         #    or
         # 2. There is a weather_data_input dictionary and either:
-        #       solar_input_filename is not in input_dict or is none
-        if ("solar_input_filename" in input_dict) and (
-            input_dict["solar_input_filename"] is not None
+        #       solar_input_filename is not in h_dict[self.py_sim_name] or is none
+        if ("solar_input_filename" in h_dict[self.py_sim_name]) and (
+            h_dict[self.py_sim_name]["solar_input_filename"] is not None
         ):
-            if "weather_data_input" in input_dict:
+            if "weather_data_input" in h_dict[self.py_sim_name]:
                 raise ValueError(
-                    "Cannot have both solar_input_filename and weather_data_input in input_dict"
+                    f"Cannot have both solar_input_filename and weather_data_input in h_dict[{self.py_sim_name}]"
                 )
             else:
-                if input_dict["solar_input_filename"].endswith(".csv"):
-                    df_solar = pd.read_csv(input_dict["solar_input_filename"])
-                elif input_dict["solar_input_filename"].endswith(".p"):
-                    df_solar = pd.read_pickle(input_dict["solar_input_filename"])
-                elif (input_dict["solar_input_filename"].endswith(".f")) | (
-                    input_dict["solar_input_filename"].endswith(".ftr")
+                if h_dict[self.py_sim_name]["solar_input_filename"].endswith(".csv"):
+                    df_solar = pd.read_csv(h_dict[self.py_sim_name]["solar_input_filename"])
+                elif h_dict[self.py_sim_name]["solar_input_filename"].endswith(".p"):
+                    df_solar = pd.read_pickle(h_dict[self.py_sim_name]["solar_input_filename"])
+                elif (h_dict[self.py_sim_name]["solar_input_filename"].endswith(".f")) | (
+                    h_dict[self.py_sim_name]["solar_input_filename"].endswith(".ftr")
                 ):
-                    df_solar = pd.read_feather(input_dict["solar_input_filename"])
+                    df_solar = pd.read_feather(h_dict[self.py_sim_name]["solar_input_filename"])
         else:
-            if "weather_data_input" not in input_dict:
+            if "weather_data_input" not in h_dict[self.py_sim_name]:
                 raise ValueError(
-                    "Must have either solar_input_filename or weather_data_input in input_dict"
+                    f"Must have either solar_input_filename or weather_data_input in h_dict[{self.py_sim_name}]"
                 )
             else:
-                df_solar = pd.DataFrame.from_dict(input_dict["weather_data_input"])
+                df_solar = pd.DataFrame.from_dict(h_dict[self.py_sim_name]["weather_data_input"])
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_solar.columns:
@@ -127,24 +112,24 @@ class SolarPySAM:
         self.wind_speed_array = self._get_solar_data_array(df_solar, "Wind Speed at")
 
         # Save the system capacity
-        self.target_system_capacity_kw = input_dict["target_system_capacity_kW"]
+        self.target_system_capacity_kw = h_dict[self.py_sim_name]["target_system_capacity_kW"]
 
         # set PV system model parameters
         if self.pysam_model == "pvsam":
             try:
                 self.logger.info(
                     "reading initial system info from {}".format(
-                        input_dict["system_info_file_name"]
+                        h_dict[self.py_sim_name]["system_info_file_name"]
                     )
                 )
-                with open(input_dict["system_info_file_name"], "r") as f:
+                with open(h_dict[self.py_sim_name]["system_info_file_name"], "r") as f:
                     model_params = json.load(f)
                 sys_design = {
                     "ModelParams": model_params,
                     "Other": {
-                        "lat": input_dict["lat"],
-                        "lon": input_dict["lon"],
-                        "elev": input_dict["elev"],
+                        "lat": h_dict[self.py_sim_name]["lat"],
+                        "lon": h_dict[self.py_sim_name]["lon"],
+                        "elev": h_dict[self.py_sim_name]["elev"],
                     },
                 }
 
@@ -161,19 +146,19 @@ class SolarPySAM:
                     "SystemDesign": {
                         "array_type": 3.0,  # single axis backtracking
                         "azimuth": 180.0,
-                        "dc_ac_ratio": input_dict["target_dc_ac_ratio"],
+                        "dc_ac_ratio": h_dict[self.py_sim_name]["target_dc_ac_ratio"],
                         "gcr": 0.29999999999999999,
                         "inv_eff": 96,
                         "losses": 14.075660688264469,
                         "module_type": 2.0,
-                        "system_capacity": input_dict["target_system_capacity_kW"],
+                        "system_capacity": h_dict[self.py_sim_name]["target_system_capacity_kW"],
                         "tilt": 0.0,
                     },
                 },
                 "Other": {
-                    "lat": input_dict["lat"],
-                    "lon": input_dict["lon"],
-                    "elev": input_dict["elev"],
+                    "lat": h_dict[self.py_sim_name]["lat"],
+                    "lon": h_dict[self.py_sim_name]["lon"],
+                    "elev": h_dict[self.py_sim_name]["elev"],
                 },
             }
 
@@ -186,16 +171,16 @@ class SolarPySAM:
         self.tz = 0
 
         # Save the initial condition
-        self.power_mw = input_dict["initial_conditions"]["power"]
-        self.dc_power_mw = input_dict["initial_conditions"]["power"]
-        self.dni = input_dict["initial_conditions"]["dni"]
-        self.poa = input_dict["initial_conditions"]["poa"]
+        self.power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.dc_power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.dni = h_dict[self.py_sim_name]["initial_conditions"]["dni"]
+        self.poa = h_dict[self.py_sim_name]["initial_conditions"]["poa"]
         self.aoi = 0
 
         # dynamic sizing special treatment only required for pvsam model, not for pvwatts
         if self.pysam_model == "pvsam":
-            self.target_system_capacity = input_dict["target_system_capacity_kW"]
-            self.target_dc_ac_ratio = input_dict["target_dc_ac_ratio"]
+            self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity_kW"]
+            self.target_dc_ac_ratio = h_dict[self.py_sim_name]["target_dc_ac_ratio"]
 
         # create pysam model
         if self.pysam_model == "pvsam":
@@ -237,15 +222,6 @@ class SolarPySAM:
                 return df_[column].values
         raise ValueError(f"Could not find column with substring {column_substring} in df_solar")
 
-    def return_outputs(self):
-        return {
-            "power_mw": self.power_mw,
-            "dni": self.dni,
-            "poa": self.poa,
-            "aoi": self.aoi,
-            "power_kW": self.power_mw*1e3
-        }
-
     def control(self, power_setpoint_mw=None):
         """
         Controls the PV plant power output to meet a specified setpoint.
@@ -271,9 +247,9 @@ class SolarPySAM:
             if self.verbose:
                 self.logger.info(f"self.power_mw after control = {self.power_mw}")
 
-    def step(self, inputs):
+    def step(self, h_dict):
         # Get the current  step
-        step = inputs["step"]
+        step = h_dict["step"]
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
@@ -314,24 +290,24 @@ class SolarPySAM:
             self.logger.info(f"self.power_mw = {self.power_mw}")
 
         # Apply control, if setpoint is provided
-        if "py_sims" in inputs and "solar_setpoint_mw" in inputs["py_sims"]["inputs"]:
-            P_setpoint = inputs["py_sims"]["inputs"]["solar_setpoint_mw"]
-        elif "external_signals" in inputs.keys():
-            if "solar_power_reference" in inputs["external_signals"].keys():
-                P_setpoint = inputs["external_signals"]["solar_power_reference"]
+        if "solar_setpoint_mw" in h_dict[self.py_sim_name]:
+            P_setpoint = h_dict[self.py_sim_name]["solar_setpoint_mw"]
+        elif "external_signals" in h_dict.keys():
+            if "solar_power_reference" in h_dict["external_signals"].keys():
+                P_setpoint = h_dict["external_signals"]["solar_power_reference"]
             else:
                 P_setpoint = None
         else:
             P_setpoint = None
 
-        # Further the cap the P_setpoint by the room left after wind power is deducted
-        wind_farm_power = inputs['py_sims']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
-        available_interconnect_kw = self.target_system_capacity_kw - wind_farm_power
+        # # Further the cap the P_setpoint by the room left after wind power is deducted
+        # wind_farm_power = inputs['py_sims']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
+        # available_interconnect_kw = self.target_system_capacity_kw - wind_farm_power
 
-        if P_setpoint is None:
-            P_setpoint = available_interconnect_kw / 1000
-        else:
-            P_setpoint = min(P_setpoint, available_interconnect_kw / 1000)
+        # if P_setpoint is None:
+        #     P_setpoint = available_interconnect_kw / 1000
+        # else:
+        #     P_setpoint = min(P_setpoint, available_interconnect_kw / 1000)
         self.control(P_setpoint)
 
         if self.power_mw < 0.0:
@@ -352,36 +328,10 @@ class SolarPySAM:
         if self.verbose:
             print("self.poa = ", self.poa)
 
-        return self.return_outputs()
+        # Update the h_dict with outputs
+        h_dict[self.py_sim_name]["power"] = self.power_mw
+        h_dict[self.py_sim_name]["dni"] = self.dni
+        h_dict[self.py_sim_name]["poa"] = self.poa
+        h_dict[self.py_sim_name]["aoi"] = self.aoi
 
-    def _setup_logging(self, log_file_name):
-        """
-        Sets up logging for the solar pysam.
-
-        This method configures a logger named "solar_sim" to log messages to a specified file.
-        It ensures the log directory exists, clears any existing handlers to avoid duplicates,
-        and formats log messages with timestamps, log levels, and messages.
-        Args:
-            log_file_name (str): The full path to the log file where log messages will be written.
-        Returns:
-            logging.Logger: Configured logger instance for the solar simulator.
-        """
-
-        # Split the logfile into directory and filename
-        log_dir = Path(log_file_name).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
-
-        # Get the logger for solar, note that root logger already in use
-        logger = logging.getLogger("solar_sim")
-        logger.setLevel(logging.INFO)
-
-        # Clear any existing handlers to avoid duplicates
-        for handler in logger.handlers[:]:
-            logger.removeHandler(handler)
-
-        # Add file handler
-        file_handler = logging.FileHandler(log_file_name)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        logger.addHandler(file_handler)
-
-        return logger
+        return h_dict

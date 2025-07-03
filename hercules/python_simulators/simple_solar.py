@@ -1,38 +1,42 @@
 # Very simple solar farm model
+from hercules.python_simulators.base_pysim import PySimBase
 
 
-class SimpleSolar:
-    def __init__(self, input_dict, dt, starttime=None, endtime=None):
+class SimpleSolar(PySimBase):
+    def __init__(self, h_dict):
+        """
+        Initializes the WindSimLongTerm class.
+        Args:
+            h_dict (dict): Dict containing values for the simulation
+        """
         # Need dt, plant capacity and efficiency
         # Using base value of 1000 W/m^2 irradiance for sizing
 
+        # Store the name of this py_sim
+        self.py_sim_name = "solar_farm"
+
+        # Store the type of this py_sim
+        self.py_sim_type = "SimpleSolar"
+
+        # Call the base class init
+        super().__init__(h_dict, self.py_sim_name)
+
         # Efficiency currently denotes the kind of solar panel you have
-        self.efficiency = input_dict["efficiency"]  # need a realistic efficiency for a solar panel
-        self.capacity = input_dict["capacity"]
+        self.efficiency = h_dict[self.py_sim_name]["efficiency"]  # need a realistic efficiency for a solar panel
+        self.capacity = h_dict[self.py_sim_name]["capacity"]
 
         # Total area of solar panels
         base_irradiance = 1000  # W/m^2
         self.area = self.capacity / (self.efficiency * base_irradiance)  # in m^2
 
-        # Fixed dt for solar simulations
-        self.dt = dt
 
         # Save the initial condition
-        self.power_mw = input_dict["initial_conditions"]["power"]
+        self.power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
         self.power_kW = self.power_mw * 1000
-        self.irradiance = input_dict["initial_conditions"]["irradiance"]
+        self.irradiance = h_dict[self.py_sim_name]["initial_conditions"]["irradiance"]
 
-        # Define needed inputs as empty dict
-        self.needed_inputs = {}
 
-        # # compute power output of solar panels
-        # self.compute_power()
-
-    def return_outputs(self):
-        return {"power": self.power_mw, "irradiance": self.irradiance,
-                "power_kW": self.power_kW}
-
-    def step(self, inputs):
+    def step(self, h_dict):
         # TODO add tilt tracking - haven't gotten to this yet
         # right now, just static
         # https://www.sciencedirect.com/science/article/pii/S1364032106001134
@@ -58,4 +62,9 @@ class SimpleSolar:
         # NOTE: need to talk about whether to have time step in here or not
         # Need to put outputs into input/output structure
 
-        return self.return_outputs()
+        # Update the h_dict with outputs
+        h_dict[self.py_sim_name]["power"] = self.power_mw * 1000.0
+        h_dict[self.py_sim_name]["irradiance"] = self.irradiance
+
+        return h_dict
+
