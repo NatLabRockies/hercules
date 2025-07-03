@@ -13,23 +13,14 @@ Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
 class Emulator:
-    def __init__(self, controller, py_sims, input_dict, logger):
+    def __init__(self, controller, py_sims, h_dict, logger):
         """
         Initializes the emulator.
 
         Args:
             controller (object): The controller object responsible for managing the simulation.
             py_sims (object): An object containing Python-based simulation components.
-            input_dict (dict): A dictionary containing configuration parameters for the emulator.
-                Required keys:
-                    - "dt" (float): The time step for the simulation in seconds.
-                    - "starttime" (float): The start time of the simulation in seconds.
-                    - "endtime" (float): The end time of the simulation in seconds.
-                Optional keys:
-                    - "output_file" (str): Path to the output CSV file.
-                        Defaults to "outputs/hercules_output.csv".
-                    - "external_data_file" (str): Path to an external data file
-                        for additional inputs.
+            h_dict (dict): A dictionary contains parameters and values for the simulation.
             logger (object): A logger instance for logging messages during the simulation.
 
         """
@@ -41,14 +32,14 @@ class Emulator:
         self.logger = logger
 
         # Save the input dict to main dict
-        self.main_dict = input_dict
+        self.h_dict = h_dict
 
-        # Initialize the flattened main_dict
-        self.main_dict_flat = {}
+        # Initialize the flattened h_dict
+        self.h_dict_flat = {}
 
         # Initialize the output file
-        if "output_file" in input_dict:
-            self.output_file = input_dict["output_file"]
+        if "output_file" in h_dict:
+            self.output_file = h_dict["output_file"]
         else:
             self.output_file = "outputs/hercules_output.csv"
 
@@ -63,9 +54,9 @@ class Emulator:
         self.csv_buffer = []
 
         # Save time step, start time and end time
-        self.dt = input_dict["dt"]
-        self.starttime = input_dict["starttime"]
-        self.endtime = input_dict["endtime"]
+        self.dt = h_dict["dt"]
+        self.starttime = h_dict["starttime"]
+        self.endtime = h_dict["endtime"]
         self.total_simulation_time = self.endtime - self.starttime  # In seconds
         self.total_simulation_days = self.total_simulation_time / 86400
         self.time = self.starttime
@@ -76,7 +67,10 @@ class Emulator:
 
         # How often to update the user on current emulator time
         # In simulated time
-        self.time_log_interval = 600  # seconds
+        if "time_log_interval" in h_dict:
+            self.time_log_interval = h_dict["time_log_interval"]
+        else:
+            self.time_log_interval = 600  # seconds
         self.step_log_interval = self.time_log_interval / self.dt
 
         # Round to step_log_interval to be an integer greater than 0
@@ -87,14 +81,14 @@ class Emulator:
         self.py_sims = py_sims
 
         # Update the input dict components
-        self.main_dict["py_sims"] = self.py_sims.get_py_sim_dict()
+        self.h_dict["py_sims"] = self.py_sims.get_py_sim_dict()
 
         # Read in any external data
         self.external_data_all = {}
-        if "external_data_file" in input_dict:
-            self._read_external_data_file(input_dict["external_data_file"])
+        if "external_data_file" in h_dict:
+            self._read_external_data_file(h_dict["external_data_file"])
             self.external_signals = {}
-            self.main_dict["external_signals"] = {}
+            self.h_dict["external_signals"] = {}
 
     def _read_external_data_file(self, filename):
         """
@@ -150,22 +144,22 @@ class Emulator:
             with open(self.output_file, "r") as f:
                 self.header = f.readline().strip().split(",")
 
-    def _save_main_dict_as_text(self):
+    def _save_h_dict_as_text(self):
         """
         Save the main dictionary to a text file.
 
         This method redirects stdout to a file, prints the main dictionary, and then
         restores stdout to its original state. The dictionary is saved to
-        'outputs/main_dict.echo' to help with log interpretation.
+        'outputs/h_dict.echo' to help with log interpretation.
         """
 
         # Echo the dictionary to a seperate file in case it is helpful
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        with open("outputs/main_dict.echo", "w") as f_i:
+        with open("outputs/h_dict.echo", "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
-            print(self.main_dict)
+            print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
 
     def enter_execution(self, function_targets=[], function_arguments=[[]]):
@@ -251,35 +245,35 @@ class Emulator:
                 self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
 
             for k in self.external_data_all:
-                self.main_dict["external_signals"][k] = self.external_data_all[k][
+                self.h_dict["external_signals"][k] = self.external_data_all[k][
                     self.external_data_all["time"] == self.time
                 ][0]
 
             # Update controller and py sims
-            self.main_dict["time"] = self.time
-            self.main_dict["step"] = self.step
-            self.main_dict = self.controller.step(self.main_dict)
-            if self.main_dict["py_sims"]:
-                self.py_sims.step(self.main_dict)
-                self.main_dict["py_sims"] = self.py_sims.get_py_sim_dict()
+            self.h_dict["time"] = self.time
+            self.h_dict["step"] = self.step
+            self.h_dict = self.controller.step(self.h_dict)
+            if self.h_dict["py_sims"]:
+                self.py_sims.step(self.h_dict)
+                self.h_dict["py_sims"] = self.py_sims.get_py_sim_dict()
 
             # Log the current state
-            self.log_main_dict()
+            self.log_h_dict()
 
             # If this is first iteration log the input dict
             # And turn off the first iteration flag
             if self.first_iteration:
-                self.logger.info(self.main_dict)
-                self._save_main_dict_as_text()
+                self.logger.info(self.h_dict)
+                self._save_h_dict_as_text()
                 self.first_iteration = False
 
             # Update the time
             self.time = self.time + self.dt
 
-    def recursive_flatten_main_dict(self, nested_dict, prefix=""):
+    def recursive_flatten_h_dict(self, nested_dict, prefix=""):
         """
         Recursively flattens a nested dictionary and stores the flattened key-value pairs
-        in the `main_dict_flat` attribute.
+        in the `h_dict_flat` attribute.
         Args:
             nested_dict (dict): The nested dictionary to be flattened.
             prefix (str, optional): The prefix to prepend to the keys in the flattened
@@ -289,17 +283,17 @@ class Emulator:
         # Recursively flatten the input dict
         for k, v in nested_dict.items():
             if isinstance(v, dict):
-                self.recursive_flatten_main_dict(v, prefix + k + ".")
+                self.recursive_flatten_h_dict(v, prefix + k + ".")
             else:
                 # If v is a list or np.array, enter each element seperately
                 if isinstance(v, (list, np.ndarray)):
                     for i, vi in enumerate(v):
                         if isinstance(vi, (int, float)):
-                            self.main_dict_flat[prefix + k + ".%03d" % i] = vi
+                            self.h_dict_flat[prefix + k + ".%03d" % i] = vi
 
                 # If v is a string, int, or float, enter it directly
                 if isinstance(v, (int, np.integer, float)):
-                    self.main_dict_flat[prefix + k] = v
+                    self.h_dict_flat[prefix + k] = v
 
     def close_output_file(self):
         """Properly close the output file."""
@@ -321,21 +315,21 @@ class Emulator:
         # Clear the buffer
         self.csv_buffer = []
 
-    def log_main_dict(self):
+    def log_h_dict(self):
         """
         Logs the current state of the main dictionary to a CSV file.
 
         """
 
         # Update the flattened input dict
-        self.recursive_flatten_main_dict(self.main_dict)
+        self.recursive_flatten_h_dict(self.h_dict)
 
         # Add the current time
-        self.main_dict_flat["clock_time"] = dt.datetime.now()
+        self.h_dict_flat["clock_time"] = dt.datetime.now()
 
         # The keys and values as two lists
-        keys = list(self.main_dict_flat.keys())
-        values = list(self.main_dict_flat.values())
+        keys = list(self.h_dict_flat.keys())
+        values = list(self.h_dict_flat.values())
 
         # Ensure the output file is open
         if not self.csv_file:
