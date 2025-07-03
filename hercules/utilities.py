@@ -7,6 +7,27 @@ import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
 
+# Define the available py_sim names
+def get_available_py_sim_names():
+    """Return a list of available py_sim names."""
+    return [
+        "wind_farm",
+        "solar_farm",
+        "battery",
+        "electrolyzer",
+    ]
+
+
+def get_available_py_sim_types():
+    """Return a list of available py_sim types, by py_sim."""
+    return {
+        "wind_farm": ["WindSimLongTerm"],
+        "solar_farm": ["SimpleSolar", "SolarPySAM"],
+        "battery": ["SimpleBattery", "LIB"],
+        "electrolyzer": ["ElectrolyzerPlant"],
+    }
+
+
 class Loader(yaml.SafeLoader):
     def __init__(self, stream):
         self._root = os.path.split(stream.name)[0]
@@ -24,10 +45,105 @@ Loader.add_constructor("!include", Loader.include)
 
 
 def load_yaml(filename, loader=Loader):
+    """Load and parse a YAML file into a Python dictionary.
+
+    This function loads a YAML file and parses it into a Python dictionary. It supports
+    custom YAML tags like !include through the custom Loader class. If a dictionary is
+    passed instead of a filename, it returns the dictionary unchanged.
+
+    Args:
+        filename (Union[str, dict]): Path to the YAML file to load, or an existing
+            dictionary containing YAML data.
+        loader (yaml.Loader, optional): The YAML loader class to use for parsing.
+            Defaults to the custom Loader class that supports !include tags.
+
+    Returns:
+        dict: The parsed YAML data as a Python dictionary.
+
+    """
     if isinstance(filename, dict):
         return filename  # filename already yaml dict
     with open(filename) as fid:
         return yaml.load(fid, loader)
+
+
+def load_hercules_input(filename):
+    """Load and parse a Hercules input file and return h_dict dictionary."""
+    h_dict = load_yaml(filename)
+
+    # Known keys
+    required_keys = ["dt", "starttime", "endtime", "plant"]
+    py_sim_names = get_available_py_sim_names()
+    py_sim_types = get_available_py_sim_types()
+    other_keys = [
+        "name",
+        "description",
+        "controller",
+        "verbose",
+        "output_file",
+        "time_log_interval",
+        "external_data_file",
+    ]
+
+    # Check that required keys are present
+
+    for key in required_keys:
+        if key not in h_dict:
+            raise ValueError(f"Required key {key} not found in input file {filename}")
+
+    # Check that plant is a dictionary
+    if not isinstance(h_dict["plant"], dict):
+        raise ValueError(f"Plant must be a dictionary in input file {filename}")
+
+    # Ensure that plant contains a interconnect_limit key
+    if "interconnect_limit" not in h_dict["plant"]:
+        raise ValueError(f"Plant must contain an interconnect_limit key in input file {filename}")
+
+    # Ensure that interconnect_limit is a float
+    if not isinstance(h_dict["plant"]["interconnect_limit"], float):
+        raise ValueError(f"Interconnect limit must be a float in input file {filename}")
+
+    # Check that all keys are either required or optional
+    for key in h_dict:
+        if key not in required_keys + py_sim_names + other_keys:
+            raise ValueError(f"Key {key} not a valid key in input file {filename}")
+
+    # Of the pysim keys present in h_dict, confirm all are dictionaries
+    for key in py_sim_names:
+        if key in h_dict:
+            if not isinstance(h_dict[key], dict):
+                raise ValueError(f"{key} must be a dictionary in input file {filename}")
+
+    # Check that controller is a dictionary
+    if "controller" in h_dict:
+        if not isinstance(h_dict["controller"], dict):
+            raise ValueError(f"Controller must be a dictionary in input file {filename}")
+
+    # If verbose is not present, set it to False
+    if "verbose" not in h_dict:
+        h_dict["verbose"] = False
+    # If verbose is present, check that it is a boolean
+    elif not isinstance(h_dict["verbose"], bool):
+        raise ValueError(f"Verbose must be a boolean in input file {filename}")
+
+    # Check that none of the include py_sims include a verbose key
+    for key in py_sim_names:
+        if key in h_dict:
+            if "verbose" in h_dict[key]:
+                raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
+
+    # Check that all of the included py_sims have a py_sim_type key and that key is valid
+    for key in py_sim_names:
+        if key in h_dict:
+            if "py_sim_type" not in h_dict[key]:
+                raise ValueError(f"{key} must include a py_sim_type key in input file {filename}")
+            if h_dict[key]["py_sim_type"] not in py_sim_types[key]:
+                raise ValueError(
+                    f"{key} has an invalid py_sim_type {h_dict[key]['py_sim_type']} in input file {filename}"
+                )
+
+    # Check that verbose is a boolean
+    return h_dict
 
 
 def load_perffile(perffile):
