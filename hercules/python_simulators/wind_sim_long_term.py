@@ -1,16 +1,14 @@
 # Implements the long run wind model for Hercules.
 
-import logging
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from floris import FlorisModel
+from hercules.python_simulators.base_pysim import PySimBase
 from hercules.utilities import interpolate_df, load_perffile, load_yaml
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
-from hercules.python_simulators.base_pysim import PySimBase
 
 RPM2RADperSec = 2 * np.pi / 60.0
 
@@ -238,8 +236,6 @@ class WindSimLongTerm(PySimBase):
         # Update the user
         self.logger.info(f"Initialized WindSimLongTerm with {self.n_turbines} turbines")
 
-
-
     def update_wake_deficits(self, step):
         """
         Updates the wake deficits in the FLORIS model based on the current simulation step.
@@ -330,7 +326,6 @@ class WindSimLongTerm(PySimBase):
             self.derating_buffer_idx + 1
         ) % self.floris_time_window_width_steps
 
-
     def step(self, h_dict):
         # Get the current  step
         step = h_dict["step"]
@@ -339,10 +334,7 @@ class WindSimLongTerm(PySimBase):
 
         # Grab the instantaneous derating signal and update the derating buffer
         derating = np.array(
-            [
-                h_dict[self.py_sim_name][f"derating_{t_idx:03d}"]
-                for t_idx in range(self.n_turbines)
-            ]
+            [h_dict[self.py_sim_name][f"derating_{t_idx:03d}"] for t_idx in range(self.n_turbines)]
         )
         self.update_derating_buffer(derating)
 
