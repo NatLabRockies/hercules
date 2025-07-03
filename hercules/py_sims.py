@@ -1,98 +1,84 @@
-import numpy as np
-
-from hercules.python_simulators.battery import Battery
+from hercules.python_simulators.simple_battery import SimpleBattery
+from hercules.python_simulators.lib import LIB
 from hercules.python_simulators.electrolyzer_plant import ElectrolyzerPlant
 from hercules.python_simulators.simple_solar import SimpleSolar
 from hercules.python_simulators.solar_pysam import SolarPySAM
 from hercules.python_simulators.wind_sim_long_term import WindSimLongTerm
+from hercules.utilities import get_available_py_sim_names
 
 
 class PySims:
-    def __init__(self, input_dict):
-        # Save time information
-        self.dt = input_dict["dt"]
-        self.starttime = input_dict["starttime"]
-        self.endtime = input_dict["endtime"]
-        
+    def __init__(self, h_dict):
+        # get a list of possible py_sim
+        all_py_sim_names = get_available_py_sim_names()
 
-        # Grab py sim details
-        self.py_sim_dict = input_dict["py_sims"]
+        # Make a list of py_sim names that are in the h_dict
+        h_dict["py_sim_names"] = [
+            py_sim_name for py_sim_name in all_py_sim_names if py_sim_name in h_dict
+        ]
 
-        # If None n_py_sim = 0
-        if input_dict["py_sims"] is None:
-            self.n_py_sim = 0
-            self.py_sim_names = []
+        # Add in the number of py_sims
+        h_dict["n_py_sim"] = len(self.py_sims)
 
-        else:
-            self.n_py_sim = len(self.py_sim_dict)
-            self.py_sim_names = np.copy(list(self.py_sim_dict.keys()))
-            self.py_sim_dict["inputs"] = {}
-            self.py_sim_dict["inputs"][
-                "locally_generated_power"
-            ] = 0  # Always calculate available power for py_sims
+        # Save the py_sim names and number of py_sims
+        self.py_sim_names = h_dict["py_sim_names"]
+        self.n_py_sim = h_dict["n_py_sim"]
 
-            # Collect the py_sim objects, inputs and outputs
-            for py_sim_name in self.py_sim_names:
-                self.py_sim_dict[py_sim_name]["object"] = self.get_py_sim(
-                    self.py_sim_dict[py_sim_name]
-                )
-                self.py_sim_dict[py_sim_name]["outputs"] = self.py_sim_dict[py_sim_name][
-                    "object"
-                ].return_outputs()
-                self.py_sim_dict[py_sim_name]["inputs"] = {}
-                for needed_input in self.py_sim_dict[py_sim_name]["object"].needed_inputs.keys():
-                    self.py_sim_dict["inputs"][needed_input] = self.py_sim_dict[py_sim_name][
-                        "object"
-                    ].needed_inputs[needed_input]
-
-
-    def get_py_sim(self, py_sim_obj_dict):
-        if py_sim_obj_dict["py_sim_type"] == "SimpleSolar":
-            return SimpleSolar(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
-
-        if py_sim_obj_dict["py_sim_type"] == "SolarPySAM":
-            return SolarPySAM(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
-
-        if py_sim_obj_dict["py_sim_type"] in [ "SimpleBattery", "LIB"]:
-            return Battery(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
-
-        if py_sim_obj_dict["py_sim_type"] == "ElectrolyzerPlant":
-            return ElectrolyzerPlant(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
-        
-        if py_sim_obj_dict["py_sim_type"] == 'WindSimLongTerm':
-            return WindSimLongTerm(py_sim_obj_dict, self.dt, self.starttime, self.endtime)
-
-        raise Exception("Unknown py_sim_type: ", py_sim_obj_dict["py_sim_type"])
-
-    def get_py_sim_dict(self):
-        return self.py_sim_dict
-
-    def step(self, main_dict):
-        # Collect the py_sim objects
-        locally_generated_power = 0.0
+        # Collect the py_sim objects and attach to the h_dict
         for py_sim_name in self.py_sim_names:
+            h_dict[py_sim_name]["object"] = self.get_py_sim(py_sim_name, h_dict)
 
-            self.py_sim_dict[py_sim_name]["outputs"] = self.py_sim_dict[py_sim_name]["object"].step(
-                main_dict
-            )
-            if "Solar" in self.py_sim_dict[py_sim_name]["py_sim_type"]:
-                # TODO: Remove try/except once all solar module options have same outputs
-                try:
-                    solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power_mw"]*1000
-                except KeyError:
-                    solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power"]*1000
-                locally_generated_power += solar_power
+        return h_dict
 
-        self.py_sim_dict["inputs"]["locally_generated_power"] = locally_generated_power
+    def get_py_sim(self, py_sim_name, h_dict):
+        if h_dict[py_sim_name]["py_sim_type"] == "SimpleSolar":
+            return SimpleSolar(h_dict)
+
+        if h_dict[py_sim_name]["py_sim_type"] == "SolarPySAM":
+            return SolarPySAM(h_dict)
+        
+        if h_dict[py_sim_name]["py_sim_type"] == "LIB":
+            return LIB(h_dict)
+        
+        if h_dict[py_sim_name]["py_sim_type"] == "SimpleBattery":
+            return SimpleBattery(h_dict)
+
+
+        if h_dict[py_sim_name]["py_sim_type"] == "ElectrolyzerPlant":
+            return ElectrolyzerPlant(h_dict)
+
+        if h_dict[py_sim_name]["py_sim_type"] == "WindSimLongTerm":
+            return WindSimLongTerm(h_dict)
+
+        raise Exception("Unknown py_sim_type: ", h_dict[py_sim_name]["py_sim_type"])
+
+    def step(self, h_dict):
+        # Collect the py_sim objects
+        for py_sim_name in self.py_sim_names:
+            # Update h_dict by calling the step method of each py_sim object
+            h_dict = h_dict[py_sim_name]["object"].step(h_dict)
+
+            # TODO: Replace whatever this is doing...
+        #     if "Solar" in self.py_sim_dict[py_sim_name]["py_sim_type"]:
+        #         # TODO: Remove try/except once all solar module options have same outputs
+        #         try:
+        #             solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power_mw"]*1000
+        #         except KeyError:
+        #             solar_power = self.py_sim_dict[py_sim_name]["outputs"]["power"]*1000
+        #         locally_generated_power += solar_power
+
+        # self.py_sim_dict["inputs"]["locally_generated_power"] = locally_generated_power
 
     def calculate_plant_outputs(self, main_dict):
         for py_sim_name in self.py_sim_names:
             if "Electrolyzer" in self.py_sim_dict[py_sim_name]["py_sim_type"]:
-                main_dict["py_sims"]["inputs"]["plant_outputs"]["hydrogen"] = \
-                    self.py_sim_dict[py_sim_name]["outputs"]["H2_output"]
-                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] -= \
-                    self.py_sim_dict[py_sim_name]["outputs"]["power_used_kw"] 
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["hydrogen"] = self.py_sim_dict[
+                    py_sim_name
+                ]["outputs"]["H2_output"]
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] -= self.py_sim_dict[
+                    py_sim_name
+                ]["outputs"]["power_used_kw"]
             else:
-                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
-                    self.py_sim_dict[py_sim_name]["outputs"]["power_kW"] 
-                
+                main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += self.py_sim_dict[
+                    py_sim_name
+                ]["outputs"]["power_kW"]
