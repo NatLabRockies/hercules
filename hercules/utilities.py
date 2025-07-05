@@ -9,7 +9,11 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 
 # Define the available py_sim names
 def get_available_py_sim_names():
-    """Return a list of available py_sim names."""
+    """Return a list of available py_sim names.
+
+    Returns:
+        list: A list of strings containing the names of available py_sim components.
+    """
     return [
         "wind_farm",
         "solar_farm",
@@ -17,16 +21,29 @@ def get_available_py_sim_names():
         "electrolyzer",
     ]
 
+
 # Note this is a subset of the py_sims
 def get_available_generator_names():
-    """Return a list of available generator names."""
+    """Return a list of available generator names.
+
+    This function returns a subset of py_sim names that represent power generators
+    (wind_farm and solar_farm), excluding storage and conversion components.
+
+    Returns:
+        list: A list of strings containing the names of available generator components.
+    """
     return [
         "wind_farm",
         "solar_farm",
     ]
 
+
 def get_available_py_sim_types():
-    """Return a list of available py_sim types, by py_sim."""
+    """Return a list of available py_sim types, by py_sim.
+
+    Returns:
+        dict: A dictionary mapping py_sim names to lists of available simulation types.
+    """
     return {
         "wind_farm": ["WindSimLongTerm"],
         "solar_farm": ["SimpleSolar", "SolarPySAM"],
@@ -36,12 +53,31 @@ def get_available_py_sim_types():
 
 
 class Loader(yaml.SafeLoader):
+    """Custom YAML loader that supports !include tags.
+
+    This loader extends yaml.SafeLoader to support custom !include tags that allow
+    including other YAML files within a main YAML file.
+    """
+
     def __init__(self, stream):
+        """Initialize the Loader with a stream.
+
+        Args:
+            stream: The YAML stream to load from.
+        """
         self._root = os.path.split(stream.name)[0]
 
         super().__init__(stream)
 
     def include(self, node):
+        """Include another YAML file at the current location.
+
+        Args:
+            node: The YAML node containing the filename to include.
+
+        Returns:
+            dict: The parsed YAML content from the included file.
+        """
         filename = os.path.join(self._root, self.construct_scalar(node))
 
         with open(filename, "r") as f:
@@ -75,7 +111,22 @@ def load_yaml(filename, loader=Loader):
 
 
 def load_hercules_input(filename):
-    """Load and parse a Hercules input file and return h_dict dictionary."""
+    """Load and parse a Hercules input file and return h_dict dictionary.
+
+    This function loads a Hercules input YAML file and performs comprehensive validation
+    of the input structure. It checks for required keys, validates data types, and
+    ensures the configuration follows the expected format for Hercules simulations.
+
+    Args:
+        filename (str): Path to the Hercules input YAML file.
+
+    Returns:
+        dict: A validated dictionary containing the Hercules input configuration.
+
+    Raises:
+        ValueError: If required keys are missing, data types are invalid, or the
+            configuration structure is incorrect.
+    """
     h_dict = load_yaml(filename)
 
     # Known keys
@@ -154,6 +205,20 @@ def load_hercules_input(filename):
 
 
 def load_perffile(perffile):
+    """Load and parse a wind turbine performance file.
+
+    This function reads a performance file containing wind turbine coefficient data
+    including power coefficients (Cp), thrust coefficients (Ct), and torque coefficients (Cq)
+    as functions of tip speed ratio (TSR) and blade pitch angle. The data is converted
+    into RegularGridInterpolator objects for efficient interpolation during simulation.
+
+    Args:
+        perffile (str): Path to the performance file containing turbine coefficient data.
+
+    Returns:
+        dict: A dictionary containing RegularGridInterpolator objects for 'Cp', 'Ct', and 'Cq'
+            coefficients, keyed by coefficient name.
+    """
     perffuncs = {}
 
     with open(perffile) as pfile:
@@ -204,7 +269,20 @@ def load_perffile(perffile):
 
 # Configure logging
 def setup_logging(logfile="log_hercules.log", console_output=False):
-    """Set up logging to file and console."""
+    """Set up logging to file and console.
+
+    This function configures logging for the Hercules emulator. It creates an 'outputs'
+    directory if it doesn't exist and sets up file logging with a timestamped format.
+    Optionally, it can also enable console output for real-time logging.
+
+    Args:
+        logfile (str, optional): Name of the log file. Defaults to "log_hercules.log".
+        console_output (bool, optional): Whether to enable console logging output.
+            Defaults to False.
+
+    Returns:
+        logging.Logger: The configured logger instance for the emulator.
+    """
     log_dir = os.path.join(os.getcwd(), "outputs")
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, logfile)
@@ -233,21 +311,23 @@ def setup_logging(logfile="log_hercules.log", console_output=False):
 
 
 def interpolate_df(df, new_time):
-    """
-    Interpolates the values of a DataFrame to match a new time axis.
+    """Interpolates the values of a DataFrame to match a new time axis.
 
     This function takes a DataFrame with a 'time' column and other data columns,
     and interpolates the data columns to align with a new set of time points
     provided in `new_time`. The interpolation is performed using linear
-    interpolation.
+    interpolation. For datetime columns, the function converts to timestamps
+    for interpolation and then converts back to datetime format.
+
     Args:
         df (pd.DataFrame): The input DataFrame containing a 'time' column and
             other columns to be interpolated.
         new_time (array-like): A sequence of new time points to which the data
             should be interpolated.
+
     Returns:
         pd.DataFrame: A new DataFrame containing the 'time' column with values
-        from `new_time` and the interpolated data columns.
+            from `new_time` and the interpolated data columns.
     """
     # Create dictionary to store all columns
     result_dict = {"time": new_time}
