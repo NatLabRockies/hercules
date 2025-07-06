@@ -1,4 +1,3 @@
-from abc import abstractmethod
 
 
 class ControllerStandin:
@@ -14,32 +13,24 @@ class ControllerStandin:
     models are incorporated.
     """
 
-    def __init__(self, input_dict):
-        # Get wind farm information (assumes exactly one wind farm)
-        # Assumes WindSimLongTerm is first entry in py_sims
-        self.wf_name = list(input_dict["py_sims"].keys())[0]
+    def __init__(self, h_dict):
+        # # Get wind farm information (assumes exactly one wind farm)
+        # # Assumes WindSimLongTerm is first entry in py_sims
+        # self.wf_name = list(input_dict["py_sims"].keys())[0]
+        pass
 
-    @abstractmethod
-    def step(self, main_dict):
-        num_turbines = main_dict["py_sims"][self.wf_name]["num_turbines"]
+    def step(self, h_dict):
+        num_turbines = h_dict["wind_farm"]["num_turbines"]
 
         # Set deratings very high for now
         for t_idx in range(num_turbines):
-            main_dict["py_sims"]["inputs"][f"derating_{t_idx:03d}"] = 4000
+            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 4000
 
         # Lower t0 derating every other 100 seconds
-        if main_dict["time"] % 200 < 100:
-            main_dict["py_sims"]["inputs"]["derating_000"] = 500
+        if h_dict["time"] % 200 < 100:
+            h_dict["wind_farm"]["derating_000"] = 500
 
-        # # Set turbine yaw angles based on current AMR-Wind wind direction
-        # wd = main_dict["hercules_comms"]["amr_wind"][self.wf_name]["wind_direction"]
-        # main_dict["hercules_comms"]["amr_wind"][self.wf_name]["turbine_yaw_angles"] = (
-        #     num_turbines * [wd]
-        # )
-
-        # TODO: does there need to be a seperate "controller" dict?
-        # Might make understanding the log easier?
-        return main_dict
+        return h_dict
 
 
 # Can uncomment the below and work on once the ROSCO/FAST connection is
