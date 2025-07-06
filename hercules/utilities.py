@@ -172,11 +172,6 @@ def load_hercules_input(filename):
             if not isinstance(h_dict[key], dict):
                 raise ValueError(f"{key} must be a dictionary in input file {filename}")
 
-    # Check that controller is a dictionary
-    if "controller" in h_dict:
-        if not isinstance(h_dict["controller"], dict):
-            raise ValueError(f"Controller must be a dictionary in input file {filename}")
-
     # If verbose is not present, set it to False
     if "verbose" not in h_dict:
         h_dict["verbose"] = False
