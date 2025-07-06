@@ -22,9 +22,16 @@ class ElectrolyzerPlant(PySimBase):
         super().__init__(h_dict, self.py_sim_name)
 
         electrolyzer_dict = {}
-        electrolyzer_dict["general"] = h_dict[self.py_sim_name]["general"]
-        electrolyzer_dict["electrolyzer"] = h_dict[self.py_sim_name]["electrolyzer"]
-        electrolyzer_dict["electrolyzer"]["dt"] = dt
+        # Check if general key exists in electrolyzer section, otherwise use top-level general
+        if "general" in h_dict[self.py_sim_name]:
+            electrolyzer_dict["general"] = h_dict[self.py_sim_name]["general"]
+        elif "general" in h_dict:
+            electrolyzer_dict["general"] = h_dict["general"]
+        else:
+            electrolyzer_dict["general"] = {"verbose": False}
+        
+        electrolyzer_dict["electrolyzer"] = h_dict[self.py_sim_name]
+        electrolyzer_dict["electrolyzer"]["dt"] = self.dt
 
         if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
             self.allow_grid_power_consumption = h_dict[self.py_sim_name][
@@ -33,14 +40,17 @@ class ElectrolyzerPlant(PySimBase):
         else:
             self.allow_grid_power_consumption = False
 
+        # Remove keys not expected by Supervisor
+        elec_config = dict(electrolyzer_dict["electrolyzer"])
+        elec_config.pop("allow_grid_power_consumption", None)
         # Initialize electrolyzer plant
-        self.elec_sys = Supervisor.from_dict(electrolyzer_dict["electrolyzer"])
+        self.elec_sys = Supervisor.from_dict(elec_config)
 
         self.n_stacks = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
         # power_in is always in MW
-        power_in = h_dict[self.py_sim_name]["electrolyzer"]["initial_power_kW"]
+        power_in = h_dict[self.py_sim_name]["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
 
         # Run Electrolyzer two steps to get outputs

@@ -118,6 +118,52 @@ lib_battery = {
     'initial_conditions': {'SOC': 0.102},
 }
 
+electrolyzer = {
+    # 'py_sim_type': 'ElectrolyzerPlant',  # Removed for Supervisor compatibility
+    'initialize': True,
+    'initial_power_kW': 3000,
+    'supervisor': {
+        'n_stacks': 10,
+    },
+    'stack': {
+        'cell_type': 'PEM',
+        'cell_area': 1000.0,
+        'max_current': 2000,
+        'temperature': 60,
+        'n_cells': 100,
+        'min_power': 50, 
+        'stack_rating_kW': 500,
+        'include_degradation_penalty': True,
+    },
+    'controller': {
+        'n_stacks': 10,
+        'control_type': 'DecisionControl',
+        'policy': {
+            'eager_on': False,
+            'eager_off': False,
+            'sequential': False,
+            'even_dist': False,
+            'baseline': True,
+        },
+    },
+    'costs': None,
+    'cell_params': {
+        'cell_type': 'PEM',
+        'PEM_params': {
+            'cell_area': 1000,
+            'turndown_ratio': 0.1,
+            'max_current_density': 2,
+        },
+    },
+    'degradation': {
+        'PEM_params': {
+            'rate_steady': 1.41737929e-10,
+            'rate_fatigue': 3.33330244e-07,
+            'rate_onoff': 1.47821515e-04,
+        },
+    },
+}
+
 # Base h_dict with no py_sims
 h_dict = {
     'dt': 1.0,
@@ -235,4 +281,15 @@ h_dict_lib_battery = {
     'time': 0.0,
     'plant': plant,
     'battery': lib_battery
+}
+
+h_dict_electrolyzer = {
+    'dt': 1.0,
+    'starttime': 0.0,
+    'endtime': 10.0,
+    'verbose': False,
+    'step': 0,
+    'time': 0.0,
+    'plant': plant,
+    'electrolyzer': electrolyzer
 }
