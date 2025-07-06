@@ -83,9 +83,9 @@ class SolarPySAM(PySimBase):
             raise ValueError(
                 f"Start time {self.starttime} is not in the range of the solar input file"
             )
-        if not (df_solar["time"].min() <= self.endtime - dt <= df_solar["time"].max()):
+        if not (df_solar["time"].min() <= self.endtime - self.dt <= df_solar["time"].max()):
             raise ValueError(
-                f"End time {self.endtime - dt} is not in the range of the solar input file"
+                f"End time {self.endtime - self.dt} is not in the range of the solar input file"
             )
 
         # Solar data must contain time_utc since pysam requires time
