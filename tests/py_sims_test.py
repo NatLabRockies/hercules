@@ -1,9 +1,95 @@
+import pytest
 from hercules import py_sims
-from .test_inputs.h_dict import h_dict
+
+from .test_inputs.h_dict import (
+    h_dict,
+    h_dict_battery,
+    h_dict_solar,
+    h_dict_wind,
+    h_dict_wind_solar_battery,
+)
 
 
 def test_init_from_dict():
-    # Test that a pysim can be initiated
+    """Test that PySims can be initialized from a dictionary."""
+    pysims = py_sims.PySims(h_dict)
+    assert pysims is not None
 
 
-    py_sims.PySims(h_dict)
+def test_py_sim_names_detection_empty():
+    """Test that PySims correctly identifies py_sim names in empty h_dict."""
+    pysims = py_sims.PySims(h_dict)
+    assert len(pysims.py_sim_names) == 0
+
+
+def test_generator_names_detection_empty():
+    """Test that PySims correctly identifies generator names in empty h_dict."""
+    pysims = py_sims.PySims(h_dict)
+    assert len(pysims.generator_names) == 0
+
+
+def test_n_py_sim_count_empty():
+    """Test that PySims correctly counts the number of py_sims in empty h_dict."""
+    pysims = py_sims.PySims(h_dict)
+    assert pysims.n_py_sim == 0
+
+
+def test_py_sim_objects_creation_empty():
+    """Test that PySims creates py_sim objects correctly for empty h_dict."""
+    pysims = py_sims.PySims(h_dict)
+    assert len(pysims.py_sim_objects) == 0
+
+
+def test_wind_farm_only():
+    """Test PySims with wind_farm only."""
+    pysims = py_sims.PySims(h_dict_wind)
+
+    assert len(pysims.py_sim_names) == 1
+    assert "wind_farm" in pysims.py_sim_names
+    assert len(pysims.generator_names) == 1
+    assert "wind_farm" in pysims.generator_names
+    assert pysims.n_py_sim == 1
+
+
+def test_solar_farm_only():
+    """Test PySims with solar_farm only."""
+    pysims = py_sims.PySims(h_dict_solar)
+
+    assert len(pysims.py_sim_names) == 1
+    assert "solar_farm" in pysims.py_sim_names
+    assert len(pysims.generator_names) == 1
+    assert "solar_farm" in pysims.generator_names
+    assert pysims.n_py_sim == 1
+
+
+def test_battery_only():
+    """Test PySims with battery only."""
+    pysims = py_sims.PySims(h_dict_battery)
+
+    assert len(pysims.py_sim_names) == 1
+    assert "battery" in pysims.py_sim_names
+    assert len(pysims.generator_names) == 0  # Battery is not a generator
+    assert pysims.n_py_sim == 1
+
+
+def test_all_three_py_sims():
+    """Test PySims with all three py_sim components."""
+    pysims = py_sims.PySims(h_dict_wind_solar_battery)
+
+    assert len(pysims.py_sim_names) == 3
+    assert "wind_farm" in pysims.py_sim_names
+    assert "solar_farm" in pysims.py_sim_names
+    assert "battery" in pysims.py_sim_names
+    assert len(pysims.generator_names) == 2
+    assert "wind_farm" in pysims.generator_names
+    assert "solar_farm" in pysims.generator_names
+    assert pysims.n_py_sim == 3
+
+
+def test_unknown_py_sim_type():
+    """Test that PySims raises an exception for unknown py_sim types."""
+    invalid_h_dict = h_dict_battery.copy()
+    invalid_h_dict["battery"]["py_sim_type"] = "UnknownType"
+
+    with pytest.raises(Exception, match="Unknown py_sim_type"):
+        py_sims.PySims(invalid_h_dict)
