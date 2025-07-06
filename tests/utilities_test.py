@@ -1,6 +1,10 @@
+import os
+import tempfile
+
 import numpy as np
 import pandas as pd
-from hercules.utilities import interpolate_df
+import pytest
+from hercules.utilities import interpolate_df, load_hercules_input
 
 
 def test_upsampling():
@@ -104,3 +108,128 @@ def test_datetime_interpolation():
 
     # Assert time interpolated correctly
     assert np.all(result["time_utc"] == expected_datetimes)
+
+
+def test_load_hercules_input_valid_file():
+    """Test loading the existing test input file.
+
+    Verifies that the function can successfully load and validate
+    the existing hercules_input_test.yaml file.
+    """
+    test_file = "tests/test_inputs/hercules_input_test.yaml"
+    result = load_hercules_input(test_file)
+
+    # Check required keys are present
+    assert "dt" in result
+    assert "starttime" in result
+    assert "endtime" in result
+    assert "plant" in result
+
+    # Check plant structure
+    assert isinstance(result["plant"], dict)
+    assert "interconnect_limit" in result["plant"]
+    assert isinstance(result["plant"]["interconnect_limit"], float)
+
+    # Check py_sim configurations
+    assert "wind_farm" in result
+    assert "solar_farm" in result
+    assert result["wind_farm"]["py_sim_type"] == "WindSimLongTerm"
+    assert result["solar_farm"]["py_sim_type"] == "SolarPySAM"
+
+    # Check verbose defaults to False
+    assert result["verbose"] is False
+
+
+def test_load_hercules_input_missing_required_key():
+    """Test that missing required key raises ValueError.
+
+    Creates a minimal invalid config missing dt and verifies
+    the function raises appropriate error.
+    """
+    invalid_config = {"starttime": 0.0, "endtime": 30.0, "plant": {"interconnect_limit": 30000.0}}
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        import yaml
+
+        yaml.dump(invalid_config, f)
+        temp_file = f.name
+
+    try:
+        with pytest.raises(ValueError, match="Required key dt not found"):
+            load_hercules_input(temp_file)
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_hercules_input_invalid_plant_structure():
+    """Test that invalid plant structure raises ValueError.
+
+    Creates a config with plant as string instead of dict
+    and verifies the function raises appropriate error.
+    """
+    invalid_config = {"dt": 1.0, "starttime": 0.0, "endtime": 30.0, "plant": "not_a_dict"}
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        import yaml
+
+        yaml.dump(invalid_config, f)
+        temp_file = f.name
+
+    try:
+        with pytest.raises(ValueError, match="Plant must be a dictionary"):
+            load_hercules_input(temp_file)
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_hercules_input_invalid_py_sim_type():
+    """Test that invalid py_sim_type raises ValueError.
+
+    Creates a config with invalid py_sim_type and verifies
+    the function raises appropriate error.
+    """
+    invalid_config = {
+        "dt": 1.0,
+        "starttime": 0.0,
+        "endtime": 30.0,
+        "plant": {"interconnect_limit": 30000.0},
+        "wind_farm": {"py_sim_type": "InvalidType"},
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        import yaml
+
+        yaml.dump(invalid_config, f)
+        temp_file = f.name
+
+    try:
+        with pytest.raises(ValueError, match="wind_farm has an invalid py_sim_type"):
+            load_hercules_input(temp_file)
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_hercules_input_verbose_default():
+    """Test that verbose defaults to False when not specified.
+
+    Creates a minimal config without verbose and verifies
+    it defaults to False.
+    """
+    config_without_verbose = {
+        "dt": 1.0,
+        "starttime": 0.0,
+        "endtime": 30.0,
+        "plant": {"interconnect_limit": 30000.0},
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        import yaml
+
+        yaml.dump(config_without_verbose, f)
+        temp_file = f.name
+
+    try:
+        result = load_hercules_input(temp_file)
+        assert result["verbose"] is False
+    finally:
+        os.unlink(temp_file)
