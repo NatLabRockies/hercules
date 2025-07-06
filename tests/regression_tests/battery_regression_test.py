@@ -1,5 +1,6 @@
 """Regression tests for 'SolarPySAM'."""
 
+import copy
 import numpy as np
 from hercules.python_simulators.lib import LIB
 from hercules.python_simulators.simple_battery import SimpleBattery
@@ -7,13 +8,19 @@ from hercules.python_simulators.simple_battery import SimpleBattery
 PRINT_VALUES = True
 
 test_input_dict = {
-    "size": 20,
-    "energy_capacity": 80,
-    "charge_rate": 20,
-    "discharge_rate": 20,
-    "max_SOC": 0.9,
-    "min_SOC": 0.1,
-    "initial_conditions": {"SOC": 0.5},
+    "dt": 0.5,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "verbose": False,
+    "battery": {
+        "size": 20,
+        "energy_capacity": 80,
+        "charge_rate": 20,
+        "discharge_rate": 20,
+        "max_SOC": 0.9,
+        "min_SOC": 0.1,
+        "initial_conditions": {"SOC": 0.5},
+    }
 }
 
 np.random.seed(0)
@@ -133,11 +140,9 @@ usage_calc_base_dict = {
 
 def test_SimpleBattery_regression_():
 
-    dt = 0.5
+    battery = SimpleBattery(test_input_dict)
 
-    battery = SimpleBattery(test_input_dict, dt)
-
-    times_test = np.arange(0, 5.5, dt)
+    times_test = np.arange(0, 5.5, test_input_dict["dt"])
     powers_test = np.zeros_like(times_test)
     reject_test = np.zeros_like(times_test)
     soc_test = np.zeros_like(times_test)
@@ -145,16 +150,14 @@ def test_SimpleBattery_regression_():
     for i, t in enumerate(times_test):
         out = battery.step({
             "time": t,
-            "py_sims": {
-                "inputs": {
-                    "battery_signal": powers_requested[i],
-                    "locally_generated_power": powers_requested[i]
-                }
-            }
+            "battery": {
+                "battery_signal": powers_requested[i],
+            },
+            "locally_generated_power": powers_requested[i]
         })
-        powers_test[i] = out["power"]
-        reject_test[i] = out["reject"]
-        soc_test[i] = out["soc"]
+        powers_test[i] = out["battery"]["power"]
+        reject_test[i] = out["battery"]["reject"]
+        soc_test[i] = out["battery"]["soc"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)
@@ -167,12 +170,9 @@ def test_SimpleBattery_regression_():
 
 def test_LIB_regression_():
 
+    battery = LIB(test_input_dict)
 
-    dt = 0.5
-
-    battery = LIB(test_input_dict, dt)
-
-    times_test = np.arange(0, 5.5, dt)
+    times_test = np.arange(0, 5.5, test_input_dict["dt"])
     powers_test = np.zeros_like(times_test)
     reject_test = np.zeros_like(times_test)
     soc_test = np.zeros_like(times_test)
@@ -180,16 +180,14 @@ def test_LIB_regression_():
     for i, t in enumerate(times_test):
         out = battery.step({
             "time": t,
-            "py_sims": {
-                "inputs": {
-                    "battery_signal": powers_requested[i],
-                    "locally_generated_power": powers_requested[i]
-                }
-            }
+            "battery": {
+                "battery_signal": powers_requested[i],
+            },
+            "locally_generated_power": powers_requested[i]
         })
-        powers_test[i] = out["power"]
-        reject_test[i] = out["reject"]
-        soc_test[i] = out["soc"]
+        powers_test[i] = out["battery"]["power"]
+        reject_test[i] = out["battery"]["reject"]
+        soc_test[i] = out["battery"]["soc"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)
@@ -202,24 +200,24 @@ def test_LIB_regression_():
 
 def test_SimpleBattery_usage_calc_regression():
 
-    battery_dict = test_input_dict
-    dt = 1
+    battery_dict = copy.deepcopy(test_input_dict)
+    battery_dict["dt"] = 1
 
     # Modify battery configuration for testing
-    battery_dict["size"] = 2
-    battery_dict["energy_capacity"] = 8  
-    battery_dict["charge_rate"] = 2
-    battery_dict["discharge_rate"] = 2
-    battery_dict["roundtrip_efficiency"] = 0.9
-    battery_dict["self_discharge_time_constant"] = 100
-    battery_dict["track_usage"] = True
-    battery_dict["usage_calc_interval"] = 10
-    battery_dict["usage_lifetime"] = 0.000001
-    battery_dict["usage_cycles"] = 5
-    battery_dict["initial_conditions"] = {"SOC": 0.23}
+    battery_dict["battery"]["size"] = 2
+    battery_dict["battery"]["energy_capacity"] = 8  
+    battery_dict["battery"]["charge_rate"] = 2
+    battery_dict["battery"]["discharge_rate"] = 2
+    battery_dict["battery"]["roundtrip_efficiency"] = 0.9
+    battery_dict["battery"]["self_discharge_time_constant"] = 100
+    battery_dict["battery"]["track_usage"] = True
+    battery_dict["battery"]["usage_calc_interval"] = 10
+    battery_dict["battery"]["usage_lifetime"] = 0.000001
+    battery_dict["battery"]["usage_cycles"] = 5
+    battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 
 
-    SB = SimpleBattery(battery_dict, dt)
+    SB = SimpleBattery(battery_dict)
 
     power_avail = 10e3 * np.ones(21)
     power_signal = [1500, 1500, 1500, -1700, -1700, -1700, 1800, 1800, 1800, 1800, 1800,\
@@ -227,17 +225,16 @@ def test_SimpleBattery_usage_calc_regression():
 
     for i in range(len(power_avail)):
         step_input_dict = {
-            "py_sims": {"inputs": {
-                "locally_generated_power": power_avail[i],
+            "battery": {
                 "battery_signal": power_signal[i]
-                }
             },
+            "locally_generated_power": power_avail[i],
         }
         out = SB.step(step_input_dict)
-        # assert out["power"] == power_signal[i]
+        # assert out["battery"]["power"] == power_signal[i]
     
     assert SB.step_counter == 1
-    assert out["power"] == usage_calc_base_dict["out_power"]
+    assert out["battery"]["power"] == usage_calc_base_dict["out_power"]
 
     assert SB.total_cycle_usage == usage_calc_base_dict["SB.total_cycle_usage"]
     assert SB.cycle_usage_perc == usage_calc_base_dict["SB.cycle_usage_perc"]
@@ -247,7 +244,7 @@ def test_SimpleBattery_usage_calc_regression():
     assert SB.SOC == usage_calc_base_dict["SB.SOC (1)"]
 
     if PRINT_VALUES:
-        print("out_power: ", out["power"])
+        print("out_power: ", out["battery"]["power"])
         print("SB.total_cycle_usage: ", SB.total_cycle_usage)
         print("SB.cycle_usage_perc: ", SB.cycle_usage_perc)
         print("SB.total_time_usage: ", SB.total_time_usage)
@@ -256,11 +253,10 @@ def test_SimpleBattery_usage_calc_regression():
     
     for i in range(len(power_avail)):
         step_input_dict = {
-            "py_sims": {"inputs": {
-                "locally_generated_power": power_avail[i],
+            "battery": {
                 "battery_signal": 0
-                }
             },
+            "locally_generated_power": power_avail[i],
         }
         out = SB.step(step_input_dict)
     assert SB.SOC == usage_calc_base_dict["SB.SOC (2)"]
