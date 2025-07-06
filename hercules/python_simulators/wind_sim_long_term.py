@@ -101,9 +101,16 @@ class WindSimLongTerm(PySimBase):
         if not (df_wi["time"].min() <= self.endtime <= df_wi["time"].max()):
             raise ValueError(f"End time {self.endtime} is not in the range of the wind input file")
 
-        # If time_utc is in the file, convert it to a datetime
+        # If time_utc is in the file, convert it to a datetime if it's not already
         if "time_utc" in df_wi.columns:
-            df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], format="ISO8601", utc=True)
+            if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
+                # Strip whitespace from time_utc values to handle CSV formatting issues
+                df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
+                try:
+                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], format="ISO8601", utc=True)
+                except (ValueError, TypeError):
+                    # If ISO8601 format fails, try parsing without specifying format
+                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -364,7 +371,7 @@ class WindSimLongTerm(PySimBase):
 
         # Update the h_dict with outputs
         h_dict[self.py_sim_name]["turbine_powers"] = self.turbine_powers
-        h_dict["self.py_sim_name"]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.py_sim_name]["power"] = np.sum(self.turbine_powers)
 
         return h_dict
 
