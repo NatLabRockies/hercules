@@ -80,9 +80,6 @@ class Emulator:
         self.controller = controller
         self.py_sims = py_sims
 
-        # Update the input dict components
-        self.h_dict["py_sims"] = self.py_sims.get_py_sim_dict()
-
         # Read in any external data
         self.external_data_all = {}
         if "external_data_file" in h_dict:
@@ -253,9 +250,9 @@ class Emulator:
             self.h_dict["time"] = self.time
             self.h_dict["step"] = self.step
             self.h_dict = self.controller.step(self.h_dict)
-            if self.h_dict["py_sims"]:
-                self.py_sims.step(self.h_dict)
-                self.h_dict["py_sims"] = self.py_sims.get_py_sim_dict()
+
+            self.h_dict = self.py_sims.step(self.h_dict)
+
 
             # Log the current state
             self.log_h_dict()
