@@ -157,8 +157,8 @@ def load_hercules_input(filename):
     if "interconnect_limit" not in h_dict["plant"]:
         raise ValueError(f"Plant must contain an interconnect_limit key in input file {filename}")
 
-    # Ensure that interconnect_limit is a float
-    if not isinstance(h_dict["plant"]["interconnect_limit"], float):
+    # Ensure that interconnect_limit is a float or an int
+    if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
 
     # Check that all keys are either required or optional
