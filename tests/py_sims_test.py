@@ -12,32 +12,41 @@ from .test_inputs.h_dict import (
 
 def test_init_from_dict():
     """Test that PySims can be initialized from a dictionary."""
-    pysims = py_sims.PySims(h_dict)
+    pysims = py_sims.PySims(h_dict_wind)
     assert pysims is not None
 
 
-def test_py_sim_names_detection_empty():
-    """Test that PySims correctly identifies py_sim names in empty h_dict."""
-    pysims = py_sims.PySims(h_dict)
-    assert len(pysims.py_sim_names) == 0
+def test_no_py_sims_raises_exception():
+    """Test that PySims raises an exception when no py_sims are found in input file."""
+    with pytest.raises(Exception, match="No py_sims found in input file"):
+        py_sims.PySims(h_dict)
 
 
-def test_generator_names_detection_empty():
-    """Test that PySims correctly identifies generator names in empty h_dict."""
-    pysims = py_sims.PySims(h_dict)
-    assert len(pysims.generator_names) == 0
+def test_py_sim_names_detection():
+    """Test that PySims correctly identifies py_sim names in h_dict with py_sims."""
+    pysims = py_sims.PySims(h_dict_wind)
+    assert len(pysims.py_sim_names) == 1
+    assert "wind_farm" in pysims.py_sim_names
 
 
-def test_n_py_sim_count_empty():
-    """Test that PySims correctly counts the number of py_sims in empty h_dict."""
-    pysims = py_sims.PySims(h_dict)
-    assert pysims.n_py_sim == 0
+def test_generator_names_detection():
+    """Test that PySims correctly identifies generator names in h_dict with generators."""
+    pysims = py_sims.PySims(h_dict_wind)
+    assert len(pysims.generator_names) == 1
+    assert "wind_farm" in pysims.generator_names
 
 
-def test_py_sim_objects_creation_empty():
-    """Test that PySims creates py_sim objects correctly for empty h_dict."""
-    pysims = py_sims.PySims(h_dict)
-    assert len(pysims.py_sim_objects) == 0
+def test_n_py_sim_count():
+    """Test that PySims correctly counts the number of py_sims."""
+    pysims = py_sims.PySims(h_dict_wind)
+    assert pysims.n_py_sim == 1
+
+
+def test_py_sim_objects_creation():
+    """Test that PySims creates py_sim objects correctly."""
+    pysims = py_sims.PySims(h_dict_wind)
+    assert len(pysims.py_sim_objects) == 1
+    assert "wind_farm" in pysims.py_sim_objects
 
 
 def test_wind_farm_only():
