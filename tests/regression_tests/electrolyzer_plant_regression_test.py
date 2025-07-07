@@ -99,15 +99,13 @@ def test_ElectrolyzerPlant_regression_():
     for i, t in enumerate(times_test):
         out = electrolyzer.step({
             "time": t,
-            "py_sims": {
-                "inputs": {
-                    "locally_generated_power": locally_generated_power_test[i],
-                    "electrolyzer_signal": np.inf # Use all locally generated power
-                }
+            "locally_generated_power": locally_generated_power_test[i],
+            "electrolyzer": {
+                "electrolyzer_signal": np.inf # Use all locally generated power
             }
         })
-        H2_output_test[i] = out["H2_output"]
-        stacks_on_test[i] = out["stacks_on"]
+        H2_output_test[i] = out["electrolyzer"]["H2_output"]
+        stacks_on_test[i] = out["electrolyzer"]["stacks_on"]
 
         #print(out["H2_output"])
 

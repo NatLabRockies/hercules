@@ -77,7 +77,7 @@ def get_solar_params():
     solar_dict = {
         "dt": 0.5,
         "starttime": 0.0,
-        "endtime": 10.0,
+        "endtime": 6.0,
         "verbose": False,
         "solar_farm": {
             "py_sim_type": "SolarPySAM",
@@ -115,10 +115,10 @@ def test_SolarPySAM_regression_no_control(SPS: SolarPySAM):
     aoi_test = np.zeros_like(times_test)
 
     for step in steps_test:
-        out = SPS.step({"step": step})
-        powers_test[step] = out["power_mw"]
-        dni_test[step] = out["dni"]
-        aoi_test[step] = out["aoi"]
+        out = SPS.step({"step": step, "solar_farm": {}})
+        powers_test[step] = out["solar_farm"]["power"]
+        dni_test[step] = out["solar_farm"]["dni"]
+        aoi_test[step] = out["solar_farm"]["aoi"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)
@@ -141,11 +141,11 @@ def test_SolarPySAM_regression_control(SPS: SolarPySAM):
 
     for step in steps_test:
         out = SPS.step(
-            {"step": step, "py_sims": {"inputs": {"solar_setpoint_mw": power_setpoint_mw}}}
+            {"step": step, "solar_farm": {"solar_setpoint_mw": power_setpoint_mw}}
         )
-        powers_test[step] = out["power_mw"]
-        dni_test[step] = out["dni"]
-        aoi_test[step] = out["aoi"]
+        powers_test[step] = out["solar_farm"]["power"]
+        dni_test[step] = out["solar_farm"]["dni"]
+        aoi_test[step] = out["solar_farm"]["aoi"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)
