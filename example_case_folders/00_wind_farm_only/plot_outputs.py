@@ -19,14 +19,14 @@ ax = axarr[0]
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"py_sims.wind_farm_0.outputs.unwaked_velocity.{t_idx:03}"],
+        df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"py_sims.wind_farm_0.outputs.waked_velocity.{t_idx:03}"],
+        df[f"wind_farm.waked_velocities.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
         color=colors[t_idx],
@@ -35,7 +35,7 @@ for t_idx in range(3):
 # Plot the FLORIS wind speed
 ax.plot(
     df["time"],
-    df["py_sims.wind_farm_0.outputs.floris_wind_speed"],
+    df["wind_farm.floris_wind_speed"],
     label="FLORIS",
     color="black",
     lw=2,
@@ -51,18 +51,21 @@ ax = axarr[1]
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"py_sims.wind_farm_0.outputs.power.{t_idx:03}"],
+        df[f"wind_farm.turbine_powers.{t_idx:03}"],
         label=f"Turbine {t_idx}",
         color=colors[t_idx],
     )
+
+# Check if derating columns exist and plot them if they do
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"py_sims.inputs.derating_{t_idx:03d}"],
+        df[f"wind_farm.turbine_deratings.{t_idx:03}"],
         label=f"Derating {t_idx}",
         linestyle="--",
         color=colors[t_idx],
     )
+
 ax.grid(True)
 ax.legend()
 ax.set_xlabel("Time [s]")
