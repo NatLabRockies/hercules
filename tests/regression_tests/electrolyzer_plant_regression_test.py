@@ -5,7 +5,7 @@ from hercules.python_simulators.electrolyzer_plant import ElectrolyzerPlant
 
 PRINT_VALUES = True
 
-test_input_dict = {
+test_h_dict = {
     "dt": 0.5,
     "starttime": 0.0,
     "endtime": 10.0,
@@ -88,9 +88,9 @@ stacks_on_base = np.array([7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0
 
 
 def test_ElectrolyzerPlant_regression_():
-    electrolyzer = ElectrolyzerPlant(test_input_dict)
+    electrolyzer = ElectrolyzerPlant(test_h_dict)
 
-    times_test = np.arange(0, 6.0, test_input_dict["dt"])
+    times_test = np.arange(0, 6.0, test_h_dict["dt"])
     H2_output_test = np.zeros_like(times_test)
     stacks_on_test = np.zeros_like(times_test)
 

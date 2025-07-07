@@ -12,9 +12,7 @@ class ControllerStandin:
     """
 
     def __init__(self, h_dict):
-        # # Get wind farm information (assumes exactly one wind farm)
-        # # Assumes WindSimLongTerm is first entry in py_sims
-        # self.wf_name = list(input_dict["py_sims"].keys())[0]
+
         pass
 
     def step(self, h_dict):
@@ -29,20 +27,3 @@ class ControllerStandin:
             h_dict["wind_farm"]["derating_000"] = 500
 
         return h_dict
-
-
-# Can uncomment the below and work on once the ROSCO/FAST connection is
-# in place and we are no longer using actuator disks.
-
-# class Controller():
-
-#     def __init__(self, input_dict):
-#         pass
-
-#     def step(self, main_dict):
-
-#         pass
-
-#     def get_controller_dict(self):
-
-#         return {}

@@ -8,7 +8,7 @@ from hercules.python_simulators.simple_battery import SimpleBattery
 
 PRINT_VALUES = True
 
-test_input_dict = {
+test_h_dict = {
     "dt": 0.5,
     "starttime": 0.0,
     "endtime": 10.0,
@@ -129,9 +129,9 @@ usage_calc_base_dict = {
 
 
 def test_SimpleBattery_regression_():
-    battery = SimpleBattery(test_input_dict)
+    battery = SimpleBattery(test_h_dict)
 
-    times_test = np.arange(0, 5.5, test_input_dict["dt"])
+    times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
     reject_test = np.zeros_like(times_test)
     soc_test = np.zeros_like(times_test)
@@ -161,9 +161,9 @@ def test_SimpleBattery_regression_():
 
 
 def test_LIB_regression_():
-    battery = LIB(test_input_dict)
+    battery = LIB(test_h_dict)
 
-    times_test = np.arange(0, 5.5, test_input_dict["dt"])
+    times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
     reject_test = np.zeros_like(times_test)
     soc_test = np.zeros_like(times_test)
@@ -193,7 +193,7 @@ def test_LIB_regression_():
 
 
 def test_SimpleBattery_usage_calc_regression():
-    battery_dict = copy.deepcopy(test_input_dict)
+    battery_dict = copy.deepcopy(test_h_dict)
     battery_dict["dt"] = 1
 
     # Modify battery configuration for testing
