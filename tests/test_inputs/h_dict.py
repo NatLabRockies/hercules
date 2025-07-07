@@ -17,7 +17,11 @@ solar_farm = {
     'py_sim_type': 'SimpleSolar',
     'capacity': 50.0,
     'efficiency': 0.15,
-    'area': 1000.0
+    'area': 1000.0,
+    'initial_conditions': {
+        'power': 0.0,
+        'irradiance': 1000.0
+    }
 }
 
 solar_farm_pysam = {
@@ -89,11 +93,14 @@ solar_farm_pvwatts = {
 
 battery = {
     'py_sim_type': 'SimpleBattery',
-    'capacity': 100.0,
-    'max_power': 50.0,
-    'initial_soc': 0.5,
-    'min_soc': 0.1,
-    'max_soc': 0.9
+    'energy_capacity': 100.0,
+    'charge_rate': 50.0,
+    'discharge_rate': 50.0,
+    'max_SOC': 0.9,
+    'min_SOC': 0.1,
+    'initial_conditions': {
+        'SOC': 0.5
+    }
 }
 
 simple_battery = {
