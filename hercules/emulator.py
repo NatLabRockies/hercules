@@ -285,11 +285,13 @@ class Emulator:
                 if isinstance(v, (list, np.ndarray)):
                     for i, vi in enumerate(v):
                         if isinstance(vi, (int, float)):
-                            self.h_dict_flat[prefix + k + ".%03d" % i] = vi
+                            # Round numerical values to 3 decimal places
+                            self.h_dict_flat[prefix + k + ".%03d" % i] = round(vi, 3)
 
                 # If v is a string, int, or float, enter it directly
                 if isinstance(v, (int, np.integer, float)):
-                    self.h_dict_flat[prefix + k] = v
+                    # Round numerical values to 3 decimal places
+                    self.h_dict_flat[prefix + k] = round(v, 3)
 
     def close_output_file(self):
         """Properly close the output file."""
@@ -323,9 +325,8 @@ class Emulator:
         self.h_dict_flat = {}
 
         # Add the basic time information
-        self.h_dict_flat["time"] = self.h_dict["time"]
+        self.h_dict_flat["time"] = round(self.h_dict["time"], 1)
         self.h_dict_flat["step"] = self.h_dict["step"]
-        
 
         # Add the current wall clock time
         self.h_dict_flat["clock_time"] = dt.datetime.now()
@@ -333,22 +334,33 @@ class Emulator:
         # Add the values from each py_sim's log_outputs list
         for py_sim_name in self.py_sims.py_sim_names:
             py_sim_obj = self.py_sims.py_sim_objects[py_sim_name]
-            
+
             # Get the log_outputs for this py_sim
-            log_outputs = getattr(py_sim_obj, 'log_outputs', ["power"])
-            
+            log_outputs = getattr(py_sim_obj, "log_outputs", ["power"])
+
             # Add each output to the flattened dict
             for output_name in log_outputs:
                 if output_name in self.h_dict[py_sim_name]:
                     output_value = self.h_dict[py_sim_name][output_name]
-                    
+
                     # Handle arrays by flattening them
                     if isinstance(output_value, (list, np.ndarray)):
                         for i, val in enumerate(output_value):
-                            self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
+                            # Round numerical values to 3 decimal places
+                            if isinstance(val, (int, float)):
+                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = round(
+                                    val, 3
+                                )
+                            else:
+                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
                     else:
                         # Handle scalar values
                         if isinstance(output_value, (int, float)):
+                            # Round numerical values to 3 decimal places
+                            self.h_dict_flat[f"{py_sim_name}.{output_name}"] = round(
+                                output_value, 3
+                            )
+                        else:
                             self.h_dict_flat[f"{py_sim_name}.{output_name}"] = output_value
 
         # The keys and values as two lists
