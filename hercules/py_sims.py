@@ -28,7 +28,7 @@ class PySims:
         ]
 
         # Add in the number of py_sims
-        h_dict["n_py_sim"] = len(self.py_sims)
+        h_dict["n_py_sim"] = len(h_dict["py_sim_names"])
 
         # Save the py_sim names and number of py_sims
         self.py_sim_names = h_dict["py_sim_names"]
@@ -41,8 +41,6 @@ class PySims:
         self.py_sim_objects = {}
         for py_sim_name in self.py_sim_names:
             self.py_sim_objects[py_sim_name] = self.get_py_sim(py_sim_name, h_dict)
-
-        return h_dict
 
     def get_py_sim(self, py_sim_name, h_dict):
         if h_dict[py_sim_name]["py_sim_type"] == "WindSimLongTerm":
