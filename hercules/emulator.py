@@ -315,13 +315,42 @@ class Emulator:
         """
         Logs the current state of the main dictionary to a CSV file.
 
+        This method logs only specific fields: time, step, clock_time,
+        and the values from each py_sim's log_outputs list.
         """
 
-        # Update the flattened input dict
-        self.recursive_flatten_h_dict(self.h_dict)
+        # Clear the flattened dict to start fresh
+        self.h_dict_flat = {}
 
-        # Add the current time
+        # Add the basic time information
+        self.h_dict_flat["time"] = self.h_dict["time"]
+        self.h_dict_flat["step"] = self.h_dict["step"]
+        
+
+        # Add the current wall clock time
         self.h_dict_flat["clock_time"] = dt.datetime.now()
+
+        # Add the values from each py_sim's log_outputs list
+        for py_sim_name in self.py_sims.py_sim_names:
+            py_sim_obj = self.py_sims.py_sim_objects[py_sim_name]
+            
+            # Get the log_outputs for this py_sim
+            log_outputs = getattr(py_sim_obj, 'log_outputs', ["power"])
+            
+            # Add each output to the flattened dict
+            for output_name in log_outputs:
+                if output_name in self.h_dict[py_sim_name]:
+                    output_value = self.h_dict[py_sim_name][output_name]
+                    
+                    # Handle arrays by flattening them
+                    if isinstance(output_value, (list, np.ndarray)):
+                        for i, val in enumerate(output_value):
+                            if isinstance(val, (int, float)):
+                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
+                    else:
+                        # Handle scalar values
+                        if isinstance(output_value, (int, float)):
+                            self.h_dict_flat[f"{py_sim_name}.{output_name}"] = output_value
 
         # The keys and values as two lists
         keys = list(self.h_dict_flat.keys())
