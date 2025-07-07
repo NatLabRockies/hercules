@@ -31,7 +31,26 @@ class WindSimLongTerm(PySimBase):
         super().__init__(h_dict, self.py_sim_name)
 
         # Add to the log outputs with specific outputs
-        self.log_outputs = self.log_outputs + ["turbine_outputs"]
+        # Note that power is assumed in the base class
+        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_deratings"]
+
+        # If "log_extra_outputs" is in h_dict[self.py_sim_name],
+        # Save this value to self.log_extra_outputs
+        if "log_extra_outputs" in h_dict[self.py_sim_name]:
+            self.log_extra_outputs = h_dict[self.py_sim_name]["log_extra_outputs"]
+        else:
+            self.log_extra_outputs = False
+
+        # If log_extra_outputs is True, add the extra outputs to the log outputs
+        if self.log_extra_outputs:
+            self.log_outputs = self.log_outputs + [
+                "floris_wind_speed",
+                "floris_wind_direction",
+                "floris_ti",
+                "floris_derating",
+                "unwaked_velocities",
+                "waked_velocities",
+            ]
 
         # Track the number of FLORIS calculation
         self.num_floris_calcs = 0
@@ -372,8 +391,18 @@ class WindSimLongTerm(PySimBase):
         )
 
         # Update the h_dict with outputs
+        h_dict[self.py_sim_name]["turbine_deratings"] = derating
         h_dict[self.py_sim_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.py_sim_name]["power"] = np.sum(self.turbine_powers)
+
+        # If log_extra_outputs is True, add the extra outputs to the h_dict
+        if self.log_extra_outputs:
+            h_dict[self.py_sim_name]["floris_wind_speed"] = self.floris_wind_speed
+            h_dict[self.py_sim_name]["floris_wind_direction"] = self.floris_wind_direction
+            h_dict[self.py_sim_name]["floris_ti"] = self.floris_ti
+            h_dict[self.py_sim_name]["floris_derating"] = self.floris_derating
+            h_dict[self.py_sim_name]["unwaked_velocities"] = self.unwaked_velocities
+            h_dict[self.py_sim_name]["waked_velocities"] = self.waked_velocities
 
         return h_dict
 
