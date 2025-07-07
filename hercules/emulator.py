@@ -345,8 +345,7 @@ class Emulator:
                     # Handle arrays by flattening them
                     if isinstance(output_value, (list, np.ndarray)):
                         for i, val in enumerate(output_value):
-                            if isinstance(val, (int, float)):
-                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
+                            self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
                     else:
                         # Handle scalar values
                         if isinstance(output_value, (int, float)):
