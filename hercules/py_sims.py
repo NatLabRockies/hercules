@@ -30,6 +30,10 @@ class PySims:
         # Add in the number of py_sims
         h_dict["n_py_sim"] = len(h_dict["py_sim_names"])
 
+        # If there are no py_sims, raise an error
+        if h_dict["n_py_sim"] == 0:
+            raise Exception("No py_sims found in input file")
+
         # Save the py_sim names and number of py_sims
         self.py_sim_names = h_dict["py_sim_names"]
         self.n_py_sim = h_dict["n_py_sim"]
