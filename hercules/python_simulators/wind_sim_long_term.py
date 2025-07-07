@@ -47,7 +47,6 @@ class WindSimLongTerm(PySimBase):
                 "floris_wind_speed",
                 "floris_wind_direction",
                 "floris_ti",
-                "floris_derating",
                 "unwaked_velocities",
                 "waked_velocities",
             ]
