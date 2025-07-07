@@ -107,7 +107,9 @@ class WindSimLongTerm(PySimBase):
                 # Strip whitespace from time_utc values to handle CSV formatting issues
                 df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
                 try:
-                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], format="ISO8601", utc=True)
+                    df_wi["time_utc"] = pd.to_datetime(
+                        df_wi["time_utc"], format="ISO8601", utc=True
+                    )
                 except (ValueError, TypeError):
                     # If ISO8601 format fails, try parsing without specifying format
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)

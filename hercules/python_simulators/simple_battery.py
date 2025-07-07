@@ -24,43 +24,41 @@ def kWh2kJ(kJ):
     """Convert a value in kJ to kWh"""
     return kJ * 3600
 
+
 def years_to_usage_rate(years, dt):
     """Convert a number of years to a usage rate
     inputs:
         years: life of the storage system in years
         dt: time step of the simulation, in seconds
-     """
+    """
     days = years * 365
     hours = days * 24
     seconds = hours * 3600
     usage_lifetime = seconds / dt
 
-    return 1/usage_lifetime
+    return 1 / usage_lifetime
+
 
 def cycles_to_usage_rate(cycles):
     """Convert cycle number to degradation rate
-    inputs: 
+    inputs:
         cycles: number of cycles until the unit needs to be replaced
         dt: time step of the simulation, in seconds
     """
-    return 1/cycles
-
+    return 1 / cycles
 
 
 class SimpleBattery(PySimBase):
     # TODO: keep consistent units. Everything in kW or everything in MW but not both
     def __init__(self, h_dict):
-
         # Store the name of this py_sim
         self.py_sim_name = "battery"
 
         # Store the type of this py_sim
         self.py_sim_type = "simple_battery"
 
-
         # Call the base class init
         super().__init__(h_dict, self.py_sim_name)
-
 
         # size = h_dict[self.py_sim_name]["size"]
         self.energy_capacity = h_dict[self.py_sim_name]["energy_capacity"] * 1e3  # [kWh]
@@ -87,7 +85,9 @@ class SimpleBattery(PySimBase):
 
         # Flag for allowing grid to charge the battery
         if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
-            self.allow_grid_power_consumption = h_dict[self.py_sim_name]["allow_grid_power_consumption"]
+            self.allow_grid_power_consumption = h_dict[self.py_sim_name][
+                "allow_grid_power_consumption"
+            ]
         else:
             self.allow_grid_power_consumption = False
 
@@ -109,20 +109,22 @@ class SimpleBattery(PySimBase):
                 self.track_usage = True
                 # Set usage tracking parameters
                 if "usage_calc_interval" in h_dict[self.py_sim_name].keys():
-                    self.usage_calc_interval = h_dict[self.py_sim_name]["usage_calc_interval"] / self.dt
+                    self.usage_calc_interval = (
+                        h_dict[self.py_sim_name]["usage_calc_interval"] / self.dt
+                    )
                 else:
-                    self.usage_calc_interval = 100 / self.dt # timesteps
-                
+                    self.usage_calc_interval = 100 / self.dt  # timesteps
+
                 if "usage_lifetime" in h_dict[self.py_sim_name].keys():
                     usage_lifetime = h_dict[self.py_sim_name]["usage_lifetime"]
                     self.usage_time_rate = years_to_usage_rate(usage_lifetime, self.dt)
                 else:
-                    self.usage_time_rate = 0 
+                    self.usage_time_rate = 0
                 if "usage_cycles" in h_dict[self.py_sim_name].keys():
                     usage_cycles = h_dict[self.py_sim_name]["usage_cycles"]
                     self.usage_cycles_rate = cycles_to_usage_rate(usage_cycles)
                 else:
-                    self.usage_cycles_rate = 0 
+                    self.usage_cycles_rate = 0
 
                 # TODO: add the ability to impact efficiency of the battery operation
 
@@ -131,7 +133,7 @@ class SimpleBattery(PySimBase):
                 self.usage_calc_interval = np.inf
         else:
             self.track_usage = False
-            self.usage_calc_interval = np.inf        
+            self.usage_calc_interval = np.inf
 
         # Degradation and state storage
         self.P_charge_storage = []
@@ -156,7 +158,6 @@ class SimpleBattery(PySimBase):
         self.P_charge = 0
 
     def step(self, h_dict):
-
         self.step_counter += 1
 
         # power available for the battery to use for charging (should be >=0)
@@ -197,7 +198,6 @@ class SimpleBattery(PySimBase):
 
         # Return the updated dictionary
         return h_dict
-
 
     def control(self, P_avail, P_signal):
         """
@@ -261,7 +261,6 @@ class SimpleBattery(PySimBase):
         self.D = np.array([[0, 1]]).T
 
     def SS_input_function(self, P_charge):
-
         # P_in is the amount of power that actually gets stored in the state E
         # P_charge is the amount of power given to the charging physics
 
@@ -291,11 +290,10 @@ class SimpleBattery(PySimBase):
         return x + xd * self.dt  # Euler integration
 
     def calc_usage(self):
-
         # Count rainflow cycles
         # This step uses sthe rainflow algorithm to count how many cycles exist in the
         #   storage operation using the three-point technique (ASTM Standard E 1049-85)
-        #   The algorithm returns the size (amplitude) of the cycle, and the number of cycles at 
+        #   The algorithm returns the size (amplitude) of the cycle, and the number of cycles at
         #       that amplitude at that point in the signal
         ranges_counts = rainflow.count_cycles(self.E_store)
         ranges = np.array([rc[0] for rc in ranges_counts])
@@ -317,4 +315,3 @@ class SimpleBattery(PySimBase):
         raise NotImplementedError(
             "Degradation impacts on real-time efficiency have not yet been implemented."
         )
-

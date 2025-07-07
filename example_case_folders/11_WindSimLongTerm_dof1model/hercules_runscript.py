@@ -28,7 +28,7 @@ controller = ControllerStandinNoHelics(input_dict)
 py_sims = PySims(input_dict)
 
 
-emulator = Emulator(controller, py_sims, input_dict,logger)
+emulator = Emulator(controller, py_sims, input_dict, logger)
 
 emulator.enter_execution(function_targets=[], function_arguments=[[]])
 

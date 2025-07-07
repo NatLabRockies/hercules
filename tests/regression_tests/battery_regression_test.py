@@ -1,6 +1,7 @@
 """Regression tests for 'SolarPySAM'."""
 
 import copy
+
 import numpy as np
 from hercules.python_simulators.lib import LIB
 from hercules.python_simulators.simple_battery import SimpleBattery
@@ -20,53 +21,41 @@ test_input_dict = {
         "max_SOC": 0.9,
         "min_SOC": 0.1,
         "initial_conditions": {"SOC": 0.5},
-    }
+    },
 }
 
 np.random.seed(0)
 powers_requested = np.concatenate(
     (
-        np.linspace(0, 100000, 3), # Ramp up
-        np.linspace(100000, -5000, 6), # Ramp down
-        np.random.normal(-500, 100, 3) # Random fluctuations
+        np.linspace(0, 100000, 3),  # Ramp up
+        np.linspace(100000, -5000, 6),  # Ramp down
+        np.random.normal(-500, 100, 3),  # Random fluctuations
     )
 )
 
 powers_base_simple = np.array(
     [
-        0.,
-        20000.,
-        20000.,
-        20000.,
-        20000.,
-        20000.,
-        20000.,
-        16000.,
-        -5000.,
+        0.0,
+        20000.0,
+        20000.0,
+        20000.0,
+        20000.0,
+        20000.0,
+        20000.0,
+        16000.0,
+        -5000.0,
         -323.5947654,
         -459.98427916,
     ]
 )
 
 reject_base_simple = np.array(
-    [
-        0.    ,
-        30000.,
-        80000.,
-        80000.,
-        59000.,
-        38000.,
-        17000.,
-        0.    ,
-        0.    ,
-        0.    ,
-        0.
-    ]
+    [0.0, 30000.0, 80000.0, 80000.0, 59000.0, 38000.0, 17000.0, 0.0, 0.0, 0.0, 0.0]
 )
 
 soc_base_simple = np.array(
     [
-        0.5       ,
+        0.5,
         0.50003472,
         0.50006944,
         0.50010417,
@@ -82,7 +71,7 @@ soc_base_simple = np.array(
 
 powers_base_lib = np.array(
     [
-        0.            ,
+        0.0,
         20047.11229812,
         20047.95046608,
         20048.77886147,
@@ -91,22 +80,22 @@ powers_base_lib = np.array(
         20051.20658894,
         15990.37116823,
         -4983.52093018,
-        -323.83088639 ,
-        -459.97259284 ,
+        -323.83088639,
+        -459.97259284,
     ]
 )
 
 reject_base_lib = np.array(
     [
-        0.00000000e+00,
-        2.99528877e+04,
-        7.99520495e+04,
-        7.99512211e+04,
-        5.89504024e+04,
-        3.79495932e+04,
-        1.69487934e+04,
-        9.62883177e+00,
-        -1.64790698e+01,
+        0.00000000e00,
+        2.99528877e04,
+        7.99520495e04,
+        7.99512211e04,
+        5.89504024e04,
+        3.79495932e04,
+        1.69487934e04,
+        9.62883177e00,
+        -1.64790698e01,
         2.36120986e-01,
         -1.16863220e-02,
     ]
@@ -114,7 +103,7 @@ reject_base_lib = np.array(
 
 soc_base_lib = np.array(
     [
-        0.5       ,
+        0.5,
         0.50003472,
         0.50006944,
         0.50010417,
@@ -131,15 +120,15 @@ soc_base_lib = np.array(
 usage_calc_base_dict = {
     "out_power": 1800,
     "SB.total_cycle_usage": 0.02193261935938851,
-    "SB.cycle_usage_perc":  0.43865238718777017,
-    "SB.total_time_usage":  20.0,
-    "SB.time_usage_perc":  63.41958396752917,
-    "SB.SOC (1)":  0.18644728149025358,
-    "SB.SOC (2)":  0.15097155977675195,
+    "SB.cycle_usage_perc": 0.43865238718777017,
+    "SB.total_time_usage": 20.0,
+    "SB.time_usage_perc": 63.41958396752917,
+    "SB.SOC (1)": 0.18644728149025358,
+    "SB.SOC (2)": 0.15097155977675195,
 }
 
-def test_SimpleBattery_regression_():
 
+def test_SimpleBattery_regression_():
     battery = SimpleBattery(test_input_dict)
 
     times_test = np.arange(0, 5.5, test_input_dict["dt"])
@@ -148,13 +137,15 @@ def test_SimpleBattery_regression_():
     soc_test = np.zeros_like(times_test)
 
     for i, t in enumerate(times_test):
-        out = battery.step({
-            "time": t,
-            "battery": {
-                "battery_signal": powers_requested[i],
-            },
-            "locally_generated_power": powers_requested[i]
-        })
+        out = battery.step(
+            {
+                "time": t,
+                "battery": {
+                    "battery_signal": powers_requested[i],
+                },
+                "locally_generated_power": powers_requested[i],
+            }
+        )
         powers_test[i] = out["battery"]["power"]
         reject_test[i] = out["battery"]["reject"]
         soc_test[i] = out["battery"]["soc"]
@@ -168,8 +159,8 @@ def test_SimpleBattery_regression_():
     assert np.allclose(reject_base_simple, reject_test)
     assert np.allclose(soc_base_simple, soc_test)
 
-def test_LIB_regression_():
 
+def test_LIB_regression_():
     battery = LIB(test_input_dict)
 
     times_test = np.arange(0, 5.5, test_input_dict["dt"])
@@ -178,13 +169,15 @@ def test_LIB_regression_():
     soc_test = np.zeros_like(times_test)
 
     for i, t in enumerate(times_test):
-        out = battery.step({
-            "time": t,
-            "battery": {
-                "battery_signal": powers_requested[i],
-            },
-            "locally_generated_power": powers_requested[i]
-        })
+        out = battery.step(
+            {
+                "time": t,
+                "battery": {
+                    "battery_signal": powers_requested[i],
+                },
+                "locally_generated_power": powers_requested[i],
+            }
+        )
         powers_test[i] = out["battery"]["power"]
         reject_test[i] = out["battery"]["reject"]
         soc_test[i] = out["battery"]["soc"]
@@ -198,14 +191,14 @@ def test_LIB_regression_():
     assert np.allclose(reject_base_lib, reject_test)
     assert np.allclose(soc_base_lib, soc_test)
 
-def test_SimpleBattery_usage_calc_regression():
 
+def test_SimpleBattery_usage_calc_regression():
     battery_dict = copy.deepcopy(test_input_dict)
     battery_dict["dt"] = 1
 
     # Modify battery configuration for testing
     battery_dict["battery"]["size"] = 2
-    battery_dict["battery"]["energy_capacity"] = 8  
+    battery_dict["battery"]["energy_capacity"] = 8
     battery_dict["battery"]["charge_rate"] = 2
     battery_dict["battery"]["discharge_rate"] = 2
     battery_dict["battery"]["roundtrip_efficiency"] = 0.9
@@ -216,23 +209,41 @@ def test_SimpleBattery_usage_calc_regression():
     battery_dict["battery"]["usage_cycles"] = 5
     battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 
-
     SB = SimpleBattery(battery_dict)
 
     power_avail = 10e3 * np.ones(21)
-    power_signal = [1500, 1500, 1500, -1700, -1700, -1700, 1800, 1800, 1800, 1800, 1800,\
-                    -1800, -1800, -1800, -1800, -1800, 1800, 1800, 1800, 1800, 1800]
+    power_signal = [
+        1500,
+        1500,
+        1500,
+        -1700,
+        -1700,
+        -1700,
+        1800,
+        1800,
+        1800,
+        1800,
+        1800,
+        -1800,
+        -1800,
+        -1800,
+        -1800,
+        -1800,
+        1800,
+        1800,
+        1800,
+        1800,
+        1800,
+    ]
 
     for i in range(len(power_avail)):
         step_input_dict = {
-            "battery": {
-                "battery_signal": power_signal[i]
-            },
+            "battery": {"battery_signal": power_signal[i]},
             "locally_generated_power": power_avail[i],
         }
         out = SB.step(step_input_dict)
         # assert out["battery"]["power"] == power_signal[i]
-    
+
     assert SB.step_counter == 1
     assert out["battery"]["power"] == usage_calc_base_dict["out_power"]
 
@@ -250,12 +261,10 @@ def test_SimpleBattery_usage_calc_regression():
         print("SB.total_time_usage: ", SB.total_time_usage)
         print("SB.time_usage_perc: ", SB.time_usage_perc)
         print("SB.SOC (1): ", SB.SOC)
-    
+
     for i in range(len(power_avail)):
         step_input_dict = {
-            "battery": {
-                "battery_signal": 0
-            },
+            "battery": {"battery_signal": 0},
             "locally_generated_power": power_avail[i],
         }
         out = SB.step(step_input_dict)

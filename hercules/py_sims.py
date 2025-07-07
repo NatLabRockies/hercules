@@ -37,7 +37,7 @@ class PySims:
         # Save the generator names
         self.generator_names = h_dict["generator_names"]
 
-        # Collect the py_sim objects 
+        # Collect the py_sim objects
         self.py_sim_objects = {}
         for py_sim_name in self.py_sim_names:
             self.py_sim_objects[py_sim_name] = self.get_py_sim(py_sim_name, h_dict)

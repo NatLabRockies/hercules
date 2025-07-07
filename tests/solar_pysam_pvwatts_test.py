@@ -1,8 +1,11 @@
 """This module provides unit tests for 'SolarPySAM'."""
+
 import copy
+
 import pytest
 from hercules.python_simulators.solar_pysam import SolarPySAM
 from numpy.testing import assert_almost_equal
+
 from tests.test_inputs.h_dict import h_dict_solar_pvwatts
 
 
@@ -24,7 +27,10 @@ def test_init():
     SPS = SolarPySAM(test_h_dict)
 
     assert SPS.dt == test_h_dict["dt"]
-    assert SPS.model_params["SystemDesign"]["system_capacity"] == test_h_dict["solar_farm"]["target_system_capacity_kW"]
+    assert (
+        SPS.model_params["SystemDesign"]["system_capacity"]
+        == test_h_dict["solar_farm"]["target_system_capacity_kW"]
+    )
     assert SPS.power_mw == test_h_dict["solar_farm"]["initial_conditions"]["power"]
     assert SPS.dc_power_mw == test_h_dict["solar_farm"]["initial_conditions"]["power"]
     assert SPS.dni == test_h_dict["solar_farm"]["initial_conditions"]["dni"]
@@ -34,7 +40,8 @@ def test_init():
 def test_return_outputs(SPS: SolarPySAM):
     # testing the function `return_outputs`
     # outputs after initialization - all outputs should reflect input dict
-    # Note: Current SolarPySAM doesn't have return_outputs method, so we test the attributes directly
+    # Note: Current SolarPySAM doesn't have return_outputs method,
+    # so we test the attributes directly
     assert SPS.power_mw == 25
     assert SPS.dni == 1000
     assert SPS.poa == 1000

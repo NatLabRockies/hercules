@@ -192,7 +192,8 @@ def load_hercules_input(filename):
                 raise ValueError(f"{key} must include a py_sim_type key in input file {filename}")
             if h_dict[key]["py_sim_type"] not in py_sim_types[key]:
                 raise ValueError(
-                    f"{key} has an invalid py_sim_type {h_dict[key]['py_sim_type']} in input file {filename}"
+                    f"{key} has an invalid py_sim_type {h_dict[key]['py_sim_type']} "
+                    f"in input file {filename}"
                 )
 
     # Check that verbose is a boolean

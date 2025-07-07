@@ -29,7 +29,7 @@ class ElectrolyzerPlant(PySimBase):
             electrolyzer_dict["general"] = h_dict["general"]
         else:
             electrolyzer_dict["general"] = {"verbose": False}
-        
+
         electrolyzer_dict["electrolyzer"] = h_dict[self.py_sim_name]
         electrolyzer_dict["electrolyzer"]["dt"] = self.dt
 

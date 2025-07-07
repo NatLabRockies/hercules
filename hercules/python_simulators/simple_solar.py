@@ -22,19 +22,18 @@ class SimpleSolar(PySimBase):
         super().__init__(h_dict, self.py_sim_name)
 
         # Efficiency currently denotes the kind of solar panel you have
-        self.efficiency = h_dict[self.py_sim_name]["efficiency"]  # need a realistic efficiency for a solar panel
+        # need a realistic efficiency for a solar panel
+        self.efficiency = h_dict[self.py_sim_name]["efficiency"]
         self.capacity = h_dict[self.py_sim_name]["capacity"]
 
         # Total area of solar panels
         base_irradiance = 1000  # W/m^2
         self.area = self.capacity / (self.efficiency * base_irradiance)  # in m^2
 
-
         # Save the initial condition
         self.power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
         self.power_kW = self.power_mw * 1000
         self.irradiance = h_dict[self.py_sim_name]["initial_conditions"]["irradiance"]
-
 
     def step(self, h_dict):
         # TODO add tilt tracking - haven't gotten to this yet
@@ -67,4 +66,3 @@ class SimpleSolar(PySimBase):
         h_dict[self.py_sim_name]["irradiance"] = self.irradiance
 
         return h_dict
-

@@ -3,13 +3,6 @@
 import logging
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-from floris import FlorisModel
-from hercules.utilities import interpolate_df, load_perffile, load_yaml
-from scipy.interpolate import interp1d
-from scipy.optimize import minimize_scalar
-from scipy.stats import circmean
 
 class PySimBase:
     """
@@ -34,7 +27,7 @@ class PySimBase:
         self.logger = self._setup_logging(self.log_file_name)
 
         # Initialize the outputs to log
-        self.log_outputs = ['power']
+        self.log_outputs = ["power"]
 
         # Save the time information
         self.dt = h_dict["dt"]

@@ -1,5 +1,3 @@
-
-
 class ControllerStandin:
     """
     This class is a pass-through stand-in for a plant-level controller.

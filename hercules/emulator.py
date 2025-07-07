@@ -253,7 +253,6 @@ class Emulator:
 
             self.h_dict = self.py_sims.step(self.h_dict)
 
-
             # Log the current state
             self.log_h_dict()
 

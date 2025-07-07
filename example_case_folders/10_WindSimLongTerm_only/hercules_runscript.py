@@ -22,7 +22,7 @@ logger.info(f"Starting with input file: {sys.argv[1]}")
 # input_dict = load_yaml("hercules_input_000.yaml")
 
 
-controller = ControllerStandinNoHelics(input_dict)
+controller = ControllerStandin(input_dict)
 
 py_sims = PySims(input_dict)
 

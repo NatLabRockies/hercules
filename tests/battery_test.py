@@ -1,10 +1,12 @@
+import copy
+
 import numpy as np
 import pytest
 from hercules.python_simulators.lib import LIB
 from hercules.python_simulators.simple_battery import SimpleBattery
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
-import copy
-from tests.test_inputs.h_dict import h_dict_simple_battery, h_dict_lib_battery
+
+from tests.test_inputs.h_dict import h_dict_lib_battery, h_dict_simple_battery
 
 
 def create_simple_battery():
@@ -75,9 +77,6 @@ def test_SB_init():
     assert SB.usage_cycles_rate == 1 / 10
 
 
-
-
-
 def test_SB_control_power_constraint(SB: SimpleBattery):
     out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
     assert out["battery"]["power"] == 2e3
@@ -92,12 +91,12 @@ def test_SB_control_power_constraint(SB: SimpleBattery):
 
 def test_SB_control_energy_constraint(SB: SimpleBattery):
     SB.E = SB.E_min + 500
-    SB.x[0,0] = SB.E
+    SB.x[0, 0] = SB.E
     out = SB.step(step_inputs(P_avail=3e3, P_signal=-1.5e3))
     assert out["battery"]["power"] == -500
     assert out["battery"]["reject"] == -1000
     SB.E = SB.E_max - 500
-    SB.x[0,0] = SB.E
+    SB.x[0, 0] = SB.E
     out = SB.step(step_inputs(P_avail=3e3, P_signal=1.5e3))
     assert out["battery"]["power"] == 500
     assert out["battery"]["reject"] == 1000
@@ -110,7 +109,7 @@ def test_SB_step(SB: SimpleBattery):
     assert_almost_equal(SB.SOC, 0.102003472, decimal=8)
     assert SB.P_charge == 1e3
     SB.E = SB.E_min + 5e3
-    SB.x[0,0] = SB.E
+    SB.x[0, 0] = SB.E
     for i in range(4):
         SB.step(step_inputs(P_avail=1e3, P_signal=-2e3))
     assert SB.E == 28800000
@@ -290,11 +289,11 @@ def test_allow_grid_power_consumption(SB: SimpleBattery):
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     SB = SimpleBattery(test_h_dict)
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
-    assert out["battery"]["power"] == 1e3 # Ignores P_avail, as expected
+    assert out["battery"]["power"] == 1e3  # Ignores P_avail, as expected
     assert out["battery"]["reject"] == 0
 
     test_h_dict["battery"]["allow_grid_power_consumption"] = False
     SB = SimpleBattery(test_h_dict)
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
-    assert out["battery"]["power"] == 0.25e3 # Uses P_avail
-    assert out["battery"]["reject"] == 0.75e3 # "Rejects" the rest of the signal ask
+    assert out["battery"]["power"] == 0.25e3  # Uses P_avail
+    assert out["battery"]["reject"] == 0.75e3  # "Rejects" the rest of the signal ask

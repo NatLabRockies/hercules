@@ -30,20 +30,14 @@ py_sims = PySims(input_dict)
 interface = HerculesHybridADInterface(input_dict)
 print("Setting up controller.")
 wind_controller = WindFarmPowerTrackingController(interface, input_dict)
-solar_controller = (
-    SolarPassthroughController(interface, input_dict) if include_solar
-    else None
-)
-battery_controller = (
-    BatteryController(interface, input_dict) if include_battery
-    else None
-)
+solar_controller = SolarPassthroughController(interface, input_dict) if include_solar else None
+battery_controller = BatteryController(interface, input_dict) if include_battery else None
 controller = HybridSupervisoryControllerBaseline(
     interface,
     input_dict,
     wind_controller=wind_controller,
     solar_controller=None,
-    battery_controller=battery_controller
+    battery_controller=battery_controller,
 )
 
 # Set the helics port

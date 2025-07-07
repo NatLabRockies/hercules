@@ -1,4 +1,5 @@
 """Regression tests for 'SolarPySAM'."""
+
 import os
 
 import numpy as np
@@ -89,7 +90,7 @@ def get_solar_params():
             "target_dc_ac_ratio": 1.33,
             "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
             "verbose": False,
-        }
+        },
     }
 
     return solar_dict
@@ -138,9 +139,7 @@ def test_SolarPySAM_regression_control(SPS: SolarPySAM):
     aoi_test = np.zeros_like(times_test)
 
     for step in steps_test:
-        out = SPS.step(
-            {"step": step, "solar_farm": {"solar_setpoint_mw": power_setpoint_mw}}
-        )
+        out = SPS.step({"step": step, "solar_farm": {"solar_setpoint_mw": power_setpoint_mw}})
         powers_test[step] = out["solar_farm"]["power"]
         dni_test[step] = out["solar_farm"]["dni"]
         aoi_test[step] = out["solar_farm"]["aoi"]

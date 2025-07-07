@@ -42,7 +42,8 @@ class SolarPySAM(PySimBase):
             import PySAM.Pvwattsv8 as pvwatts
         else:
             raise ValueError(
-                f"Unknown PySAM model: {self.pysam_model}. Supported models are 'pvsam' and 'pvwatts'."
+                f"Unknown PySAM model: {self.pysam_model}. "
+                f"Supported models are 'pvsam' and 'pvwatts'."
             )
 
         # Check that either
@@ -55,7 +56,8 @@ class SolarPySAM(PySimBase):
         ):
             if "weather_data_input" in h_dict[self.py_sim_name]:
                 raise ValueError(
-                    f"Cannot have both solar_input_filename and weather_data_input in h_dict[{self.py_sim_name}]"
+                    f"Cannot have both solar_input_filename and weather_data_input "
+                    f"in h_dict[{self.py_sim_name}]"
                 )
             else:
                 if h_dict[self.py_sim_name]["solar_input_filename"].endswith(".csv"):
@@ -69,7 +71,8 @@ class SolarPySAM(PySimBase):
         else:
             if "weather_data_input" not in h_dict[self.py_sim_name]:
                 raise ValueError(
-                    f"Must have either solar_input_filename or weather_data_input in h_dict[{self.py_sim_name}]"
+                    f"Must have either solar_input_filename or weather_data_input "
+                    f"in h_dict[{self.py_sim_name}]"
                 )
             else:
                 df_solar = pd.DataFrame.from_dict(h_dict[self.py_sim_name]["weather_data_input"])

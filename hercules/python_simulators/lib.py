@@ -11,7 +11,6 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 """
 
 import numpy as np
-import rainflow
 from hercules.python_simulators.base_pysim import PySimBase
 
 
@@ -24,28 +23,28 @@ def kWh2kJ(kJ):
     """Convert a value in kJ to kWh"""
     return kJ * 3600
 
+
 def years_to_usage_rate(years, dt):
     """Convert a number of years to a usage rate
     inputs:
         years: life of the storage system in years
         dt: time step of the simulation, in seconds
-     """
+    """
     days = years * 365
     hours = days * 24
     seconds = hours * 3600
     usage_lifetime = seconds / dt
 
-    return 1/usage_lifetime
+    return 1 / usage_lifetime
+
 
 def cycles_to_usage_rate(cycles):
     """Convert cycle number to degradation rate
-    inputs: 
+    inputs:
         cycles: number of cycles until the unit needs to be replaced
         dt: time step of the simulation, in seconds
     """
-    return 1/cycles
-
-
+    return 1 / cycles
 
 
 class LIB(PySimBase):
@@ -71,7 +70,7 @@ class LIB(PySimBase):
 
         # Call the base class init
         super().__init__(h_dict, self.py_sim_name)
-   
+
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
@@ -86,7 +85,9 @@ class LIB(PySimBase):
 
         # Flag for allowing grid to charge the battery
         if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
-            self.allow_grid_power_consumption = h_dict[self.py_sim_name]["allow_grid_power_consumption"]
+            self.allow_grid_power_consumption = h_dict[self.py_sim_name][
+                "allow_grid_power_consumption"
+            ]
         else:
             self.allow_grid_power_consumption = False
 
@@ -273,7 +274,6 @@ class LIB(PySimBase):
         # Return the updated dictionary
         return h_dict
 
-
     def control(self, P_signal, P_avail):
         """
         Calculate the charging/discharging current from the requested charging/discharging power.
@@ -364,4 +364,3 @@ class LIB(PySimBase):
             I_reject = I_signal - I_charge
 
         return I_charge, I_reject
-
