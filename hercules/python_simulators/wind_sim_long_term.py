@@ -354,6 +354,20 @@ class WindSimLongTerm(PySimBase):
         ) % self.floris_time_window_width_steps
 
     def step(self, h_dict):
+        """Execute one simulation step for the wind farm.
+
+        Updates wake deficits, computes waked velocities, calculates turbine powers,
+        and updates the simulation dictionary with results. Handles derating signals
+        and optional extra logging outputs.
+
+        Args:
+            h_dict (dict): Dictionary containing current simulation state including
+                step number and derating values for each turbine.
+
+        Returns:
+            dict: Updated simulation dictionary with wind farm outputs including
+                turbine powers, total power, and optional extra outputs.
+        """
         # Get the current  step
         step = h_dict["step"]
         if self.verbose:
@@ -407,18 +421,24 @@ class WindSimLongTerm(PySimBase):
 
 
 class TurbineFilterModel:
+    """Simple filter-based wind turbine model for power output simulation.
+
+    This model simulates wind turbine power output using a first-order filter
+    to smooth the response to changing wind conditions, providing a simplified
+    representation of turbine dynamics.
+    """
+
     def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
-        """
-        Initializes the turbine filter model
+        """Initialize the turbine filter model.
+
         Args:
             turbine_dict (dict): Dictionary containing turbine configuration,
                 including filter model parameters and other turbine-specific data.
             dt (float): Time step for the simulation in seconds.
-            fmodel (FLorisModel): FLorisModel of farm
+            fmodel (FLorisModel): FLorisModel of farm.
             initial_wind_speed (float): Initial wind speed in m/s to initialize
                 the simulation.
         """
-
         # Save the time step
         self.dt = dt
 
@@ -446,20 +466,22 @@ class TurbineFilterModel:
         self.prev_power = self.power_lut(initial_wind_speed)
 
     def step(self, wind_speed, derating=0.0):
-        """
-        Simulates a single time step of the wind turbine power output.
+        """Simulate a single time step of the wind turbine power output.
+
         This method calculates the power output of a wind turbine based on the
         given wind speed and an optional derating. The power output is
         smoothed using an exponential moving average to simulate the turbine's
         response to changing wind conditions.
+
         Args:
             wind_speed (float): The current wind speed in meters per second (m/s).
-            derating (float, optional): The maximum allowable power output
+            derating (float, optional): The maximum allowable power output in kW.
+                Defaults to 0.0.
+
         Returns:
             float: The calculated power output of the wind turbine, constrained
-            by the derating and smoothed using the exponential moving average.
+                by the derating and smoothed using the exponential moving average.
         """
-
         # Instantaneous power
         instant_power = self.power_lut(wind_speed)
 
@@ -494,7 +516,23 @@ class TurbineFilterModel:
 
 
 class Turbine1dofModel:
+    """Single degree-of-freedom wind turbine model with detailed dynamics.
+
+    This model simulates wind turbine behavior using a 1-DOF representation
+    that includes rotor dynamics, pitch control, and generator torque control.
+    """
+
     def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
+        """Initialize the 1-DOF turbine model.
+
+        Args:
+            turbine_dict (dict): Dictionary containing turbine configuration and
+                DOF model parameters.
+            dt (float): Time step for the simulation in seconds.
+            fmodel (FLorisModel): FLorisModel of farm.
+            initial_wind_speed (float): Initial wind speed in m/s to initialize
+                the simulation.
+        """
         # Save the time step
         self.dt = dt
 
@@ -545,6 +583,19 @@ class Turbine1dofModel:
         pass
 
     def step(self, wind_speed, derating=0.0):
+        """Execute one simulation step for the 1-DOF turbine model.
+
+        Simulates turbine dynamics including rotor speed, pitch angle, and
+        generator torque while respecting rate limits and derating constraints.
+
+        Args:
+            wind_speed (float): Current wind speed in m/s.
+            derating (float, optional): Maximum allowable power output in kW.
+                Defaults to 0.0.
+
+        Returns:
+            float: Calculated turbine power output in kW.
+        """
         omega = (
             self.prev_omega
             + (
@@ -602,6 +653,19 @@ class Turbine1dofModel:
         return self.prev_power
 
     def simplecontroller(self, wind_speed, omegaf):
+        """Simple controller for pitch and generator torque.
+
+        Implements a basic Region 2 controller that sets pitch to 0 and
+        calculates generator torque based on filtered rotor speed.
+
+        Args:
+            wind_speed (float): Current wind speed in m/s.
+            omegaf (float): Filtered rotor speed in rad/s.
+
+        Returns:
+            tuple: (pitch_angle, generator_torque) where pitch is in radians
+                and generator torque is in N⋅m.
+        """
         # if omega <= self.turbine_dict['dof1_model']['rated_wind_speed']:
         pitch = 0.0
         gentorque = self.turbine_dict["dof1_model"]["controller"]["r2_k_torque"] * omegaf**2

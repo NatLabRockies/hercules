@@ -221,11 +221,12 @@ class Emulator:
             self.close_output_file()
 
     def run(self):
-        """
-        Runs the emulation loop until the end time is reached.
+        """Run the main emulation loop until the end time is reached.
 
+        Executes the simulation step by step, updating controller and Python
+        simulators, logging state, and handling external data interpolation.
+        Logs progress at specified intervals and saves initial state on first iteration.
         """
-
         self.logger.info(" #### Entering main loop #### ")
 
         self.first_iteration = True
@@ -267,36 +268,8 @@ class Emulator:
             self.time = self.time + self.dt
 
 
-    # No longer needed
-    # def recursive_flatten_h_dict(self, nested_dict, prefix=""):
-    #     """
-    #     Recursively flattens a nested dictionary and stores the flattened key-value pairs
-    #     in the `h_dict_flat` attribute.
-    #     Args:
-    #         nested_dict (dict): The nested dictionary to be flattened.
-    #         prefix (str, optional): The prefix to prepend to the keys in the flattened
-    #             dictionary. Defaults to an empty string.
-    #     """
-
-    #     # Recursively flatten the input dict
-    #     for k, v in nested_dict.items():
-    #         if isinstance(v, dict):
-    #             self.recursive_flatten_h_dict(v, prefix + k + ".")
-    #         else:
-    #             # If v is a list or np.array, enter each element seperately
-    #             if isinstance(v, (list, np.ndarray)):
-    #                 for i, vi in enumerate(v):
-    #                     if isinstance(vi, (int, float)):
-    #                         # Round numerical values to 3 decimal places
-    #                         self.h_dict_flat[prefix + k + ".%03d" % i] = round(vi, 3)
-
-    #             # If v is a string, int, or float, enter it directly
-    #             if isinstance(v, (int, np.integer, float)):
-    #                 # Round numerical values to 3 decimal places
-    #                 self.h_dict_flat[prefix + k] = round(v, 3)
-
     def close_output_file(self):
-        """Properly close the output file."""
+        """Properly close the output file and flush any remaining data."""
         if self.csv_file:
             self.flush_buffer()
             self.csv_file.flush()
@@ -305,19 +278,15 @@ class Emulator:
             self.csv_writer = None
 
     def __del__(self):
-        """
-        Cleanup method to properly close output files.
-        """
+        """Cleanup method to properly close output files when object is destroyed."""
         self.close_output_file()
 
     def close(self):
-        """
-        Explicitly close all resources.
-        """
+        """Explicitly close all resources and cleanup."""
         self.close_output_file()
 
     def flush_buffer(self):
-        """Write buffered rows to the file."""
+        """Write all buffered rows to the CSV file and clear the buffer."""
         if not self.csv_buffer:
             return
 
@@ -408,4 +377,9 @@ class Emulator:
             self.flush_buffer()
 
     def parse_input_yaml(self, filename):
+        """Parse input YAML file (placeholder method for future implementation).
+
+        Args:
+            filename (str): Path to the YAML file to parse.
+        """
         pass
