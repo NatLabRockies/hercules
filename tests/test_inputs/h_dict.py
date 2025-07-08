@@ -4,7 +4,6 @@ plant = {"interconnect_limit": 30000.0}
 
 wind_farm = {
     "py_sim_type": "WindSimLongTerm",
-    "num_turbines": 3,
     "floris_input_file": "tests/test_inputs/floris_input.yaml",
     "wind_input_filename": "tests/test_inputs/wind_input.csv",
     "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",
