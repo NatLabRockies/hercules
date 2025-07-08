@@ -10,7 +10,7 @@ def test_step_sets_deratings_expected():
     test_dict["time"] = 50.0  # 50 % 200 < 100, so t0 should be 500
     result = controller.step(test_dict)
     assert result["wind_farm"]["derating_000"] == 500
-    for t_idx in range(1, test_dict["wind_farm"]["num_turbines"]):
+    for t_idx in range(1,controller.n_turbines):
         assert result["wind_farm"][f"derating_{t_idx:03d}"] == 4000
 
 
@@ -20,5 +20,5 @@ def test_step_sets_all_4000_when_time_high():
     test_dict = h_dict_wind.copy()
     test_dict["time"] = 150.0  # 150 % 200 = 150 >= 100, so all should be 4000
     result = controller.step(test_dict)
-    for t_idx in range(test_dict["wind_farm"]["num_turbines"]):
+    for t_idx in range(controller.n_turbines):
         assert result["wind_farm"][f"derating_{t_idx:03d}"] == 4000
