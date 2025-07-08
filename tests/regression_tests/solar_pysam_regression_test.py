@@ -10,31 +10,31 @@ PRINT_VALUES = True
 
 powers_base_no_control = np.array(
     [
-        14.52354223,
-        14.53501121,
-        14.54648261,
-        14.55795135,
-        14.56942243,
-        14.58089109,
-        14.59236196,
-        14.60383039,
-        14.61529872,
-        14.62676939,
+        14523.54223251,
+        14535.01121097,
+        14546.48260651,
+        14557.9513501,
+        14569.42243105,
+        14580.89108865,
+        14592.36195601,
+        14603.83038743,
+        14615.29871512,
+        14626.76939233,
     ]
 )
 
 powers_base_control = np.array(
     [
-        14.52354223,
-        14.53501121,
-        14.54648261,
-        14.55,
-        14.55,
-        14.55,
-        14.55,
-        14.55,
-        14.55,
-        14.55,
+        14523.54223251,
+        14535.01121097,
+        14546.48260651,
+        14550.0,
+        14550.0,
+        14550.0,
+        14550.0,
+        14550.0,
+        14550.0,
+        14550.0,
     ]
 )
 
@@ -87,7 +87,7 @@ def get_solar_params():
             "lat": 39.7442,
             "lon": -105.1778,
             "elev": 1829,
-            "target_system_capacity_kW": 100002.58266599999,
+            "target_system_capacity": 100002.58266599999,
             "target_dc_ac_ratio": 1.33,
             "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
             "verbose": False,
@@ -131,7 +131,7 @@ def test_SolarPySAM_regression_no_control(SPS: SolarPySAM):
 
 
 def test_SolarPySAM_regression_control(SPS: SolarPySAM):
-    power_setpoint_mw = 14.55  # Slightly below most of the base outputs.
+    power_setpoint = 14550.0  # Slightly below most of the base outputs.
 
     times_test = np.arange(0, 5, SPS.dt)
     steps_test = list(range(len(times_test)))
@@ -140,7 +140,7 @@ def test_SolarPySAM_regression_control(SPS: SolarPySAM):
     aoi_test = np.zeros_like(times_test)
 
     for step in steps_test:
-        out = SPS.step({"step": step, "solar_farm": {"solar_setpoint_mw": power_setpoint_mw}})
+        out = SPS.step({"step": step, "solar_farm": {"solar_setpoint": power_setpoint}})
         powers_test[step] = out["solar_farm"]["power"]
         dni_test[step] = out["solar_farm"]["dni"]
         aoi_test[step] = out["solar_farm"]["aoi"]

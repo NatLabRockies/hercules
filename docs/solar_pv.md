@@ -36,7 +36,7 @@ The example folder `13_WindSolarSimLongTerm` specifies:
 
 ### Outputs
 
-The `SolarPySAM` module outputs the AC power (`power_mw`) and the net DC power (`dc_power_mw`) in MW of the PV plant at each timestep, as well as the angle of incidence (`aoi`).
+The `SolarPySAM` module outputs the AC power (`power`) and the net DC power (`dc_power`) in kW of the PV plant at each timestep, as well as the angle of incidence (`aoi`).
 
 ### References
 PySAM. National Renewable Energy Laboratory. Golden, CO. https://github.com/nrel/pysam

@@ -5,7 +5,7 @@ from hercules.python_simulators.base_pysim import PySimBase
 class SimpleSolar(PySimBase):
     def __init__(self, h_dict):
         """
-        Initializes the WindSimLongTerm class.
+        Initializes the SimpleSolar class.
         Args:
             h_dict (dict): Dict containing values for the simulation
         """
@@ -31,8 +31,7 @@ class SimpleSolar(PySimBase):
         self.area = self.capacity / (self.efficiency * base_irradiance)  # in m^2
 
         # Save the initial condition
-        self.power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.power_kW = self.power_mw * 1000
+        self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
         self.irradiance = h_dict[self.py_sim_name]["initial_conditions"]["irradiance"]
 
     def step(self, h_dict):
@@ -41,8 +40,8 @@ class SimpleSolar(PySimBase):
         # https://www.sciencedirect.com/science/article/pii/S1364032106001134
 
         # Note: irradiance is measured in W/m^2, so the power is calculated in Watts,
-        #           and then scaled to MW
-        # self.power_mw = 0.0
+        #           and then scaled to kW
+        # self.power = 0.0
 
         # Assume model generates its own irradiance
         irradiance = 1000.0
@@ -53,16 +52,15 @@ class SimpleSolar(PySimBase):
         # Gather inputs
         # irradiance = inputs['irradiance']
 
-        self.power_mw = irradiance * self.area * self.efficiency / 1e6 * self.dt
-        if self.power_mw < 0.0:
-            self.power_mw = 0.0
-        self.power_kW = self.power_mw * 1000
+        self.power = irradiance * self.area * self.efficiency / 1e3 * self.dt
+        if self.power < 0.0:
+            self.power = 0.0
 
         # NOTE: need to talk about whether to have time step in here or not
         # Need to put outputs into input/output structure
 
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["power"] = self.power_mw * 1000.0
+        h_dict[self.py_sim_name]["power"] = self.power
         h_dict[self.py_sim_name]["irradiance"] = self.irradiance
 
         return h_dict

@@ -115,7 +115,7 @@ class SolarPySAM(PySimBase):
         self.wind_speed_array = self._get_solar_data_array(df_solar, "Wind Speed at")
 
         # Save the system capacity
-        self.target_system_capacity_kw = h_dict[self.py_sim_name]["target_system_capacity_kW"]
+        self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
 
         # set PV system model parameters
         if self.pysam_model == "pvsam":
@@ -154,7 +154,7 @@ class SolarPySAM(PySimBase):
                         "inv_eff": 96,
                         "losses": 14.075660688264469,
                         "module_type": 2.0,
-                        "system_capacity": h_dict[self.py_sim_name]["target_system_capacity_kW"],
+                        "system_capacity": h_dict[self.py_sim_name]["target_system_capacity"],
                         "tilt": 0.0,
                     },
                 },
@@ -174,15 +174,15 @@ class SolarPySAM(PySimBase):
         self.tz = 0
 
         # Save the initial condition
-        self.power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.dc_power_mw = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.dc_power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
         self.dni = h_dict[self.py_sim_name]["initial_conditions"]["dni"]
         self.poa = h_dict[self.py_sim_name]["initial_conditions"]["poa"]
         self.aoi = 0
 
         # dynamic sizing special treatment only required for pvsam model, not for pvwatts
         if self.pysam_model == "pvsam":
-            self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity_kW"]
+            self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
             self.target_dc_ac_ratio = h_dict[self.py_sim_name]["target_dc_ac_ratio"]
 
         # create pysam model
@@ -195,15 +195,16 @@ class SolarPySAM(PySimBase):
         system_model.AdjustmentFactors.adjust_constant = 0
         system_model.AdjustmentFactors.dc_adjust_constant = 0
 
-        # TODO: What does this do?
-        for k, v in self.model_params.items():
-            try:
-                system_model.value(k, v)
-            except Exception as e:
-                error_type = type(e).__name__
-                error_message = str(e)
-                print(f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}")
-                print("Warning: continuing the simulation despite warning")
+        # Set parameters for pvsam model only (pvwatts parameters are set via assign())
+        if self.pysam_model == "pvsam":
+            for k, v in self.model_params.items():
+                try:
+                    system_model.value(k, v)
+                except Exception as e:
+                    error_type = type(e).__name__
+                    error_message = str(e)
+                    print(f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}")
+                    print("Warning: continuing the simulation despite warning")
 
         # Save the system model
         self.system_model = system_model
@@ -225,7 +226,7 @@ class SolarPySAM(PySimBase):
                 return df_[column].values
         raise ValueError(f"Could not find column with substring {column_substring} in df_solar")
 
-    def control(self, power_setpoint_mw=None):
+    def control(self, power_setpoint=None):
         """
         Controls the PV plant power output to meet a specified setpoint.
 
@@ -234,21 +235,21 @@ class SolarPySAM(PySimBase):
         output is not controlled as it is not utilized elsewhere in the code.
 
         Args:
-            power_setpoint_mw (float, optional): Desired total PV plant output in MW.
+            power_setpoint (float, optional): Desired total PV plant output in kW.
                 If None, no control is applied.
 
         """
 
         # modify power output based on setpoint
-        if power_setpoint_mw is not None:
+        if power_setpoint is not None:
             if self.verbose:
-                self.logger.info(f"power_setpoint = {power_setpoint_mw}")
-            if self.power_mw > power_setpoint_mw:
-                self.power_mw = power_setpoint_mw
+                self.logger.info(f"power_setpoint = {power_setpoint}")
+            if self.power > power_setpoint:
+                self.power = power_setpoint
                 # Keep track of power that could go to charging battery
-                self.excess_power = self.power_mw - power_setpoint_mw
+                self.excess_power = self.power - power_setpoint
             if self.verbose:
-                self.logger.info(f"self.power_mw after control = {self.power_mw}")
+                self.logger.info(f"self.power after control = {self.power}")
 
     def step(self, h_dict):
         # Get the current  step
@@ -287,14 +288,14 @@ class SolarPySAM(PySimBase):
 
         self.system_model.execute()
 
-        ac = np.array(self.system_model.Outputs.gen) / 1000  # in MW
-        self.power_mw = ac[0]  # calculating one timestep at a time
+        ac = np.array(self.system_model.Outputs.gen)  # in kW
+        self.power = ac[0]  # calculating one timestep at a time
         if self.verbose:
-            self.logger.info(f"self.power_mw = {self.power_mw}")
+            self.logger.info(f"self.power = {self.power}")
 
         # Apply control, if setpoint is provided
-        if "solar_setpoint_mw" in h_dict[self.py_sim_name]:
-            P_setpoint = h_dict[self.py_sim_name]["solar_setpoint_mw"]
+        if "solar_setpoint" in h_dict[self.py_sim_name]:
+            P_setpoint = h_dict[self.py_sim_name]["solar_setpoint"]
         elif "external_signals" in h_dict.keys():
             if "solar_power_reference" in h_dict["external_signals"].keys():
                 P_setpoint = h_dict["external_signals"]["solar_power_reference"]
@@ -305,16 +306,16 @@ class SolarPySAM(PySimBase):
 
         # # Further the cap the P_setpoint by the room left after wind power is deducted
         # wind_farm_power = inputs['py_sims']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
-        # available_interconnect_kw = self.target_system_capacity_kw - wind_farm_power
+        # available_interconnect = self.target_system_capacity - wind_farm_power
 
         # if P_setpoint is None:
-        #     P_setpoint = available_interconnect_kw / 1000
+        #     P_setpoint = available_interconnect
         # else:
-        #     P_setpoint = min(P_setpoint, available_interconnect_kw / 1000)
+        #     P_setpoint = min(P_setpoint, available_interconnect)
         self.control(P_setpoint)
 
-        if self.power_mw < 0.0:
-            self.power_mw = 0.0
+        if self.power < 0.0:
+            self.power = 0.0
         # NOTE: need to talk about whether to have time step in here or not
 
         self.dni = self.system_model.Outputs.dn[0]  # direct normal irradiance
@@ -332,7 +333,7 @@ class SolarPySAM(PySimBase):
             print("self.poa = ", self.poa)
 
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["power"] = self.power_mw
+        h_dict[self.py_sim_name]["power"] = self.power
         h_dict[self.py_sim_name]["dni"] = self.dni
         h_dict[self.py_sim_name]["poa"] = self.poa
         h_dict[self.py_sim_name]["aoi"] = self.aoi

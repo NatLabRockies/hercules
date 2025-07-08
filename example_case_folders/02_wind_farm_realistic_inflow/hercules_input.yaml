@@ -13,7 +13,7 @@ endtime: 86400 # 1 Day
 verbose: False
 
 plant:
-  interconnect_limit: 15000 # kW
+  interconnect_limit: 45000 # kW
 
 wind_farm:
   

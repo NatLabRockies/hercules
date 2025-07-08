@@ -266,32 +266,34 @@ class Emulator:
             # Update the time
             self.time = self.time + self.dt
 
-    def recursive_flatten_h_dict(self, nested_dict, prefix=""):
-        """
-        Recursively flattens a nested dictionary and stores the flattened key-value pairs
-        in the `h_dict_flat` attribute.
-        Args:
-            nested_dict (dict): The nested dictionary to be flattened.
-            prefix (str, optional): The prefix to prepend to the keys in the flattened
-                dictionary. Defaults to an empty string.
-        """
 
-        # Recursively flatten the input dict
-        for k, v in nested_dict.items():
-            if isinstance(v, dict):
-                self.recursive_flatten_h_dict(v, prefix + k + ".")
-            else:
-                # If v is a list or np.array, enter each element seperately
-                if isinstance(v, (list, np.ndarray)):
-                    for i, vi in enumerate(v):
-                        if isinstance(vi, (int, float)):
-                            # Round numerical values to 3 decimal places
-                            self.h_dict_flat[prefix + k + ".%03d" % i] = round(vi, 3)
+    # No longer needed
+    # def recursive_flatten_h_dict(self, nested_dict, prefix=""):
+    #     """
+    #     Recursively flattens a nested dictionary and stores the flattened key-value pairs
+    #     in the `h_dict_flat` attribute.
+    #     Args:
+    #         nested_dict (dict): The nested dictionary to be flattened.
+    #         prefix (str, optional): The prefix to prepend to the keys in the flattened
+    #             dictionary. Defaults to an empty string.
+    #     """
 
-                # If v is a string, int, or float, enter it directly
-                if isinstance(v, (int, np.integer, float)):
-                    # Round numerical values to 3 decimal places
-                    self.h_dict_flat[prefix + k] = round(v, 3)
+    #     # Recursively flatten the input dict
+    #     for k, v in nested_dict.items():
+    #         if isinstance(v, dict):
+    #             self.recursive_flatten_h_dict(v, prefix + k + ".")
+    #         else:
+    #             # If v is a list or np.array, enter each element seperately
+    #             if isinstance(v, (list, np.ndarray)):
+    #                 for i, vi in enumerate(v):
+    #                     if isinstance(vi, (int, float)):
+    #                         # Round numerical values to 3 decimal places
+    #                         self.h_dict_flat[prefix + k + ".%03d" % i] = round(vi, 3)
+
+    #             # If v is a string, int, or float, enter it directly
+    #             if isinstance(v, (int, np.integer, float)):
+    #                 # Round numerical values to 3 decimal places
+    #                 self.h_dict_flat[prefix + k] = round(v, 3)
 
     def close_output_file(self):
         """Properly close the output file."""
@@ -330,6 +332,10 @@ class Emulator:
 
         # Add the current wall clock time
         self.h_dict_flat["clock_time"] = dt.datetime.now()
+
+        # Add all the keys within the plant dict
+        for k in self.h_dict["plant"]:
+            self.h_dict_flat[f"plant.{k}"] = self.h_dict["plant"][k]
 
         # Add the values from each py_sim's log_outputs list
         for py_sim_name in self.py_sims.py_sim_names:
