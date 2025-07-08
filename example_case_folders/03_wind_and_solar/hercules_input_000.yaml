@@ -10,6 +10,7 @@ description: Long run Only
 dt: 1.0
 starttime: 0.0
 endtime: 950.0 #30.0 #950.0
+verbose: False
 
 
 py_sims:
@@ -17,7 +18,6 @@ py_sims:
   # NOTE FOR PRESENT MOMENT WindSimLongTerm Must be first entry in py_sims
   wind_farm_0: # The name of the WindSimLongTerm wind farm
     py_sim_type: WindSimLongTerm
-    verbose: True
     floris_input_file: inputs/floris_input.yaml
     wind_input_filename: inputs/wind_input.p
     turbine_file_name: inputs/turbine_filter_model.yaml
@@ -26,7 +26,6 @@ py_sims:
   solar_farm_0: # The name of py_sim object 1
     py_sim_type: SolarPySAM
     pysam_model: pvwatts #pvsam or pvwatts
-    verbose: True # flag to print debugging statements
     solar_input_filename: inputs/solar_input.p
     lat: 39.7442
     lon: -105.1778
