@@ -306,6 +306,19 @@ def setup_logging(logfile="log_hercules.log", console_output=False):
     return logger
 
 
+def close_logging(logger):
+    """
+    Properly close all handlers for a logger to prevent resource warnings.
+    
+    Args:
+        logger (logging.Logger): The logger instance to close.
+    """
+    if logger:
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+
+
 def interpolate_df(df, new_time):
     """Interpolates the values of a DataFrame to match a new time axis.
 
@@ -334,7 +347,7 @@ def interpolate_df(df, new_time):
             # Check if column contains datetime values
             if pd.api.types.is_datetime64_any_dtype(df[col]):
                 # Convert datetime to timestamps (float) for interpolation
-                timestamps = df[col].view("int64") / 10**9  # nanoseconds to seconds
+                timestamps = df[col].astype("int64") / 10**9  # nanoseconds to seconds
                 f = interp1d(df["time"].values, timestamps, bounds_error=True)
                 interpolated_timestamps = f(new_time)
                 # Convert timestamps back to datetime

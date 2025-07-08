@@ -89,3 +89,11 @@ class PySims:
         h_dict["plant"]["locally_generated_power"] = np.sum(
             [h_dict[generator_name]["power"] for generator_name in self.generator_names]
         )
+
+    def close_logging(self):
+        """
+        Close all loggers for all py_sim objects.
+        """
+        for py_sim in self.py_sim_objects.values():
+            if hasattr(py_sim, 'close_logging'):
+                py_sim.close_logging()

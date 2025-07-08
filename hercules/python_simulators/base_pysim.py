@@ -72,3 +72,21 @@ class PySimBase:
         logger.addHandler(file_handler)
 
         return logger
+
+    def __del__(self):
+        """
+        Cleanup method to properly close log file handlers.
+        """
+        if hasattr(self, 'logger'):
+            for handler in self.logger.handlers[:]:
+                handler.close()
+                self.logger.removeHandler(handler)
+
+    def close_logging(self):
+        """
+        Explicitly close all log file handlers.
+        """
+        if hasattr(self, 'logger'):
+            for handler in self.logger.handlers[:]:
+                handler.close()
+                self.logger.removeHandler(handler)

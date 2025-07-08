@@ -304,6 +304,18 @@ class Emulator:
             self.csv_file = None
             self.csv_writer = None
 
+    def __del__(self):
+        """
+        Cleanup method to properly close output files.
+        """
+        self.close_output_file()
+
+    def close(self):
+        """
+        Explicitly close all resources.
+        """
+        self.close_output_file()
+
     def flush_buffer(self):
         """Write buffered rows to the file."""
         if not self.csv_buffer:
