@@ -1,0 +1,33 @@
+# Input YAML for hercules
+
+# Name
+name: example_02
+
+###
+# Describe this emulator setup
+description: Wind Only Realistic Inflow
+
+dt: 1.0
+starttime: 0.0
+endtime: 86400 # 1 Day
+verbose: False
+
+plant:
+  interconnect_limit: 15000 # kW
+
+wind_farm:
+  
+  py_sim_type: WindSimLongTerm
+  floris_input_file: inputs/floris_input.yaml
+  wind_input_filename: inputs/wind_input.p
+  turbine_file_name: inputs/turbine_filter_model.yaml
+  log_file_name: outputs/log_wind_sim.log
+  log_extra_outputs: True
+
+
+controller:
+
+
+
+
+
