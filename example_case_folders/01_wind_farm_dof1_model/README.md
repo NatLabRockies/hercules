@@ -1,4 +1,4 @@
-# Example 11: Long Run Wind Only: 1-DOF model
+# Example 01: Wind Only: 1-DOF model
 
 ## Description
 
