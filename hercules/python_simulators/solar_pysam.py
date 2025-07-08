@@ -203,7 +203,9 @@ class SolarPySAM(PySimBase):
                 except Exception as e:
                     error_type = type(e).__name__
                     error_message = str(e)
-                    print(f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}")
+                    print(
+                        f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}"
+                    )
                     print("Warning: continuing the simulation despite warning")
 
         # Save the system model
