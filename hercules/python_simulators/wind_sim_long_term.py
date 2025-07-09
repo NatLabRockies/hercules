@@ -260,8 +260,24 @@ class WindSimLongTerm(PySimBase):
             [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
         )
 
+        # Get the rated power of the turbines, for now assume all turbines have the same rated power
+        self.rated_turbine_power = self.turbine_array[0].get_rated_power()
+
+        # Get the capacity of the farm
+        self.capacity = self.n_turbines * self.rated_turbine_power
+
         # Update the user
         self.logger.info(f"Initialized WindSimLongTerm with {self.n_turbines} turbines")
+
+    def add_initial_values_to_h_dict(self, h_dict):
+        """Add the initial values to the h_dict."""
+        h_dict["wind_farm"]["n_turbines"] = self.n_turbines
+        h_dict["wind_farm"]["capacity"] = self.capacity
+        h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
+        h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
+        return h_dict
 
     def update_wake_deficits(self, step):
         """
@@ -403,10 +419,16 @@ class WindSimLongTerm(PySimBase):
             ]
         )
 
+        # Update instantaneous wind direction and wind speed
+        self.wind_direction = self.wd_mat_mean[step]
+        self.wind_speed = self.ws_mat_mean[step]
+
         # Update the h_dict with outputs
         h_dict[self.py_sim_name]["turbine_deratings"] = derating
         h_dict[self.py_sim_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.py_sim_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.py_sim_name]["wind_direction"] = self.wind_direction
+        h_dict[self.py_sim_name]["wind_speed"] = self.wind_speed
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
         if self.log_extra_outputs:
@@ -464,6 +486,10 @@ class TurbineFilterModel:
 
         # Initialize the previous power to the initial wind speed
         self.prev_power = self.power_lut(initial_wind_speed)
+
+    def get_rated_power(self):
+        """Get the rated power of the turbine."""
+        return np.max(self.power_lut(np.arange(0, 25, 1.0)))
 
     def step(self, wind_speed, derating=0.0):
         """Simulate a single time step of the wind turbine power output.
@@ -581,6 +607,10 @@ class Turbine1dofModel:
         self.prev_pitch = pitch
 
         pass
+
+    def get_rated_power(self):
+        # Raise not implemented error
+        raise NotImplementedError("1-DOF turbine model does not have a rated power")
 
     def step(self, wind_speed, derating=0.0):
         """Execute one simulation step for the 1-DOF turbine model.
