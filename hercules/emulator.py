@@ -314,9 +314,9 @@ class Emulator:
         # Add the current wall clock time
         self.h_dict_flat["clock_time"] = dt.datetime.now()
 
-        # Add all the keys within the plant dict
-        for k in self.h_dict["plant"]:
-            self.h_dict_flat[f"plant.{k}"] = self.h_dict["plant"][k]
+        # Add plant power and locally generated power
+        self.h_dict_flat["plant.power"] = self.h_dict["plant"]["power"]
+        self.h_dict_flat["plant.locally_generated_power"] = self.h_dict["plant"]["locally_generated_power"]
 
         # Add the values from each py_sim's log_outputs list
         for py_sim_name in self.py_sims.py_sim_names:

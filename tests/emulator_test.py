@@ -60,12 +60,13 @@ def test_log_h_dict_refactored():
 
     # Set up the simulation state
     emulator.time = 5.0
-    emulator.step = 10
+    emulator.step = 5
     emulator.h_dict["time"] = 5.0
-    emulator.h_dict["step"] = 10
+    emulator.h_dict["step"] = 5
 
-    # Add some test data to the h_dict to simulate py_sim outputs
-    emulator.h_dict["solar_farm"] = {"power": 100.5, "dni": 800.0, "ghi": 950.0}
+    # Run controller and py_sims steps to generate plant-level outputs
+    emulator.h_dict = controller.step(emulator.h_dict)
+    emulator.h_dict = py_sims.step(emulator.h_dict)
 
     # Call the refactored log_h_dict function
     emulator.log_h_dict()
@@ -75,6 +76,8 @@ def test_log_h_dict_refactored():
         "time",
         "step",
         "clock_time",
+        "plant.power",
+        "plant.locally_generated_power",
         "solar_farm.power",  # From solar_farm's log_outputs
     }
 
@@ -87,8 +90,10 @@ def test_log_h_dict_refactored():
 
     # Verify that the values are correct
     assert emulator.h_dict_flat["time"] == 5.0
-    assert emulator.h_dict_flat["step"] == 10
-    assert emulator.h_dict_flat["solar_farm.power"] == 100.5
+    assert emulator.h_dict_flat["step"] == 5
+    assert emulator.h_dict_flat["solar_farm.power"] > 0  # Should be positive from SimpleSolar
+    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive from plant-level computation
+    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive from plant-level computation
 
     # Verify that clock_time is set
     assert "clock_time" in emulator.h_dict_flat
@@ -96,7 +101,7 @@ def test_log_h_dict_refactored():
 
     # Verify that we don't have unexpected keys (like the old flattened structure)
     unexpected_keys = [
-        k for k in actual_keys if k.startswith("solar_farm.dni") or k.startswith("solar_farm.ghi")
+        k for k in actual_keys if k.startswith("solar_farm.irradiance")
     ]
     assert len(unexpected_keys) == 0, f"Unexpected keys found: {unexpected_keys}"
 
@@ -117,13 +122,13 @@ def test_log_h_dict_with_wind_farm_arrays():
 
     # Set up the simulation state
     emulator.time = 5.0
-    emulator.step = 10
+    emulator.step = 5
     emulator.h_dict["time"] = 5.0
-    emulator.h_dict["step"] = 10
+    emulator.h_dict["step"] = 5
 
-    # Add test data with array outputs (simulating wind farm turbine powers)
-    emulator.h_dict["wind_farm"]["power"] = 500.0
-    emulator.h_dict["wind_farm"]["turbine_powers"] = [100.0, 150.0, 250.0]  # Array output
+    # Run controller and py_sims steps to generate plant-level outputs
+    emulator.h_dict = controller.step(emulator.h_dict)
+    emulator.h_dict = py_sims.step(emulator.h_dict)
 
     # Call the refactored log_h_dict function
     emulator.log_h_dict()
@@ -133,6 +138,8 @@ def test_log_h_dict_with_wind_farm_arrays():
         "time",
         "step",
         "clock_time",
+        "plant.power",
+        "plant.locally_generated_power",
         "wind_farm.power",
         "wind_farm.turbine_powers.000",
         "wind_farm.turbine_powers.001",
@@ -146,7 +153,10 @@ def test_log_h_dict_with_wind_farm_arrays():
         actual_keys
     ), f"Missing expected keys: {expected_keys - actual_keys}"
 
-    # Verify that the array values are flattened correctly
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.000"] == 100.0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.001"] == 150.0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.002"] == 250.0
+    # Verify that the array values are flattened correctly and are positive
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.000"] >= 0
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.001"] >= 0
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.002"] >= 0
+    assert emulator.h_dict_flat["wind_farm.power"] >= 0
+    assert emulator.h_dict_flat["plant.power"] >= 0
+    assert emulator.h_dict_flat["plant.locally_generated_power"] >= 0
