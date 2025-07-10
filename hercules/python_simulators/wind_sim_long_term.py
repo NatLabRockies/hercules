@@ -441,13 +441,13 @@ class WindSimLongTerm(PySimBase):
         h_dict[self.py_sim_name]["wind_speed"] = self.wind_speed
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
-        if self.log_extra_outputs:
-            h_dict[self.py_sim_name]["floris_wind_speed"] = self.floris_wind_speed
-            h_dict[self.py_sim_name]["floris_wind_direction"] = self.floris_wind_direction
-            h_dict[self.py_sim_name]["floris_ti"] = self.floris_ti
-            h_dict[self.py_sim_name]["floris_derating"] = self.floris_derating
-            h_dict[self.py_sim_name]["unwaked_velocities"] = self.unwaked_velocities
-            h_dict[self.py_sim_name]["waked_velocities"] = self.waked_velocities
+
+        h_dict[self.py_sim_name]["floris_wind_speed"] = self.floris_wind_speed
+        h_dict[self.py_sim_name]["floris_wind_direction"] = self.floris_wind_direction
+        h_dict[self.py_sim_name]["floris_ti"] = self.floris_ti
+        h_dict[self.py_sim_name]["floris_derating"] = self.floris_derating
+        h_dict[self.py_sim_name]["unwaked_velocities"] = self.unwaked_velocities
+        h_dict[self.py_sim_name]["waked_velocities"] = self.waked_velocities
 
         return h_dict
 
