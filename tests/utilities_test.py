@@ -4,7 +4,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from hercules.utilities import interpolate_df, load_hercules_input
+from hercules.utilities import interpolate_df, load_hercules_input, load_h_dict_from_text
 
 
 def test_upsampling():
@@ -231,5 +231,93 @@ def test_load_hercules_input_verbose_default():
     try:
         result = load_hercules_input(temp_file)
         assert result["verbose"] is False
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_h_dict_from_text_valid_file():
+    """Test loading h_dict from a text file created by _save_h_dict_as_text.
+
+    Creates a sample h_dict, saves it to a text file using the same format
+    as _save_h_dict_as_text, then loads it back and verifies the content
+    matches the original.
+    """
+    # Create a sample h_dict similar to what would be used in Hercules
+    sample_h_dict = {
+        "dt": 1.0,
+        "starttime": 0.0,
+        "endtime": 3600.0,
+        "plant": {"interconnect_limit": 30000.0, "location": "test_site"},
+        "wind_farm": {"py_sim_type": "WindSimLongTerm", "capacity": 100.0},
+        "solar_farm": {"py_sim_type": "SolarPySAM", "capacity": 50.0},
+        "verbose": False,
+        "time": 1800.0,
+        "step": 1800,
+        "external_signals": {"wind_speed": 8.5, "solar_irradiance": 750.0}
+    }
+
+    # Create a temporary file and write the h_dict in the same format as _save_h_dict_as_text
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(str(sample_h_dict))
+        temp_file = f.name
+
+    try:
+        # Load the h_dict back from the file
+        result = load_h_dict_from_text(temp_file)
+
+        # Verify all keys and values match the original
+        assert result == sample_h_dict
+
+        # Verify specific nested structures
+        assert result["plant"]["interconnect_limit"] == 30000.0
+        assert result["plant"]["location"] == "test_site"
+        assert result["wind_farm"]["py_sim_type"] == "WindSimLongTerm"
+        assert result["solar_farm"]["capacity"] == 50.0
+        assert result["external_signals"]["wind_speed"] == 8.5
+
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_h_dict_from_text_file_not_found():
+    """Test that FileNotFoundError is raised when file doesn't exist."""
+    with pytest.raises(FileNotFoundError, match="Could not find file"):
+        load_h_dict_from_text("nonexistent_file.txt")
+
+
+def test_load_h_dict_from_text_invalid_content():
+    """Test that ValueError is raised when file contains invalid content.
+
+    Creates a file with invalid Python dictionary syntax and verifies
+    the function raises appropriate error.
+    """
+    invalid_content = "This is not a valid Python dictionary"
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(invalid_content)
+        temp_file = f.name
+
+    try:
+        with pytest.raises(ValueError, match="Could not parse dictionary"):
+            load_h_dict_from_text(temp_file)
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_h_dict_from_text_not_a_dict():
+    """Test that ValueError is raised when file contains valid Python but not a dict.
+
+    Creates a file with a valid Python literal that is not a dictionary
+    and verifies the function raises appropriate error.
+    """
+    not_a_dict_content = "[1, 2, 3, 4, 5]"  # Valid Python list, not a dict
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(not_a_dict_content)
+        temp_file = f.name
+
+    try:
+        with pytest.raises(ValueError, match="File content does not represent a valid dictionary"):
+            load_h_dict_from_text(temp_file)
     finally:
         os.unlink(temp_file)

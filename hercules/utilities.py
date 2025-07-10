@@ -360,3 +360,43 @@ def interpolate_df(df, new_time):
     # Create DataFrame from the dictionary (all columns at once)
     result = pd.DataFrame(result_dict)
     return result
+
+
+def load_h_dict_from_text(filename):
+    """Load an h_dict from a text file created by _save_h_dict_as_text.
+
+    This function reads a text file that contains a Python dictionary representation
+    (as created by the print() function) and converts it back to a Python dictionary.
+    The file is expected to contain a single dictionary that was saved using
+    _save_h_dict_as_text method from the Emulator class.
+
+    Args:
+        filename (str): Path to the text file containing the h_dict representation.
+
+    Returns:
+        dict: The reconstructed h_dict dictionary.
+
+    Raises:
+        FileNotFoundError: If the specified file does not exist.
+        ValueError: If the file content cannot be parsed as a valid Python dictionary.
+    """
+    import ast
+    
+    try:
+        with open(filename, 'r') as f:
+            content = f.read().strip()
+        
+        # Use ast.literal_eval to safely evaluate the dictionary string
+        # This is safer than eval() as it only evaluates literals
+        h_dict = ast.literal_eval(content)
+        
+        # Validate that we got a dictionary
+        if not isinstance(h_dict, dict):
+            raise ValueError(f"File content does not represent a valid dictionary: {filename}")
+        
+        return h_dict
+        
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Could not find file: {filename}")
+    except (ValueError, SyntaxError) as e:
+        raise ValueError(f"Could not parse dictionary from file {filename}: {str(e)}")
