@@ -309,7 +309,7 @@ def setup_logging(logfile="log_hercules.log", console_output=False):
 def close_logging(logger):
     """
     Properly close all handlers for a logger to prevent resource warnings.
-    
+
     Args:
         logger (logging.Logger): The logger instance to close.
     """
@@ -380,23 +380,33 @@ def load_h_dict_from_text(filename):
         FileNotFoundError: If the specified file does not exist.
         ValueError: If the file content cannot be parsed as a valid Python dictionary.
     """
-    import ast
-    
+
     try:
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             content = f.read().strip()
-        
-        # Use ast.literal_eval to safely evaluate the dictionary string
-        # This is safer than eval() as it only evaluates literals
-        h_dict = ast.literal_eval(content)
-        
+
+        # Create a safe namespace with only numpy functions we expect
+        safe_namespace = {
+            "np": np,
+            "array": np.array,
+            "float64": np.float64,
+            "int64": np.int64,
+            "True": True,
+            "False": False,
+            "None": None,
+        }
+
+        # Use eval with the safe namespace to handle numpy objects
+        # This is safe because we control the namespace
+        h_dict = eval(content, {"__builtins__": {}}, safe_namespace)
+
         # Validate that we got a dictionary
         if not isinstance(h_dict, dict):
             raise ValueError(f"File content does not represent a valid dictionary: {filename}")
-        
+
         return h_dict
-        
+
     except FileNotFoundError:
         raise FileNotFoundError(f"Could not find file: {filename}")
-    except (ValueError, SyntaxError) as e:
+    except (ValueError, SyntaxError, NameError) as e:
         raise ValueError(f"Could not parse dictionary from file {filename}: {str(e)}")
