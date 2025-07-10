@@ -70,6 +70,23 @@ class ElectrolyzerPlant(PySimBase):
         self.power_input_kw = power_in
         self.power_used_kw = self.power_input_kw - (self.curtailed_power_kw + self.power_left_kw)
 
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+        
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
+
+        # Add what we want later
+
+        return h_dict
+
     def step(self, h_dict):
         # Gather inputs
         local_power = h_dict["locally_generated_power"]  # TODO check what units this is in

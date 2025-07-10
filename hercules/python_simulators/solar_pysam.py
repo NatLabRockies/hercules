@@ -213,6 +213,23 @@ class SolarPySAM(PySimBase):
 
         self.needed_inputs = {}
 
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+        
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
+
+        # Add what we want later
+
+        return h_dict
+
     def _get_solar_data_array(self, df_, column_substring):
         """
         Get the values of the first column in the df whose name contains the specified substring.

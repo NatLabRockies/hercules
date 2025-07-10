@@ -269,8 +269,18 @@ class WindSimLongTerm(PySimBase):
         # Update the user
         self.logger.info(f"Initialized WindSimLongTerm with {self.n_turbines} turbines")
 
-    def add_initial_values_to_h_dict(self, h_dict):
-        """Add the initial values to the h_dict."""
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+        
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
         h_dict["wind_farm"]["n_turbines"] = self.n_turbines
         h_dict["wind_farm"]["capacity"] = self.capacity
         h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power

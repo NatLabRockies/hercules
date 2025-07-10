@@ -219,3 +219,43 @@ def test_wind_sim_long_term_derating_applies():
 
     for i, (power, derating) in enumerate(zip(turbine_powers, derating_values)):
         assert power == derating, f"Turbine {i} power {power} should equal derating {derating}"
+
+
+def test_wind_sim_long_term_get_initial_conditions_and_meta_data():
+    """Test that get_initial_conditions_and_meta_data adds correct metadata to h_dict."""
+    wind_sim = WindSimLongTerm(h_dict_wind)
+
+    # Create a copy of the input h_dict to avoid modifying the original
+    test_h_dict = h_dict_wind.copy()
+
+    # Call the method
+    result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
+
+    # Verify that the method returns the modified h_dict
+    assert result is test_h_dict
+
+    # Verify that all expected metadata is added to the wind_farm section
+    assert "n_turbines" in result["wind_farm"]
+    assert "capacity" in result["wind_farm"]
+    assert "rated_turbine_power" in result["wind_farm"]
+    assert "wind_direction" in result["wind_farm"]
+    assert "wind_speed" in result["wind_farm"]
+    assert "turbine_powers" in result["wind_farm"]
+
+    # Verify the values match the wind_sim attributes
+    assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
+    assert result["wind_farm"]["capacity"] == wind_sim.capacity
+    assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
+    assert result["wind_farm"]["wind_direction"] == wind_sim.wd_mat_mean[0]
+    assert result["wind_farm"]["wind_speed"] == wind_sim.ws_mat_mean[0]
+
+    # Verify turbine_powers is a numpy array with correct length
+    assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
+    assert len(result["wind_farm"]["turbine_powers"]) == wind_sim.n_turbines
+    np.testing.assert_array_equal(result["wind_farm"]["turbine_powers"], wind_sim.turbine_powers)
+
+    # Verify that the original h_dict structure is preserved
+    assert "dt" in result
+    assert "starttime" in result
+    assert "endtime" in result
+    assert "plant" in result

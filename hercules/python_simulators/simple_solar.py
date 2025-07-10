@@ -34,6 +34,23 @@ class SimpleSolar(PySimBase):
         self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
         self.irradiance = h_dict[self.py_sim_name]["initial_conditions"]["irradiance"]
 
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+        
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
+
+        # Add what we want later
+
+        return h_dict
+
     def step(self, h_dict):
         # TODO add tilt tracking - haven't gotten to this yet
         # right now, just static
