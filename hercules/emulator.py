@@ -119,12 +119,18 @@ class Emulator(FederateAgent):
         self.amr_wind_dict[self.amr_wind_names[0]]["turbine_wind_directions"] = [
             0.0
         ] * self.num_turbines
+        self.amr_wind_dict[self.amr_wind_names[0]]["turbine_wind_speeds"] = [
+            0.0
+        ] * self.num_turbines
         # Write to hercules_comms so that controller can access
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]["turbine_powers"] = [
             0.0
         ] * self.num_turbines
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
             "turbine_wind_directions"
+        ] = [0.0] * self.num_turbines
+        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
+            "turbine_wind_speeds"
         ] = [0.0] * self.num_turbines
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]["wind_direction"] = 0
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
@@ -238,6 +244,7 @@ class Emulator(FederateAgent):
                 [0, 0, 0]
                 + [0 for t in range(self.num_turbines)]
                 + [0 for t in range(self.num_turbines)]
+                + [0 for t in range(self.num_turbines)]
             )
 
         # TODO Parse returns from AMRWind
@@ -247,7 +254,8 @@ class Emulator(FederateAgent):
             wind_direction_amr_wind,
         ) = subscription_value[:3]
         turbine_power_array = subscription_value[3 : 3 + self.num_turbines]
-        turbine_wd_array = subscription_value[3 + self.num_turbines :]
+        turbine_wd_array = subscription_value[3 + self.num_turbines : 3 + 2*self.num_turbines]
+        turbine_ws_array = subscription_value[3 + 2*self.num_turbines : 3 + 3*self.num_turbines]
         self.wind_speed = wind_speed_amr_wind
         self.wind_direction = wind_direction_amr_wind
         wind_farm_power = sum(turbine_power_array)
@@ -289,6 +297,7 @@ class Emulator(FederateAgent):
         print("AMRWindDirection:", wind_direction_amr_wind)
         print("AMRWindTurbinePowers:", turbine_power_array)
         print("AMRWindTurbineWD:", turbine_wd_array)
+        print("AMRWindTurbineWS:", turbine_ws_array)
         print("=======================================")
 
         # Store turbine powers back to the dict
@@ -305,6 +314,9 @@ class Emulator(FederateAgent):
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
             "turbine_wind_directions"
         ] = turbine_wd_array
+        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
+            "turbine_wind_speeds"
+        ] = turbine_ws_array
         self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
             "wind_direction"
         ] = wind_direction_amr_wind
@@ -368,6 +380,7 @@ class Emulator(FederateAgent):
         # The keys and values as two lists
         keys = list(self.main_dict_flat.keys())
         values = list(self.main_dict_flat.values())
+        print(keys)
 
         # If this is first iteration, write the keys as csv header
         if self.first_iteration:
@@ -413,6 +426,7 @@ class Emulator(FederateAgent):
             print(f"Subscription error:  {e} , returning 0s ", flush=True)
             return (
                 [0, 0, 0]
+                + [0 for t in range(self.num_turbines)]
                 + [0 for t in range(self.num_turbines)]
                 + [0 for t in range(self.num_turbines)]
             )
@@ -487,6 +501,8 @@ class Emulator(FederateAgent):
             xyz = ",".join(aa)
             bb = [f"turbine_wd_direction_{i}" for i in range(num_turbines)]
             zyx = ",".join(bb)
+            cc = [f"turbine_wind_speed_{i}" for i in range(num_turbines)]
+            wxy = ",".join(cc)
             with open(f"{LOGFILE}.csv", "a") as filex:
                 filex.write(
                     "helics_time"
@@ -500,6 +516,8 @@ class Emulator(FederateAgent):
                     + xyz
                     + ","
                     + zyx
+                    + ","
+                    + wxy
                     + os.linesep
                 )
 
@@ -530,6 +548,8 @@ class Emulator(FederateAgent):
             xyz = ",".join(aa)
             bb = [f"turbine_wd_direction_{i}" for i in range(self.num_turbines)]
             zyx = ",".join(bb)
+            cc = [f"turbine_wind_speed_{i}" for i in range(num_turbines)]
+            wxy = ",".join(cc)
             with open(f"{LOGFILE}.csv", "a") as filex:
                 filex.write(
                     "helics_time"
@@ -543,6 +563,8 @@ class Emulator(FederateAgent):
                     + xyz
                     + ","
                     + zyx
+                    + ","
+                    + wxy
                     + os.linesep
                 )
 

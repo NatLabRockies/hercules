@@ -198,6 +198,7 @@ class AMRWindStandin(FederateAgent):
                 amr_wind_direction,
                 turbine_powers,
                 turbine_wind_directions,
+                turbine_wind_speeds,
             ) = self.get_step(sim_time_s, yaw_angles, power_setpoints)
 
             # ================================================================
@@ -214,6 +215,7 @@ class AMRWindStandin(FederateAgent):
                 ]
                 + turbine_powers
                 + turbine_wind_directions
+                + turbine_wind_speeds
             )
 
             # Cast all elements as native python float so they can be read in emulator
@@ -303,12 +305,16 @@ class AMRWindStandin(FederateAgent):
                 amr_wind_direction + 5.0 * np.random.randn(self.num_turbines)
             )
             # turbine_wind_directions = [sim_time_s + 0.01, sim_time_s + 0.02]
+            turbine_wind_speeds = list(
+                amr_wind_speed + 0.5 * np.random.randn(self.num_turbines)
+            )
 
         return (
             amr_wind_speed,
             amr_wind_direction,
             turbine_powers,
             turbine_wind_directions,
+            turbine_wind_speeds,
         )
 
     def process_endpoint_event(self, msg):

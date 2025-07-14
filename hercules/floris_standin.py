@@ -279,6 +279,8 @@ class FlorisStandin(AMRWindStandin):
         )
         self.fmodel.run()
         turbine_powers_floris = (self.fmodel.get_turbine_powers() / 1000).flatten()  # in kW
+        turbine_wind_speeds = self.fmodel.turbine_average_velocities.flatten()
+        turbine_wind_speeds = turbine_wind_speeds.tolist()
 
         # Smooth output
         turbine_powers = (
@@ -293,6 +295,7 @@ class FlorisStandin(AMRWindStandin):
             amr_wind_direction,
             turbine_powers,
             turbine_wind_directions,
+            turbine_wind_speeds,
         )
 
     def process_endpoint_event(self, msg):
