@@ -22,4 +22,23 @@ ax.grid(True)
 ax.legend()
 ax.set_xlabel("Time [s]")
 ax.set_ylabel("Power [kW]")
+
+fig, ax = plt.subplots()
+ax.plot(
+    df["time"],
+    df["hercules_comms.amr_wind.wind_farm_0.turbine_wind_speeds.000"],
+    label="T0",
+    color="C0",
+)
+ax.plot(
+    df["time"],
+    df["hercules_comms.amr_wind.wind_farm_0.turbine_wind_speeds.001"],
+    label="T1",
+    color="C1",
+)
+ax.set_xlabel("Time [s]")
+ax.set_ylabel("Wind speed [m/s]")
+ax.grid()
+ax.legend()
+
 plt.show()
