@@ -1,0 +1,610 @@
+"""
+WTK and NSRDB Data Downloader
+
+This script provides functions to download wind and solar data from NREL's
+Wind Toolkit (WTK) and National Solar Radiation Database (NSRDB) using the rex package.
+
+Author: Andrew Kumler
+Date: June 2025
+"""
+
+import h5pyd
+import time
+import numpy as np
+import pandas as pd
+from rex import ResourceX
+import math
+from typing import List, Tuple, Optional
+import os
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from scipy.interpolate import griddata
+
+
+def download_nsrdb_data(
+    target_lat: float,
+    target_lon: float,
+    year: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    variables: List[str] = ['ghi', 'dni', 'dhi'],
+    coord_delta: float = 0.1,
+    output_dir: str = './data',
+    filename_prefix: str = 'nsrdb',
+    plot_data: bool = False,
+    plot_type: str = 'timeseries'
+) -> dict:
+    """
+    Download NSRDB solar irradiance data for a specified location and time period.
+    
+    Parameters:
+    -----------
+    target_lat : float
+        Target latitude coordinate
+    target_lon : float
+        Target longitude coordinate
+    year : Optional[int]
+        Year of data to download (if using full year approach)
+    start_date : Optional[str]
+        Start date in format 'YYYY-MM-DD' (if using date range approach)
+    end_date : Optional[str]
+        End date in format 'YYYY-MM-DD' (if using date range approach)
+    variables : List[str]
+        List of variables to download (default: ['ghi', 'dni', 'dhi'])
+    coord_delta : float
+        Coordinate delta for bounding box (default: 0.1 degrees)
+    output_dir : str
+        Directory to save output files
+    filename_prefix : str
+        Prefix for output filenames
+    plot_data : bool
+        Whether to create plots of the data (default: False)
+    plot_type : str
+        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+        
+    Returns:
+    --------
+    dict
+        Dictionary containing DataFrames for each variable and coordinates
+        
+    Notes:
+    ------
+    Either 'year' OR both 'start_date' and 'end_date' must be provided.
+    Date range approach allows for more flexible time periods than full year.
+    """
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Validate input parameters
+    if year is not None and (start_date is not None or end_date is not None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date', not both approaches.")
+    
+    if year is None and (start_date is None or end_date is None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date'.")
+    
+    # Determine the approach and set up file paths and time info
+    if year is not None:
+        # Full year approach
+        file_years = [year]
+        time_suffix = str(year)
+        time_description = f"year {year}"
+    else:
+        # Date range approach
+
+        start_dt = pd.to_datetime(start_date)
+        end_dt = pd.to_datetime(end_date)
+        
+        if start_dt > end_dt:
+            raise ValueError("start_date must be before end_date")
+        
+        # Get all years in the date range
+        file_years = list(range(start_dt.year, end_dt.year + 1))
+        time_suffix = f"{start_date}_to_{end_date}".replace('-', '')
+        time_description = f"period {start_date} to {end_date}"
+    
+    # Create the bounding box
+    llcrn_lat = target_lat - coord_delta
+    llcrn_lon = target_lon - coord_delta
+    urcrn_lat = target_lat + coord_delta
+    urcrn_lon = target_lon + coord_delta
+    
+    print(f"Downloading NSRDB data for {time_description}")
+    print(f"Target coordinates: ({target_lat}, {target_lon})")
+    print(f"Bounding box: ({llcrn_lat}, {llcrn_lon}) to ({urcrn_lat}, {urcrn_lon})")
+    print(f"Variables: {variables}")
+    print(f"Years to process: {file_years}")
+    
+    t0 = time.time()
+    
+    data_dict = {}
+    all_dataframes = {var: [] for var in variables}
+    
+    try:
+        # Process each year in the range
+        for file_year in file_years:
+            print(f"\nProcessing year {file_year}...")
+            fp = f"/nrel/nsrdb/conus/nsrdb_conus_{file_year}.h5"
+            
+            with ResourceX(fp) as res:
+                # Download each variable for this year
+                for var in variables:
+                    print(f"  Downloading {var} for {file_year}...")
+                    df_year = res.get_box_df(var, lat_lon_1=[llcrn_lat, llcrn_lon], lat_lon_2=[urcrn_lat, urcrn_lon])
+                    
+                    # Filter by date range if using date range approach
+                    if start_date is not None and end_date is not None:
+                        # Filter the DataFrame to the specified date range
+                        df_year = df_year.loc[start_date:end_date]
+                    
+                    all_dataframes[var].append(df_year)
+                
+                # Get coordinates (only need to do this once)
+                if 'coordinates' not in data_dict:
+                    gids = df_year.columns.values
+                    coordinates = res.lat_lon[gids]
+                    df_coords = pd.DataFrame(coordinates, index=gids, columns=["lat", "lon"])
+                    data_dict['coordinates'] = df_coords
+        
+        # Concatenate all years for each variable
+        for var in variables:
+            if all_dataframes[var]:
+                print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
+                data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
+                
+                # Save to feather format
+                output_file = os.path.join(output_dir, f"{filename_prefix}_{var}_{time_suffix}.feather")
+                data_dict[var].reset_index().to_feather(output_file)
+                print(f"Saved {var} data to {output_file}")
+        
+        # Save coordinates
+        coords_file = os.path.join(output_dir, f"{filename_prefix}_coords_{time_suffix}.feather")
+        data_dict['coordinates'].reset_index().to_feather(coords_file)
+        print(f"Saved coordinates to {coords_file}")
+            
+    except Exception as e:
+        print(f"Error downloading NSRDB data: {e}")
+        return {}
+    
+    total_time = (time.time() - t0) / 60
+    decimal_part = math.modf(total_time)[0] * 60
+    print(f"NSRDB download completed in {int(np.floor(total_time))}:{int(np.round(decimal_part, 0)):02d} minutes")
+    
+    # Create plots if requested
+    if plot_data and data_dict and 'coordinates' in data_dict:
+        coordinates_array = data_dict['coordinates'][['lat', 'lon']].values
+        if plot_type == 'timeseries':
+            plot_timeseries(data_dict, variables, coordinates_array, f"{filename_prefix} NSRDB Data")
+        elif plot_type == 'map':
+            plot_spatial_map(data_dict, variables, coordinates_array, f"{filename_prefix} NSRDB Data")
+    
+    return data_dict
+
+
+def download_wtk_data(
+    target_lat: float,
+    target_lon: float,
+    year: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    variables: List[str] = ['windspeed_100m', 'winddirection_100m'],
+    coord_delta: float = 0.1,
+    output_dir: str = './data',
+    filename_prefix: str = 'wtk',
+    plot_data: bool = False,
+    plot_type: str = 'timeseries'
+) -> dict:
+    """
+    Download WTK wind data for a specified location and time period.
+    
+    Parameters:
+    -----------
+    target_lat : float
+        Target latitude coordinate
+    target_lon : float
+        Target longitude coordinate
+    year : Optional[int]
+        Year of data to download (if using full year approach)
+    start_date : Optional[str]
+        Start date in format 'YYYY-MM-DD' (if using date range approach)
+    end_date : Optional[str]
+        End date in format 'YYYY-MM-DD' (if using date range approach)
+    variables : List[str]
+        List of variables to download (default: ['windspeed_100m', 'winddirection_100m'])
+    coord_delta : float
+        Coordinate delta for bounding box (default: 0.1 degrees)
+    output_dir : str
+        Directory to save output files
+    filename_prefix : str
+        Prefix for output filenames
+    plot_data : bool
+        Whether to create plots of the data (default: False)
+    plot_type : str
+        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+        
+    Returns:
+    --------
+    dict
+        Dictionary containing DataFrames for each variable and coordinates
+        
+    Notes:
+    ------
+    Either 'year' OR both 'start_date' and 'end_date' must be provided.
+    Date range approach allows for more flexible time periods than full year.
+    """
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Validate input parameters
+    if year is not None and (start_date is not None or end_date is not None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date', not both approaches.")
+    
+    if year is None and (start_date is None or end_date is None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date'.")
+    
+    # Determine the approach and set up file paths and time info
+    if year is not None:
+        # Full year approach
+        file_years = [year]
+        time_suffix = str(year)
+        time_description = f"year {year}"
+    else:
+        # Date range approach
+
+        start_dt = pd.to_datetime(start_date)
+        end_dt = pd.to_datetime(end_date)
+        
+        if start_dt > end_dt:
+            raise ValueError("start_date must be before end_date")
+        
+        # Get all years in the date range
+        file_years = list(range(start_dt.year, end_dt.year + 1))
+        time_suffix = f"{start_date}_to_{end_date}".replace('-', '')
+        time_description = f"period {start_date} to {end_date}"
+    
+    # Create the bounding box
+    llcrn_lat = target_lat - coord_delta
+    llcrn_lon = target_lon - coord_delta
+    urcrn_lat = target_lat + coord_delta
+    urcrn_lon = target_lon + coord_delta
+    
+    print(f"Downloading WTK data for {time_description}")
+    print(f"Target coordinates: ({target_lat}, {target_lon})")
+    print(f"Bounding box: ({llcrn_lat}, {llcrn_lon}) to ({urcrn_lat}, {urcrn_lon})")
+    print(f"Variables: {variables}")
+    print(f"Years to process: {file_years}")
+    
+    t0 = time.time()
+    
+    data_dict = {}
+    all_dataframes = {var: [] for var in variables}
+    
+    try:
+        # Process each year in the range
+        for file_year in file_years:
+            print(f"\nProcessing year {file_year}...")
+            fp = f"/nrel/wtk/wtk-led/conus/v1.0.0/5min/wtk_conus_{file_year}.h5"
+            
+            with ResourceX(fp) as res:
+                # Download each variable for this year
+                for var in variables:
+                    print(f"  Downloading {var} for {file_year}...")
+                    df_year = res.get_box_df(var, lat_lon_1=[llcrn_lat, llcrn_lon], lat_lon_2=[urcrn_lat, urcrn_lon])
+                    
+                    # Filter by date range if using date range approach
+                    if start_date is not None and end_date is not None:
+                        # Filter the DataFrame to the specified date range
+                        df_year = df_year.loc[start_date:end_date]
+                    
+                    all_dataframes[var].append(df_year)
+                
+                # Get coordinates (only need to do this once)
+                if 'coordinates' not in data_dict:
+                    gids = df_year.columns.values
+                    coordinates = res.lat_lon[gids]
+                    df_coords = pd.DataFrame(coordinates, index=gids, columns=["lat", "lon"])
+                    data_dict['coordinates'] = df_coords
+        
+        # Concatenate all years for each variable
+        for var in variables:
+            if all_dataframes[var]:
+                print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
+                data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
+                
+                # Save to feather format
+                output_file = os.path.join(output_dir, f"{filename_prefix}_{var}_{time_suffix}.feather")
+                data_dict[var].reset_index().to_feather(output_file)
+                print(f"Saved {var} data to {output_file}")
+        
+        # Save coordinates
+        coords_file = os.path.join(output_dir, f"{filename_prefix}_coords_{time_suffix}.feather")
+        data_dict['coordinates'].reset_index().to_feather(coords_file)
+        print(f"Saved coordinates to {coords_file}")
+            
+    except Exception as e:
+        print(f"Error downloading WTK data: {e}")
+        return {}
+    
+    total_time = (time.time() - t0) / 60
+    decimal_part = math.modf(total_time)[0] * 60
+    print(f"WTK download completed in {int(np.floor(total_time))}:{int(np.round(decimal_part, 0)):02d} minutes")
+    
+    # Create plots if requested
+    if plot_data and data_dict and 'coordinates' in data_dict:
+        coordinates_array = data_dict['coordinates'][['lat', 'lon']].values
+        if plot_type == 'timeseries':
+            plot_timeseries(data_dict, variables, coordinates_array, f"{filename_prefix} WTK Data")
+        elif plot_type == 'map':
+            plot_spatial_map(data_dict, variables, coordinates_array, f"{filename_prefix} WTK Data")
+    
+    return data_dict
+
+
+def plot_timeseries(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
+    """
+    Create time-series plots for the downloaded data.
+    
+    Parameters:
+    -----------
+    data_dict : dict
+        Dictionary containing DataFrames for each variable
+    variables : List[str]
+        List of variables to plot
+    coordinates : np.ndarray
+        Array of coordinates for the data points
+    title : str
+        Title for the plots
+    """
+    
+    n_vars = len(variables)
+    if n_vars == 0:
+        return
+    
+    # Create subplots based on number of variables
+    fig, axes = plt.subplots(n_vars, 1, figsize=(12, 4*n_vars), sharex=True)
+    if n_vars == 1:
+        axes = [axes]
+    
+    for i, var in enumerate(variables):
+        if var in data_dict:
+            df = data_dict[var]
+            
+            # Plot all time series (one for each spatial point)
+            for col in df.columns:
+                axes[i].plot(df.index, df[col], alpha=0.7, linewidth=0.8)
+            
+            axes[i].set_ylabel(get_variable_label(var))
+            axes[i].set_title(f"{var.replace('_', ' ').title()}")
+            axes[i].grid(True, alpha=0.3)
+    
+    axes[-1].set_xlabel('Time')
+    plt.suptitle(f"{title} - Time Series", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_spatial_map(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
+    """
+    Create spatial maps showing the mean values across the region.
+    
+    Parameters:
+    -----------
+    data_dict : dict
+        Dictionary containing DataFrames for each variable
+    variables : List[str]
+        List of variables to plot
+    coordinates : np.ndarray
+        Array of coordinates for the data points
+    title : str
+        Title for the plots
+    """
+    
+    n_vars = len(variables)
+    if n_vars == 0:
+        return
+    
+    # Calculate subplot layout
+    n_cols = min(2, n_vars)
+    n_rows = math.ceil(n_vars / n_cols)
+    
+    fig = plt.figure(figsize=(8*n_cols, 6*n_rows))
+    
+    for i, var in enumerate(variables):
+        if var in data_dict:
+            df = data_dict[var]
+            
+            # Extract coordinates
+            lats = coordinates[:, 0]
+            lons = coordinates[:, 1]
+            
+            # Calculate mean values across time
+            mean_values = df.mean(axis=0).values
+            
+            # Create subplot with map projection
+            ax = plt.subplot(n_rows, n_cols, i+1, projection=ccrs.PlateCarree())
+            
+            # Add geographic features
+            ax.add_feature(cfeature.COASTLINE, alpha=0.5)
+            ax.add_feature(cfeature.BORDERS, linestyle=":", alpha=0.5)
+            ax.add_feature(cfeature.LAND, edgecolor="black", facecolor="lightgray", alpha=0.3)
+            ax.add_feature(cfeature.OCEAN, facecolor="lightblue", alpha=0.3)
+            
+            # Create interpolated grid for smoother visualization
+            if len(lats) > 4:  # Only interpolate if we have enough points
+                grid_lon = np.linspace(min(lons), max(lons), 50)
+                grid_lat = np.linspace(min(lats), max(lats), 50)
+                grid_lon, grid_lat = np.meshgrid(grid_lon, grid_lat)
+                
+                try:
+                    grid_values = griddata((lons, lats), mean_values, (grid_lon, grid_lat), method='cubic')
+                    contour = ax.contourf(grid_lon, grid_lat, grid_values, levels=15, 
+                                        cmap=get_variable_colormap(var), transform=ccrs.PlateCarree())
+                    plt.colorbar(contour, ax=ax, orientation="vertical", 
+                               label=get_variable_label(var), shrink=0.8)
+                except:
+                    # Fall back to scatter plot if interpolation fails
+                    sc = ax.scatter(lons, lats, c=mean_values, s=100, 
+                                  cmap=get_variable_colormap(var), transform=ccrs.PlateCarree())
+                    plt.colorbar(sc, ax=ax, orientation="vertical", 
+                               label=get_variable_label(var), shrink=0.8)
+            else:
+                # Use scatter plot for few points
+                sc = ax.scatter(lons, lats, c=mean_values, s=100, 
+                              cmap=get_variable_colormap(var), transform=ccrs.PlateCarree())
+                plt.colorbar(sc, ax=ax, orientation="vertical", 
+                           label=get_variable_label(var), shrink=0.8)
+            
+            # Add points on top
+            ax.scatter(lons, lats, c='black', s=20, transform=ccrs.PlateCarree(), alpha=0.8)
+            
+            # Set title
+            ax.set_title(f"{var.replace('_', ' ').title()}")
+            
+            # Set coordinate labels
+            ax.set_xticks(np.linspace(min(lons), max(lons), 5))
+            ax.set_yticks(np.linspace(min(lats), max(lats), 5))
+            ax.set_xticklabels([f"{lon:.2f}°" for lon in np.linspace(min(lons), max(lons), 5)], fontsize=8)
+            ax.set_yticklabels([f"{lat:.2f}°" for lat in np.linspace(min(lats), max(lats), 5)], fontsize=8)
+            ax.set_xlabel("Longitude")
+            ax.set_ylabel("Latitude")
+    
+    plt.suptitle(f"{title} - Spatial Distribution (Time-Averaged)", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+
+def get_variable_label(variable: str) -> str:
+    """Get appropriate label and units for a variable."""
+    labels = {
+        'ghi': 'GHI (W/m²)',
+        'dni': 'DNI (W/m²)',
+        'dhi': 'DHI (W/m²)',
+        'windspeed_100m': 'Wind Speed at 100m (m/s)',
+        'winddirection_100m': 'Wind Direction at 100m (°)',
+        'turbulent_kinetic_energy_100m': 'TKE at 100m (m²/s²)',
+        'temperature_100m': 'Temperature at 100m (°C)',
+        'pressure_100m': 'Pressure at 100m (Pa)'
+    }
+    return labels.get(variable, variable.replace('_', ' ').title())
+
+
+def get_variable_colormap(variable: str) -> str:
+    """Get appropriate colormap for a variable."""
+    colormaps = {
+        'ghi': 'plasma',
+        'dni': 'plasma',
+        'dhi': 'plasma',
+        'windspeed_100m': 'viridis',
+        'winddirection_100m': 'hsv',
+        'turbulent_kinetic_energy_100m': 'cividis',
+        'temperature_100m': 'RdYlBu_r',
+        'pressure_100m': 'coolwarm'
+    }
+    return colormaps.get(variable, 'viridis')
+
+
+def main():
+    """
+    Example usage of the download functions.
+    """
+    
+    # ARM Southern Great Plains coordinates from your notebook
+    target_lat = 36.607322
+    target_lon = -97.487643
+    year = 2020
+    
+    # Create data directory
+    data_dir = '/Users/akumler/Documents/p2n_hybrids/scripts/output'
+    
+    # Download NSRDB data
+    print("="*50)
+    print("DOWNLOADING NSRDB DATA")
+    print("="*50)
+    
+    # Example 1: Download full year (original functionality)
+    nsrdb_data = download_nsrdb_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        year=year,
+        variables=['ghi', 'dni', 'dhi'],
+        coord_delta=0.1,
+        output_dir=data_dir,
+        filename_prefix='nsrdb_ARM-SPG',
+        plot_data=True,
+        plot_type='timeseries'  # Try 'map' for spatial plots
+    )
+    
+    # Example 2: Download specific date range (new functionality)
+    print("\n" + "="*50)
+    print("DOWNLOADING NSRDB DATA - DATE RANGE EXAMPLE")
+    print("="*50)
+    
+    nsrdb_data_range = download_nsrdb_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        start_date='2020-06-01',
+        end_date='2020-08-31',
+        variables=['ghi'],
+        coord_delta=0.1,
+        output_dir=data_dir,
+        filename_prefix='nsrdb_summer',
+        plot_data=True,
+        plot_type='timeseries'
+    )
+    
+    # Download WTK data
+    print("\n" + "="*50)
+    print("DOWNLOADING WTK DATA")
+    print("="*50)
+    
+    # Example 1: Download full year (original functionality)
+    wtk_data = download_wtk_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        year=year,
+        variables=['windspeed_100m', 'winddirection_100m', 'turbulent_kinetic_energy_100m'],
+        coord_delta=0.106,
+        output_dir=data_dir,
+        filename_prefix='wtk_ARM-SPG',
+        plot_data=True,
+        plot_type='map'  # Try 'timeseries' for time-series plots
+    )
+    
+    # Example 2: Download specific date range for wind data (new functionality)
+    print("\n" + "="*50)
+    print("DOWNLOADING WTK DATA - DATE RANGE EXAMPLE")
+    print("="*50)
+    
+    wtk_data_range = download_wtk_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        start_date='2020-03-01',
+        end_date='2020-05-31',
+        variables=['windspeed_100m'],
+        coord_delta=0.106,
+        output_dir=data_dir,
+        filename_prefix='wtk_spring',
+        plot_data=True,
+        plot_type='timeseries'
+    )
+    
+    print("\nDownload completed!")
+    
+    # Print summary information
+    if nsrdb_data:
+        print(f"\nNSRDB data shape examples:")
+        for var in ['ghi', 'dni', 'dhi']:
+            if var in nsrdb_data:
+                print(f"  {var}: {nsrdb_data[var].shape}")
+    
+    if wtk_data:
+        print(f"\nWTK data shape examples:")
+        for var in ['windspeed_100m', 'winddirection_100m', 'turbulent_kinetic_energy_100m']:
+            if var in wtk_data:
+                print(f"  {var}: {wtk_data[var].shape}")
+
+
+if __name__ == "__main__":
+    main()
