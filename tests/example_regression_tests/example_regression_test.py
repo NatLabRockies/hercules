@@ -27,6 +27,12 @@ def test_example_00_limited_time_regression():
         shutil.copy2(f"{example_dir}/hercules_input.yaml", f"{temp_dir}/hercules_input.yaml")
         shutil.copytree(f"{example_dir}/inputs", f"{temp_dir}/inputs")
 
+        # Copy the input generating notebook
+        shutil.copy2(f"{example_dir}/generate_wind_history.ipynb", f"{temp_dir}/generate_wind_history.ipynb")
+
+        # Run the input generating notebook
+        os.system(f"jupyter nbconvert --to notebook --execute {temp_dir}/generate_wind_history.ipynb")
+
         # Create outputs directory
         os.makedirs(f"{temp_dir}/outputs", exist_ok=True)
 
