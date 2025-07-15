@@ -246,7 +246,13 @@ class SolarPySAM(PySimBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
 
-        # Add what we want later
+        # This is a bit of a hack but need this to exist
+        h_dict["solar_farm"]["capacity"] = self.target_system_capacity
+        h_dict["solar_farm"]["power"] = self.power
+        h_dict["solar_farm"]["dc_power"] = self.dc_power
+        h_dict["solar_farm"]["dni"] = self.dni
+        h_dict["solar_farm"]["poa"] = self.poa
+        h_dict["solar_farm"]["aoi"] = self.aoi
 
         return h_dict
 
@@ -333,8 +339,8 @@ class SolarPySAM(PySimBase):
             self.logger.info(f"self.power = {self.power}")
 
         # Apply control, if setpoint is provided
-        if "solar_setpoint" in h_dict[self.py_sim_name]:
-            P_setpoint = h_dict[self.py_sim_name]["solar_setpoint"]
+        if "power_setpoint" in h_dict[self.py_sim_name]:
+            P_setpoint = h_dict[self.py_sim_name]["power_setpoint"]
         elif "external_signals" in h_dict.keys():
             if "solar_power_reference" in h_dict["external_signals"].keys():
                 P_setpoint = h_dict["external_signals"]["solar_power_reference"]
