@@ -380,7 +380,6 @@ class Emulator(FederateAgent):
         # The keys and values as two lists
         keys = list(self.main_dict_flat.keys())
         values = list(self.main_dict_flat.values())
-        print(keys)
 
         # If this is first iteration, write the keys as csv header
         if self.first_iteration:
