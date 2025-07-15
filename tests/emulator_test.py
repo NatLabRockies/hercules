@@ -92,8 +92,8 @@ def test_log_h_dict_refactored():
     assert emulator.h_dict_flat["time"] == 5.0
     assert emulator.h_dict_flat["step"] == 5
     assert emulator.h_dict_flat["solar_farm.power"] > 0  # Should be positive from SimpleSolar
-    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive from plant-level computation
-    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive from plant-level computation
+    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive
+    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive
 
     # Verify that clock_time is set
     assert "clock_time" in emulator.h_dict_flat

@@ -4,7 +4,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from hercules.utilities import interpolate_df, load_hercules_input, load_h_dict_from_text
+from hercules.utilities import interpolate_df, load_h_dict_from_text, load_hercules_input
 
 
 def test_upsampling():

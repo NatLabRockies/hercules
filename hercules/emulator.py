@@ -267,7 +267,6 @@ class Emulator:
             # Update the time
             self.time = self.time + self.dt
 
-
     def close_output_file(self):
         """Properly close the output file and flush any remaining data."""
         if self.csv_file:
@@ -316,7 +315,9 @@ class Emulator:
 
         # Add plant power and locally generated power
         self.h_dict_flat["plant.power"] = self.h_dict["plant"]["power"]
-        self.h_dict_flat["plant.locally_generated_power"] = self.h_dict["plant"]["locally_generated_power"]
+        self.h_dict_flat["plant.locally_generated_power"] = self.h_dict["plant"][
+            "locally_generated_power"
+        ]
 
         # Add the values from each py_sim's log_outputs list
         for py_sim_name in self.py_sims.py_sim_names:
