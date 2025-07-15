@@ -31,7 +31,7 @@ class SolarPySAM(PySimBase):
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs 
+        self.log_outputs = self.log_outputs
 
         # If "log_extra_outputs" is in h_dict[self.py_sim_name],
         # Save this value to self.log_extra_outputs
@@ -47,7 +47,6 @@ class SolarPySAM(PySimBase):
                 "poa",
                 "aoi",
             ]
-
 
         # get pysam model from input file
         if "pysam_model" in h_dict[self.py_sim_name]:
@@ -235,7 +234,7 @@ class SolarPySAM(PySimBase):
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
-        
+
         Meta data is data not explicitly in the input yaml but still useful for other
         modules.
 
