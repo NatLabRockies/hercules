@@ -74,6 +74,6 @@ def test_step(SPS: SolarPySAM):
 
 def test_control(SPS: SolarPySAM):
     power_setpoint = 10000
-    step_inputs = {"step": 0, "solar_farm": {"solar_setpoint": power_setpoint}}
+    step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)
