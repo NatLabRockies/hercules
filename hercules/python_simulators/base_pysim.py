@@ -1,4 +1,4 @@
-# Implements the long run wind model for Hercules.
+# Base class for Python simulators in Hercules.
 
 import logging
 from pathlib import Path
@@ -58,8 +58,8 @@ class PySimBase:
         log_dir = Path(log_file_name).parent
         log_dir.mkdir(parents=True, exist_ok=True)
 
-        # Get the logger for wind_sim, note that root logger already in use
-        logger = logging.getLogger("wind_sim")
+        # Get the logger for this simulator, use the py_sim_name for uniqueness
+        logger = logging.getLogger(self.py_sim_name)
         logger.setLevel(logging.INFO)
 
         # Clear any existing handlers to avoid duplicates

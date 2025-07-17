@@ -150,7 +150,7 @@ class Emulator:
         'outputs/h_dict.echo' to help with log interpretation.
         """
 
-        # Echo the dictionary to a seperate file in case it is helpful
+        # Echo the dictionary to a separate file in case it is helpful
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
@@ -378,9 +378,12 @@ class Emulator:
             self.flush_buffer()
 
     def parse_input_yaml(self, filename):
-        """Parse input YAML file (placeholder method for future implementation).
+        """Parse input YAML file (not implemented).
 
         Args:
             filename (str): Path to the YAML file to parse.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
         """
-        pass
+        raise NotImplementedError("parse_input_yaml is not implemented.")
