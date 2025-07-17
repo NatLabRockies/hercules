@@ -13,7 +13,7 @@ Make sure to first generate the wind input file using generate_wind_history.ipyn
 To run the example, execute the following command in the terminal:
 
 ```bash
-bash run_script.sh
+python hercules_runscript.py
 ```
 ## Outputs
 

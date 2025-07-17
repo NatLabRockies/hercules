@@ -10,7 +10,7 @@ the floris_standin_data_fixedwd-hour.csv.
 To run the example, execute the following command in the terminal:
 
 ```bash
-bash run_script.sh
+python hercules_runscript.py
 ```
 
 This will also plot outputs. 

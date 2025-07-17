@@ -1,4 +1,4 @@
-# Example 10: Long Run Wind Only
+# Example 00: Wind only
 
 ## Description
 
@@ -10,7 +10,7 @@
 To run the example, execute the following command in the terminal:
 
 ```bash
-bash run_script.sh
+python hercules_runscript.py
 ```
 ## Outputs
 

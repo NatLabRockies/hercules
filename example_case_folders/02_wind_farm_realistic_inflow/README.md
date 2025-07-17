@@ -28,7 +28,7 @@ the necessary input files for the simulation based on the originally provided da
 To run the example, execute the following command in the terminal:
 
 ```bash
-bash run_script.sh
+python hercules_runscript.py
 ```
 ## Outputs
 
