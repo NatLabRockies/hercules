@@ -229,7 +229,7 @@ class Emulator:
         """
         self.logger.info(" #### Entering main loop #### ")
 
-        self.first_iteration = True
+        first_iteration = True
 
         # Run simulation through steps
         for self.step in range(self.n_steps):
@@ -237,7 +237,7 @@ class Emulator:
             self.time = self.starttime + (self.step * self.dt)
 
             # Log the current time
-            if (self.step % self.step_log_interval == 0) or self.first_iteration:
+            if (self.step % self.step_log_interval == 0) or first_iteration:
                 self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
                 self.logger.info(f"Step: {self.step} of {self.n_steps}")
                 self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
@@ -259,10 +259,10 @@ class Emulator:
 
             # If this is first iteration log the input dict
             # And turn off the first iteration flag
-            if self.first_iteration:
+            if first_iteration:
                 self.logger.info(self.h_dict)
                 self._save_h_dict_as_text()
-                self.first_iteration = False
+                first_iteration = False
 
             # Update the time
             self.time = self.time + self.dt
