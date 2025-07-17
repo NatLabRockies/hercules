@@ -80,11 +80,13 @@ class Emulator:
         self.controller = controller
         self.py_sims = py_sims
 
+        # Add py_sim metadata to the h_dict
+        self.h_dict = self.py_sims.add_py_sim_metadata_to_h_dict(self.h_dict)
+
         # Read in any external data
         self.external_data_all = {}
         if "external_data_file" in h_dict:
             self._read_external_data_file(h_dict["external_data_file"])
-            self.external_signals = {}
             self.h_dict["external_signals"] = {}
 
     def _read_external_data_file(self, filename):

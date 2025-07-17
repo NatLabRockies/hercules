@@ -35,33 +35,41 @@ class PySims:
         all_generator_names = get_available_generator_names()
 
         # Make a list of py_sim names that are in the h_dict
-        h_dict["py_sim_names"] = [
+        self.py_sim_names = [
             py_sim_name for py_sim_name in all_py_sim_names if py_sim_name in h_dict
         ]
 
         # Make a list of generator names that are in the h_dict
-        h_dict["generator_names"] = [
+        self.generator_names = [
             generator_name for generator_name in all_generator_names if generator_name in h_dict
         ]
 
         # Add in the number of py_sims
-        h_dict["n_py_sim"] = len(h_dict["py_sim_names"])
+        self.n_py_sim = len(self.py_sim_names)
 
         # If there are no py_sims, raise an error
-        if h_dict["n_py_sim"] == 0:
+        if self.n_py_sim == 0:
             raise Exception("No py_sims found in input file")
-
-        # Save the py_sim names and number of py_sims
-        self.py_sim_names = h_dict["py_sim_names"]
-        self.n_py_sim = h_dict["n_py_sim"]
-
-        # Save the generator names
-        self.generator_names = h_dict["generator_names"]
 
         # Collect the py_sim objects
         self.py_sim_objects = {}
         for py_sim_name in self.py_sim_names:
             self.py_sim_objects[py_sim_name] = self.get_py_sim(py_sim_name, h_dict)
+
+    def add_py_sim_metadata_to_h_dict(self, h_dict):
+        """Add py_sim metadata to the h_dict.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Updated dictionary with py_sim metadata.
+        """
+        h_dict["py_sim_names"] = self.py_sim_names
+        h_dict["generator_names"] = self.generator_names
+        h_dict["n_py_sim"] = self.n_py_sim
+
+        return h_dict
 
     def get_py_sim(self, py_sim_name, h_dict):
         """Create and return a Python simulator object based on the specified type.
