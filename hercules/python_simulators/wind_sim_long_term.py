@@ -98,14 +98,14 @@ class WindSimLongTerm(PySimBase):
         # If a csv file is provided, read it in
         if self.wind_input_filename.endswith(".csv"):
             df_wi = pd.read_csv(self.wind_input_filename)
-        elif self.wind_input_filename.endswith(".p"):
+        elif self.wind_input_filename.endswith(".p") | self.wind_input_filename.endswith(".pkl"):
             df_wi = pd.read_pickle(self.wind_input_filename)
         elif (self.wind_input_filename.endswith(".f")) | (
             self.wind_input_filename.endswith(".ftr")
         ):
             df_wi = pd.read_feather(self.wind_input_filename)
         else:
-            raise ValueError("Wind input file must be a .csv or .p file")
+            raise ValueError("Wind input file must be a .csv or .p, .f or .ftr file")
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_wi.columns:
