@@ -106,15 +106,15 @@ def test_unknown_py_sim_type():
         py_sims.PySims(invalid_h_dict)
 
 
-def test_get_all_initial_conditions_and_meta_data():
-    """Test that get_all_initial_conditions_and_meta_data calls all py_sim methods."""
+def test_add_py_sim_metadata_to_h_dict():
+    """Test that add_py_sim_metadata_to_h_dict calls all py_sim methods."""
     pysims = py_sims.PySims(copy.deepcopy(h_dict_wind_solar_battery))
 
     # Create a copy of the input h_dict
     test_h_dict = copy.deepcopy(h_dict_wind_solar_battery)
 
     # Call the method
-    result = pysims.get_all_initial_conditions_and_meta_data(test_h_dict)
+    result = pysims.add_py_sim_metadata_to_h_dict(test_h_dict)
 
     # Verify that the method returns the modified h_dict
     assert result is test_h_dict

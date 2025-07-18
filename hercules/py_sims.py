@@ -69,6 +69,9 @@ class PySims:
         h_dict["generator_names"] = self.generator_names
         h_dict["n_py_sim"] = self.n_py_sim
 
+        for py_sim_name in self.py_sim_names:
+            h_dict = self.py_sim_objects[py_sim_name].get_initial_conditions_and_meta_data(h_dict)
+
         return h_dict
 
     def get_py_sim(self, py_sim_name, h_dict):
@@ -104,19 +107,6 @@ class PySims:
 
         raise Exception("Unknown py_sim_type: ", h_dict[py_sim_name]["py_sim_type"])
 
-    def get_all_initial_conditions_and_meta_data(self, h_dict):
-        """Get initial conditions and metadata for all pysims.
-
-        Args:
-            h_dict (dict): Dictionary containing simulation parameters.
-
-        Returns:
-            dict: Updated dictionary with initial conditions and metadata for all pysims.
-        """
-        for py_sim_name in self.py_sim_names:
-            h_dict = self.py_sim_objects[py_sim_name].get_initial_conditions_and_meta_data(h_dict)
-
-        return h_dict
 
     def step(self, h_dict):
         """Execute one simulation step for all Python simulators.
