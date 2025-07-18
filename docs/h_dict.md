@@ -48,12 +48,7 @@ The `h_dict` is a nested dictionary that contains simulation-wide parameters, pl
 ### Solar Farm (`solar_farm`)
 | Key | Type | Description |
 |-----|------|-------------|
-| `py_sim_type` | str | "SimpleSolar" or "SolarPySAM" |
-| **For SimpleSolar:** |
-| `capacity` | float | System capacity in kW |
-| `efficiency` | float | System efficiency (0-1) |
-| `area` | float | Panel area in m² |
-| `initial_conditions` | dict | Initial power and irradiance |
+| `py_sim_type` | str | "SolarPySAM" |
 | **For SolarPySAM:** |
 | `pysam_model` | str | "pvsam" or "pvwatts" |
 | `solar_input_filename` | str | Solar data file (or None) |

@@ -11,7 +11,6 @@ Py_Sims automatically detects and initializes components based on the [h_dict st
 | Component | Py_Sim Type | Description |
 |-----------|-------------|-------------|
 | `wind_farm` | `WindSimLongTerm` | FLORIS-based wind farm simulation |
-| `solar_farm` | `SimpleSolar` | Basic solar model with efficiency |
 | `solar_farm` | `SolarPySAM` | PySAM-based detailed solar simulation |
 | `battery` | `SimpleBattery` | Basic battery storage model |
 | `battery` | `LIB` | Detailed lithium-ion battery model |

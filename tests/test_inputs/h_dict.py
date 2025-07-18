@@ -10,13 +10,7 @@ wind_farm = {
     "log_file_name": "outputs/wind_farm.log",
 }
 
-solar_farm = {
-    "py_sim_type": "SimpleSolar",
-    "capacity": 50.0,
-    "efficiency": 0.15,
-    "area": 1000.0,
-    "initial_conditions": {"power": 0.0, "irradiance": 1000.0},
-}
+
 
 solar_farm_pysam = {
     "py_sim_type": "SolarPySAM",
@@ -178,12 +172,12 @@ h_dict_wind = {
 h_dict_solar = {
     "dt": 1.0,
     "starttime": 0.0,
-    "endtime": 10.0,
+    "endtime": 6.0,
     "verbose": False,
     "step": 2,
     "time": 2.0,
     "plant": plant,
-    "solar_farm": solar_farm,
+    "solar_farm": solar_farm_pysam,
 }
 
 # h_dict with solar_farm_pysam only
@@ -238,13 +232,13 @@ h_dict_battery = {
 h_dict_wind_solar_battery = {
     "dt": 1.0,
     "starttime": 0.0,
-    "endtime": 10.0,
+    "endtime": 6.0,
     "verbose": False,
     "step": 2,
     "time": 2.0,
     "plant": plant,
     "wind_farm": wind_farm,
-    "solar_farm": solar_farm,
+    "solar_farm": solar_farm_pysam,
     "battery": battery,
 }
 
