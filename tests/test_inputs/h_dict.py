@@ -13,8 +13,7 @@ wind_farm = {
 
 
 solar_farm_pysam = {
-    "py_sim_type": "SolarPySAM",
-    "pysam_model": "pvwatts",
+    "py_sim_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
     "target_system_capacity": 100.0,
     "target_dc_ac_ratio": 1.2,
@@ -25,8 +24,7 @@ solar_farm_pysam = {
 }
 
 solar_farm_pvsam = {
-    "py_sim_type": "SolarPySAM",
-    "pysam_model": "pvsam",
+    "py_sim_type": "SolarPySAMPVSam",
     "solar_input_filename": None,
     "weather_data_input": {
         "time": [0],
@@ -47,8 +45,7 @@ solar_farm_pvsam = {
 }
 
 solar_farm_pvwatts = {
-    "py_sim_type": "SolarPySAM",
-    "pysam_model": "pvwatts",
+    "py_sim_type": "SolarPySAMPVWatts",
     "solar_input_filename": None,
     "weather_data_input": {
         "time": [0],

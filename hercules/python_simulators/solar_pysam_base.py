@@ -1,0 +1,269 @@
+"""Base class for PySAM-based solar simulators."""
+
+import numpy as np
+import pandas as pd
+from hercules.python_simulators.base_pysim import PySimBase
+from hercules.utilities import interpolate_df
+
+
+class SolarPySAMBase(PySimBase):
+    """Base class for PySAM-based solar simulators.
+    
+    This class provides common functionality for both PVSam and PVWatts models,
+    including weather data processing, solar resource assignment, and control logic.
+    """
+
+    def __init__(self, h_dict):
+        """Initialize the base solar PySAM simulator.
+        
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+        """
+        # Store the name of this py_sim
+        self.py_sim_name = "solar_farm"
+
+        # Call the base class init
+        super().__init__(h_dict, self.py_sim_name)
+
+        # Add to the log outputs with specific outputs
+        # Note that power is assumed in the base class
+        self.log_outputs = self.log_outputs
+
+        # If "log_extra_outputs" is in h_dict[self.py_sim_name],
+        # Save this value to self.log_extra_outputs
+        if "log_extra_outputs" in h_dict[self.py_sim_name]:
+            self.log_extra_outputs = h_dict[self.py_sim_name]["log_extra_outputs"]
+        else:
+            self.log_extra_outputs = False
+
+        # If log_extra_outputs is True, add the extra outputs to the log outputs
+        if self.log_extra_outputs:
+            self.log_outputs = self.log_outputs + [
+                "dni",
+                "poa",
+                "aoi",
+            ]
+
+        # Load and process solar data
+        self._load_solar_data(h_dict)
+        
+        # Save the system capacity
+        self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
+
+        # Save the initial condition
+        self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.dc_power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
+        self.dni = h_dict[self.py_sim_name]["initial_conditions"]["dni"]
+        self.poa = h_dict[self.py_sim_name]["initial_conditions"]["poa"]
+        self.aoi = 0
+
+        # Since using UTC, assume tz is always 0
+        self.tz = 0
+
+        self.needed_inputs = {}
+
+    def _load_solar_data(self, h_dict):
+        """Load and process solar weather data.
+        
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+        """
+        # Check that either
+        # 1. There is solar_input_filename that is not None and no weather_data_input dictionary
+        #    or
+        # 2. There is a weather_data_input dictionary and either:
+        #       solar_input_filename is not in h_dict[self.py_sim_name] or is none
+        if ("solar_input_filename" in h_dict[self.py_sim_name]) and (
+            h_dict[self.py_sim_name]["solar_input_filename"] is not None
+        ):
+            if "weather_data_input" in h_dict[self.py_sim_name]:
+                raise ValueError(
+                    f"Cannot have both solar_input_filename and weather_data_input "
+                    f"in h_dict[{self.py_sim_name}]"
+                )
+            else:
+                if h_dict[self.py_sim_name]["solar_input_filename"].endswith(".csv"):
+                    df_solar = pd.read_csv(h_dict[self.py_sim_name]["solar_input_filename"])
+                elif h_dict[self.py_sim_name]["solar_input_filename"].endswith(".p"):
+                    df_solar = pd.read_pickle(h_dict[self.py_sim_name]["solar_input_filename"])
+                elif (h_dict[self.py_sim_name]["solar_input_filename"].endswith(".f")) | (
+                    h_dict[self.py_sim_name]["solar_input_filename"].endswith(".ftr")
+                ):
+                    df_solar = pd.read_feather(h_dict[self.py_sim_name]["solar_input_filename"])
+        else:
+            if "weather_data_input" not in h_dict[self.py_sim_name]:
+                raise ValueError(
+                    f"Must have either solar_input_filename or weather_data_input "
+                    f"in h_dict[{self.py_sim_name}]"
+                )
+            else:
+                df_solar = pd.DataFrame.from_dict(h_dict[self.py_sim_name]["weather_data_input"])
+
+        # Make sure the df_wi contains a column called "time"
+        if "time" not in df_solar.columns:
+            raise ValueError("Solar input file must contain a column called 'time'")
+
+        # Make sure that both starttime and endtime are in the df_wi
+        if not (df_solar["time"].min() <= self.starttime <= df_solar["time"].max()):
+            raise ValueError(
+                f"Start time {self.starttime} is not in the range of the solar input file"
+            )
+        if not (df_solar["time"].min() <= self.endtime - self.dt <= df_solar["time"].max()):
+            raise ValueError(
+                f"End time {self.endtime - self.dt} is not in the range of the solar input file"
+            )
+
+        # Solar data must contain time_utc since pysam requires time
+        if "time_utc" not in df_solar.columns:
+            raise ValueError("Solar input file must contain a column called 'time_utc'")
+
+        # Make sure time_utc is a datatime
+        df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
+
+        # Interpolate df_wi on to the time steps
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
+        df_solar = interpolate_df(df_solar, time_steps_all)
+
+        # Can now save the input data as simple columns
+        self.year_array = df_solar["time_utc"].dt.year.values
+        self.month_array = df_solar["time_utc"].dt.month.values
+        self.day_array = df_solar["time_utc"].dt.day.values
+        self.hour_array = df_solar["time_utc"].dt.hour.values
+        self.minute_array = df_solar["time_utc"].dt.minute.values
+        self.ghi_array = self._get_solar_data_array(df_solar, "Global Horizontal Irradiance")
+        self.dni_array = self._get_solar_data_array(df_solar, "Direct Normal Irradiance")
+        self.dhi_array = self._get_solar_data_array(df_solar, "Diffuse Horizontal Irradiance")
+        self.temp_array = self._get_solar_data_array(df_solar, "Temperature")
+        self.wind_speed_array = self._get_solar_data_array(df_solar, "Wind Speed at")
+
+    def _get_solar_data_array(self, df_, column_substring):
+        """Get the values of the first column in the df whose name contains the specified substring.
+        
+        Args:
+            df_ (pd.DataFrame): The DataFrame to search for the column.
+            column_substring (str): The substring to look for in the column names.
+            
+        Returns:
+            np.ndarray: The values of the matching column as a NumPy array.
+        """
+        for column in df_.columns:
+            if column_substring in column:
+                return df_[column].values
+        raise ValueError(f"Could not find column with substring {column_substring} in df_solar")
+
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
+        # This is a bit of a hack but need this to exist
+        h_dict["solar_farm"]["capacity"] = self.target_system_capacity
+        h_dict["solar_farm"]["power"] = self.power
+        h_dict["solar_farm"]["dc_power"] = self.dc_power
+        h_dict["solar_farm"]["dni"] = self.dni
+        h_dict["solar_farm"]["poa"] = self.poa
+        h_dict["solar_farm"]["aoi"] = self.aoi
+
+        return h_dict
+
+    def control(self, power_setpoint=None):
+        """Controls the PV plant power output to meet a specified setpoint.
+
+        This low-level controller enforces power setpoints for the PV plant by
+        applying uniform curtailment across the entire plant. Note that DC power
+        output is not controlled as it is not utilized elsewhere in the code.
+
+        Args:
+            power_setpoint (float, optional): Desired total PV plant output in kW.
+                If None, no control is applied.
+        """
+        # modify power output based on setpoint
+        if power_setpoint is not None:
+            if self.verbose:
+                self.logger.info(f"power_setpoint = {power_setpoint}")
+            if self.power > power_setpoint:
+                self.power = power_setpoint
+                # Keep track of power that could go to charging battery
+                self.excess_power = self.power - power_setpoint
+            if self.verbose:
+                self.logger.info(f"self.power after control = {self.power}")
+
+    def _assign_solar_resource(self, step):
+        """Assign solar resource data for the current step.
+        
+        Args:
+            step (int): Current simulation step.
+        """
+        solar_resource_data = {
+            "tz": self.tz,  # 0 for UTC
+            "elev": self.elev,
+            "lat": self.lat,  # latitude
+            "lon": self.lon,  # longitude
+            "year": tuple([self.year_array[step]]),  # year
+            "month": tuple([self.month_array[step]]),  # month
+            "day": tuple([self.day_array[step]]),  # day
+            "hour": tuple([self.hour_array[step]]),  # hour
+            "minute": tuple([self.minute_array[step]]),  # minute
+            "dn": tuple([self.dni_array[step]]),  # direct normal irradiance
+            "df": tuple([self.dhi_array[step]]),  # diffuse irradiance
+            "gh": tuple([self.ghi_array[step]]),  # global horizontal irradiance
+            "wspd": tuple([self.wind_speed_array[step]]),  # windspeed (not peak)
+            "tdry": tuple([self.temp_array[step]]),  # dry bulb temperature
+        }
+
+        self.system_model.SolarResource.assign({"solar_resource_data": solar_resource_data})
+        self.system_model.AdjustmentFactors.assign({"constant": 0})
+
+    def _get_power_setpoint(self, h_dict):
+        """Get power setpoint from h_dict or external signals.
+        
+        Args:
+            h_dict (dict): Dictionary containing simulation state.
+            
+        Returns:
+            float or None: Power setpoint if specified, None otherwise.
+        """
+        # Apply control, if setpoint is provided
+        if "power_setpoint" in h_dict[self.py_sim_name]:
+            P_setpoint = h_dict[self.py_sim_name]["power_setpoint"]
+        elif "external_signals" in h_dict.keys():
+            if "solar_power_reference" in h_dict["external_signals"].keys():
+                P_setpoint = h_dict["external_signals"]["solar_power_reference"]
+            else:
+                P_setpoint = None
+        else:
+            P_setpoint = None
+        return P_setpoint
+
+    def _update_outputs(self, h_dict):
+        """Update the h_dict with outputs.
+        
+        Args:
+            h_dict (dict): Dictionary containing simulation state.
+        """
+        # Update the h_dict with outputs
+        h_dict[self.py_sim_name]["power"] = self.power
+        h_dict[self.py_sim_name]["dni"] = self.dni
+        h_dict[self.py_sim_name]["poa"] = self.poa
+        h_dict[self.py_sim_name]["aoi"] = self.aoi
+
+    def step(self, h_dict):
+        """Execute one simulation step.
+        
+        This method must be implemented by subclasses to handle model-specific
+        execution logic.
+        
+        Args:
+            h_dict (dict): Dictionary containing current simulation state.
+            
+        Returns:
+            dict: Updated simulation dictionary.
+        """
+        raise NotImplementedError("Subclasses must implement step method") 

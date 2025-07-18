@@ -134,7 +134,7 @@ def test_load_hercules_input_valid_file():
     assert "wind_farm" in result
     assert "solar_farm" in result
     assert result["wind_farm"]["py_sim_type"] == "WindSimLongTerm"
-    assert result["solar_farm"]["py_sim_type"] == "SolarPySAM"
+    assert result["solar_farm"]["py_sim_type"] == "SolarPySAMPVWatts"
 
     # Check verbose defaults to False
     assert result["verbose"] is False
@@ -249,7 +249,7 @@ def test_load_h_dict_from_text_valid_file():
         "endtime": 3600.0,
         "plant": {"interconnect_limit": 30000.0, "location": "test_site"},
         "wind_farm": {"py_sim_type": "WindSimLongTerm", "capacity": 100.0},
-        "solar_farm": {"py_sim_type": "SolarPySAM", "capacity": 50.0},
+        "solar_farm": {"py_sim_type": "SolarPySAMPVWatts", "capacity": 50.0},
         "verbose": False,
         "time": 1800.0,
         "step": 1800,

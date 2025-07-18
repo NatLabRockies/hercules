@@ -1,10 +1,10 @@
-"""Regression tests for 'SolarPySAM'."""
+"""Regression tests for 'SolarPySAMPVWatts'."""
 
 import os
 
 import numpy as np
 import pytest
-from hercules.python_simulators.solar_pysam import SolarPySAM
+from hercules.python_simulators.solar_pysam_pvwatts import SolarPySAMPVWatts
 
 PRINT_VALUES = True
 
@@ -80,8 +80,7 @@ def get_solar_params():
         "endtime": 6.0,
         "verbose": False,
         "solar_farm": {
-            "py_sim_type": "SolarPySAM",
-            "pysam_model": "pvwatts",
+            "py_sim_type": "SolarPySAMPVWatts",
             "solar_input_filename": path + "/../test_inputs/solar_pysam_data.csv",
             "lat": 39.7442,
             "lon": -105.1778,
@@ -98,7 +97,7 @@ def get_solar_params():
 
 def create_solar_pysam():
     solar_dict = get_solar_params()
-    return SolarPySAM(solar_dict)
+    return SolarPySAMPVWatts(solar_dict)
 
 
 @pytest.fixture
@@ -106,7 +105,7 @@ def SPS():
     return create_solar_pysam()
 
 
-def test_SolarPySAM_regression_no_control(SPS: SolarPySAM):
+def test_SolarPySAM_regression_no_control(SPS: SolarPySAMPVWatts):
     times_test = np.arange(0, 5, SPS.dt)
     steps_test = list(range(len(times_test)))
     powers_test = np.zeros_like(times_test)
@@ -129,7 +128,7 @@ def test_SolarPySAM_regression_no_control(SPS: SolarPySAM):
     assert np.allclose(aoi_base_no_control, aoi_test)
 
 
-def test_SolarPySAM_regression_control(SPS: SolarPySAM):
+def test_SolarPySAM_regression_control(SPS: SolarPySAMPVWatts):
     power_setpoint = 13800.0  # Slightly below most of the base outputs.
 
     times_test = np.arange(0, 5, SPS.dt)

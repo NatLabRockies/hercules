@@ -46,7 +46,7 @@ def get_available_py_sim_types():
     """
     return {
         "wind_farm": ["WindSimLongTerm"],
-        "solar_farm": ["SolarPySAM"],
+        "solar_farm": ["SolarPySAMPVSam", "SolarPySAMPVWatts"],
         "battery": ["SimpleBattery", "LIB"],
         "electrolyzer": ["ElectrolyzerPlant"],
     }

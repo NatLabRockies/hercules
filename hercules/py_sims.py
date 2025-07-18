@@ -3,7 +3,8 @@ import numpy as np
 from hercules.python_simulators.electrolyzer_plant import ElectrolyzerPlant
 from hercules.python_simulators.lib import LIB
 from hercules.python_simulators.simple_battery import SimpleBattery
-from hercules.python_simulators.solar_pysam import SolarPySAM
+from hercules.python_simulators.solar_pysam_pvsam import SolarPySAMPVSam
+from hercules.python_simulators.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.python_simulators.wind_sim_long_term import WindSimLongTerm
 from hercules.utilities import get_available_generator_names, get_available_py_sim_names
 
@@ -86,8 +87,11 @@ class PySims:
         if h_dict[py_sim_name]["py_sim_type"] == "WindSimLongTerm":
             return WindSimLongTerm(h_dict)
 
-        if h_dict[py_sim_name]["py_sim_type"] == "SolarPySAM":
-            return SolarPySAM(h_dict)
+        if h_dict[py_sim_name]["py_sim_type"] == "SolarPySAMPVSam":
+            return SolarPySAMPVSam(h_dict)
+
+        if h_dict[py_sim_name]["py_sim_type"] == "SolarPySAMPVWatts":
+            return SolarPySAMPVWatts(h_dict)
 
         if h_dict[py_sim_name]["py_sim_type"] == "LIB":
             return LIB(h_dict)

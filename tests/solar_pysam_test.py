@@ -1,30 +1,30 @@
-"""This module provides unit tests for 'SolarPySAM'."""
+"""This module provides unit tests for 'SolarPySAMPVSam'."""
 
 import copy
 
 import pytest
-from hercules.python_simulators.solar_pysam import SolarPySAM
+from hercules.python_simulators.solar_pysam_pvsam import SolarPySAMPVSam
 from numpy.testing import assert_almost_equal
 
 from tests.test_inputs.h_dict import h_dict_solar_pvsam
 
 
 def create_solar_pysam():
-    """Create a SolarPySAM instance for testing."""
+    """Create a SolarPySAMPVSam instance for testing."""
     test_h_dict = copy.deepcopy(h_dict_solar_pvsam)
-    return SolarPySAM(test_h_dict)
+    return SolarPySAMPVSam(test_h_dict)
 
 
 @pytest.fixture
 def SPS():
-    """Fixture to provide a SolarPySAM instance for tests."""
+    """Fixture to provide a SolarPySAMPVSam instance for tests."""
     return create_solar_pysam()
 
 
 def test_init():
     """Test the `init` function: reading the inputs from input dictionary."""
     test_h_dict = copy.deepcopy(h_dict_solar_pvsam)
-    SPS = SolarPySAM(test_h_dict)
+    SPS = SolarPySAMPVSam(test_h_dict)
 
     assert SPS.dt == test_h_dict["dt"]
     assert SPS.target_system_capacity == test_h_dict["solar_farm"]["target_system_capacity"]
@@ -34,10 +34,10 @@ def test_init():
     assert SPS.aoi == 0
 
 
-def test_return_outputs(SPS: SolarPySAM):
+def test_return_outputs(SPS: SolarPySAMPVSam):
     """Test the function `return_outputs`."""
     # outputs after initialization - all outputs should reflect input dict
-    # Note: Current SolarPySAM doesn't have return_outputs method,
+    # Note: Current SolarPySAMPVSam doesn't have return_outputs method,
     # so we test the attributes directly
     assert SPS.power == 25
     assert SPS.dni == 1000
@@ -56,7 +56,7 @@ def test_return_outputs(SPS: SolarPySAM):
     assert SPS.aoi == 0
 
 
-def test_step(SPS: SolarPySAM):
+def test_step(SPS: SolarPySAMPVSam):
     """Test the `step` function: calculating power based on inputs at first timestep."""
     step_inputs = {"step": 0, "solar_farm": {}}
 
@@ -72,7 +72,7 @@ def test_step(SPS: SolarPySAM):
     assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=8)
 
 
-def test_control(SPS: SolarPySAM):
+def test_control(SPS: SolarPySAMPVSam):
     """Test the control functionality."""
     power_setpoint = 12000
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
