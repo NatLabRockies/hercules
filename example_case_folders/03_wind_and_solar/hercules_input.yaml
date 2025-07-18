@@ -25,8 +25,7 @@ wind_farm: # The name of the WindSimLongTerm wind farm
   log_file_name: outputs/log_wind_sim.log
 
 solar_farm: # The name of py_sim object 1
-  py_sim_type: SolarPySAM
-  pysam_model: pvwatts #pvsam or pvwatts
+  py_sim_type: SolarPySAMPVWatts
   solar_input_filename: inputs/solar_input.p
   lat: 39.7442
   lon: -105.1778
