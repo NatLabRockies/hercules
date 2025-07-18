@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
 
@@ -233,6 +234,17 @@ class Emulator:
 
         first_iteration = True
 
+        # Create progress bar
+        progress_bar = tqdm(
+            total=self.n_steps,
+            desc="Simulation Progress",
+            unit="steps",
+            ncols=100,
+            leave=True,
+            mininterval=5.0,  # Update at most once every 5 seconds
+            maxinterval=30.0   # Update at least every 30 seconds
+        )
+
         # Run simulation through steps
         for self.step in range(self.n_steps):
             # Compute the current time
@@ -243,6 +255,8 @@ class Emulator:
                 self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
                 self.logger.info(f"Step: {self.step} of {self.n_steps}")
                 self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
+                # Update progress bar only when logging 
+                progress_bar.update(self.step_log_interval)
 
             for k in self.external_data_all:
                 self.h_dict["external_signals"][k] = self.external_data_all[k][
@@ -268,6 +282,12 @@ class Emulator:
 
             # Update the time
             self.time = self.time + self.dt
+
+        # Update progress bar to final step and close
+        remaining_steps = self.n_steps - progress_bar.n
+        if remaining_steps > 0:
+            progress_bar.update(remaining_steps)
+        progress_bar.close()
 
     def close_output_file(self):
         """Properly close the output file and flush any remaining data."""
