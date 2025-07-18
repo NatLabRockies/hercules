@@ -6,8 +6,10 @@ root: index
 parts:
   - caption: Installation
     chapters:
-    - file: install_instructions
-    - file: install_local
+    - file: install
+  - caption: Running Hercules
+    chapters:
+    - file: running_hercules
   - caption: Key Concepts
     chapters:
     - file: key_concepts
