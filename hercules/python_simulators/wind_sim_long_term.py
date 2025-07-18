@@ -54,6 +54,9 @@ class WindSimLongTerm(PySimBase):
         # Track the number of FLORIS calculation
         self.num_floris_calcs = 0
 
+        # Initialize memoization cache for FLORIS calculations
+        self.floris_cache = {}
+
         # Read in the input file names
         self.floris_input_file = h_dict[self.py_sim_name]["floris_input_file"]
         self.wind_input_filename = h_dict[self.py_sim_name]["wind_input_filename"]
@@ -116,8 +119,10 @@ class WindSimLongTerm(PySimBase):
             raise ValueError(
                 f"Start time {self.starttime} is not in the range of the wind input file"
             )
-        if not (df_wi["time"].min() <= self.endtime <= df_wi["time"].max()):
-            raise ValueError(f"End time {self.endtime} is not in the range of the wind input file")
+        if not (df_wi["time"].min() <= self.endtime - self.dt <= df_wi["time"].max()):
+            raise ValueError(
+                f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
+            )
 
         # If time_utc is in the file, convert it to a datetime if it's not already
         if "time_utc" in df_wi.columns:
@@ -271,7 +276,7 @@ class WindSimLongTerm(PySimBase):
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
-        
+
         Meta data is data not explicitly in the input yaml but still useful for other
         modules.
 
@@ -289,6 +294,28 @@ class WindSimLongTerm(PySimBase):
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         return h_dict
 
+    def _create_floris_cache_key(self, wind_direction, wind_speed, ti, derating):
+        """Create a cache key for FLORIS calculations.
+
+        Args:
+            wind_direction (float): Wind direction in degrees.
+            wind_speed (float): Wind speed in m/s.
+            ti (float): Turbulence intensity.
+            derating (numpy.ndarray): Derating values for turbines.
+
+        Returns:
+            tuple: Cache key for the FLORIS calculation.
+        """
+        # Round values to threshold precision to enable cache hits
+        wd_rounded = round(wind_direction / self.floris_wd_threshold) * self.floris_wd_threshold
+        ws_rounded = round(wind_speed / self.floris_ws_threshold) * self.floris_ws_threshold
+        ti_rounded = round(ti / self.floris_ti_threshold) * self.floris_ti_threshold
+        derating_rounded = (
+            np.round(derating / self.floris_derating_threshold) * self.floris_derating_threshold
+        )
+
+        return (wd_rounded, ws_rounded, ti_rounded, tuple(derating_rounded.flatten()))
+
     def update_wake_deficits(self, step):
         """
         Updates the wake deficits in the FLORIS model based on the current simulation step.
@@ -302,7 +329,7 @@ class WindSimLongTerm(PySimBase):
         """
 
         # Get the window start
-        window_start = max(0, step - self.floris_time_window_width_steps)
+        window_start = max(0, step - self.floris_time_window_width_steps + 1)
 
         # Compute new values of the floris inputs
         # TODO: CONFIRM THE +1 in the slice is right
@@ -327,36 +354,43 @@ class WindSimLongTerm(PySimBase):
                 np.abs(floris_derating - self.floris_derating) > self.floris_derating_threshold
             )
         ):
-            # If verbose
-            if self.verbose:
-                self.logger.info(
-                    "...Updating FLORIS model=========================================="
-                )
-
-            # Update the FLORIS inputs
-            self.floris_wind_direction = floris_wind_direction
-            self.floris_wind_speed = floris_wind_speed
-            self.floris_ti = floris_ti
-            self.floris_derating = floris_derating
-
-            # Update the FLORIS model
-            self.fmodel.set(
-                wind_directions=[self.floris_wind_direction],
-                wind_speeds=[self.floris_wind_speed],
-                turbulence_intensities=[self.floris_ti],
-                power_setpoints=1000 * self.floris_derating,
+            # Create cache key for current FLORIS inputs
+            cache_key = self._create_floris_cache_key(
+                floris_wind_direction, floris_wind_speed, floris_ti, floris_derating
             )
-            self.fmodel.run()
-
-            # Compute the deficits
-            velocities = self.fmodel.turbine_average_velocities.flatten()
-            self.floris_wake_deficits = velocities.max() - velocities
-
-            # Update the number of FLORIS calculations
-            self.num_floris_calcs += 1
-
-            if self.verbose:
-                self.logger.info(f"Num of FLORIS calculations = {self.num_floris_calcs}")
+            # Check if we have a cached result
+            if cache_key in self.floris_cache:
+                if self.verbose:
+                    self.logger.info(
+                        "...Using cached FLORIS result=========================================="
+                    )
+                self.floris_wind_direction = floris_wind_direction
+                self.floris_wind_speed = floris_wind_speed
+                self.floris_ti = floris_ti
+                self.floris_derating = floris_derating
+                self.floris_wake_deficits = self.floris_cache[cache_key]
+            else:
+                if self.verbose:
+                    self.logger.info(
+                        "...Updating FLORIS model=========================================="
+                    )
+                self.floris_wind_direction = floris_wind_direction
+                self.floris_wind_speed = floris_wind_speed
+                self.floris_ti = floris_ti
+                self.floris_derating = floris_derating
+                self.fmodel.set(
+                    wind_directions=[self.floris_wind_direction],
+                    wind_speeds=[self.floris_wind_speed],
+                    turbulence_intensities=[self.floris_ti],
+                    power_setpoints=1000 * self.floris_derating,
+                )
+                self.fmodel.run()
+                velocities = self.fmodel.turbine_average_velocities.flatten()
+                self.floris_wake_deficits = velocities.max() - velocities
+                self.floris_cache[cache_key] = self.floris_wake_deficits.copy()
+                self.num_floris_calcs += 1
+                if self.verbose:
+                    self.logger.info(f"Num of FLORIS calculations = {self.num_floris_calcs}")
 
     def update_derating_buffer(self, derating):
         """

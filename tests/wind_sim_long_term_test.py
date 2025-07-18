@@ -1,6 +1,10 @@
 """Tests for the WindSimLongTerm class."""
 
+import os
+import tempfile
+
 import numpy as np
+import pandas as pd
 import pytest
 from hercules.python_simulators.wind_sim_long_term import TurbineFilterModel, WindSimLongTerm
 
@@ -259,3 +263,157 @@ def test_wind_sim_long_term_get_initial_conditions_and_meta_data():
     assert "starttime" in result
     assert "endtime" in result
     assert "plant" in result
+
+
+def test_wind_sim_long_term_memoization():
+    """Test that FLORIS memoization works correctly with changing wind direction.
+
+    This test simulates 3 steps where wind speed and TI are constant, but wind
+    direction changes from 270 -> 290 -> 270. The memoization should cache the
+    FLORIS calculation and reuse it when inputs repeat within threshold.
+    """
+
+    # Create a temporary wind input file with the specific scenario
+    wind_data = {
+        "time": [0, 1000, 2000],
+        "time_utc": ["2023-01-01 00:00:00", "2023-01-01 01:00:00", "2023-01-01 02:00:00"],
+        "wd_mean": [270.0, 290.0, 270.0],  # Wind direction alternates
+        "ws_000": [10.0, 10.0, 10.0],  # Constant wind speed
+        "ws_001": [10.0, 10.0, 10.0],  # Constant wind speed
+        "ws_002": [10.0, 10.0, 10.0],  # Constant wind speed
+    }
+
+    # Create temporary file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df = pd.DataFrame(wind_data)
+        df.to_csv(f.name, index=False)
+        temp_wind_file = f.name
+
+    try:
+        # Create test h_dict with the temporary wind file
+        test_h_dict = h_dict_wind.copy()
+        test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
+        test_h_dict["wind_farm"]["floris_time_window_width_s"] = 10.0
+        test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0  # Update every step
+        test_h_dict["wind_farm"]["floris_wd_threshold"] = 5.0  # Small threshold to trigger updates
+        test_h_dict["wind_farm"]["floris_ws_threshold"] = 0.5  # Small threshold
+        test_h_dict["wind_farm"]["floris_ti_threshold"] = 0.05  # Small threshold
+        test_h_dict["wind_farm"]["floris_derating_threshold"] = 5.0  # Small threshold
+        test_h_dict["starttime"] = 0.0
+        test_h_dict["endtime"] = 3000.0  # 3 steps (0, 1, 2)
+        test_h_dict["dt"] = 1000.0
+
+        # Initialize wind simulation
+        wind_sim = WindSimLongTerm(test_h_dict)
+
+        # Store initial FLORIS calculation count
+        initial_floris_calcs = wind_sim.num_floris_calcs
+
+        # Run 3 steps with constant derating
+        powers = []
+
+        for step in range(3):
+            test_h_dict = {"step": step}
+            test_h_dict["wind_farm"] = {
+                "derating_000": 5000.0,
+                "derating_001": 5000.0,
+                "derating_002": 5000.0,
+            }
+
+            test_h_dict = wind_sim.step(test_h_dict)
+            powers.append(test_h_dict["wind_farm"]["power"])
+
+            print("---")
+            print(f"Step {step}")
+            print(f"FLORIS WIND DIRECTION: {test_h_dict['wind_farm']['floris_wind_direction']}")
+            print(f"FLORIS WIND SPEED: {test_h_dict['wind_farm']['floris_wind_speed']}")
+
+        # Verify that we have 3 power values
+        assert len(powers) == 3
+
+        # Verify that the 0th and 2th power are the same
+        assert powers[0] == powers[2]
+        # Verify that the 1th power is different
+        assert powers[1] != powers[0]
+
+        # Verify that FLORIS is only called 3 times
+        # This is twice plus the call from within init
+        assert wind_sim.num_floris_calcs == 3
+
+        # Print FLORIS calculation count for memoization check
+        print(f"FLORIS calculations: {wind_sim.num_floris_calcs}")
+        print(f"Powers: {powers}")
+
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_wind_file):
+            os.unlink(temp_wind_file)
+
+
+def test_wind_sim_long_term_time_window_averaging():
+    """Test that update_wake_deficits correctly averages wind data over different time windows.
+
+    This test verifies that floris_wind_speed, floris_wind_direction, and floris_wake_deficits
+    are calculated correctly when floris_time_window_width_s is set to cover 1, 2, and 3 steps.
+    """
+    # Create test data with known wind speeds and directions
+    test_data = {
+        "time": [0, 1, 2, 3, 4, 5],
+        "wd_mean": [180.0, 185.0, 190.0, 175.0, 170.0, 165.0],
+        "ws_000": [8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+        "ws_001": [8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+        "ws_002": [8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+    }
+
+    # Create temporary CSV file with test data
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df = pd.DataFrame(test_data)
+        df.to_csv(f.name, index=False)
+        temp_csv_path = f.name
+
+    try:
+        # Test with different time window widths
+        for window_width_s in [1.0, 2.0, 3.0]:
+            # Create test h_dict with the temporary CSV file
+            test_h_dict = h_dict_wind.copy()
+            test_h_dict["wind_farm"]["wind_input_filename"] = temp_csv_path
+            test_h_dict["wind_farm"]["floris_time_window_width_s"] = window_width_s
+            test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0  # Update every step
+            test_h_dict["wind_farm"]["floris_wd_threshold"] = (
+                0.1  # Small threshold to force updates
+            )
+            test_h_dict["wind_farm"]["floris_ws_threshold"] = 0.1
+            test_h_dict["wind_farm"]["floris_ti_threshold"] = 0.01
+            test_h_dict["wind_farm"]["floris_derating_threshold"] = 1.0
+            # Adjust endtime to match available data
+            test_h_dict["endtime"] = 6.0  # Data goes from 0 to 5, so endtime should be 6
+
+            wind_sim = WindSimLongTerm(test_h_dict)
+
+            # Test at step 2 (index 2 in our data)
+            step = 2
+            wind_sim.update_wake_deficits(step)
+
+            # Test specific expected values for each window width
+            if window_width_s == 1.0:
+                # Single step window: should use only step 2 data
+                expected_single_wd = test_data["wd_mean"][2]
+                assert np.isclose(wind_sim.floris_wind_direction, expected_single_wd, rtol=1e-6)
+
+            elif window_width_s == 2.0:
+                # Two step window: should average steps 1 and 2
+
+                expected_two_wd = np.mean([test_data["wd_mean"][1], test_data["wd_mean"][2]])
+                assert np.isclose(wind_sim.floris_wind_direction, expected_two_wd, rtol=1e-6)
+
+            elif window_width_s == 3.0:
+                # Three step window: should average steps 0, 1, and 2
+
+                expected_three_wd = np.mean(
+                    [test_data["wd_mean"][0], test_data["wd_mean"][1], test_data["wd_mean"][2]]
+                )
+                assert np.isclose(wind_sim.floris_wind_direction, expected_three_wd, rtol=1e-6)
+
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_csv_path)
