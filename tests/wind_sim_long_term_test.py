@@ -306,9 +306,6 @@ def test_wind_sim_long_term_memoization():
         # Initialize wind simulation
         wind_sim = WindSimLongTerm(test_h_dict)
 
-        # Store initial FLORIS calculation count
-        initial_floris_calcs = wind_sim.num_floris_calcs
-
         # Run 3 steps with constant derating
         powers = []
 
