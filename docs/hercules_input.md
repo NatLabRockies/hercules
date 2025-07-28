@@ -49,8 +49,7 @@ wind_farm:
   log_file_name: outputs/log_wind_sim.log
 
 solar_farm:
-  component_type: SolarPySAM
-  pysam_model: pvwatts
+  component_type: SolarPySAMPVWatts
   solar_input_filename: inputs/solar_input.csv
   lat: 39.7442
   lon: -105.1778
@@ -61,6 +60,16 @@ solar_farm:
     power: 2000  # kW
     dni: 1000
     poa: 1000
+
+battery:
+  component_type: BatterySimple
+  energy_capacity: 100.0  # MWh
+  charge_rate: 50.0  # MW
+  discharge_rate: 50.0  # MW
+  max_SOC: 0.95
+  min_SOC: 0.05
+  initial_conditions:
+    SOC: 0.5
 
 controller:
   # Controller configuration here

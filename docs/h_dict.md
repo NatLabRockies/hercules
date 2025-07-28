@@ -27,7 +27,9 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `time_log_interval` | int | Logging interval in steps | - |
 | `external_data_file` | str | External data file path | - |
 | `controller` | dict | Controller configuration | - |
-| **Hybrid Plant Components (components)** |
+| **Hybrid Plant Components** |
+
+### Wind Farm (`wind_farm`)
 | `component_type` | str | Must be "Wind_MesoToPower" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
@@ -35,8 +37,11 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `log_file_name` | str | Wind farm log file path |
 | `log_extra_outputs` | bool | Enable extra logging outputs |
 
-| `component_type` | str | "SolarPySAM" |
-| **For SolarPySAM:** |
+### Solar Farm (`solar_farm`)
+| `component_type` | str | "SolarPySAMPVSam" or "SolarPySAMPVWatts" |
+| **For SolarPySAMPVSam:** |
+| `system_info_file_name` | str | System info file (JSON) |
+| **For SolarPySAMPVWatts:** |
 | `pysam_model` | str | "pvsam" or "pvwatts" |
 | `solar_input_filename` | str | Solar data file (or None) |
 | `weather_data_input` | dict | Weather data dictionary |
@@ -48,6 +53,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `system_info_file_name` | str | System info file (pvsam only) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
+### Battery (`battery`)
 | `component_type` | str | "BatterySimple" or "BatteryLithiumIon" |
 | `energy_capacity` | float | Total capacity in MWh |
 | `charge_rate` | float | Charge rate in MW |
@@ -58,6 +64,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `roundtrip_efficiency` | float | Roundtrip efficiency |
 | `track_usage` | bool | Track battery usage |
 | `usage_calc_interval` | int | Usage calculation interval |
+| `allow_grid_power_consumption` | bool | Allow grid power consumption | True |
 | `initial_conditions` | dict | Initial SOC |
 
 ### Electrolyzer (`electrolyzer`)

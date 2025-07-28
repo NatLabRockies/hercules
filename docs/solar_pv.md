@@ -24,18 +24,14 @@ The `SolarPySAMPVSam` model also requires an input system info file:
 
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
-The example folder `07_floris_standin_and_solar_pysam` specifies:
-- use of the `SolarPySAMPVSam` model with `component_type: "SolarPySAMPVSam"`
-- weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
-- latitude, longitude, and elevation of Golden, CO
-- system design information for a 130 MW single-axis PV tracking system (with backtracking)
-These inputs can be changed in the `.yaml` and `.csv` files.
-
-The example folder `13_WindSolarSimLongTerm` specifies:
+The example folder `03_wind_and_solar` specifies:
 - use of the `SolarPySAMPVWatts` model with `component_type: "SolarPySAMPVWatts"`
 - weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
 - latitude, longitude, and elevation of Golden, CO
 - system design information for a 100 MW single-axis PV tracking system (with backtracking)
+These inputs can be changed in the `.yaml` and `.csv` files.
+
+For examples using the detailed `SolarPySAMPVSam` model, see the test files in the `tests/` directory.
 
 ### Outputs
 
