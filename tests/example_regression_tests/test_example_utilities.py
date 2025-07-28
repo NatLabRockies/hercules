@@ -1,0 +1,210 @@
+"""Utility functions for example regression tests."""
+
+import os
+import shutil
+import subprocess
+import tempfile
+
+import numpy as np
+import pandas as pd
+from hercules.controller_standin import ControllerStandin
+from hercules.emulator import Emulator
+from hercules.hybrid_plant import HybridPlant
+from hercules.utilities import load_hercules_input, setup_logging
+
+
+def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file):
+    """Copy example files to the temporary directory.
+
+    Args:
+        example_dir (str): Path to the example directory.
+        temp_dir (str): Path to the temporary directory.
+        input_file (str): Name of the input file.
+        inputs_dir (str): Name of the inputs directory.
+        notebook_file (str): Name of the notebook file.
+    """
+    # Copy input files
+    shutil.copy2(f"{example_dir}/{input_file}", f"{temp_dir}/{input_file}")
+    shutil.copytree(f"{example_dir}/{inputs_dir}", f"{temp_dir}/{inputs_dir}")
+
+    # Copy the input generating notebook if it exists
+    notebook_path = f"{example_dir}/{notebook_file}"
+    if os.path.exists(notebook_path):
+        shutil.copy2(notebook_path, f"{temp_dir}/{notebook_file}")
+
+
+def generate_input_data(temp_dir, notebook_file):
+    """Generate input data by running the notebook if it exists.
+
+    Args:
+        temp_dir (str): Path to the temporary directory.
+        notebook_file (str): Name of the notebook file.
+    """
+    notebook_path = f"{temp_dir}/{notebook_file}"
+    if os.path.exists(notebook_path):
+        os.system(f"jupyter nbconvert --to notebook --execute {notebook_path}")
+
+
+def run_simulation(input_file, num_time_steps):
+    """Run the Hercules simulation and return the output dataframe.
+
+    Args:
+        input_file (str): Name of the input file.
+        num_time_steps (int): Number of time steps to run.
+
+    Returns:
+        pd.DataFrame: The simulation output dataframe.
+    """
+    # Load the input file
+    h_dict = load_hercules_input(input_file)
+
+    # Modify the h_dict to limit running time
+    h_dict["endtime"] = h_dict["starttime"] + num_time_steps * h_dict["dt"]
+    h_dict["verbose"] = False  # Reduce logging for test
+
+    # Set up logger
+    logger = setup_logging(console_output=False)
+
+    # Initialize the controller
+    controller = ControllerStandin(h_dict)
+
+    # Initialize the hybrid plant
+    hybrid_plant = HybridPlant(h_dict)
+
+    # Initialize the emulator
+    emulator = Emulator(controller, hybrid_plant, h_dict, logger)
+
+    # Run the emulator
+    emulator.enter_execution(function_targets=[], function_arguments=[[]])
+
+    # Check that the output file was created
+    output_file = "outputs/hercules_output.csv"
+    assert os.path.exists(output_file), "Output file was not created"
+
+    # Read and return the output file
+    return pd.read_csv(output_file)
+
+
+def verify_outputs(df, num_time_steps, expected_final_wind_power, expected_final_plant_power):
+    """Verify that the simulation outputs are correct.
+
+    Args:
+        df (pd.DataFrame): The simulation output dataframe.
+        num_time_steps (int): Expected number of time steps.
+        expected_final_wind_power (float): Expected final wind farm power.
+        expected_final_plant_power (float): Expected final plant power.
+    """
+    # Verify we have the expected number of rows
+    assert len(df) == num_time_steps, f"Expected {num_time_steps} rows, got {len(df)}"
+
+    # Verify the time column progresses correctly
+    expected_times = np.arange(0, num_time_steps, 1)  # Assuming dt=1 for simplicity
+    np.testing.assert_allclose(df["time"].values, expected_times, rtol=1e-6)
+
+    # Verify that wind farm power is reasonable (should be positive and finite)
+    assert all(df["wind_farm.power"] >= 0), "Wind farm power should be non-negative"
+    assert all(np.isfinite(df["wind_farm.power"])), "Wind farm power should be finite"
+
+    # Verify that individual turbine powers are reasonable
+    turbine_power_cols = [col for col in df.columns if col.startswith("wind_farm.turbine_powers.")]
+    assert len(turbine_power_cols) > 0, "Should have turbine power columns"
+
+    # Test that the final wind power has not changed much
+    np.testing.assert_allclose(df["wind_farm.power"].iloc[-1], expected_final_wind_power, atol=1)
+
+    # Test that the final plant power has not changed much
+    np.testing.assert_allclose(df["plant.power"].iloc[-1], expected_final_plant_power, atol=1)
+
+
+def verify_plot_script(temp_dir, original_cwd, example_dir, plot_script_file):
+    """Test that the plot script works on the outputs.
+
+    Args:
+        temp_dir (str): Path to the temporary directory.
+        original_cwd (str): Original working directory.
+        example_dir (str): Path to the example directory.
+        plot_script_file (str): Name of the plot script file.
+    """
+    # Copy the plot script to the temp directory
+    # Use absolute path since we're now in the temp directory
+    example_dir_abs = os.path.join(original_cwd, example_dir)
+    plot_script_path = f"{example_dir_abs}/{plot_script_file}"
+
+    if os.path.exists(plot_script_path):
+        shutil.copy2(plot_script_path, f"{temp_dir}/{plot_script_file}")
+
+        # Run the plot script with non-interactive matplotlib backend
+        # to prevent plt.show() from hanging the test
+        env = os.environ.copy()
+        env["MPLBACKEND"] = "Agg"  # Non-interactive backend
+        result = subprocess.run(
+            ["python", plot_script_file],
+            capture_output=True,
+            text=True,
+            timeout=30,  # 30 second timeout
+            env=env,
+        )
+
+        # Check that the script ran successfully
+        assert result.returncode == 0, (
+            f"{plot_script_file} failed with return code {result.returncode}. "
+            f"stderr: {result.stderr}"
+        )
+
+
+def run_example_regression_test(
+    example_dir,
+    num_time_steps,
+    expected_final_wind_power,
+    expected_final_plant_power,
+    input_file="hercules_input.yaml",
+    inputs_dir="inputs",
+    outputs_dir="outputs",
+    notebook_file="generate_wind_history.ipynb",
+    plot_script_file="plot_outputs.py",
+):
+    """Run a complete example regression test.
+
+    Args:
+        example_dir (str): Path to the example directory.
+        num_time_steps (int): Number of time steps to run.
+        expected_final_wind_power (float): Expected final wind farm power.
+        expected_final_plant_power (float): Expected final plant power.
+        input_file (str, optional): Name of the input file. Defaults to "hercules_input.yaml".
+        inputs_dir (str, optional): Name of the inputs directory. Defaults to "inputs".
+        outputs_dir (str, optional): Name of the outputs directory. Defaults to "outputs".
+        notebook_file (str, optional): Name of the notebook file.
+            Defaults to "generate_wind_history.ipynb".
+        plot_script_file (str, optional): Name of the plot script file.
+            Defaults to "plot_outputs.py".
+    """
+    # Create a temporary directory for this test
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Copy the example files to the temp directory
+        copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file)
+
+        # Generate input data if needed
+        generate_input_data(temp_dir, notebook_file)
+
+        # Create outputs directory
+        os.makedirs(f"{temp_dir}/{outputs_dir}", exist_ok=True)
+
+        # Change to the temp directory
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+
+        try:
+            # Run the simulation
+            df = run_simulation(input_file, num_time_steps)
+
+            # Verify the outputs
+            verify_outputs(
+                df, num_time_steps, expected_final_wind_power, expected_final_plant_power
+            )
+
+            # Test that the plot script works on the outputs
+            verify_plot_script(temp_dir, original_cwd, example_dir, plot_script_file)
+
+        finally:
+            # Change back to original directory
+            os.chdir(original_cwd)

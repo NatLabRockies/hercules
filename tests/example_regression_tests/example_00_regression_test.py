@@ -1,15 +1,25 @@
 """Regression tests for example cases."""
 
-import os
-import shutil
-import tempfile
+from test_example_utilities import run_example_regression_test
 
-import numpy as np
-import pandas as pd
-from hercules.controller_standin import ControllerStandin
-from hercules.emulator import Emulator
-from hercules.hybrid_plant import HybridPlant
-from hercules.utilities import load_hercules_input, setup_logging
+## Parameters
+# Example-specific configuration
+EXAMPLE_DIR = "example_case_folders/00_wind_farm_only"
+EXAMPLE_NAME = "example_00"
+EXAMPLE_DESCRIPTION = "Wind Farm Only"
+
+# Test configuration
+NUM_TIME_STEPS = 5
+EXPECTED_FINAL_WIND_POWER = 3860.285
+EXPECTED_FINAL_PLANT_POWER = 3860.285  # Same as wind power for wind-only case
+
+# File names
+INPUT_FILE = "hercules_input.yaml"
+INPUTS_DIR = "inputs"
+OUTPUTS_DIR = "outputs"
+OUTPUT_FILE = "outputs/hercules_output.csv"
+NOTEBOOK_FILE = "generate_wind_history.ipynb"
+PLOT_SCRIPT_FILE = "plot_outputs.py"
 
 
 def test_example_00_limited_time_regression():
@@ -18,93 +28,14 @@ def test_example_00_limited_time_regression():
     This test modifies the example 00 configuration to run for only a few time steps
     and verifies that the final outputs are reasonable and consistent.
     """
-    # Create a temporary directory for this test
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Copy the example 00 files to the temp directory
-        example_dir = "example_case_folders/00_wind_farm_only"
-
-        # Copy input files
-        shutil.copy2(f"{example_dir}/hercules_input.yaml", f"{temp_dir}/hercules_input.yaml")
-        shutil.copytree(f"{example_dir}/inputs", f"{temp_dir}/inputs")
-
-        # Copy the input generating notebook
-        shutil.copy2(
-            f"{example_dir}/generate_wind_history.ipynb", f"{temp_dir}/generate_wind_history.ipynb"
-        )
-
-        # Run the input generating notebook
-        os.system(
-            f"jupyter nbconvert --to notebook --execute {temp_dir}/generate_wind_history.ipynb"
-        )
-
-        # Create outputs directory
-        os.makedirs(f"{temp_dir}/outputs", exist_ok=True)
-
-        # Change to the temp directory
-        original_cwd = os.getcwd()
-        os.chdir(temp_dir)
-
-        try:
-            # Load the input file
-            h_dict = load_hercules_input("hercules_input.yaml")
-
-            # Modify the h_dict to limit running time to 5 time steps
-            original_dt = h_dict["dt"]
-            h_dict["endtime"] = h_dict["starttime"] + 5 * h_dict["dt"]  # 5 time steps
-            h_dict["verbose"] = False  # Reduce logging for test
-
-            # Set up logger
-            logger = setup_logging(console_output=False)
-
-            # Initialize the controller
-            controller = ControllerStandin(h_dict)
-
-            # Initialize the hybrid plant
-            hybrid_plant = HybridPlant(h_dict)
-
-            # Initialize the emulator
-            emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-            # Run the emulator
-            emulator.enter_execution(function_targets=[], function_arguments=[[]])
-
-            # Check that the output file was created
-            output_file = "outputs/hercules_output.csv"
-            assert os.path.exists(output_file), "Output file was not created"
-
-            # Read the output file
-            df = pd.read_csv(output_file)
-
-            # Verify we have the expected number of rows (5 time steps + header)
-            expected_rows = 5
-            assert len(df) == expected_rows, f"Expected {expected_rows} rows, got {len(df)}"
-
-            # Verify the time column progresses correctly
-            expected_times = np.arange(0, 5 * original_dt, original_dt)
-            np.testing.assert_allclose(df["time"].values, expected_times, rtol=1e-6)
-
-            # Verify that wind farm power is reasonable (should be positive and finite)
-            assert all(df["wind_farm.power"] >= 0), "Wind farm power should be non-negative"
-            assert all(np.isfinite(df["wind_farm.power"])), "Wind farm power should be finite"
-
-            # Verify that individual turbine powers are reasonable
-            turbine_power_cols = [
-                col for col in df.columns if col.startswith("wind_farm.turbine_powers.")
-            ]
-            assert len(turbine_power_cols) > 0, "Should have turbine power columns"
-
-            # Test the the final wind power has not changed much
-            expected_final_wind_power = 3860.285
-            np.testing.assert_allclose(
-                df["wind_farm.power"].iloc[-1], expected_final_wind_power, atol=1
-            )
-
-            # Test the the final plant power has not changed much
-
-            np.testing.assert_allclose(
-                df["plant.power"].iloc[-1], expected_final_wind_power, atol=1
-            )
-
-        finally:
-            # Change back to original directory
-            os.chdir(original_cwd)
+    run_example_regression_test(
+        example_dir=EXAMPLE_DIR,
+        num_time_steps=NUM_TIME_STEPS,
+        expected_final_wind_power=EXPECTED_FINAL_WIND_POWER,
+        expected_final_plant_power=EXPECTED_FINAL_PLANT_POWER,
+        input_file=INPUT_FILE,
+        inputs_dir=INPUTS_DIR,
+        outputs_dir=OUTPUTS_DIR,
+        notebook_file=NOTEBOOK_FILE,
+        plot_script_file=PLOT_SCRIPT_FILE,
+    )
