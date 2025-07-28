@@ -85,7 +85,13 @@ def run_simulation(input_file, num_time_steps):
     return pd.read_csv(output_file)
 
 
-def verify_outputs(df, num_time_steps, expected_final_wind_power, expected_final_plant_power):
+def verify_outputs(
+    df,
+    num_time_steps,
+    expected_final_wind_power,
+    expected_final_plant_power,
+    expected_final_solar_power=None,
+):
     """Verify that the simulation outputs are correct.
 
     Args:
@@ -93,6 +99,8 @@ def verify_outputs(df, num_time_steps, expected_final_wind_power, expected_final
         num_time_steps (int): Expected number of time steps.
         expected_final_wind_power (float): Expected final wind farm power.
         expected_final_plant_power (float): Expected final plant power.
+        expected_final_solar_power (float, optional): Expected final solar farm power.
+            Defaults to None.
     """
     # Verify we have the expected number of rows
     assert len(df) == num_time_steps, f"Expected {num_time_steps} rows, got {len(df)}"
@@ -102,15 +110,31 @@ def verify_outputs(df, num_time_steps, expected_final_wind_power, expected_final
     np.testing.assert_allclose(df["time"].values, expected_times, rtol=1e-6)
 
     # Verify that wind farm power is reasonable (should be positive and finite)
-    assert all(df["wind_farm.power"] >= 0), "Wind farm power should be non-negative"
-    assert all(np.isfinite(df["wind_farm.power"])), "Wind farm power should be finite"
+    if "wind_farm.power" in df.columns:
+        assert all(df["wind_farm.power"] >= 0), "Wind farm power should be non-negative"
+        assert all(np.isfinite(df["wind_farm.power"])), "Wind farm power should be finite"
 
-    # Verify that individual turbine powers are reasonable
-    turbine_power_cols = [col for col in df.columns if col.startswith("wind_farm.turbine_powers.")]
-    assert len(turbine_power_cols) > 0, "Should have turbine power columns"
+        # Verify that individual turbine powers are reasonable
+        turbine_power_cols = [
+            col for col in df.columns if col.startswith("wind_farm.turbine_powers.")
+        ]
+        assert len(turbine_power_cols) > 0, "Should have turbine power columns"
 
-    # Test that the final wind power has not changed much
-    np.testing.assert_allclose(df["wind_farm.power"].iloc[-1], expected_final_wind_power, atol=1)
+        # Test that the final wind power has not changed much
+        np.testing.assert_allclose(
+            df["wind_farm.power"].iloc[-1], expected_final_wind_power, atol=1
+        )
+
+    # Verify that solar farm power is reasonable (should be non-negative and finite)
+    if "solar_farm.power" in df.columns:
+        assert all(df["solar_farm.power"] >= 0), "Solar farm power should be non-negative"
+        assert all(np.isfinite(df["solar_farm.power"])), "Solar farm power should be finite"
+
+        # Test that the final solar power has not changed much (if expected value provided)
+        if expected_final_solar_power is not None:
+            np.testing.assert_allclose(
+                df["solar_farm.power"].iloc[-1], expected_final_solar_power, atol=1
+            )
 
     # Test that the final plant power has not changed much
     np.testing.assert_allclose(df["plant.power"].iloc[-1], expected_final_plant_power, atol=1)
@@ -157,6 +181,7 @@ def run_example_regression_test(
     num_time_steps,
     expected_final_wind_power,
     expected_final_plant_power,
+    expected_final_solar_power=None,
     input_file="hercules_input.yaml",
     inputs_dir="inputs",
     outputs_dir="outputs",
@@ -170,6 +195,8 @@ def run_example_regression_test(
         num_time_steps (int): Number of time steps to run.
         expected_final_wind_power (float): Expected final wind farm power.
         expected_final_plant_power (float): Expected final plant power.
+        expected_final_solar_power (float, optional): Expected final solar farm power.
+            Defaults to None.
         input_file (str, optional): Name of the input file. Defaults to "hercules_input.yaml".
         inputs_dir (str, optional): Name of the inputs directory. Defaults to "inputs".
         outputs_dir (str, optional): Name of the outputs directory. Defaults to "outputs".
@@ -199,7 +226,11 @@ def run_example_regression_test(
 
             # Verify the outputs
             verify_outputs(
-                df, num_time_steps, expected_final_wind_power, expected_final_plant_power
+                df,
+                num_time_steps,
+                expected_final_wind_power,
+                expected_final_plant_power,
+                expected_final_solar_power,
             )
 
             # Test that the plot script works on the outputs

@@ -18,8 +18,8 @@ EXAMPLE_DESCRIPTION = "Wind Farm Only"
 
 # Test configuration
 NUM_TIME_STEPS = 5
-EXPECTED_FINAL_WIND_POWER = 3860.285
-EXPECTED_FINAL_PLANT_POWER = 3860.285  # Same as wind power for wind-only case
+EXPECTED_FINAL_WIND_POWER = 3860  # Updated after running print_expected_values
+EXPECTED_FINAL_PLANT_POWER = 3860  # Same as wind power for wind-only case
 
 # File names
 INPUT_FILE = "hercules_input.yaml"
@@ -41,7 +41,7 @@ def print_expected_values():
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy the example files to the temp directory
         # Use absolute path to example directory
-        example_dir_abs = os.path.join(os.getcwd(), "..", "..", EXAMPLE_DIR)
+        example_dir_abs = os.path.join(os.getcwd(), EXAMPLE_DIR)
         copy_example_files(example_dir_abs, temp_dir, INPUT_FILE, INPUTS_DIR, NOTEBOOK_FILE)
         generate_input_data(temp_dir, NOTEBOOK_FILE)
         os.makedirs(f"{temp_dir}/{OUTPUTS_DIR}", exist_ok=True)
