@@ -47,7 +47,7 @@ def cycles_to_usage_rate(cycles):
     return 1 / cycles
 
 
-class LIB(ComponentBase):
+class BatteryLithiumIon(ComponentBase):
     """
     Calculations in this class are primarily from [1]
 
@@ -57,7 +57,11 @@ class LIB(ComponentBase):
 
     def __init__(self, h_dict):
         """
-        Initializes the LIB class.
+        Initializes the BatteryLithiumIon class.
+
+        This model represents a detailed lithium-ion battery with diffusion transients
+        and losses modeled as an equivalent circuit model.
+
         Args:
             h_dict (dict): Dict containing values for the simulation
         """
@@ -66,7 +70,7 @@ class LIB(ComponentBase):
         self.component_name = "battery"
 
         # Store the type of this component
-        self.component_type = "LIB"
+        self.component_type = "BatteryLithiumIon"
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)

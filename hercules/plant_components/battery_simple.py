@@ -48,14 +48,23 @@ def cycles_to_usage_rate(cycles):
     return 1 / cycles
 
 
-class SimpleBattery(ComponentBase):
+class BatterySimple(ComponentBase):
     # TODO: keep consistent units. Everything in kW or everything in MW but not both
     def __init__(self, h_dict):
+        """
+        Initializes the BatterySimple class.
+
+        This model represents a simple battery with energy storage and power constraints.
+        It tracks state of charge and applies efficiency losses.
+
+        Args:
+            h_dict (dict): Dict containing values for the simulation
+        """
         # Store the name of this component
         self.component_name = "battery"
 
         # Store the type of this component
-        self.component_type = "SimpleBattery"
+        self.component_type = "BatterySimple"
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)

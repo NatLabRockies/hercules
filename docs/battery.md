@@ -1,12 +1,12 @@
 # Battery
 
-There are two battery models currently implemented in Hercules: `SimpleBattery` and `LIB`. Both interact with Hercules through a simple wrapper class: `Battery`.
+There are two battery models currently implemented in Hercules: `BatterySimple` and `BatteryLithiumIon`. 
 
 ### Parameters
 
 Battery parameters are defined in the hercules input yaml file used to initialize `emulator`.
 
-- `component_type`: `"SimpleBattery"` or `"LIB"`
+- `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`
 - `energy_capacity`: [kWh]
 - `charge_rate`: [kW]
 - `max_SOC`: between 0 and 1
@@ -34,18 +34,18 @@ Outputs are returned as a dict containing the following values
 - `soc` The battery state of charge
 
 
-## `SimpleBattery`
+## `BatterySimple`
 
-`SimpleBattery` is defined by $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$. Both $E$ and $P$ are constrained by upper and lower limits.
+`BatterySimple` is defined by $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$. Both $E$ and $P$ are constrained by upper and lower limits.
 
 $\underline{E} \leq E \leq \overline{E}$
 
 $\underline{P} \leq P \leq \overline{P}$
 
 
-## `LIB`
+## `BatteryLithiumIon`
 
-`LIB` models a lithium ion battery based on the lithium ion cell model presented in [1.]. The main difference between `LIB` and `SimpleBattery` is that `LIB` includes diffusion transients and losses both of which are modeled as an equivalent circuit model following the approach in [1.].
+`BatteryLithiumIon` models a lithium ion battery based on the lithium ion cell model presented in [1.]. The main difference between `BatteryLithiumIon` and `BatterySimple` is that `BatteryLithiumIon` includes diffusion transients and losses both of which are modeled as an equivalent circuit model following the approach in [1.].
 
 
 

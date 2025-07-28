@@ -47,7 +47,7 @@ def get_available_component_types():
     return {
         "wind_farm": ["Wind_MesoToPower"],
         "solar_farm": ["SolarPySAMPVSam", "SolarPySAMPVWatts"],
-        "battery": ["SimpleBattery", "LIB"],
+        "battery": ["BatterySimple", "BatteryLithiumIon"],
         "electrolyzer": ["ElectrolyzerPlant"],
     }
 

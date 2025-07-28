@@ -3,8 +3,8 @@
 import copy
 
 import numpy as np
-from hercules.plant_components.lib import LIB
-from hercules.plant_components.simple_battery import SimpleBattery
+from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
+from hercules.plant_components.battery_simple import BatterySimple
 
 PRINT_VALUES = True
 
@@ -129,7 +129,7 @@ usage_calc_base_dict = {
 
 
 def test_SimpleBattery_regression_():
-    battery = SimpleBattery(test_h_dict)
+    battery = BatterySimple(test_h_dict)
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -161,7 +161,7 @@ def test_SimpleBattery_regression_():
 
 
 def test_LIB_regression_():
-    battery = LIB(test_h_dict)
+    battery = BatteryLithiumIon(test_h_dict)
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -209,7 +209,7 @@ def test_SimpleBattery_usage_calc_regression():
     battery_dict["battery"]["usage_cycles"] = 5
     battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 
-    SB = SimpleBattery(battery_dict)
+    SB = BatterySimple(battery_dict)
 
     power_avail = 10e3 * np.ones(21)
     power_signal = [

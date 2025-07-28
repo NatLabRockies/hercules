@@ -64,7 +64,7 @@ solar_farm_pvwatts = {
 }
 
 battery = {
-    "component_type": "SimpleBattery",
+    "component_type": "BatterySimple",
     "energy_capacity": 100.0,
     "charge_rate": 50.0,
     "discharge_rate": 50.0,
@@ -74,7 +74,7 @@ battery = {
 }
 
 simple_battery = {
-    "component_type": "SimpleBattery",
+    "component_type": "BatterySimple",
     "size": 20,  # MW size of the battery
     "energy_capacity": 80,  # total capacity of the battery in MWh
     "charge_rate": 2,  # charge rate in MW
@@ -85,7 +85,7 @@ simple_battery = {
 }
 
 lib_battery = {
-    "component_type": "LIB",
+    "component_type": "BatteryLithiumIon",
     "size": 20,  # MW size of the battery
     "energy_capacity": 80,  # total capacity of the battery in MWh
     "charge_rate": 2,  # charge rate in MW

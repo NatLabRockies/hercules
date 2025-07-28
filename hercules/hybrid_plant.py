@@ -1,8 +1,8 @@
 import numpy as np
 
+from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
+from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
-from hercules.plant_components.lib import LIB
-from hercules.plant_components.simple_battery import SimpleBattery
 from hercules.plant_components.solar_pysam_pvsam import SolarPySAMPVSam
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.wind_meso_to_power import Wind_MesoToPower
@@ -101,11 +101,11 @@ class HybridPlant:
         if h_dict[component_name]["component_type"] == "SolarPySAMPVWatts":
             return SolarPySAMPVWatts(h_dict)
 
-        if h_dict[component_name]["component_type"] == "LIB":
-            return LIB(h_dict)
+        if h_dict[component_name]["component_type"] == "BatteryLithiumIon":
+            return BatteryLithiumIon(h_dict)
 
-        if h_dict[component_name]["component_type"] == "SimpleBattery":
-            return SimpleBattery(h_dict)
+        if h_dict[component_name]["component_type"] == "BatterySimple":
+            return BatterySimple(h_dict)
 
         if h_dict[component_name]["component_type"] == "ElectrolyzerPlant":
             return ElectrolyzerPlant(h_dict)

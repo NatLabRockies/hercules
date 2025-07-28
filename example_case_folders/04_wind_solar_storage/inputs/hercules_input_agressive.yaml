@@ -42,7 +42,7 @@ py_sims:
 
   battery_0: # The name of py_sim object 1
 
-    component_type: SimpleBattery
+    component_type: BatterySimple
     energy_capacity: 10 # total capacity of the battery in MWh (4-hour 2.5 MW battery)
     charge_rate: 2.5 # charge rate of the battery in MW
     discharge_rate: 2.5 # discharge rate of the battery in MW

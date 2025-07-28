@@ -48,7 +48,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `system_info_file_name` | str | System info file (pvsam only) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
-| `component_type` | str | "SimpleBattery" or "LIB" |
+| `component_type` | str | "BatterySimple" or "BatteryLithiumIon" |
 | `energy_capacity` | float | Total capacity in MWh |
 | `charge_rate` | float | Charge rate in MW |
 | `discharge_rate` | float | Discharge rate in MW |
