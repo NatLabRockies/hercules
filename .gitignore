@@ -67,3 +67,4 @@ logfloris*
 docs/_build
 docs/examples
 
+.cursor/rules/
