@@ -5,13 +5,13 @@ import sys
 
 import numpy as np
 import PySAM.Pvsamv1 as pvsam
-from hercules.python_simulators.solar_pysam_base import SolarPySAMBase
+from hercules.plant_components.solar_pysam_base import SolarPySAMBase
 from hercules.tools.Pvsamv1Tools import size_electrical_parameters
 
 
 class SolarPySAMPVSam(SolarPySAMBase):
     """Solar simulator using PySAM's detailed PV model (Pvsamv1).
-    
+
     This class implements the detailed photovoltaic model that calculates PV electrical
     output using separate module and inverter models. This model is more accurate but
     more time-intensive than PVWatts.
@@ -19,42 +19,42 @@ class SolarPySAMPVSam(SolarPySAMBase):
 
     def __init__(self, h_dict):
         """Initialize the PVSam solar simulator.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
-        # Store the type of this py_sim
-        self.py_sim_type = "SolarPySAMPVSam"
+        # Store the type of this component
+        self.component_type = "SolarPySAMPVSam"
 
         # Call the base class init
         super().__init__(h_dict)
 
         # Set up PV system model parameters
         self._setup_model_parameters(h_dict)
-        
+
         # Create and configure the PySAM model
         self._create_system_model()
 
     def _setup_model_parameters(self, h_dict):
         """Set up the PV system model parameters.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
         try:
             self.logger.info(
                 "reading initial system info from {}".format(
-                    h_dict[self.py_sim_name]["system_info_file_name"]
+                    h_dict[self.component_name]["system_info_file_name"]
                 )
             )
-            with open(h_dict[self.py_sim_name]["system_info_file_name"], "r") as f:
+            with open(h_dict[self.component_name]["system_info_file_name"], "r") as f:
                 model_params = json.load(f)
             sys_design = {
                 "ModelParams": model_params,
                 "Other": {
-                    "lat": h_dict[self.py_sim_name]["lat"],
-                    "lon": h_dict[self.py_sim_name]["lon"],
-                    "elev": h_dict[self.py_sim_name]["elev"],
+                    "lat": h_dict[self.component_name]["lat"],
+                    "lon": h_dict[self.component_name]["lon"],
+                    "elev": h_dict[self.component_name]["elev"],
                 },
             }
 
@@ -71,8 +71,8 @@ class SolarPySAMPVSam(SolarPySAMBase):
         self.lon = sys_design["Other"]["lon"]
 
         # Dynamic sizing parameters
-        self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
-        self.target_dc_ac_ratio = h_dict[self.py_sim_name]["target_dc_ac_ratio"]
+        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
+        self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -89,9 +89,7 @@ class SolarPySAMPVSam(SolarPySAMBase):
             except Exception as e:
                 error_type = type(e).__name__
                 error_message = str(e)
-                print(
-                    f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}"
-                )
+                print(f"Warning: pysam error with parameter '{k}': {error_type} - {error_message}")
                 print("Warning: continuing the simulation despite warning")
 
         # Save the system model
@@ -99,10 +97,10 @@ class SolarPySAMPVSam(SolarPySAMBase):
 
     def step(self, h_dict):
         """Execute one simulation step.
-        
+
         Args:
             h_dict (dict): Dictionary containing current simulation state.
-            
+
         Returns:
             dict: Updated simulation dictionary.
         """
@@ -148,4 +146,4 @@ class SolarPySAMPVSam(SolarPySAMBase):
         # Update the h_dict with outputs
         self._update_outputs(h_dict)
 
-        return h_dict 
+        return h_dict

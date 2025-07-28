@@ -1,7 +1,7 @@
 """Regression tests for 'SolarPySAM'."""
 
 import numpy as np
-from hercules.python_simulators.electrolyzer_plant import ElectrolyzerPlant
+from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 
 PRINT_VALUES = True
 

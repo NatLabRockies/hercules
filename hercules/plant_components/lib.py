@@ -11,7 +11,7 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 """
 
 import numpy as np
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 
 
 def kJ2kWh(kWh):
@@ -47,7 +47,7 @@ def cycles_to_usage_rate(cycles):
     return 1 / cycles
 
 
-class LIB(PySimBase):
+class LIB(ComponentBase):
     """
     Calculations in this class are primarily from [1]
 
@@ -62,30 +62,30 @@ class LIB(PySimBase):
             h_dict (dict): Dict containing values for the simulation
         """
 
-        # Store the name of this py_sim
-        self.py_sim_name = "battery"
+        # Store the name of this component
+        self.component_name = "battery"
 
-        # Store the type of this py_sim
-        self.py_sim_type = "lib"
+        # Store the type of this component
+        self.component_type = "LIB"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
-        self.energy_capacity = h_dict[self.py_sim_name]["energy_capacity"] * 1e3  # [kWh]
-        self.max_charge_power = h_dict[self.py_sim_name]["charge_rate"] * 1e3  # [kW]
-        self.max_discharge_power = h_dict[self.py_sim_name]["discharge_rate"] * 1e3  # [kW]
+        self.energy_capacity = h_dict[self.component_name]["energy_capacity"] * 1e3  # [kWh]
+        self.max_charge_power = h_dict[self.component_name]["charge_rate"] * 1e3  # [kW]
+        self.max_discharge_power = h_dict[self.component_name]["discharge_rate"] * 1e3  # [kW]
 
-        initial_conditions = h_dict[self.py_sim_name]["initial_conditions"]
+        initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.SOC = initial_conditions["SOC"]  # [fraction]
-        self.SOC_max = h_dict[self.py_sim_name]["max_SOC"]
-        self.SOC_min = h_dict[self.py_sim_name]["min_SOC"]
+        self.SOC_max = h_dict[self.component_name]["max_SOC"]
+        self.SOC_min = h_dict[self.component_name]["min_SOC"]
 
         # Flag for allowing grid to charge the battery
-        if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
-            self.allow_grid_power_consumption = h_dict[self.py_sim_name][
+        if "allow_grid_power_consumption" in h_dict[self.component_name].keys():
+            self.allow_grid_power_consumption = h_dict[self.component_name][
                 "allow_grid_power_consumption"
             ]
         else:
@@ -97,10 +97,10 @@ class LIB(PySimBase):
         self.needed_inputs = {"battery_signal": 0.0}
 
         self.post_init()
-    
+
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
-        
+
         Meta data is data not explicitly in the input yaml but still useful for other
         modules.
 
@@ -258,7 +258,7 @@ class LIB(PySimBase):
         - h_dict
         """
 
-        P_signal = h_dict[self.py_sim_name]["battery_signal"]  # [kW] requested power
+        P_signal = h_dict[self.component_name]["battery_signal"]  # [kW] requested power
         if self.allow_grid_power_consumption:
             P_avail = np.inf
         else:
@@ -284,9 +284,9 @@ class LIB(PySimBase):
             self.error_sum += self.P_reject * self.dt
 
         # Update the outputs
-        h_dict[self.py_sim_name]["power"] = self.power_kw
-        h_dict[self.py_sim_name]["reject"] = self.P_reject
-        h_dict[self.py_sim_name]["soc"] = self.SOC
+        h_dict[self.component_name]["power"] = self.power_kw
+        h_dict[self.component_name]["reject"] = self.P_reject
+        h_dict[self.component_name]["soc"] = self.SOC
 
         # Return the updated dictionary
         return h_dict

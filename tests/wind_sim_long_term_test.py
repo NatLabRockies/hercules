@@ -6,7 +6,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from hercules.python_simulators.wind_sim_long_term import TurbineFilterModel, WindSimLongTerm
+from hercules.plant_components.wind_sim_long_term import TurbineFilterModel, WindSimLongTerm
 
 from tests.test_inputs.h_dict import h_dict_wind
 
@@ -15,8 +15,8 @@ def test_wind_sim_long_term_initialization():
     """Test that WindSimLongTerm initializes correctly with valid inputs."""
     wind_sim = WindSimLongTerm(h_dict_wind)
 
-    assert wind_sim.py_sim_name == "wind_farm"
-    assert wind_sim.py_sim_type == "WindSimLongTerm"
+    assert wind_sim.component_name == "wind_farm"
+    assert wind_sim.component_type == "WindSimLongTerm"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
@@ -165,8 +165,8 @@ def test_wind_sim_long_term_time_utc_conversion():
 
     # Check that time_utc was converted to datetime type
     # The wind_sim should have successfully processed the CSV with time_utc column
-    assert wind_sim.py_sim_name == "wind_farm"
-    assert wind_sim.py_sim_type == "WindSimLongTerm"
+    assert wind_sim.component_name == "wind_farm"
+    assert wind_sim.component_type == "WindSimLongTerm"
     assert wind_sim.n_turbines == 3
 
     # Verify that the wind data was loaded correctly

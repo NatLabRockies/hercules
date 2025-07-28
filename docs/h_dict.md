@@ -4,7 +4,7 @@ The `h_dict` (Hercules Dictionary) is the central configuration structure used t
 
 ## Structure Overview
 
-The `h_dict` is a nested dictionary that contains simulation-wide parameters, plant-level configuration, and individual component configurations for each Python simulator (py_sim). The structure is designed to be flexible, allowing users to include only the components they need for their specific simulation scenario.
+The `h_dict` is a Python dictionary that contains all the configurations for each plant component. The structure is designed to be flexible, allowing users to include only the components they need for their specific simulation scenario.
 
 ## Complete H_Dict Structure
 
@@ -27,28 +27,15 @@ The `h_dict` is a nested dictionary that contains simulation-wide parameters, pl
 | `time_log_interval` | int | Logging interval in steps | - |
 | `external_data_file` | str | External data file path | - |
 | `controller` | dict | Controller configuration | - |
-| **Python Simulators (py_sims)** |
-| `wind_farm` | dict | Wind farm configuration | - |
-| `solar_farm` | dict | Solar farm configuration | - |
-| `battery` | dict | Battery storage configuration | - |
-| `electrolyzer` | dict | Electrolyzer configuration | - |
-
-## Python Simulator Types
-
-### Wind Farm (`wind_farm`)
-| Key | Type | Description |
-|-----|------|-------------|
-| `py_sim_type` | str | Must be "WindSimLongTerm" |
+| **Hybrid Plant Components (components)** |
+| `component_type` | str | Must be "WindSimLongTerm" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |
 | `log_file_name` | str | Wind farm log file path |
 | `log_extra_outputs` | bool | Enable extra logging outputs |
 
-### Solar Farm (`solar_farm`)
-| Key | Type | Description |
-|-----|------|-------------|
-| `py_sim_type` | str | "SolarPySAM" |
+| `component_type` | str | "SolarPySAM" |
 | **For SolarPySAM:** |
 | `pysam_model` | str | "pvsam" or "pvwatts" |
 | `solar_input_filename` | str | Solar data file (or None) |
@@ -61,10 +48,7 @@ The `h_dict` is a nested dictionary that contains simulation-wide parameters, pl
 | `system_info_file_name` | str | System info file (pvsam only) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
-### Battery (`battery`)
-| Key | Type | Description |
-|-----|------|-------------|
-| `py_sim_type` | str | "SimpleBattery" or "LIB" |
+| `component_type` | str | "SimpleBattery" or "LIB" |
 | `energy_capacity` | float | Total capacity in MWh |
 | `charge_rate` | float | Charge rate in MW |
 | `discharge_rate` | float | Discharge rate in MW |

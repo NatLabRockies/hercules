@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
-from hercules.py_sims import PySims
+from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
 
 
@@ -59,11 +59,11 @@ def test_example_00_limited_time_regression():
             # Initialize the controller
             controller = ControllerStandin(h_dict)
 
-            # Initialize the py_sims
-            py_sims = PySims(h_dict)
+            # Initialize the hybrid plant
+            hybrid_plant = HybridPlant(h_dict)
 
             # Initialize the emulator
-            emulator = Emulator(controller, py_sims, h_dict, logger)
+            emulator = Emulator(controller, hybrid_plant, h_dict, logger)
 
             # Run the emulator
             emulator.enter_execution(function_targets=[], function_arguments=[[]])

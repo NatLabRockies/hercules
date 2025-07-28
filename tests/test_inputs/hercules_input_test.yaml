@@ -16,14 +16,14 @@ plant:
   interconnect_limit: 30000.0 #kW
 
 wind_farm: # The name of the WindSimLongTerm wind farm
-  py_sim_type: WindSimLongTerm
+  component_type: WindSimLongTerm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
 
-solar_farm: # The name of py_sim object 1
-  py_sim_type: SolarPySAMPVWatts
+solar_farm: # The name of component object 1
+  component_type: SolarPySAMPVWatts
   pysam_model: pvwatts #pvsam or pvwatts
   solar_input_filename: inputs/solar_input.p
   lat: 39.7442

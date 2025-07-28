@@ -2,37 +2,37 @@
 
 import numpy as np
 import pandas as pd
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import interpolate_df
 
 
-class SolarPySAMBase(PySimBase):
+class SolarPySAMBase(ComponentBase):
     """Base class for PySAM-based solar simulators.
-    
+
     This class provides common functionality for both PVSam and PVWatts models,
     including weather data processing, solar resource assignment, and control logic.
     """
 
     def __init__(self, h_dict):
         """Initialize the base solar PySAM simulator.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
-        # Store the name of this py_sim
-        self.py_sim_name = "solar_farm"
+        # Store the name of this component
+        self.component_name = "solar_farm"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
         self.log_outputs = self.log_outputs
 
-        # If "log_extra_outputs" is in h_dict[self.py_sim_name],
+        # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.py_sim_name]:
-            self.log_extra_outputs = h_dict[self.py_sim_name]["log_extra_outputs"]
+        if "log_extra_outputs" in h_dict[self.component_name]:
+            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
         else:
             self.log_extra_outputs = False
 
@@ -46,15 +46,15 @@ class SolarPySAMBase(PySimBase):
 
         # Load and process solar data
         self._load_solar_data(h_dict)
-        
+
         # Save the system capacity
-        self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
+        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
 
         # Save the initial condition
-        self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.dc_power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.dni = h_dict[self.py_sim_name]["initial_conditions"]["dni"]
-        self.poa = h_dict[self.py_sim_name]["initial_conditions"]["poa"]
+        self.power = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dni = h_dict[self.component_name]["initial_conditions"]["dni"]
+        self.poa = h_dict[self.component_name]["initial_conditions"]["poa"]
         self.aoi = 0
 
         # Since using UTC, assume tz is always 0
@@ -64,7 +64,7 @@ class SolarPySAMBase(PySimBase):
 
     def _load_solar_data(self, h_dict):
         """Load and process solar weather data.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
@@ -72,32 +72,32 @@ class SolarPySAMBase(PySimBase):
         # 1. There is solar_input_filename that is not None and no weather_data_input dictionary
         #    or
         # 2. There is a weather_data_input dictionary and either:
-        #       solar_input_filename is not in h_dict[self.py_sim_name] or is none
-        if ("solar_input_filename" in h_dict[self.py_sim_name]) and (
-            h_dict[self.py_sim_name]["solar_input_filename"] is not None
+        #       solar_input_filename is not in h_dict[self.component_name] or is none
+        if ("solar_input_filename" in h_dict[self.component_name]) and (
+            h_dict[self.component_name]["solar_input_filename"] is not None
         ):
-            if "weather_data_input" in h_dict[self.py_sim_name]:
+            if "weather_data_input" in h_dict[self.component_name]:
                 raise ValueError(
                     f"Cannot have both solar_input_filename and weather_data_input "
-                    f"in h_dict[{self.py_sim_name}]"
+                    f"in h_dict[{self.component_name}]"
                 )
             else:
-                if h_dict[self.py_sim_name]["solar_input_filename"].endswith(".csv"):
-                    df_solar = pd.read_csv(h_dict[self.py_sim_name]["solar_input_filename"])
-                elif h_dict[self.py_sim_name]["solar_input_filename"].endswith(".p"):
-                    df_solar = pd.read_pickle(h_dict[self.py_sim_name]["solar_input_filename"])
-                elif (h_dict[self.py_sim_name]["solar_input_filename"].endswith(".f")) | (
-                    h_dict[self.py_sim_name]["solar_input_filename"].endswith(".ftr")
+                if h_dict[self.component_name]["solar_input_filename"].endswith(".csv"):
+                    df_solar = pd.read_csv(h_dict[self.component_name]["solar_input_filename"])
+                elif h_dict[self.component_name]["solar_input_filename"].endswith(".p"):
+                    df_solar = pd.read_pickle(h_dict[self.component_name]["solar_input_filename"])
+                elif (h_dict[self.component_name]["solar_input_filename"].endswith(".f")) | (
+                    h_dict[self.component_name]["solar_input_filename"].endswith(".ftr")
                 ):
-                    df_solar = pd.read_feather(h_dict[self.py_sim_name]["solar_input_filename"])
+                    df_solar = pd.read_feather(h_dict[self.component_name]["solar_input_filename"])
         else:
-            if "weather_data_input" not in h_dict[self.py_sim_name]:
+            if "weather_data_input" not in h_dict[self.component_name]:
                 raise ValueError(
                     f"Must have either solar_input_filename or weather_data_input "
-                    f"in h_dict[{self.py_sim_name}]"
+                    f"in h_dict[{self.component_name}]"
                 )
             else:
-                df_solar = pd.DataFrame.from_dict(h_dict[self.py_sim_name]["weather_data_input"])
+                df_solar = pd.DataFrame.from_dict(h_dict[self.component_name]["weather_data_input"])
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_solar.columns:
@@ -138,11 +138,11 @@ class SolarPySAMBase(PySimBase):
 
     def _get_solar_data_array(self, df_, column_substring):
         """Get the values of the first column in the df whose name contains the specified substring.
-        
+
         Args:
             df_ (pd.DataFrame): The DataFrame to search for the column.
             column_substring (str): The substring to look for in the column names.
-            
+
         Returns:
             np.ndarray: The values of the matching column as a NumPy array.
         """
@@ -197,7 +197,7 @@ class SolarPySAMBase(PySimBase):
 
     def _assign_solar_resource(self, step):
         """Assign solar resource data for the current step.
-        
+
         Args:
             step (int): Current simulation step.
         """
@@ -223,16 +223,16 @@ class SolarPySAMBase(PySimBase):
 
     def _get_power_setpoint(self, h_dict):
         """Get power setpoint from h_dict or external signals.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation state.
-            
+
         Returns:
             float or None: Power setpoint if specified, None otherwise.
         """
         # Apply control, if setpoint is provided
-        if "power_setpoint" in h_dict[self.py_sim_name]:
-            P_setpoint = h_dict[self.py_sim_name]["power_setpoint"]
+        if "power_setpoint" in h_dict[self.component_name]:
+            P_setpoint = h_dict[self.component_name]["power_setpoint"]
         elif "external_signals" in h_dict.keys():
             if "solar_power_reference" in h_dict["external_signals"].keys():
                 P_setpoint = h_dict["external_signals"]["solar_power_reference"]
@@ -244,26 +244,26 @@ class SolarPySAMBase(PySimBase):
 
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation state.
         """
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["power"] = self.power
-        h_dict[self.py_sim_name]["dni"] = self.dni
-        h_dict[self.py_sim_name]["poa"] = self.poa
-        h_dict[self.py_sim_name]["aoi"] = self.aoi
+        h_dict[self.component_name]["power"] = self.power
+        h_dict[self.component_name]["dni"] = self.dni
+        h_dict[self.component_name]["poa"] = self.poa
+        h_dict[self.component_name]["aoi"] = self.aoi
 
     def step(self, h_dict):
         """Execute one simulation step.
-        
+
         This method must be implemented by subclasses to handle model-specific
         execution logic.
-        
+
         Args:
             h_dict (dict): Dictionary containing current simulation state.
-            
+
         Returns:
             dict: Updated simulation dictionary.
         """
-        raise NotImplementedError("Subclasses must implement step method") 
+        raise NotImplementedError("Subclasses must implement step method")

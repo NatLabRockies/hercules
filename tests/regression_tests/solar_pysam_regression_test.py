@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import pytest
-from hercules.python_simulators.solar_pysam_pvsam import SolarPySAMPVSam
+from hercules.plant_components.solar_pysam_pvsam import SolarPySAMPVSam
 
 PRINT_VALUES = True
 
@@ -80,7 +80,7 @@ def get_solar_params():
         "endtime": 6.0,
         "verbose": False,
         "solar_farm": {
-            "py_sim_type": "SolarPySAMPVSam",
+            "component_type": "SolarPySAMPVSam",
             "solar_input_filename": path + "/../test_inputs/solar_pysam_data.csv",
             "system_info_file_name": path + "/../test_inputs/100MW_1axis_pvsamv1.json",
             "lat": 39.7442,

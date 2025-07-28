@@ -1,13 +1,13 @@
 from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
-from hercules.py_sims import PySims
+from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import setup_logging
 
-from tests.test_inputs.h_dict import h_dict_solar, h_dict_wind
+from .test_inputs.h_dict import h_dict_solar, h_dict_wind
 
 
 def test_Emulator_instantiation():
-    """Test that Emulator instantiates correctly with default and custom settings."""
+    """Test that the Emulator can be instantiated with different configurations."""
 
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
@@ -16,9 +16,9 @@ def test_Emulator_instantiation():
     logger = setup_logging(console_output=False)
 
     controller = ControllerStandin(test_h_dict)
-    py_sims = PySims(test_h_dict)
+    hybrid_plant = HybridPlant(test_h_dict)
 
-    emulator = Emulator(controller, py_sims, test_h_dict, logger)
+    emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
 
     # Check default settings
     assert emulator.output_file == "outputs/hercules_output.csv"
@@ -32,7 +32,7 @@ def test_Emulator_instantiation():
     test_h_dict_2["starttime"] = 0.0
     test_h_dict_2["endtime"] = 10.0
 
-    emulator = Emulator(controller, py_sims, test_h_dict_2, logger)
+    emulator = Emulator(controller, hybrid_plant, test_h_dict_2, logger)
 
     # Check external data loading
     assert emulator.external_data_all["power_reference"][0] == 1000
@@ -54,9 +54,9 @@ def test_log_h_dict_refactored():
     logger = setup_logging(console_output=False)
 
     controller = ControllerStandin(test_h_dict)
-    py_sims = PySims(test_h_dict)
+    hybrid_plant = HybridPlant(test_h_dict)
 
-    emulator = Emulator(controller, py_sims, test_h_dict, logger)
+    emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
 
     # Set up the simulation state
     emulator.time = 5.0
@@ -64,9 +64,9 @@ def test_log_h_dict_refactored():
     emulator.h_dict["time"] = 5.0
     emulator.h_dict["step"] = 5
 
-    # Run controller and py_sims steps to generate plant-level outputs
+    # Run controller and hybrid_plant steps to generate plant-level outputs
     emulator.h_dict = controller.step(emulator.h_dict)
-    emulator.h_dict = py_sims.step(emulator.h_dict)
+    emulator.h_dict = hybrid_plant.step(emulator.h_dict)
 
     # Call the refactored log_h_dict function
     emulator.log_h_dict()
@@ -91,7 +91,7 @@ def test_log_h_dict_refactored():
     # Verify that the values are correct
     assert emulator.h_dict_flat["time"] == 5.0
     assert emulator.h_dict_flat["step"] == 5
-    assert emulator.h_dict_flat["solar_farm.power"] > 0  
+    assert emulator.h_dict_flat["solar_farm.power"] > 0
     assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive
     assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive
 
@@ -100,9 +100,7 @@ def test_log_h_dict_refactored():
     assert emulator.h_dict_flat["clock_time"] is not None
 
     # Verify that we don't have unexpected keys (like the old flattened structure)
-    unexpected_keys = [
-        k for k in actual_keys if k.startswith("solar_farm.irradiance")
-    ]
+    unexpected_keys = [k for k in actual_keys if k.startswith("solar_farm.irradiance")]
     assert len(unexpected_keys) == 0, f"Unexpected keys found: {unexpected_keys}"
 
 
@@ -116,9 +114,9 @@ def test_log_h_dict_with_wind_farm_arrays():
     logger = setup_logging(console_output=False)
 
     controller = ControllerStandin(test_h_dict)
-    py_sims = PySims(test_h_dict)
+    hybrid_plant = HybridPlant(test_h_dict)
 
-    emulator = Emulator(controller, py_sims, test_h_dict, logger)
+    emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
 
     # Set up the simulation state
     emulator.time = 5.0
@@ -126,9 +124,9 @@ def test_log_h_dict_with_wind_farm_arrays():
     emulator.h_dict["time"] = 5.0
     emulator.h_dict["step"] = 5
 
-    # Run controller and py_sims steps to generate plant-level outputs
+    # Run controller and hybrid_plant steps to generate plant-level outputs
     emulator.h_dict = controller.step(emulator.h_dict)
-    emulator.h_dict = py_sims.step(emulator.h_dict)
+    emulator.h_dict = hybrid_plant.step(emulator.h_dict)
 
     # Call the refactored log_h_dict function
     emulator.log_h_dict()
@@ -153,10 +151,18 @@ def test_log_h_dict_with_wind_farm_arrays():
         actual_keys
     ), f"Missing expected keys: {expected_keys - actual_keys}"
 
-    # Verify that the array values are flattened correctly and are positive
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.000"] >= 0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.001"] >= 0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.002"] >= 0
-    assert emulator.h_dict_flat["wind_farm.power"] >= 0
-    assert emulator.h_dict_flat["plant.power"] >= 0
-    assert emulator.h_dict_flat["plant.locally_generated_power"] >= 0
+    # Verify that the values are correct
+    assert emulator.h_dict_flat["time"] == 5.0
+    assert emulator.h_dict_flat["step"] == 5
+    assert emulator.h_dict_flat["wind_farm.power"] > 0
+    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive
+    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive
+
+    # Verify that turbine_powers array is flattened correctly
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.000"] > 0
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.001"] > 0
+    assert emulator.h_dict_flat["wind_farm.turbine_powers.002"] > 0
+
+    # Verify that clock_time is set
+    assert "clock_time" in emulator.h_dict_flat
+    assert emulator.h_dict_flat["clock_time"] is not None

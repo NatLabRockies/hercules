@@ -130,11 +130,11 @@ def test_load_hercules_input_valid_file():
     assert "interconnect_limit" in result["plant"]
     assert isinstance(result["plant"]["interconnect_limit"], float)
 
-    # Check py_sim configurations
+    # Check component configurations
     assert "wind_farm" in result
     assert "solar_farm" in result
-    assert result["wind_farm"]["py_sim_type"] == "WindSimLongTerm"
-    assert result["solar_farm"]["py_sim_type"] == "SolarPySAMPVWatts"
+    assert result["wind_farm"]["component_type"] == "WindSimLongTerm"
+    assert result["solar_farm"]["component_type"] == "SolarPySAMPVWatts"
 
     # Check verbose defaults to False
     assert result["verbose"] is False
@@ -182,10 +182,10 @@ def test_load_hercules_input_invalid_plant_structure():
         os.unlink(temp_file)
 
 
-def test_load_hercules_input_invalid_py_sim_type():
-    """Test that invalid py_sim_type raises ValueError.
+def test_load_hercules_input_invalid_component_type():
+    """Test that invalid component_type raises ValueError.
 
-    Creates a config with invalid py_sim_type and verifies
+    Creates a config with invalid component_type and verifies
     the function raises appropriate error.
     """
     invalid_config = {
@@ -193,7 +193,7 @@ def test_load_hercules_input_invalid_py_sim_type():
         "starttime": 0.0,
         "endtime": 30.0,
         "plant": {"interconnect_limit": 30000.0},
-        "wind_farm": {"py_sim_type": "InvalidType"},
+        "wind_farm": {"component_type": "InvalidType"},
     }
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
@@ -203,7 +203,7 @@ def test_load_hercules_input_invalid_py_sim_type():
         temp_file = f.name
 
     try:
-        with pytest.raises(ValueError, match="wind_farm has an invalid py_sim_type"):
+        with pytest.raises(ValueError, match="wind_farm has an invalid component_type"):
             load_hercules_input(temp_file)
     finally:
         os.unlink(temp_file)
@@ -248,12 +248,12 @@ def test_load_h_dict_from_text_valid_file():
         "starttime": 0.0,
         "endtime": 3600.0,
         "plant": {"interconnect_limit": 30000.0, "location": "test_site"},
-        "wind_farm": {"py_sim_type": "WindSimLongTerm", "capacity": 100.0},
-        "solar_farm": {"py_sim_type": "SolarPySAMPVWatts", "capacity": 50.0},
+        "wind_farm": {"component_type": "WindSimLongTerm", "capacity": 100.0},
+        "solar_farm": {"component_type": "SolarPySAMPVWatts", "capacity": 50.0},
         "verbose": False,
         "time": 1800.0,
         "step": 1800,
-        "external_signals": {"wind_speed": 8.5, "solar_irradiance": 750.0}
+        "external_signals": {"wind_speed": 8.5, "solar_irradiance": 750.0},
     }
 
     # Create a temporary file and write the h_dict in the same format as _save_h_dict_as_text
@@ -271,7 +271,7 @@ def test_load_h_dict_from_text_valid_file():
         # Verify specific nested structures
         assert result["plant"]["interconnect_limit"] == 30000.0
         assert result["plant"]["location"] == "test_site"
-        assert result["wind_farm"]["py_sim_type"] == "WindSimLongTerm"
+        assert result["wind_farm"]["component_type"] == "WindSimLongTerm"
         assert result["solar_farm"]["capacity"] == 50.0
         assert result["external_signals"]["wind_speed"] == 8.5
 

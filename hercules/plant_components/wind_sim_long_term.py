@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 from floris import FlorisModel
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import interpolate_df, load_perffile, load_yaml
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
@@ -13,7 +13,7 @@ from scipy.stats import circmean
 RPM2RADperSec = 2 * np.pi / 60.0
 
 
-class WindSimLongTerm(PySimBase):
+class WindSimLongTerm(ComponentBase):
     def __init__(self, h_dict):
         """
         Initializes the WindSimLongTerm class.
@@ -21,23 +21,23 @@ class WindSimLongTerm(PySimBase):
             h_dict (dict): Dict containing values for the simulation
         """
 
-        # Store the name of this py_sim
-        self.py_sim_name = "wind_farm"
+        # Store the name of this component
+        self.component_name = "wind_farm"
 
-        # Store the type of this py_sim
-        self.py_sim_type = "WindSimLongTerm"
+        # Store the type of this component
+        self.component_type = "WindSimLongTerm"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
         self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_deratings"]
 
-        # If "log_extra_outputs" is in h_dict[self.py_sim_name],
+        # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.py_sim_name]:
-            self.log_extra_outputs = h_dict[self.py_sim_name]["log_extra_outputs"]
+        if "log_extra_outputs" in h_dict[self.component_name]:
+            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
         else:
             self.log_extra_outputs = False
 
@@ -58,40 +58,44 @@ class WindSimLongTerm(PySimBase):
         self.floris_cache = {}
 
         # Read in the input file names
-        self.floris_input_file = h_dict[self.py_sim_name]["floris_input_file"]
-        self.wind_input_filename = h_dict[self.py_sim_name]["wind_input_filename"]
-        self.turbine_file_name = h_dict[self.py_sim_name]["turbine_file_name"]
+        self.floris_input_file = h_dict[self.component_name]["floris_input_file"]
+        self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
+        self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
 
-        # Check for FLORIS timing configuration options in h_dict[self.py_sim_name]
-        if "floris_wd_threshold" in h_dict[self.py_sim_name]:
-            self.floris_wd_threshold = h_dict[self.py_sim_name]["floris_wd_threshold"]
+        # Check for FLORIS timing configuration options in h_dict[self.component_name]
+        if "floris_wd_threshold" in h_dict[self.component_name]:
+            self.floris_wd_threshold = h_dict[self.component_name]["floris_wd_threshold"]
         else:
             self.floris_wd_threshold = 3.0
 
-        if "floris_ws_threshold" in h_dict[self.py_sim_name]:
-            self.floris_ws_threshold = h_dict[self.py_sim_name]["floris_ws_threshold"]
+        if "floris_ws_threshold" in h_dict[self.component_name]:
+            self.floris_ws_threshold = h_dict[self.component_name]["floris_ws_threshold"]
         else:
             self.floris_ws_threshold = 1.0
 
-        if "floris_ti_threshold" in h_dict[self.py_sim_name]:
-            self.floris_ti_threshold = h_dict[self.py_sim_name]["floris_ti_threshold"]
+        if "floris_ti_threshold" in h_dict[self.component_name]:
+            self.floris_ti_threshold = h_dict[self.component_name]["floris_ti_threshold"]
         else:
             self.floris_ti_threshold = 0.1
 
-        if "floris_derating_threshold" in h_dict[self.py_sim_name]:
-            self.floris_derating_threshold = h_dict[self.py_sim_name]["floris_derating_threshold"]
+        if "floris_derating_threshold" in h_dict[self.component_name]:
+            self.floris_derating_threshold = h_dict[self.component_name][
+                "floris_derating_threshold"
+            ]
         else:
             self.floris_derating_threshold = 10  # kW
 
-        if "floris_time_window_width_s" in h_dict[self.py_sim_name]:
-            self.floris_time_window_width_s = h_dict[self.py_sim_name]["floris_time_window_width_s"]
+        if "floris_time_window_width_s" in h_dict[self.component_name]:
+            self.floris_time_window_width_s = h_dict[self.component_name][
+                "floris_time_window_width_s"
+            ]
             if self.floris_time_window_width_s < 1:
                 raise ValueError("FLORIS time window width must be at least 1 second")
         else:
             self.floris_time_window_width_s = 300.0  # Default to 5 minutes
 
-        if "floris_update_time_s" in h_dict[self.py_sim_name]:
-            self.floris_update_time_s = h_dict[self.py_sim_name]["floris_update_time_s"]
+        if "floris_update_time_s" in h_dict[self.component_name]:
+            self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
             if self.floris_update_time_s < 1:
                 raise ValueError("FLORIS update time must be at least 1 second")
         else:
@@ -435,7 +439,10 @@ class WindSimLongTerm(PySimBase):
 
         # Grab the instantaneous derating signal and update the derating buffer
         derating = np.array(
-            [h_dict[self.py_sim_name][f"derating_{t_idx:03d}"] for t_idx in range(self.n_turbines)]
+            [
+                h_dict[self.component_name][f"derating_{t_idx:03d}"]
+                for t_idx in range(self.n_turbines)
+            ]
         )
         self.update_derating_buffer(derating)
 
@@ -468,20 +475,20 @@ class WindSimLongTerm(PySimBase):
         self.wind_speed = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["turbine_deratings"] = derating
-        h_dict[self.py_sim_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.py_sim_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.py_sim_name]["wind_direction"] = self.wind_direction
-        h_dict[self.py_sim_name]["wind_speed"] = self.wind_speed
+        h_dict[self.component_name]["turbine_deratings"] = derating
+        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["wind_direction"] = self.wind_direction
+        h_dict[self.component_name]["wind_speed"] = self.wind_speed
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
 
-        h_dict[self.py_sim_name]["floris_wind_speed"] = self.floris_wind_speed
-        h_dict[self.py_sim_name]["floris_wind_direction"] = self.floris_wind_direction
-        h_dict[self.py_sim_name]["floris_ti"] = self.floris_ti
-        h_dict[self.py_sim_name]["floris_derating"] = self.floris_derating
-        h_dict[self.py_sim_name]["unwaked_velocities"] = self.unwaked_velocities
-        h_dict[self.py_sim_name]["waked_velocities"] = self.waked_velocities
+        h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
+        h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
+        h_dict[self.component_name]["floris_ti"] = self.floris_ti
+        h_dict[self.component_name]["floris_derating"] = self.floris_derating
+        h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
+        h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
 
         return h_dict
 

@@ -3,8 +3,8 @@
 import copy
 
 import numpy as np
-from hercules.python_simulators.lib import LIB
-from hercules.python_simulators.simple_battery import SimpleBattery
+from hercules.plant_components.lib import LIB
+from hercules.plant_components.simple_battery import SimpleBattery
 
 PRINT_VALUES = True
 

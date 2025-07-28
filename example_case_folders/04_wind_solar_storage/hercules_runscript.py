@@ -1,7 +1,7 @@
 import sys
 
 from hercules.emulator import Emulator
-from hercules.py_sims import PySims
+from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_yaml
 from whoc.controllers import (
     BatteryController,
@@ -23,8 +23,8 @@ include_battery = True
 # Load all inputs, remove solar and/or battery as desired
 input_dict = load_yaml(sys.argv[1])
 
-print("Establishing simulators.")
-py_sims = PySims(input_dict)
+print("Establishing hybrid plant.")
+hybrid_plant = HybridPlant(input_dict)
 
 # Establish controllers based on options
 interface = HerculesHybridADInterface(input_dict)
@@ -45,6 +45,6 @@ helics_port = int(sys.argv[2])
 input_dict["hercules_comms"]["helics"]["config"]["helics"]["helicsport"] = helics_port
 print(f"Running Hercules with helics_port {helics_port}")
 
-emulator = Emulator(controller, py_sims, input_dict)
+emulator = Emulator(controller, hybrid_plant, input_dict)
 emulator.run_helics_setup()
 emulator.enter_execution(function_targets=[], function_arguments=[[]])

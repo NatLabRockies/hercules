@@ -3,7 +3,7 @@
 import copy
 
 import pytest
-from hercules.python_simulators.solar_pysam_pvwatts import SolarPySAMPVWatts
+from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from numpy.testing import assert_almost_equal
 
 from tests.test_inputs.h_dict import h_dict_solar_pvwatts

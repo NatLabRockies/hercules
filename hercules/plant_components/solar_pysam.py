@@ -6,37 +6,37 @@ import sys
 
 import numpy as np
 import pandas as pd
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 
 # import PySAM.Pvsamv1Tools # keep for when this is available on PyPi
 from hercules.tools.Pvsamv1Tools import size_electrical_parameters
 from hercules.utilities import interpolate_df
 
 
-class SolarPySAM(PySimBase):
+class SolarPySAM(ComponentBase):
     def __init__(self, h_dict):
         """
         Initializes the WindSimLongTerm class.
         Args:
             h_dict (dict): Dict containing values for the simulation
         """
-        # Store the name of this py_sim
-        self.py_sim_name = "solar_farm"
+        # Store the name of this component
+        self.component_name = "solar_farm"
 
-        # Store the type of this py_sim
-        self.py_sim_type = "SolarPySAM"
+        # Store the type of this component
+        self.component_type = "SolarPySAM"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
         self.log_outputs = self.log_outputs
 
-        # If "log_extra_outputs" is in h_dict[self.py_sim_name],
+        # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.py_sim_name]:
-            self.log_extra_outputs = h_dict[self.py_sim_name]["log_extra_outputs"]
+        if "log_extra_outputs" in h_dict[self.component_name]:
+            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
         else:
             self.log_extra_outputs = False
 
@@ -49,8 +49,8 @@ class SolarPySAM(PySimBase):
             ]
 
         # get pysam model from input file
-        if "pysam_model" in h_dict[self.py_sim_name]:
-            self.pysam_model = h_dict[self.py_sim_name]["pysam_model"]
+        if "pysam_model" in h_dict[self.component_name]:
+            self.pysam_model = h_dict[self.component_name]["pysam_model"]
         else:
             self.pysam_model = "pvsam"
             self.logger.info("No PySAM model specified. Setting to pvsam (detailed PV model).")
@@ -69,32 +69,32 @@ class SolarPySAM(PySimBase):
         # 1. There is solar_input_filename that is not None and no weather_data_input dictionary
         #    or
         # 2. There is a weather_data_input dictionary and either:
-        #       solar_input_filename is not in h_dict[self.py_sim_name] or is none
-        if ("solar_input_filename" in h_dict[self.py_sim_name]) and (
-            h_dict[self.py_sim_name]["solar_input_filename"] is not None
+        #       solar_input_filename is not in h_dict[self.component_name] or is none
+        if ("solar_input_filename" in h_dict[self.component_name]) and (
+            h_dict[self.component_name]["solar_input_filename"] is not None
         ):
-            if "weather_data_input" in h_dict[self.py_sim_name]:
+            if "weather_data_input" in h_dict[self.component_name]:
                 raise ValueError(
                     f"Cannot have both solar_input_filename and weather_data_input "
-                    f"in h_dict[{self.py_sim_name}]"
+                    f"in h_dict[{self.component_name}]"
                 )
             else:
-                if h_dict[self.py_sim_name]["solar_input_filename"].endswith(".csv"):
-                    df_solar = pd.read_csv(h_dict[self.py_sim_name]["solar_input_filename"])
-                elif h_dict[self.py_sim_name]["solar_input_filename"].endswith(".p"):
-                    df_solar = pd.read_pickle(h_dict[self.py_sim_name]["solar_input_filename"])
-                elif (h_dict[self.py_sim_name]["solar_input_filename"].endswith(".f")) | (
-                    h_dict[self.py_sim_name]["solar_input_filename"].endswith(".ftr")
+                if h_dict[self.component_name]["solar_input_filename"].endswith(".csv"):
+                    df_solar = pd.read_csv(h_dict[self.component_name]["solar_input_filename"])
+                elif h_dict[self.component_name]["solar_input_filename"].endswith(".p"):
+                    df_solar = pd.read_pickle(h_dict[self.component_name]["solar_input_filename"])
+                elif (h_dict[self.component_name]["solar_input_filename"].endswith(".f")) | (
+                    h_dict[self.component_name]["solar_input_filename"].endswith(".ftr")
                 ):
-                    df_solar = pd.read_feather(h_dict[self.py_sim_name]["solar_input_filename"])
+                    df_solar = pd.read_feather(h_dict[self.component_name]["solar_input_filename"])
         else:
-            if "weather_data_input" not in h_dict[self.py_sim_name]:
+            if "weather_data_input" not in h_dict[self.component_name]:
                 raise ValueError(
                     f"Must have either solar_input_filename or weather_data_input "
-                    f"in h_dict[{self.py_sim_name}]"
+                    f"in h_dict[{self.component_name}]"
                 )
             else:
-                df_solar = pd.DataFrame.from_dict(h_dict[self.py_sim_name]["weather_data_input"])
+                df_solar = pd.DataFrame.from_dict(h_dict[self.component_name]["weather_data_input"])
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_solar.columns:
@@ -134,24 +134,24 @@ class SolarPySAM(PySimBase):
         self.wind_speed_array = self._get_solar_data_array(df_solar, "Wind Speed at")
 
         # Save the system capacity
-        self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
+        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
 
         # set PV system model parameters
         if self.pysam_model == "pvsam":
             try:
                 self.logger.info(
                     "reading initial system info from {}".format(
-                        h_dict[self.py_sim_name]["system_info_file_name"]
+                        h_dict[self.component_name]["system_info_file_name"]
                     )
                 )
-                with open(h_dict[self.py_sim_name]["system_info_file_name"], "r") as f:
+                with open(h_dict[self.component_name]["system_info_file_name"], "r") as f:
                     model_params = json.load(f)
                 sys_design = {
                     "ModelParams": model_params,
                     "Other": {
-                        "lat": h_dict[self.py_sim_name]["lat"],
-                        "lon": h_dict[self.py_sim_name]["lon"],
-                        "elev": h_dict[self.py_sim_name]["elev"],
+                        "lat": h_dict[self.component_name]["lat"],
+                        "lon": h_dict[self.component_name]["lon"],
+                        "elev": h_dict[self.component_name]["elev"],
                     },
                 }
 
@@ -168,19 +168,19 @@ class SolarPySAM(PySimBase):
                     "SystemDesign": {
                         "array_type": 3.0,  # single axis backtracking
                         "azimuth": 180.0,
-                        "dc_ac_ratio": h_dict[self.py_sim_name]["target_dc_ac_ratio"],
+                        "dc_ac_ratio": h_dict[self.component_name]["target_dc_ac_ratio"],
                         "gcr": 0.29999999999999999,
                         "inv_eff": 96,
                         "losses": 14.075660688264469,
                         "module_type": 2.0,
-                        "system_capacity": h_dict[self.py_sim_name]["target_system_capacity"],
+                        "system_capacity": h_dict[self.component_name]["target_system_capacity"],
                         "tilt": 0.0,
                     },
                 },
                 "Other": {
-                    "lat": h_dict[self.py_sim_name]["lat"],
-                    "lon": h_dict[self.py_sim_name]["lon"],
-                    "elev": h_dict[self.py_sim_name]["elev"],
+                    "lat": h_dict[self.component_name]["lat"],
+                    "lon": h_dict[self.component_name]["lon"],
+                    "elev": h_dict[self.component_name]["elev"],
                 },
             }
 
@@ -193,16 +193,16 @@ class SolarPySAM(PySimBase):
         self.tz = 0
 
         # Save the initial condition
-        self.power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.dc_power = h_dict[self.py_sim_name]["initial_conditions"]["power"]
-        self.dni = h_dict[self.py_sim_name]["initial_conditions"]["dni"]
-        self.poa = h_dict[self.py_sim_name]["initial_conditions"]["poa"]
+        self.power = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dni = h_dict[self.component_name]["initial_conditions"]["dni"]
+        self.poa = h_dict[self.component_name]["initial_conditions"]["poa"]
         self.aoi = 0
 
         # dynamic sizing special treatment only required for pvsam model, not for pvwatts
         if self.pysam_model == "pvsam":
-            self.target_system_capacity = h_dict[self.py_sim_name]["target_system_capacity"]
-            self.target_dc_ac_ratio = h_dict[self.py_sim_name]["target_dc_ac_ratio"]
+            self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
+            self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
 
         # create pysam model
         if self.pysam_model == "pvsam":
@@ -338,8 +338,8 @@ class SolarPySAM(PySimBase):
             self.logger.info(f"self.power = {self.power}")
 
         # Apply control, if setpoint is provided
-        if "power_setpoint" in h_dict[self.py_sim_name]:
-            P_setpoint = h_dict[self.py_sim_name]["power_setpoint"]
+        if "power_setpoint" in h_dict[self.component_name]:
+            P_setpoint = h_dict[self.component_name]["power_setpoint"]
         elif "external_signals" in h_dict.keys():
             if "solar_power_reference" in h_dict["external_signals"].keys():
                 P_setpoint = h_dict["external_signals"]["solar_power_reference"]
@@ -349,7 +349,7 @@ class SolarPySAM(PySimBase):
             P_setpoint = None
 
         # # Further the cap the P_setpoint by the room left after wind power is deducted
-        # wind_farm_power = inputs['py_sims']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
+        # wind_farm_power = inputs['components']["wind_farm_0"]["outputs"]["wind_farm_total_power"]
         # available_interconnect = self.target_system_capacity - wind_farm_power
 
         # if P_setpoint is None:
@@ -377,9 +377,9 @@ class SolarPySAM(PySimBase):
             print("self.poa = ", self.poa)
 
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["power"] = self.power
-        h_dict[self.py_sim_name]["dni"] = self.dni
-        h_dict[self.py_sim_name]["poa"] = self.poa
-        h_dict[self.py_sim_name]["aoi"] = self.aoi
+        h_dict[self.component_name]["power"] = self.power
+        h_dict[self.component_name]["dni"] = self.dni
+        h_dict[self.component_name]["poa"] = self.poa
+        h_dict[self.component_name]["aoi"] = self.aoi
 
         return h_dict

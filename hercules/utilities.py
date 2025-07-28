@@ -7,12 +7,12 @@ import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
 
-# Define the available py_sim names
-def get_available_py_sim_names():
-    """Return a list of available py_sim names.
+# Define the available component names
+def get_available_component_names():
+    """Return a list of available component names.
 
     Returns:
-        list: A list of strings containing the names of available py_sim components.
+        list: A list of strings containing the names of available plant components.
     """
     return [
         "wind_farm",
@@ -22,11 +22,11 @@ def get_available_py_sim_names():
     ]
 
 
-# Note this is a subset of the py_sims
+# Note this is a subset of the components
 def get_available_generator_names():
     """Return a list of available generator names.
 
-    This function returns a subset of py_sim names that represent power generators
+    This function returns a subset of component names that represent power generators
     (wind_farm and solar_farm), excluding storage and conversion components.
 
     Returns:
@@ -38,11 +38,11 @@ def get_available_generator_names():
     ]
 
 
-def get_available_py_sim_types():
-    """Return a list of available py_sim types, by py_sim.
+def get_available_component_types():
+    """Return a list of available component types, by component.
 
     Returns:
-        dict: A dictionary mapping py_sim names to lists of available simulation types.
+        dict: A dictionary mapping component names to lists of available simulation types.
     """
     return {
         "wind_farm": ["WindSimLongTerm"],
@@ -131,8 +131,8 @@ def load_hercules_input(filename):
 
     # Known keys
     required_keys = ["dt", "starttime", "endtime", "plant"]
-    py_sim_names = get_available_py_sim_names()
-    py_sim_types = get_available_py_sim_types()
+    component_names = get_available_component_names()
+    component_types = get_available_component_types()
     other_keys = [
         "name",
         "description",
@@ -163,11 +163,11 @@ def load_hercules_input(filename):
 
     # Check that all keys are either required or optional
     for key in h_dict:
-        if key not in required_keys + py_sim_names + other_keys:
+        if key not in required_keys + component_names + other_keys:
             raise ValueError(f"Key {key} not a valid key in input file {filename}")
 
-    # Of the pysim keys present in h_dict, confirm all are dictionaries
-    for key in py_sim_names:
+    # Of the component keys present in h_dict, confirm all are dictionaries
+    for key in component_names:
         if key in h_dict:
             if not isinstance(h_dict[key], dict):
                 raise ValueError(f"{key} must be a dictionary in input file {filename}")
@@ -179,20 +179,22 @@ def load_hercules_input(filename):
     elif not isinstance(h_dict["verbose"], bool):
         raise ValueError(f"Verbose must be a boolean in input file {filename}")
 
-    # Check that none of the include py_sims include a verbose key
-    for key in py_sim_names:
+    # Check that none of the included components include a verbose key
+    for key in component_names:
         if key in h_dict:
             if "verbose" in h_dict[key]:
                 raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
 
-    # Check that all of the included py_sims have a py_sim_type key and that key is valid
-    for key in py_sim_names:
+    # Check that all of the included components have a component_type key and that key is valid
+    for key in component_names:
         if key in h_dict:
-            if "py_sim_type" not in h_dict[key]:
-                raise ValueError(f"{key} must include a py_sim_type key in input file {filename}")
-            if h_dict[key]["py_sim_type"] not in py_sim_types[key]:
+            if "component_type" not in h_dict[key]:
                 raise ValueError(
-                    f"{key} has an invalid py_sim_type {h_dict[key]['py_sim_type']} "
+                    f"{key} must include a component_type key in input file {filename}"
+                )
+            if h_dict[key]["component_type"] not in component_types[key]:
+                raise ValueError(
+                    f"{key} has an invalid component_type {h_dict[key]['component_type']} "
                     f"in input file {filename}"
                 )
 
@@ -394,7 +396,7 @@ def load_h_dict_from_text(filename):
             "True": True,
             "False": False,
             "None": None,
-            "inf": np.inf, # Added line
+            "inf": np.inf,  # Added line
         }
 
         # Use eval with the safe namespace to handle numpy objects

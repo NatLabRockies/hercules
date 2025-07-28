@@ -1,6 +1,6 @@
 import copy
 
-from hercules.python_simulators.electrolyzer_plant import ElectrolyzerPlant
+from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 
 from tests.test_inputs.h_dict import h_dict_electrolyzer
 

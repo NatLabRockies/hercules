@@ -4,9 +4,9 @@ The solar PV modules use [PySAM](https://nrel-pysam.readthedocs.io/en/main/overv
 
 Two different solar simulators are available, each implementing a different PySAM model:
 
-1. **`SolarPySAMPVSam`** - Uses the [Detailed Photovoltaic model](https://sam.nrel.gov/photovoltaic.html) in [`Pvsamv1`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvsamv1.html), which calculates PV electrical output using separate module and inverter models. This model is more accurate, but more time-intensive. Set `py_sim_type` = `SolarPySAMPVSam` in the input dictionary.
+1. **`SolarPySAMPVSam`** - Uses the [Detailed Photovoltaic model](https://sam.nrel.gov/photovoltaic.html) in [`Pvsamv1`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvsamv1.html), which calculates PV electrical output using separate module and inverter models. This model is more accurate, but more time-intensive. Set `component_type` = `SolarPySAMPVSam` in the input dictionary.
 
-2. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output without detailed degradation or loss modeling. This model is less accurate, but less time-intensive, which makes it a good fit for longer duration simulations (of approximately 1 year). Set `py_sim_type` = `SolarPySAMPVWatts` in the input dictionary.
+2. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output without detailed degradation or loss modeling. This model is less accurate, but less time-intensive, which makes it a good fit for longer duration simulations (of approximately 1 year). Set `component_type` = `SolarPySAMPVWatts` in the input dictionary.
 
 ### Inputs
 
@@ -25,14 +25,14 @@ The `SolarPySAMPVSam` model also requires an input system info file:
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
 The example folder `07_floris_standin_and_solar_pysam` specifies:
-- use of the `SolarPySAMPVSam` model with `py_sim_type: "SolarPySAMPVSam"`
+- use of the `SolarPySAMPVSam` model with `component_type: "SolarPySAMPVSam"`
 - weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
 - latitude, longitude, and elevation of Golden, CO
 - system design information for a 130 MW single-axis PV tracking system (with backtracking)
 These inputs can be changed in the `.yaml` and `.csv` files.
 
 The example folder `13_WindSolarSimLongTerm` specifies:
-- use of the `SolarPySAMPVWatts` model with `py_sim_type: "SolarPySAMPVWatts"`
+- use of the `SolarPySAMPVWatts` model with `component_type: "SolarPySAMPVWatts"`
 - weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
 - latitude, longitude, and elevation of Golden, CO
 - system design information for a 100 MW single-axis PV tracking system (with backtracking)

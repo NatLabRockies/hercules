@@ -7,7 +7,7 @@ Hercules is a modular simulation framework for renewable energy systems.
 ### [H_Dict](h_dict.md)
 The central data structure that contains all simulation parameters, component configurations, and runtime state. The h_dict serves as both the configuration interface and the runtime state container.
 
-### [Python Simulators (Py_Sims)](py_sims.md)
+### [Hybrid Plant Components](hybrid_plant.md)
 Manages individual simulation components like wind farms, solar panels, batteries, and electrolyzers. 
 
 ### [Emulator](emulator.md)

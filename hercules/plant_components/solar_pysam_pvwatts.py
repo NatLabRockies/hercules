@@ -2,35 +2,33 @@
 
 import numpy as np
 import PySAM.Pvwattsv8 as pvwatts
-from hercules.python_simulators.solar_pysam_base import SolarPySAMBase
+from hercules.plant_components.solar_pysam_base import SolarPySAMBase
 
 
 class SolarPySAMPVWatts(SolarPySAMBase):
-    """Solar simulator using PySAM's simplified PV model (Pvwattsv8).
- 
-    """
+    """Solar simulator using PySAM's simplified PV model (Pvwattsv8)."""
 
     def __init__(self, h_dict):
         """Initialize the PVWatts solar simulator.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
-        # Store the type of this py_sim
-        self.py_sim_type = "SolarPySAMPVWatts"
+        # Store the type of this component
+        self.component_type = "SolarPySAMPVWatts"
 
         # Call the base class init
         super().__init__(h_dict)
 
         # Set up PV system model parameters
         self._setup_model_parameters(h_dict)
-        
+
         # Create and configure the PySAM model
         self._create_system_model()
 
     def _setup_model_parameters(self, h_dict):
         """Set up the PV system model parameters.
-        
+
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
@@ -39,19 +37,19 @@ class SolarPySAMPVWatts(SolarPySAMBase):
                 "SystemDesign": {
                     "array_type": 3.0,  # single axis backtracking
                     "azimuth": 180.0,
-                    "dc_ac_ratio": h_dict[self.py_sim_name]["target_dc_ac_ratio"],
+                    "dc_ac_ratio": h_dict[self.component_name]["target_dc_ac_ratio"],
                     "gcr": 0.29999999999999999,
                     "inv_eff": 96,
                     "losses": 14.075660688264469,
                     "module_type": 2.0,
-                    "system_capacity": h_dict[self.py_sim_name]["target_system_capacity"],
+                    "system_capacity": h_dict[self.component_name]["target_system_capacity"],
                     "tilt": 0.0,
                 },
             },
             "Other": {
-                "lat": h_dict[self.py_sim_name]["lat"],
-                "lon": h_dict[self.py_sim_name]["lon"],
-                "elev": h_dict[self.py_sim_name]["elev"],
+                "lat": h_dict[self.component_name]["lat"],
+                "lon": h_dict[self.component_name]["lon"],
+                "elev": h_dict[self.component_name]["elev"],
             },
         }
 
@@ -74,10 +72,10 @@ class SolarPySAMPVWatts(SolarPySAMBase):
 
     def step(self, h_dict):
         """Execute one simulation step.
-        
+
         Args:
             h_dict (dict): Dictionary containing current simulation state.
-            
+
         Returns:
             dict: Updated simulation dictionary.
         """
@@ -116,4 +114,4 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Update the h_dict with outputs
         self._update_outputs(h_dict)
 
-        return h_dict 
+        return h_dict

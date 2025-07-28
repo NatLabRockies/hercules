@@ -17,7 +17,7 @@ plant:
 
 wind_farm:
   
-  py_sim_type: WindSimLongTerm
+  component_type: WindSimLongTerm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_dof_1.yaml

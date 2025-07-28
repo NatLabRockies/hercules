@@ -2,39 +2,39 @@ import numpy as np
 
 # Electrolyzer plant module
 from electrolyzer.simulation.supervisor import Supervisor
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 
 
-class ElectrolyzerPlant(PySimBase):
+class ElectrolyzerPlant(ComponentBase):
     def __init__(self, h_dict):
         """
         Initializes the WindSimLongTerm class.
         Args:
             h_dict (dict): Dict containing values for the simulation
         """
-        # Store the name of this py_sim
-        self.py_sim_name = "electrolyzer"
+        # Store the name of this component
+        self.component_name = "electrolyzer"
 
-        # Store the type of this py_sim
-        self.py_sim_type = "ElectrolyzerPlant"
+        # Store the type of this component
+        self.component_type = "ElectrolyzerPlant"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
         electrolyzer_dict = {}
         # Check if general key exists in electrolyzer section, otherwise use top-level general
-        if "general" in h_dict[self.py_sim_name]:
-            electrolyzer_dict["general"] = h_dict[self.py_sim_name]["general"]
+        if "general" in h_dict[self.component_name]:
+            electrolyzer_dict["general"] = h_dict[self.component_name]["general"]
         elif "general" in h_dict:
             electrolyzer_dict["general"] = h_dict["general"]
         else:
             electrolyzer_dict["general"] = {"verbose": False}
 
-        electrolyzer_dict["electrolyzer"] = h_dict[self.py_sim_name]
+        electrolyzer_dict["electrolyzer"] = h_dict[self.component_name]
         electrolyzer_dict["electrolyzer"]["dt"] = self.dt
 
-        if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
-            self.allow_grid_power_consumption = h_dict[self.py_sim_name][
+        if "allow_grid_power_consumption" in h_dict[self.component_name].keys():
+            self.allow_grid_power_consumption = h_dict[self.component_name][
                 "allow_grid_power_consumption"
             ]
         else:
@@ -50,7 +50,7 @@ class ElectrolyzerPlant(PySimBase):
 
         # Right now, the plant initialization power and the initial condition power are the same
         # power_in is always in MW
-        power_in = h_dict[self.py_sim_name]["initial_power_kW"]
+        power_in = h_dict[self.component_name]["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
 
         # Run Electrolyzer two steps to get outputs
@@ -72,7 +72,7 @@ class ElectrolyzerPlant(PySimBase):
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
-        
+
         Meta data is data not explicitly in the input yaml but still useful for other
         modules.
 
@@ -90,8 +90,8 @@ class ElectrolyzerPlant(PySimBase):
     def step(self, h_dict):
         # Gather inputs
         local_power = h_dict["locally_generated_power"]  # TODO check what units this is in
-        if "electrolyzer_signal" in h_dict[self.py_sim_name].keys():
-            power_command_kw = h_dict[self.py_sim_name]["electrolyzer_signal"]
+        if "electrolyzer_signal" in h_dict[self.component_name].keys():
+            power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
         elif not self.allow_grid_power_consumption:
             # Assume electrolyzer should use as much local power as possible.
             power_command_kw = np.inf
@@ -120,11 +120,11 @@ class ElectrolyzerPlant(PySimBase):
         self.H2_mfr = H2_produced / self.elec_sys.dt
 
         # Update the h_dict with outputs
-        h_dict[self.py_sim_name]["H2_output"] = self.H2_output
-        h_dict[self.py_sim_name]["H2_mfr"] = self.H2_mfr
-        h_dict[self.py_sim_name]["stacks_on"] = self.stacks_on
-        h_dict[self.py_sim_name]["stacks_waiting"] = self.stacks_waiting
-        h_dict[self.py_sim_name]["power_used_kw"] = self.power_used_kw
-        h_dict[self.py_sim_name]["power_input_kw"] = self.power_input_kw
+        h_dict[self.component_name]["H2_output"] = self.H2_output
+        h_dict[self.component_name]["H2_mfr"] = self.H2_mfr
+        h_dict[self.component_name]["stacks_on"] = self.stacks_on
+        h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
+        h_dict[self.component_name]["power_used_kw"] = self.power_used_kw
+        h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
 
         return h_dict

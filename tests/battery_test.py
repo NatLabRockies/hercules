@@ -2,8 +2,8 @@ import copy
 
 import numpy as np
 import pytest
-from hercules.python_simulators.lib import LIB
-from hercules.python_simulators.simple_battery import SimpleBattery
+from hercules.plant_components.lib import LIB
+from hercules.plant_components.simple_battery import SimpleBattery
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 from tests.test_inputs.h_dict import h_dict_lib_battery, h_dict_simple_battery

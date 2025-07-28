@@ -35,9 +35,9 @@ for label, battery_col, ls, output_file in zip(labels, battery_cols, linestyles,
         .sum(axis=1)
         / 1e3
     )
-    battery_power = -df["py_sims.battery_0.outputs.power"] / 1e3  # discharging positive
+    battery_power = -df["components.battery_0.outputs.power"] / 1e3  # discharging positive
 
-    power_output = df["py_sims.inputs.locally_generated_power"] / 1e3 + battery_power
+    power_output = df["components.inputs.locally_generated_power"] / 1e3 + battery_power
 
     time = df["hercules_comms.amr_wind.wind_farm_0.sim_time_s_amr_wind"] / 60  # minutes
 
@@ -62,11 +62,11 @@ for label, battery_col, ls, output_file in zip(labels, battery_cols, linestyles,
     ax.set_title("Plant behavior with {0} battery controller".format(label))
 
     # Plot to compare battery behavior
-    battery_soc = df["py_sims.battery_0.outputs.soc"]
+    battery_soc = df["components.battery_0.outputs.soc"]
     ax_tracking[0].plot(time, battery_power, color=battery_col, label=label, ls=ls)
     ax_tracking[1].plot(time, battery_soc, color=battery_col, label=label, ls=ls)
 
-    battery_cycle_count = df["py_sims.battery_0.outputs.total_cycles"]
+    battery_cycle_count = df["components.battery_0.outputs.total_cycles"]
     ax_cycles.plot(time, battery_cycle_count, color=battery_col, label=label, ls=ls)
 
 # Plot labels etc

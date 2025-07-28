@@ -12,7 +12,7 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 
 import numpy as np
 import rainflow
-from hercules.python_simulators.base_pysim import PySimBase
+from hercules.plant_components.component_base import ComponentBase
 
 
 def kJ2kWh(kWh):
@@ -48,32 +48,32 @@ def cycles_to_usage_rate(cycles):
     return 1 / cycles
 
 
-class SimpleBattery(PySimBase):
+class SimpleBattery(ComponentBase):
     # TODO: keep consistent units. Everything in kW or everything in MW but not both
     def __init__(self, h_dict):
-        # Store the name of this py_sim
-        self.py_sim_name = "battery"
+        # Store the name of this component
+        self.component_name = "battery"
 
-        # Store the type of this py_sim
-        self.py_sim_type = "simple_battery"
+        # Store the type of this component
+        self.component_type = "SimpleBattery"
 
         # Call the base class init
-        super().__init__(h_dict, self.py_sim_name)
+        super().__init__(h_dict, self.component_name)
 
-        # size = h_dict[self.py_sim_name]["size"]
-        self.energy_capacity = h_dict[self.py_sim_name]["energy_capacity"] * 1e3  # [kWh]
-        initial_conditions = h_dict[self.py_sim_name]["initial_conditions"]
+        # size = h_dict[self.component_name]["size"]
+        self.energy_capacity = h_dict[self.component_name]["energy_capacity"] * 1e3  # [kWh]
+        initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.SOC = initial_conditions["SOC"]  # [fraction]
 
-        self.SOC_max = h_dict[self.py_sim_name]["max_SOC"]
-        self.SOC_min = h_dict[self.py_sim_name]["min_SOC"]
+        self.SOC_max = h_dict[self.component_name]["max_SOC"]
+        self.SOC_min = h_dict[self.component_name]["min_SOC"]
 
         # Charge (Energy) limits [kJ]
         self.E_min = kWh2kJ(self.SOC_min * self.energy_capacity)
         self.E_max = kWh2kJ(self.SOC_max * self.energy_capacity)
 
-        charge_rate = h_dict[self.py_sim_name]["charge_rate"] * 1e3  # [kW]
-        discharge_rate = h_dict[self.py_sim_name]["discharge_rate"] * 1e3  # [kW]
+        charge_rate = h_dict[self.component_name]["charge_rate"] * 1e3  # [kW]
+        discharge_rate = h_dict[self.component_name]["discharge_rate"] * 1e3  # [kW]
 
         # Charge/discharge (Power) limits [kW]
         self.P_min = -discharge_rate
@@ -84,44 +84,44 @@ class SimpleBattery(PySimBase):
         self.R_max = np.inf
 
         # Flag for allowing grid to charge the battery
-        if "allow_grid_power_consumption" in h_dict[self.py_sim_name].keys():
-            self.allow_grid_power_consumption = h_dict[self.py_sim_name][
+        if "allow_grid_power_consumption" in h_dict[self.component_name].keys():
+            self.allow_grid_power_consumption = h_dict[self.component_name][
                 "allow_grid_power_consumption"
             ]
         else:
             self.allow_grid_power_consumption = False
 
         # Efficiency and self-discharge parameters
-        if "roundtrip_efficiency" in h_dict[self.py_sim_name].keys():
-            self.eta_charge = np.sqrt(h_dict[self.py_sim_name]["roundtrip_efficiency"])
-            self.eta_discharge = np.sqrt(h_dict[self.py_sim_name]["roundtrip_efficiency"])
+        if "roundtrip_efficiency" in h_dict[self.component_name].keys():
+            self.eta_charge = np.sqrt(h_dict[self.component_name]["roundtrip_efficiency"])
+            self.eta_discharge = np.sqrt(h_dict[self.component_name]["roundtrip_efficiency"])
         else:
             self.eta_charge = 1
             self.eta_discharge = 1
 
-        if "self_discharge_time_constant" in h_dict[self.py_sim_name].keys():
-            self.tau_self_discharge = h_dict[self.py_sim_name]["self_discharge_time_constant"]
+        if "self_discharge_time_constant" in h_dict[self.component_name].keys():
+            self.tau_self_discharge = h_dict[self.component_name]["self_discharge_time_constant"]
         else:
             self.tau_self_discharge = np.inf
 
-        if "track_usage" in h_dict[self.py_sim_name].keys():
-            if h_dict[self.py_sim_name]["track_usage"]:
+        if "track_usage" in h_dict[self.component_name].keys():
+            if h_dict[self.component_name]["track_usage"]:
                 self.track_usage = True
                 # Set usage tracking parameters
-                if "usage_calc_interval" in h_dict[self.py_sim_name].keys():
+                if "usage_calc_interval" in h_dict[self.component_name].keys():
                     self.usage_calc_interval = (
-                        h_dict[self.py_sim_name]["usage_calc_interval"] / self.dt
+                        h_dict[self.component_name]["usage_calc_interval"] / self.dt
                     )
                 else:
                     self.usage_calc_interval = 100 / self.dt  # timesteps
 
-                if "usage_lifetime" in h_dict[self.py_sim_name].keys():
-                    usage_lifetime = h_dict[self.py_sim_name]["usage_lifetime"]
+                if "usage_lifetime" in h_dict[self.component_name].keys():
+                    usage_lifetime = h_dict[self.component_name]["usage_lifetime"]
                     self.usage_time_rate = years_to_usage_rate(usage_lifetime, self.dt)
                 else:
                     self.usage_time_rate = 0
-                if "usage_cycles" in h_dict[self.py_sim_name].keys():
-                    usage_cycles = h_dict[self.py_sim_name]["usage_cycles"]
+                if "usage_cycles" in h_dict[self.component_name].keys():
+                    usage_cycles = h_dict[self.component_name]["usage_cycles"]
                     self.usage_cycles_rate = cycles_to_usage_rate(usage_cycles)
                 else:
                     self.usage_cycles_rate = 0
@@ -159,7 +159,7 @@ class SimpleBattery(PySimBase):
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
-        
+
         Meta data is data not explicitly in the input yaml but still useful for other
         modules.
 
@@ -178,7 +178,7 @@ class SimpleBattery(PySimBase):
         self.step_counter += 1
 
         # power available for the battery to use for charging (should be >=0)
-        P_signal = h_dict[self.py_sim_name]["battery_signal"]
+        P_signal = h_dict[self.component_name]["battery_signal"]
         # power signal desired by the controller
         if self.allow_grid_power_consumption:
             P_avail = np.inf
@@ -206,12 +206,12 @@ class SimpleBattery(PySimBase):
             self.calc_usage()
 
         # Update the outputs
-        h_dict[self.py_sim_name]["power"] = self.power_kw
-        h_dict[self.py_sim_name]["reject"] = P_reject
-        h_dict[self.py_sim_name]["soc"] = self.SOC
-        h_dict[self.py_sim_name]["usage_in_time"] = self.time_usage_perc
-        h_dict[self.py_sim_name]["usage_in_cycles"] = self.cycle_usage_perc
-        h_dict[self.py_sim_name]["total_cycles"] = self.total_cycle_usage
+        h_dict[self.component_name]["power"] = self.power_kw
+        h_dict[self.component_name]["reject"] = P_reject
+        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["usage_in_time"] = self.time_usage_perc
+        h_dict[self.component_name]["usage_in_cycles"] = self.cycle_usage_perc
+        h_dict[self.component_name]["total_cycles"] = self.total_cycle_usage
 
         # Return the updated dictionary
         return h_dict

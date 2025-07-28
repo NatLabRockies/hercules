@@ -3,7 +3,7 @@
 plant = {"interconnect_limit": 30000.0}
 
 wind_farm = {
-    "py_sim_type": "WindSimLongTerm",
+    "component_type": "WindSimLongTerm",
     "floris_input_file": "tests/test_inputs/floris_input.yaml",
     "wind_input_filename": "tests/test_inputs/wind_input.csv",
     "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",
@@ -11,9 +11,8 @@ wind_farm = {
 }
 
 
-
 solar_farm_pysam = {
-    "py_sim_type": "SolarPySAMPVWatts",
+    "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
     "target_system_capacity": 100.0,
     "target_dc_ac_ratio": 1.2,
@@ -24,7 +23,7 @@ solar_farm_pysam = {
 }
 
 solar_farm_pvsam = {
-    "py_sim_type": "SolarPySAMPVSam",
+    "component_type": "SolarPySAMPVSam",
     "solar_input_filename": None,
     "weather_data_input": {
         "time": [0],
@@ -45,7 +44,7 @@ solar_farm_pvsam = {
 }
 
 solar_farm_pvwatts = {
-    "py_sim_type": "SolarPySAMPVWatts",
+    "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": None,
     "weather_data_input": {
         "time": [0],
@@ -65,7 +64,7 @@ solar_farm_pvwatts = {
 }
 
 battery = {
-    "py_sim_type": "SimpleBattery",
+    "component_type": "SimpleBattery",
     "energy_capacity": 100.0,
     "charge_rate": 50.0,
     "discharge_rate": 50.0,
@@ -75,7 +74,7 @@ battery = {
 }
 
 simple_battery = {
-    "py_sim_type": "SimpleBattery",
+    "component_type": "SimpleBattery",
     "size": 20,  # MW size of the battery
     "energy_capacity": 80,  # total capacity of the battery in MWh
     "charge_rate": 2,  # charge rate in MW
@@ -86,7 +85,7 @@ simple_battery = {
 }
 
 lib_battery = {
-    "py_sim_type": "LIB",
+    "component_type": "LIB",
     "size": 20,  # MW size of the battery
     "energy_capacity": 80,  # total capacity of the battery in MWh
     "charge_rate": 2,  # charge rate in MW
@@ -97,7 +96,7 @@ lib_battery = {
 }
 
 electrolyzer = {
-    # 'py_sim_type': 'ElectrolyzerPlant',  # Removed for Supervisor compatibility
+    # 'component_type': 'ElectrolyzerPlant',  # Removed for Supervisor compatibility
     "initialize": True,
     "initial_power_kW": 3000,
     "supervisor": {
@@ -142,15 +141,13 @@ electrolyzer = {
     },
 }
 
-# Base h_dict with no py_sims
+# Base h_dict with no components
 h_dict = {
     "dt": 1.0,
     "starttime": 0.0,
-    "endtime": 10.0,
-    "verbose": False,
-    "step": 2,
-    "time": 2.0,
+    "endtime": 30.0,
     "plant": plant,
+    "verbose": False,
 }
 
 # h_dict with wind_farm only
@@ -225,7 +222,7 @@ h_dict_battery = {
     "battery": battery,
 }
 
-# h_dict with all three py_sims
+# h_dict with all three components
 h_dict_wind_solar_battery = {
     "dt": 1.0,
     "starttime": 0.0,

@@ -4,7 +4,7 @@ import sys
 
 from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
-from hercules.py_sims import PySims
+from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
 
 # If the output folder exists, delete it
@@ -37,11 +37,11 @@ h_dict = load_hercules_input(input_file)
 # Initialize the controller
 controller = ControllerStandin(h_dict)
 
-# Intiialize the py_sims
-py_sims = PySims(h_dict)
+# Initialize the hybrid plant
+hybrid_plant = HybridPlant(h_dict)
 
 # Initialize the emulator
-emulator = Emulator(controller, py_sims, h_dict, logger)
+emulator = Emulator(controller, hybrid_plant, h_dict, logger)
 
 # Run the emulator
 emulator.enter_execution(function_targets=[], function_arguments=[[]])

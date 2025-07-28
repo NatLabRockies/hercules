@@ -6,7 +6,7 @@ There are two battery models currently implemented in Hercules: `SimpleBattery` 
 
 Battery parameters are defined in the hercules input yaml file used to initialize `emulator`.
 
-- `py_sim_type`: `"SimpleBattery"` or `"LIB"`
+- `component_type`: `"SimpleBattery"` or `"LIB"`
 - `energy_capacity`: [kWh]
 - `charge_rate`: [kW]
 - `max_SOC`: between 0 and 1
@@ -22,7 +22,7 @@ Once initialized, the battery is only interacted with using the `step` method.
 Inputs are passed to `step()` as a dict named `inputs`, which must have the following fields:
 
 ```
-{py_sims:{inputs:{battery_signal: ____,
+{components:{inputs:{battery_signal: ____,
                  locally_generated_power: ____
                  }}}
 ```

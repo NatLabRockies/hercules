@@ -14,7 +14,7 @@ parts:
     chapters:
     - file: key_concepts
     - file: h_dict
-    - file: py_sims
+    - file: hybrid_plant
     - file: emulator
   - caption: Inputs
     chapters:
@@ -22,7 +22,7 @@ parts:
   - caption: Examples
     chapters:
     - file: examples_overview
-  - caption: PySims
+  - caption: HybridPlant
     chapters:
     - file: wind
     - file: battery

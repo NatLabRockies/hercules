@@ -12,7 +12,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 
 - **Top level parameters**: `dt`, `starttime`, `endtime`
 - **Plant configuration**: `interconnect_limit`
-- **Pysims configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
+- **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
 
 ## Loading Process
@@ -22,7 +22,7 @@ The `load_hercules_input()` function in `utilities.py` performs comprehensive va
 1. Loads the YAML file using the custom `Loader` class
 2. Validates required keys (`dt`, `starttime`, `endtime`, `plant`)
 3. Ensures `plant.interconnect_limit` is present and numeric
-4. Validates py_sim configurations and types
+4. Validates component configurations and types
 5. Sets defaults for optional parameters (e.g., `verbose: False`)
 
 ## Example
@@ -42,14 +42,14 @@ plant:
   interconnect_limit: 30000  # kW
 
 wind_farm:
-  py_sim_type: WindSimLongTerm
+  component_type: WindSimLongTerm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
 
 solar_farm:
-  py_sim_type: SolarPySAM
+  component_type: SolarPySAM
   pysam_model: pvwatts
   solar_input_filename: inputs/solar_input.csv
   lat: 39.7442

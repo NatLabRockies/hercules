@@ -14,13 +14,13 @@ Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
 class Emulator:
-    def __init__(self, controller, py_sims, h_dict, logger):
+    def __init__(self, controller, hybrid_plant, h_dict, logger):
         """
         Initializes the emulator.
 
         Args:
             controller (object): The controller object responsible for managing the simulation.
-            py_sims (object): An object containing Python-based simulation components.
+            hybrid_plant (object): An object containing hybrid plant components.
             h_dict (dict): A dictionary contains parameters and values for the simulation.
             logger (object): A logger instance for logging messages during the simulation.
 
@@ -79,10 +79,10 @@ class Emulator:
 
         # Initialize components
         self.controller = controller
-        self.py_sims = py_sims
+        self.hybrid_plant = hybrid_plant
 
-        # Add py_sim metadata to the h_dict
-        self.h_dict = self.py_sims.add_py_sim_metadata_to_h_dict(self.h_dict)
+        # Add plant component metadata to the h_dict
+        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
 
         # Read in any external data
         self.external_data_all = {}
@@ -242,7 +242,7 @@ class Emulator:
             ncols=100,
             leave=True,
             mininterval=5.0,  # Update at most once every 5 seconds
-            maxinterval=30.0   # Update at least every 30 seconds
+            maxinterval=30.0,  # Update at least every 30 seconds
         )
 
         # Run simulation through steps
@@ -255,7 +255,7 @@ class Emulator:
                 self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
                 self.logger.info(f"Step: {self.step} of {self.n_steps}")
                 self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
-                # Update progress bar only when logging 
+                # Update progress bar only when logging
                 progress_bar.update(self.step_log_interval)
 
             for k in self.external_data_all:
@@ -268,7 +268,7 @@ class Emulator:
             self.h_dict["step"] = self.step
             self.h_dict = self.controller.step(self.h_dict)
 
-            self.h_dict = self.py_sims.step(self.h_dict)
+            self.h_dict = self.hybrid_plant.step(self.h_dict)
 
             # Log the current state
             self.log_h_dict()
@@ -322,7 +322,7 @@ class Emulator:
         Logs the current state of the main dictionary to a CSV file.
 
         This method logs only specific fields: time, step, clock_time,
-        and the values from each py_sim's log_outputs list.
+        and the values from each component's log_outputs list.
         """
 
         # Clear the flattened dict to start fresh
@@ -341,37 +341,37 @@ class Emulator:
             "locally_generated_power"
         ]
 
-        # Add the values from each py_sim's log_outputs list
-        for py_sim_name in self.py_sims.py_sim_names:
-            py_sim_obj = self.py_sims.py_sim_objects[py_sim_name]
+        # Add the values from each component's log_outputs list.
+        for component_name in self.hybrid_plant.component_names:
+            component_obj = self.hybrid_plant.component_objects[component_name]
 
-            # Get the log_outputs for this py_sim
-            log_outputs = getattr(py_sim_obj, "log_outputs", ["power"])
+            # Get the log_outputs for this component
+            log_outputs = getattr(component_obj, "log_outputs", ["power"])
 
             # Add each output to the flattened dict
             for output_name in log_outputs:
-                if output_name in self.h_dict[py_sim_name]:
-                    output_value = self.h_dict[py_sim_name][output_name]
+                if output_name in self.h_dict[component_name]:
+                    output_value = self.h_dict[component_name][output_name]
 
                     # Handle arrays by flattening them
                     if isinstance(output_value, (list, np.ndarray)):
                         for i, val in enumerate(output_value):
                             # Round numerical values to 3 decimal places
                             if isinstance(val, (int, float)):
-                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = round(
+                                self.h_dict_flat[f"{component_name}.{output_name}.{i:03d}"] = round(
                                     val, 3
                                 )
                             else:
-                                self.h_dict_flat[f"{py_sim_name}.{output_name}.{i:03d}"] = val
+                                self.h_dict_flat[f"{component_name}.{output_name}.{i:03d}"] = val
                     else:
                         # Handle scalar values
                         if isinstance(output_value, (int, float)):
                             # Round numerical values to 3 decimal places
-                            self.h_dict_flat[f"{py_sim_name}.{output_name}"] = round(
+                            self.h_dict_flat[f"{component_name}.{output_name}"] = round(
                                 output_value, 3
                             )
                         else:
-                            self.h_dict_flat[f"{py_sim_name}.{output_name}"] = output_value
+                            self.h_dict_flat[f"{component_name}.{output_name}"] = output_value
 
         # The keys and values as two lists
         keys = list(self.h_dict_flat.keys())

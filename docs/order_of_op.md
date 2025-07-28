@@ -6,7 +6,7 @@
 
 ### Initialization
 
-1. Instantiate the py_sim modules, which sets the intial conditions
+1. Instantiate the component modules, which sets the intial conditions
 
 2. Run get_outputs, which sets the initial outputs
     
@@ -19,8 +19,8 @@
 
 2. Record all signals for time step $k$.
 
-3. Update state in py_sim [$x_{k+1} = f(x_k, u_k, d_k)$] and output in py_sim [$y_{k+1} = g(x_{k+1})$]
+3. Update state in component [$x_{k+1} = f(x_k, u_k, d_k)$] and output in component [$y_{k+1} = g(x_{k+1})$]
 
-4. Update state and output in helics/AMRwind, possibly using components from py_sim (TODO: what ordering should be used there?)
+4. Update state and output in helics/AMRwind, possibly using components from component (TODO: what ordering should be used there?)
     [$x_{k+1} = f(x_k, u_k, d_k)$, $y_{k+1} = g(x_{k+1})$]
 
