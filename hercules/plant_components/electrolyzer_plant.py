@@ -8,7 +8,7 @@ from hercules.plant_components.component_base import ComponentBase
 class ElectrolyzerPlant(ComponentBase):
     def __init__(self, h_dict):
         """
-        Initializes the WindSimLongTerm class.
+        Initializes the ElectrolyzerPlant class.
         Args:
             h_dict (dict): Dict containing values for the simulation
         """

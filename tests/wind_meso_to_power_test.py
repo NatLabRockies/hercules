@@ -1,4 +1,4 @@
-"""Tests for the WindSimLongTerm class."""
+"""Tests for the Wind_MesoToPower class."""
 
 import os
 import tempfile
@@ -6,17 +6,17 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from hercules.plant_components.wind_sim_long_term import TurbineFilterModel, WindSimLongTerm
+from hercules.plant_components.wind_meso_to_power import TurbineFilterModel, Wind_MesoToPower
 
 from tests.test_inputs.h_dict import h_dict_wind
 
 
-def test_wind_sim_long_term_initialization():
-    """Test that WindSimLongTerm initializes correctly with valid inputs."""
-    wind_sim = WindSimLongTerm(h_dict_wind)
+def test_wind_meso_to_power_initialization():
+    """Test that Wind_MesoToPower initializes correctly with valid inputs."""
+    wind_sim = Wind_MesoToPower(h_dict_wind)
 
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "WindSimLongTerm"
+    assert wind_sim.component_type == "Wind_MesoToPower"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
@@ -24,9 +24,9 @@ def test_wind_sim_long_term_initialization():
     assert wind_sim.num_floris_calcs == 0
 
 
-def test_wind_sim_long_term_default_thresholds():
+def test_wind_meso_to_power_default_thresholds():
     """Test that default FLORIS thresholds are set correctly."""
-    wind_sim = WindSimLongTerm(h_dict_wind)
+    wind_sim = Wind_MesoToPower(h_dict_wind)
 
     assert wind_sim.floris_wd_threshold == 3.0
     assert wind_sim.floris_ws_threshold == 1.0
@@ -36,7 +36,7 @@ def test_wind_sim_long_term_default_thresholds():
     assert wind_sim.floris_update_time_s == 60.0
 
 
-def test_wind_sim_long_term_custom_thresholds():
+def test_wind_meso_to_power_custom_thresholds():
     """Test that custom FLORIS thresholds are set correctly."""
     test_h_dict = h_dict_wind.copy()
     test_h_dict["wind_farm"]["floris_wd_threshold"] = 5.0
@@ -46,7 +46,7 @@ def test_wind_sim_long_term_custom_thresholds():
     test_h_dict["wind_farm"]["floris_time_window_width_s"] = 600.0
     test_h_dict["wind_farm"]["floris_update_time_s"] = 120.0
 
-    wind_sim = WindSimLongTerm(test_h_dict)
+    wind_sim = Wind_MesoToPower(test_h_dict)
 
     assert wind_sim.floris_wd_threshold == 5.0
     assert wind_sim.floris_ws_threshold == 2.0
@@ -56,16 +56,16 @@ def test_wind_sim_long_term_custom_thresholds():
     assert wind_sim.floris_update_time_s == 120.0
 
 
-def test_wind_sim_long_term_invalid_time_window():
+def test_wind_meso_to_power_invalid_time_window():
     """Test that invalid time window width raises ValueError."""
     test_h_dict = h_dict_wind.copy()
     test_h_dict["wind_farm"]["floris_time_window_width_s"] = 0.5  # Less than 1 second
 
     with pytest.raises(ValueError, match="FLORIS time window width must be at least 1 second"):
-        WindSimLongTerm(test_h_dict)
+        Wind_MesoToPower(test_h_dict)
 
 
-def test_wind_sim_long_term_invalid_update_time():
+def test_wind_meso_to_power_invalid_update_time():
     """Test that invalid update time raises ValueError."""
     test_h_dict = h_dict_wind.copy()
     # Set a valid time window width first
@@ -73,16 +73,16 @@ def test_wind_sim_long_term_invalid_update_time():
     test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5  # Less than 1 second
 
     with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
-        WindSimLongTerm(test_h_dict)
+        Wind_MesoToPower(test_h_dict)
 
 
-def test_wind_sim_long_term_step():
+def test_wind_meso_to_power_step():
     """Test that the step method updates outputs correctly."""
     test_h_dict = h_dict_wind.copy()
     # Set a shorter update time for testing
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
-    wind_sim = WindSimLongTerm(test_h_dict)
+    wind_sim = Wind_MesoToPower(test_h_dict)
 
     # Add derating values to the step h_dict
     step_h_dict = {"step": 1}
@@ -159,14 +159,14 @@ def test_turbine_filter_model_derating_limit():
     assert power >= 0.0
 
 
-def test_wind_sim_long_term_time_utc_conversion():
+def test_wind_meso_to_power_time_utc_conversion():
     """Test that time_utc column is properly converted to datetime."""
-    wind_sim = WindSimLongTerm(h_dict_wind)
+    wind_sim = Wind_MesoToPower(h_dict_wind)
 
     # Check that time_utc was converted to datetime type
     # The wind_sim should have successfully processed the CSV with time_utc column
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "WindSimLongTerm"
+    assert wind_sim.component_type == "Wind_MesoToPower"
     assert wind_sim.n_turbines == 3
 
     # Verify that the wind data was loaded correctly
@@ -175,12 +175,12 @@ def test_wind_sim_long_term_time_utc_conversion():
     assert wind_sim.ws_mat.shape[1] == 3  # 3 turbines
 
 
-def test_wind_sim_long_term_derating_too_high():
+def test_wind_meso_to_power_derating_too_high():
     """Test that turbine powers are below derating when derating is very high."""
     test_h_dict = h_dict_wind.copy()
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
-    wind_sim = WindSimLongTerm(test_h_dict)
+    wind_sim = Wind_MesoToPower(test_h_dict)
 
     # Set very high derating values that should not limit power output
     step_h_dict = {"step": 1}
@@ -200,12 +200,12 @@ def test_wind_sim_long_term_derating_too_high():
         assert power <= derating, f"Turbine {i} power {power} exceeds derating {derating}"
 
 
-def test_wind_sim_long_term_derating_applies():
+def test_wind_meso_to_power_derating_applies():
     """Test that turbine powers equal derating when derating is very low."""
     test_h_dict = h_dict_wind.copy()
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
-    wind_sim = WindSimLongTerm(test_h_dict)
+    wind_sim = Wind_MesoToPower(test_h_dict)
 
     # Set very low derating values that should definitely limit power output
     step_h_dict = {"step": 1}
@@ -225,9 +225,9 @@ def test_wind_sim_long_term_derating_applies():
         assert power == derating, f"Turbine {i} power {power} should equal derating {derating}"
 
 
-def test_wind_sim_long_term_get_initial_conditions_and_meta_data():
+def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
     """Test that get_initial_conditions_and_meta_data adds correct metadata to h_dict."""
-    wind_sim = WindSimLongTerm(h_dict_wind)
+    wind_sim = Wind_MesoToPower(h_dict_wind)
 
     # Create a copy of the input h_dict to avoid modifying the original
     test_h_dict = h_dict_wind.copy()
@@ -265,7 +265,7 @@ def test_wind_sim_long_term_get_initial_conditions_and_meta_data():
     assert "plant" in result
 
 
-def test_wind_sim_long_term_memoization():
+def test_wind_meso_to_power_memoization():
     """Test that FLORIS memoization works correctly with changing wind direction.
 
     This test simulates 3 steps where wind speed and TI are constant, but wind
@@ -304,7 +304,7 @@ def test_wind_sim_long_term_memoization():
         test_h_dict["dt"] = 1000.0
 
         # Initialize wind simulation
-        wind_sim = WindSimLongTerm(test_h_dict)
+        wind_sim = Wind_MesoToPower(test_h_dict)
 
         # Run 3 steps with constant derating
         powers = []
@@ -347,7 +347,7 @@ def test_wind_sim_long_term_memoization():
             os.unlink(temp_wind_file)
 
 
-def test_wind_sim_long_term_time_window_averaging():
+def test_wind_meso_to_power_time_window_averaging():
     """Test that update_wake_deficits correctly averages wind data over different time windows.
 
     This test verifies that floris_wind_speed, floris_wind_direction, and floris_wake_deficits
@@ -385,7 +385,7 @@ def test_wind_sim_long_term_time_window_averaging():
             # Adjust endtime to match available data
             test_h_dict["endtime"] = 6.0  # Data goes from 0 to 5, so endtime should be 6
 
-            wind_sim = WindSimLongTerm(test_h_dict)
+            wind_sim = Wind_MesoToPower(test_h_dict)
 
             # Test at step 2 (index 2 in our data)
             step = 2

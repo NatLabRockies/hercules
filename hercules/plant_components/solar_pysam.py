@@ -16,7 +16,7 @@ from hercules.utilities import interpolate_df
 class SolarPySAM(ComponentBase):
     def __init__(self, h_dict):
         """
-        Initializes the WindSimLongTerm class.
+        Initializes the SolarPySAM class.
         Args:
             h_dict (dict): Dict containing values for the simulation
         """

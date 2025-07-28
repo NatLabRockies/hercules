@@ -84,9 +84,9 @@ def test_log_h_dict_refactored():
     actual_keys = set(emulator.h_dict_flat.keys())
 
     # Verify that all expected keys are present
-    assert expected_keys.issubset(
-        actual_keys
-    ), f"Missing expected keys: {expected_keys - actual_keys}"
+    assert expected_keys.issubset(actual_keys), (
+        f"Missing expected keys: {expected_keys - actual_keys}"
+    )
 
     # Verify that the values are correct
     assert emulator.h_dict_flat["time"] == 5.0
@@ -147,9 +147,9 @@ def test_log_h_dict_with_wind_farm_arrays():
     actual_keys = set(emulator.h_dict_flat.keys())
 
     # Verify that all expected keys are present
-    assert expected_keys.issubset(
-        actual_keys
-    ), f"Missing expected keys: {expected_keys - actual_keys}"
+    assert expected_keys.issubset(actual_keys), (
+        f"Missing expected keys: {expected_keys - actual_keys}"
+    )
 
     # Verify that the values are correct
     assert emulator.h_dict_flat["time"] == 5.0

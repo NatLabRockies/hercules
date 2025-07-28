@@ -133,7 +133,7 @@ def test_load_hercules_input_valid_file():
     # Check component configurations
     assert "wind_farm" in result
     assert "solar_farm" in result
-    assert result["wind_farm"]["component_type"] == "WindSimLongTerm"
+    assert result["wind_farm"]["component_type"] == "Wind_MesoToPower"
     assert result["solar_farm"]["component_type"] == "SolarPySAMPVWatts"
 
     # Check verbose defaults to False
@@ -248,7 +248,7 @@ def test_load_h_dict_from_text_valid_file():
         "starttime": 0.0,
         "endtime": 3600.0,
         "plant": {"interconnect_limit": 30000.0, "location": "test_site"},
-        "wind_farm": {"component_type": "WindSimLongTerm", "capacity": 100.0},
+        "wind_farm": {"component_type": "Wind_MesoToPower", "capacity": 100.0},
         "solar_farm": {"component_type": "SolarPySAMPVWatts", "capacity": 50.0},
         "verbose": False,
         "time": 1800.0,
@@ -271,7 +271,7 @@ def test_load_h_dict_from_text_valid_file():
         # Verify specific nested structures
         assert result["plant"]["interconnect_limit"] == 30000.0
         assert result["plant"]["location"] == "test_site"
-        assert result["wind_farm"]["component_type"] == "WindSimLongTerm"
+        assert result["wind_farm"]["component_type"] == "Wind_MesoToPower"
         assert result["solar_farm"]["capacity"] == 50.0
         assert result["external_signals"]["wind_speed"] == 8.5
 

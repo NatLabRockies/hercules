@@ -1,4 +1,4 @@
-# Example 10: Long Run Wind Only
+# Example 02: Wind Farm Realistic Inflow
 
 ## Description
 
@@ -15,7 +15,7 @@ points in the variable files.
 
 The original data is not committed to the repo so for this example to run must manually add the folder:
 
-`example_case_folders/12_WindSimLongTerm_RealisticInflow/inputs/wind_resource_rex`
+`example_case_folders/02_wind_farm_realistic_inflow/inputs/wind_resource_rex`
 
 ## Setup
 

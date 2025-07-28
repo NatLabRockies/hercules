@@ -1,10 +1,10 @@
-# WindSimLongTerm
+# Wind_MesoToPower
 
-WindSimLongTerm is a comprehensive wind farm simulator that combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
+Wind_MesoToPower is a comprehensive wind farm simulator that focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. It combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
 
 ## Overview
 
-WindSimLongTerm integrates FLORIS for wake effects with individual turbine models to simulate wind farm behavior over extended periods. It supports both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.
+Wind_MesoToPower integrates FLORIS for wake effects with individual turbine models to simulate wind farm behavior over extended periods. It supports both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.
 
 ## Configuration
 

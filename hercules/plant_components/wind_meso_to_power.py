@@ -1,4 +1,4 @@
-# Implements the long run wind model for Hercules.
+# Implements the meso-scale wind model for Hercules.
 
 
 import numpy as np
@@ -13,10 +13,15 @@ from scipy.stats import circmean
 RPM2RADperSec = 2 * np.pi / 60.0
 
 
-class WindSimLongTerm(ComponentBase):
+class Wind_MesoToPower(ComponentBase):
     def __init__(self, h_dict):
         """
-        Initializes the WindSimLongTerm class.
+        Initializes the Wind_MesoToPower class.
+
+        This model focuses on meso-scale wind phenomena by applying a separate wind speed
+        time signal to each turbine model derived from data. It combines FLORIS wake
+        modeling with detailed turbine dynamics for wind farm performance analysis.
+
         Args:
             h_dict (dict): Dict containing values for the simulation
         """
@@ -25,7 +30,7 @@ class WindSimLongTerm(ComponentBase):
         self.component_name = "wind_farm"
 
         # Store the type of this component
-        self.component_type = "WindSimLongTerm"
+        self.component_type = "Wind_MesoToPower"
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)
@@ -276,7 +281,7 @@ class WindSimLongTerm(ComponentBase):
         self.capacity = self.n_turbines * self.rated_turbine_power
 
         # Update the user
-        self.logger.info(f"Initialized WindSimLongTerm with {self.n_turbines} turbines")
+        self.logger.info(f"Initialized Wind_MesoToPower with {self.n_turbines} turbines")
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.

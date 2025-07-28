@@ -28,7 +28,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `external_data_file` | str | External data file path | - |
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components (components)** |
-| `component_type` | str | Must be "WindSimLongTerm" |
+| `component_type` | str | Must be "Wind_MesoToPower" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |

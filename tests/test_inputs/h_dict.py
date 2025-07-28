@@ -3,7 +3,7 @@
 plant = {"interconnect_limit": 30000.0}
 
 wind_farm = {
-    "component_type": "WindSimLongTerm",
+    "component_type": "Wind_MesoToPower",
     "floris_input_file": "tests/test_inputs/floris_input.yaml",
     "wind_input_filename": "tests/test_inputs/wind_input.csv",
     "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",

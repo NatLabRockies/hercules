@@ -5,7 +5,7 @@ from hercules.plant_components.lib import LIB
 from hercules.plant_components.simple_battery import SimpleBattery
 from hercules.plant_components.solar_pysam_pvsam import SolarPySAMPVSam
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
-from hercules.plant_components.wind_sim_long_term import WindSimLongTerm
+from hercules.plant_components.wind_meso_to_power import Wind_MesoToPower
 from hercules.utilities import get_available_component_names, get_available_generator_names
 
 
@@ -92,8 +92,8 @@ class HybridPlant:
         Raises:
             Exception: If the component_type is not recognized.
         """
-        if h_dict[component_name]["component_type"] == "WindSimLongTerm":
-            return WindSimLongTerm(h_dict)
+        if h_dict[component_name]["component_type"] == "Wind_MesoToPower":
+            return Wind_MesoToPower(h_dict)
 
         if h_dict[component_name]["component_type"] == "SolarPySAMPVSam":
             return SolarPySAMPVSam(h_dict)
