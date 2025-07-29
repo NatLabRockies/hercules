@@ -91,8 +91,6 @@ class SolarPySAMPVWatts(SolarPySAMBase):
 
         ac = np.array(self.system_model.Outputs.gen)  # in kW
         self.power = ac[0]  # calculating one timestep at a time
-        if self.verbose:
-            self.logger.info(f"self.power = {self.power}")
 
         # Apply control, if setpoint is provided
         P_setpoint = self._get_power_setpoint(h_dict)
@@ -100,6 +98,9 @@ class SolarPySAMPVWatts(SolarPySAMBase):
 
         if self.power < 0.0:
             self.power = 0.0
+
+        if self.verbose:
+            self.logger.info(f"self.power = {self.power}")
 
         # Extract outputs specific to PVWatts model
         self.dni = self.system_model.Outputs.dn[0]  # direct normal irradiance
@@ -109,7 +110,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         self.poa = self.system_model.Outputs.poa[0]  # plane of array irradiance
 
         if self.verbose:
-            print("self.poa = ", self.poa)
+            self.logger.info(f"self.poa = {self.poa}")
 
         # Update the h_dict with outputs
         self._update_outputs(h_dict)
