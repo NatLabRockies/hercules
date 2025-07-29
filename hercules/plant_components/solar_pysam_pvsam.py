@@ -141,7 +141,7 @@ class SolarPySAMPVSam(SolarPySAMBase):
         self.poa = self.system_model.Outputs.subarray1_poa_eff[0]  # plane of array irradiance
 
         if self.verbose:
-            print("self.poa = ", self.poa)
+            self.logger.info(f"self.poa = {self.poa}")
 
         # Update the h_dict with outputs
         self._update_outputs(h_dict)
