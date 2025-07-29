@@ -334,6 +334,7 @@ def load_h_dict_from_text(filename):
             "False": False,
             "None": None,
             "inf": np.inf,  # Added line
+            "range": range,
         }
 
         # Use eval with the safe namespace to handle numpy objects
