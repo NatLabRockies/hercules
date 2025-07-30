@@ -7,7 +7,6 @@ import tempfile
 
 import numpy as np
 import pandas as pd
-from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -65,8 +64,38 @@ def run_simulation(input_file, num_time_steps):
     # Set up logger
     logger = setup_logging(console_output=False)
 
+    # Define a simple controller that sets all deratings to full rating
+    # and then sets the derating of turbine 000 to 500
+    class ControllerSimple:
+        """A simple controller for testing."""
+
+        def __init__(self, h_dict):
+            """Initialize the controller.
+
+            Args:
+                h_dict (dict): Hercules input dictionary.
+            """
+            pass
+
+        def step(self, h_dict):
+            """Execute one control step.
+
+            Args:
+                h_dict (dict): Hercules input dictionary.
+
+            Returns:
+                dict: Updated Hercules input dictionary.
+            """
+            # Set deratings to full rating
+            for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
+                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+
+            h_dict["wind_farm"]["derating_000"] = 500
+
+            return h_dict
+
     # Initialize the controller
-    controller = ControllerStandin(h_dict)
+    controller = ControllerSimple(h_dict)
 
     # Initialize the hybrid plant
     hybrid_plant = HybridPlant(h_dict)
