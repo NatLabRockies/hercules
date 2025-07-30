@@ -2,7 +2,6 @@ import os
 import shutil
 import sys
 
-from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -21,7 +20,7 @@ if len(sys.argv) > 2:
         "Usage: python hercules_runscript.py [hercules_input_file] or python hercules_runscript.py"
     )
 
-# If one arugument is provided, use it as the input file
+# If one argument is provided, use it as the input file
 if len(sys.argv) == 2:
     input_file = sys.argv[1]
 # If no arguments are provided, use the default input file
@@ -34,8 +33,44 @@ logger.info(f"Starting with input file: {input_file}")
 # Load the input file
 h_dict = load_hercules_input(input_file)
 
+# Define a simple controller that sets all deratings to full rating
+# and then sets the derating of turbine 000 to 500, toggling every other 100 seconds.
+class ControllerToggleTurbine000:
+    """A simple controller that toggles the derating of turbine 000 every other 100 seconds.
+
+    This controller sets all turbines to full rating (5000) and then lowers
+    the derating of turbine 000 to 500 every other 100 seconds.
+    """
+
+    def __init__(self, h_dict):
+        """Initialize the controller.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+        """
+        pass
+
+    def step(self, h_dict):
+        """Execute one control step.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+
+        Returns:
+            dict: The updated hercules input dictionary.
+        """
+        # Set deratings to full rating
+        for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
+            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+
+        # Lower t0 derating every other 100 seconds
+        if h_dict["time"] % 200 < 100:
+            h_dict["wind_farm"]["derating_000"] = 500
+        return h_dict
+
+
 # Initialize the controller
-controller = ControllerStandin(h_dict)
+controller = ControllerToggleTurbine000(h_dict)
 
 # Initialize the hybrid plant
 hybrid_plant = HybridPlant(h_dict)
