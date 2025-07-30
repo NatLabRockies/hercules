@@ -70,10 +70,6 @@ class SolarPySAMPVSam(SolarPySAMBase):
         self.lat = sys_design["Other"]["lat"]
         self.lon = sys_design["Other"]["lon"]
 
-        # Dynamic sizing parameters
-        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
-        self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
-
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
         # Create pysam model
