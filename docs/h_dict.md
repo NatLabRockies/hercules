@@ -43,8 +43,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `system_info_file_name` | str | System info file (JSON) |
 | **For SolarPySAMPVWatts:** |
 | `pysam_model` | str | "pvsam" or "pvwatts" |
-| `solar_input_filename` | str | Solar data file (or None) |
-| `weather_data_input` | dict | Weather data dictionary |
+| `solar_input_filename` | str | Solar data file path |
 | `target_system_capacity` | float | System capacity in kW |
 | `target_dc_ac_ratio` | float | DC/AC ratio |
 | `lat` | float | Latitude |

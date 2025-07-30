@@ -68,36 +68,22 @@ class SolarPySAMBase(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
-        # Check that either
-        # 1. There is solar_input_filename that is not None and no weather_data_input dictionary
-        #    or
-        # 2. There is a weather_data_input dictionary and either:
-        #       solar_input_filename is not in h_dict[self.component_name] or is none
-        if ("solar_input_filename" in h_dict[self.component_name]) and (
-            h_dict[self.component_name]["solar_input_filename"] is not None
+        # Check that solar_input_filename is provided and not None
+        if ("solar_input_filename" not in h_dict[self.component_name]) or (
+            h_dict[self.component_name]["solar_input_filename"] is None
         ):
-            if "weather_data_input" in h_dict[self.component_name]:
-                raise ValueError(
-                    f"Cannot have both solar_input_filename and weather_data_input "
-                    f"in h_dict[{self.component_name}]"
-                )
-            else:
-                if h_dict[self.component_name]["solar_input_filename"].endswith(".csv"):
-                    df_solar = pd.read_csv(h_dict[self.component_name]["solar_input_filename"])
-                elif h_dict[self.component_name]["solar_input_filename"].endswith(".p"):
-                    df_solar = pd.read_pickle(h_dict[self.component_name]["solar_input_filename"])
-                elif (h_dict[self.component_name]["solar_input_filename"].endswith(".f")) | (
-                    h_dict[self.component_name]["solar_input_filename"].endswith(".ftr")
-                ):
-                    df_solar = pd.read_feather(h_dict[self.component_name]["solar_input_filename"])
+            raise ValueError(f"Must provide solar_input_filename in h_dict[{self.component_name}]")
+
+        # Load solar data from file
+        solar_input_filename = h_dict[self.component_name]["solar_input_filename"]
+        if solar_input_filename.endswith(".csv"):
+            df_solar = pd.read_csv(solar_input_filename)
+        elif solar_input_filename.endswith(".p"):
+            df_solar = pd.read_pickle(solar_input_filename)
+        elif (solar_input_filename.endswith(".f")) | (solar_input_filename.endswith(".ftr")):
+            df_solar = pd.read_feather(solar_input_filename)
         else:
-            if "weather_data_input" not in h_dict[self.component_name]:
-                raise ValueError(
-                    f"Must have either solar_input_filename or weather_data_input "
-                    f"in h_dict[{self.component_name}]"
-                )
-            else:
-                df_solar = pd.DataFrame.from_dict(h_dict[self.component_name]["weather_data_input"])
+            raise ValueError(f"Unsupported file format for solar input: {solar_input_filename}")
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_solar.columns:

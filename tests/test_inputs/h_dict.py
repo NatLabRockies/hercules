@@ -24,16 +24,7 @@ solar_farm_pysam = {
 
 solar_farm_pvsam = {
     "component_type": "SolarPySAMPVSam",
-    "solar_input_filename": None,
-    "weather_data_input": {
-        "time": [0],
-        "time_utc": ["2018-05-10 12:31:00+00:00"],
-        "SRRL BMS Direct Normal Irradiance (W/m²_irr)": [330.8601989746094],
-        "SRRL BMS Diffuse Horizontal Irradiance (W/m²_irr)": [32.576671600341804],
-        "SRRL BMS Global Horizontal Irradiance (W/m²_irr)": [68.23037719726561],
-        "SRRL BMS Wind Speed at 19' (m/s)": [0.4400002620664621],
-        "SRRL BMS Dry Bulb Temperature (°C)": [11.990000406901045],
-    },
+    "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
     "system_info_file_name": "tests/test_inputs/100MW_1axis_pvsamv1.json",
     "lat": 39.7442,
     "lon": -105.1778,
@@ -45,16 +36,7 @@ solar_farm_pvsam = {
 
 solar_farm_pvwatts = {
     "component_type": "SolarPySAMPVWatts",
-    "solar_input_filename": None,
-    "weather_data_input": {
-        "time": [0],
-        "time_utc": ["2018-05-10 12:31:00+00:00"],
-        "SRRL BMS Direct Normal Irradiance (W/m²_irr)": [330.8601989746094],
-        "SRRL BMS Diffuse Horizontal Irradiance (W/m²_irr)": [32.576671600341804],
-        "SRRL BMS Global Horizontal Irradiance (W/m²_irr)": [68.23037719726561],
-        "SRRL BMS Wind Speed at 19' (m/s)": [0.4400002620664621],
-        "SRRL BMS Dry Bulb Temperature (°C)": [11.990000406901045],
-    },
+    "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
     "lat": 39.7442,
     "lon": -105.1778,
     "elev": 1829,
