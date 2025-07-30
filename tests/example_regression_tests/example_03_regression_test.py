@@ -15,7 +15,7 @@ from test_example_utilities import (
 
 ## Parameters
 # Example-specific configuration
-EXAMPLE_DIR = "example_case_folders/03_wind_and_solar"
+EXAMPLE_DIR = "examples/03_wind_and_solar"
 EXAMPLE_NAME = "example_03"
 EXAMPLE_DESCRIPTION = "Wind and Solar"
 

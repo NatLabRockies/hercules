@@ -12,7 +12,7 @@ from test_example_utilities import (
 
 ## Parameters
 # Example-specific configuration
-EXAMPLE_DIR = "example_case_folders/00_wind_farm_only"
+EXAMPLE_DIR = "examples/00_wind_farm_only"
 EXAMPLE_NAME = "example_00"
 EXAMPLE_DESCRIPTION = "Wind Farm Only"
 
