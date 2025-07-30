@@ -328,20 +328,6 @@ def get_num_modules(pvsam_model) -> float:
     return n_modules
 
 
-"""
-def get_modules_per_string(system_model) -> float:
-    if isinstance(system_model, PVSamv1.Pvsamv1):
-        return system_model.value('subarray1_modules_per_string')
-    else:
-        return pv_module.modules_per_string
-
-
-def get_inverter_power(pvsam_model: PVSamv1.Pvsamv1) -> float:
-    inverter_attribs = get_inverter_attribs(pvsam_model)
-    return inverter_attribs['P_ac']
-"""
-
-
 def set_cec_module_library_selection(model, module_name: str) -> dict:
     """
     Return the module values from the CEC Module Database library as a dictionary
