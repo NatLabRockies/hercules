@@ -50,6 +50,9 @@ class SolarPySAMBase(ComponentBase):
         # Save the system capacity
         self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
 
+        # Save the target dc/ac ratio
+        self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
+
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
         self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
@@ -82,19 +85,21 @@ class SolarPySAMBase(ComponentBase):
             df_solar = pd.read_pickle(solar_input_filename)
         elif (solar_input_filename.endswith(".f")) | (solar_input_filename.endswith(".ftr")):
             df_solar = pd.read_feather(solar_input_filename)
+        elif solar_input_filename.endswith(".parquet"):
+            df_solar = pd.read_parquet(solar_input_filename)
         else:
             raise ValueError(f"Unsupported file format for solar input: {solar_input_filename}")
 
-        # Make sure the df_wi contains a column called "time"
+        # Make sure the df_solar contains a column called "time"
         if "time" not in df_solar.columns:
             raise ValueError("Solar input file must contain a column called 'time'")
 
-        # Make sure that both starttime and endtime are in the df_wi
+        # Make sure that both starttime and endtime are in the df_solar
         if not (df_solar["time"].min() <= self.starttime <= df_solar["time"].max()):
             raise ValueError(
                 f"Start time {self.starttime} is not in the range of the solar input file"
             )
-        if not (df_solar["time"].min() <= self.endtime - self.dt <= df_solar["time"].max()):
+        if not (df_solar["time"].min() <= self.endtime <= df_solar["time"].max() + self.dt):
             raise ValueError(
                 f"End time {self.endtime - self.dt} is not in the range of the solar input file"
             )
@@ -106,7 +111,7 @@ class SolarPySAMBase(ComponentBase):
         # Make sure time_utc is a datatime
         df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
 
-        # Interpolate df_wi on to the time steps
+        # Interpolate df_solar on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
         df_solar = interpolate_df(df_solar, time_steps_all)
 
