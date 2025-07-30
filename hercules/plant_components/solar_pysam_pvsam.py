@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import PySAM.Pvsamv1 as pvsam
 from hercules.plant_components.solar_pysam_base import SolarPySAMBase
-from hercules.tools.Pvsamv1Tools import size_electrical_parameters
+from hercules.utilities_pvsam import size_electrical_parameters
 
 
 class SolarPySAMPVSam(SolarPySAMBase):

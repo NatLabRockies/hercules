@@ -43,8 +43,8 @@ def find_modules_per_string(
         v_mp_module (float): Voltage of module at maximum point point at reference conditions, V.
         v_oc_module (float): Open circuit voltage of module at reference conditions, V.
         inv_vdcmax (float): Maximum inverter input DC voltage, V.
-        target_relative_string_voltage (float, optional): Relative string voltage within MPPT voltage window,
-            [0, 1]. Defaults to None.
+        target_relative_string_voltage (float, optional): Relative string voltage within MPPT
+            voltage window, [0, 1]. Defaults to None.
 
     Returns:
         float: Number of modules per string.
@@ -267,8 +267,8 @@ def verify_capacity_from_electrical_parameters(
         n_strings (List[int]): Number of strings in each subarray, -.
         modules_per_string (List[int]): Modules per string in each subarray, -.
         module_power (float): Module power at maximum point point at reference conditions, kW.
-        percent_max_deviation (float, optional): If calculated system capacity differs from target by
-            this percent or more, raise an exception; if None, do not check. Defaults to 5.
+        percent_max_deviation (float, optional): If calculated system capacity differs from target
+            by this percent or more, raise an exception; if None, do not check. Defaults to 5.
 
     Returns:
         float: Calculated system capacity, kW.
