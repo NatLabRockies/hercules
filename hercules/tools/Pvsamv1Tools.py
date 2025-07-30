@@ -31,20 +31,23 @@ def find_modules_per_string(
     inv_vdcmax: float,
     target_relative_string_voltage: float = None,
 ) -> float:
-    """
+    """Calculate the number of modules per string to best match target string voltage.
+
     Helper function for size_electrical_parameters that calculates the
-    number of modules per string to best match target string voltage
+    number of modules per string to best match target string voltage.
 
-    :param model: PySAM.PVsamv1 model
-    :param v_mppt_min: lower boundary of inverter maximum-power-point operating window, V
-    :param v_mppt_max: upper boundary of inverter maximum-power-point operating window, V
-    :param v_mp_module: voltage of module at maximum point point at reference conditions, V
-    :param v_oc_module: open circuit voltage of module at reference conditions, V
-    :param inv_vdcmax: maximum inverter input DC voltage, V
-    :param target_relative_string_voltage: relative string voltage within MPPT voltage window,
-        [0, 1]
+    Args:
+        model: PySAM.PVsamv1 model.
+        v_mppt_min (float): Lower boundary of inverter maximum-power-point operating window, V.
+        v_mppt_max (float): Upper boundary of inverter maximum-power-point operating window, V.
+        v_mp_module (float): Voltage of module at maximum point point at reference conditions, V.
+        v_oc_module (float): Open circuit voltage of module at reference conditions, V.
+        inv_vdcmax (float): Maximum inverter input DC voltage, V.
+        target_relative_string_voltage (float, optional): Relative string voltage within MPPT voltage window,
+            [0, 1]. Defaults to None.
 
-    :returns: number of modules per string
+    Returns:
+        float: Number of modules per string.
     """
     if v_mp_module <= 0:
         raise Exception("Module maximum power point voltage must be greater than 0.")
@@ -68,17 +71,20 @@ def find_inverter_count(
     module_power: float,
     inverter_power: float,
 ):
-    """
-    Helper function for size_electrical_parameters that sizes the number of inverters
+    """Calculate the number of inverters needed for the system.
 
-    :param model: PySAM.Pvsamv1 model
-    :param dc_ac_ratio: DC-to-AC ratio
-    :param modules_per_string: modules per string
-    :param n_strings: number of strings in array
-    :param module_power: module power at maximum point point at reference conditions, kW
-    :param inverter_power: inverter maximum AC power, kW
+    Helper function for size_electrical_parameters that sizes the number of inverters.
 
-    :returns: number of inverters in array
+    Args:
+        model: PySAM.Pvsamv1 model.
+        dc_ac_ratio (float): DC-to-AC ratio.
+        modules_per_string (float): Modules per string.
+        n_strings (float): Number of strings in array.
+        module_power (float): Module power at maximum point point at reference conditions, kW.
+        inverter_power (float): Inverter maximum AC power, kW.
+
+    Returns:
+        float: Number of inverters in array.
     """
     n_inverters_frac = (
         modules_per_string * n_strings * module_power / (dc_ac_ratio * inverter_power)
@@ -96,19 +102,22 @@ def size_electrical_parameters(
     n_inputs_inverter: Optional[float] = None,
     n_inputs_combiner: Optional[float] = None,
 ):
-    """
+    """Calculate electrical parameters to match target capacity and DC/AC ratio.
+
     Calculates the number of strings, combiner boxes and inverters to best match target
-    capacity and DC/AC ratio
+    capacity and DC/AC ratio.
 
-    :param model: PySAM.Pvsamv1 model
-    :param target_system_capacity: target system capacity, kW
-    :param target_dc_ac_ratio: target DC-to-AC ratio
-    :param vdcmax_inverter: inverter maximum DC voltage, V
-    :param n_inputs_inverter: number of DC inputs per inverter
-    :param n_inputs_combiner: number of DC inputs per combiner box
+    Args:
+        model: PySAM.Pvsamv1 model.
+        target_system_capacity (float): Target system capacity, kW.
+        target_dc_ac_ratio (float): Target DC-to-AC ratio.
+        vdcmax_inverter (float, optional): Inverter maximum DC voltage, V. Defaults to None.
+        n_inputs_inverter (float, optional): Number of DC inputs per inverter. Defaults to None.
+        n_inputs_combiner (float, optional): Number of DC inputs per combiner box. Defaults to None.
 
-    :returns: number of strings, number of combiner boxes, number of inverters, calculated
-        system capacity, kW
+    Returns:
+        tuple: Number of strings, number of combiner boxes, number of inverters, calculated
+            system capacity, kW.
     """
 
     module_model = model.value("module_model")
@@ -247,19 +256,22 @@ def verify_capacity_from_electrical_parameters(
     module_power: float,
     percent_max_deviation: float = 5,
 ) -> float:
-    """
+    """Compute system capacity from electrical parameters and verify against target.
+
     Computes system capacity from specified number of strings, modules per
     string and module power. If computed capacity is significantly different than
     the specified capacity an exception will be thrown.
 
-    :param system_capacity_target: target system capacity, kW
-    :param n_strings: number of strings in each subarray, -
-    :param modules_per_string: modules per string in each subarray, -
-    :param module_power: module power at maximum point point at reference conditions, kW
-    :param percent_max_deviation: if calculated system capacity differs from target by
-        this percent or more, raise an exception; if None, do not check
+    Args:
+        system_capacity_target (float): Target system capacity, kW.
+        n_strings (List[int]): Number of strings in each subarray, -.
+        modules_per_string (List[int]): Modules per string in each subarray, -.
+        module_power (float): Module power at maximum point point at reference conditions, kW.
+        percent_max_deviation (float, optional): If calculated system capacity differs from target by
+            this percent or more, raise an exception; if None, do not check. Defaults to 5.
 
-    :returns: calculated system capacity, kW
+    Returns:
+        float: Calculated system capacity, kW.
     """
     # PERCENT_MAX_DEVIATION = 5       # [%]
     assert len(n_strings) == len(modules_per_string)
@@ -287,18 +299,20 @@ def align_from_capacity(
     module_power: float,
     inverter_power: float,
 ) -> list:
-    """
+    """Ensure coherence between parameters for detailed PV model.
+
     Ensure coherence between parameters for detailed PV model (pvsamv1),
-    keeping the DC-to-AC ratio approximately the same
+    keeping the DC-to-AC ratio approximately the same.
 
-    :param system_capacity_target: target system capacity, kW
-    :param dc_ac_ratio: DC-to-AC ratio
-    :param modules_per_string: modules per string, -
-    :param module_power: module power at maximum point point at reference conditions, kW
-    :param inverter_power: inverter maximum AC power, kW
-    :param n_inverters_orig: original number of inverters
+    Args:
+        system_capacity_target (float): Target system capacity, kW.
+        dc_ac_ratio (float): DC-to-AC ratio.
+        modules_per_string (float): Modules per string, -.
+        module_power (float): Module power at maximum point point at reference conditions, kW.
+        inverter_power (float): Inverter maximum AC power, kW.
 
-    :returns: number strings, calculated system capacity [kW], number of inverters
+    Returns:
+        list: Number strings, calculated system capacity [kW], number of inverters.
     """
     n_strings_frac = system_capacity_target / (modules_per_string * module_power)
     n_strings = max(1, round(n_strings_frac))
@@ -316,8 +330,13 @@ def align_from_capacity(
 
 
 def get_num_modules(pvsam_model) -> float:
-    """
-    Return the number of modules in all subarrays
+    """Return the number of modules in all subarrays.
+
+    Args:
+        pvsam_model: PySAM PV model.
+
+    Returns:
+        float: Number of modules in all subarrays.
     """
     n_modules = 0
     for i in range(1, 4 + 1):
@@ -329,13 +348,16 @@ def get_num_modules(pvsam_model) -> float:
 
 
 def set_cec_module_library_selection(model, module_name: str) -> dict:
-    """
-    Return the module values from the CEC Module Database library as a dictionary
+    """Set module values from the CEC Module Database library.
 
-    :param model: Pvsamv1 model to write the module values to
-    :param module_name: Name of module for indexing library, str
+    Return the module values from the CEC Module Database library as a dictionary.
 
-    :returns: dictionary with variable values for selected module
+    Args:
+        model: Pvsamv1 model to write the module values to.
+        module_name (str): Name of module for indexing library.
+
+    Returns:
+        dict: Dictionary with variable values for selected module.
     """
     module_model = model.value("module_model")
     if module_model != 1:
@@ -370,13 +392,16 @@ def set_cec_module_library_selection(model, module_name: str) -> dict:
 
 
 def set_cec_inverter_library_selection(model, inverter_name: str) -> dict:
-    """
-    Return the inverter values from the CEC INverter Database library as a dictionary
+    """Set inverter values from the CEC Inverter Database library.
 
-    :param model: Pvsamv1 model to write the module values to
-    :param module_name: Name of module for indexing library, str
+    Return the inverter values from the CEC Inverter Database library as a dictionary.
 
-    :returns: dictionary with variable values for selected inverter
+    Args:
+        model: Pvsamv1 model to write the module values to.
+        inverter_name (str): Name of inverter for indexing library.
+
+    Returns:
+        dict: Dictionary with variable values for selected inverter.
     """
     inv_model = model.value("inverter_model")
     if inv_model != 0:
