@@ -33,6 +33,7 @@ logger.info(f"Starting with input file: {input_file}")
 # Load the input file
 h_dict = load_hercules_input(input_file)
 
+
 # Define a simple controller that sets all deratings to full rating
 # and then sets the derating of turbine 000 to 500, toggling every other 100 seconds.
 class ControllerToggleTurbine000:
