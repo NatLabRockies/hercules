@@ -2,7 +2,6 @@ import os
 import shutil
 import sys
 
-from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -21,7 +20,7 @@ if len(sys.argv) > 2:
         "Usage: python hercules_runscript.py [hercules_input_file] or python hercules_runscript.py"
     )
 
-# If one arugument is provided, use it as the input file
+# If one argument is provided, use it as the input file
 if len(sys.argv) == 2:
     input_file = sys.argv[1]
 # If no arguments are provided, use the default input file
@@ -34,11 +33,54 @@ logger.info(f"Starting with input file: {input_file}")
 # Load the input file
 h_dict = load_hercules_input(input_file)
 
-# Initialize the controller
-controller = ControllerStandin(h_dict)
+
+# Define a simple controller that sets all deratings to full rating
+# and then sets the derating of turbine 000 to 500, toggling every other 100 seconds.
+class ControllerLimitSolar:
+    """Limits the solar power to keep the total power below the interconnect limit."""
+
+    def __init__(self, h_dict):
+        """Initialize the controller.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+        """
+        self.interconnect_limit = h_dict["plant"]["interconnect_limit"]
+        pass
+
+    def step(self, h_dict):
+        """Execute one control step.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+
+        Returns:
+            dict: The updated hercules input dictionary.
+        """
+        # Set wind farm deratings to full rating
+        for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
+            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+
+        # Get the total wind farm power
+        wind_farm_power = h_dict["wind_farm"]["power"]
+
+        # Get the limit for solar power
+        solar_power_limit = max(0, self.interconnect_limit - wind_farm_power)
+
+        # Set the solar power limit
+        h_dict["solar_farm"]["power_setpoint"] = solar_power_limit
+
+        return h_dict
+
 
 # Initialize the hybrid plant
 hybrid_plant = HybridPlant(h_dict)
+
+# Add initial values and meta data back to the h_dict
+h_dict = hybrid_plant.add_plant_metadata_to_h_dict(h_dict)
+
+# Initialize the controller
+controller = ControllerLimitSolar(h_dict)
 
 # Initialize the emulator
 emulator = Emulator(controller, hybrid_plant, h_dict, logger)
