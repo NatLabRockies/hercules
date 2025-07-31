@@ -78,3 +78,8 @@ def test_control(SPS: SolarPySAMPVSam):
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)
+
+    power_setpoint = 100
+    step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
+    SPS.step(step_inputs)
+    assert_almost_equal(SPS.power, power_setpoint, decimal=8)
