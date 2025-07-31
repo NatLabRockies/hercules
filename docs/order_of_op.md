@@ -3,7 +3,7 @@
 ## Initialization
 
 1. Load configuration from YAML input file into `h_dict`
-2. Initialize controller (ControllerStandin)
+2. Initialize controller
 3. Initialize hybrid plant components based on `h_dict` configuration
 4. Initialize emulator with controller, hybrid plant, and configuration
 5. Add plant component metadata to `h_dict`
