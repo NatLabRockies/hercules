@@ -2,13 +2,12 @@
 
 ## Description
 
-...
+In this setup, wind and solar are combined in a hybrid plant.  For demonstration, the plant has a fixed interconnect limit of 3000 kW, which is much below the combined capacity of the wind and solar farms.  A simple controller limits the solar power to keep the total power below the interconnect limit.
 
 ## Pre setup
 
-1. Manually add `wind_resource_rex` folder to `example_case_folders/02_wind_farm_realistic_inflow/inputs/` folder
-2. Generate the wind resource input file (`wind_input.p`) by running `example_case_folders/02_wind_farm_realistic_inflow/00_prepare_simulation.ipynb`
-3. Generate the solar resource input file (`solar_input.p`) by running `example_case_folders/03_wind_and_solar/resample_solar_history.ipynb`
+1. Copy `wind_input.p` from the `example_case_folders/02_wind_farm_realistic_inflow/inputs/` folder to `inputs/`
+
 
 Note: If you will be running PySAM's Detailed PV Model instead of the PVWatts model, you will also need a `.json` file defining the system info.
 
