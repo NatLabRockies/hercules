@@ -5,7 +5,7 @@ name: example_03
 
 ###
 # Describe this emulator setup
-description: Long run Only
+description: Wind and solar
 
 dt: 1.0
 starttime: 0.0
@@ -14,7 +14,7 @@ verbose: False
 
 
 plant:
-  interconnect_limit: 30000 # kW
+  interconnect_limit: 3000 # kW
 
 
 wind_farm: # The name of the Wind_MesoToPower wind farm
@@ -30,12 +30,12 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 10000
+  target_system_capacity: 3000
   target_dc_ac_ratio: 1.33
 
   initial_conditions:
 
-    power: 2000 # kW
+    power: 3000 # kW
     dni: 1000
     poa: 1000
 
