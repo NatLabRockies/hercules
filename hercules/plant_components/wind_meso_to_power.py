@@ -364,6 +364,7 @@ class Wind_MesoToPower(ComponentBase):
         h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
         h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
+        h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
         return h_dict
 
     def _create_floris_cache_key(self, wind_direction, wind_speed, ti, derating):
