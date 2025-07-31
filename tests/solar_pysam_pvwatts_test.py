@@ -61,7 +61,7 @@ def test_return_outputs(SPS: SolarPySAMPVWatts):
 
 def test_step(SPS: SolarPySAMPVWatts):
     # testing the `step` function: calculating power based on inputs at first timestep
-    step_inputs = {"step": 0, "solar_farm": {}}
+    step_inputs = {"step": 0, "solar_farm": {"power_setpoint": 1e9}}
 
     SPS.step(step_inputs)
 

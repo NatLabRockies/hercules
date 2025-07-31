@@ -122,9 +122,8 @@ class SolarPySAMPVSam(SolarPySAMBase):
         if self.verbose:
             self.logger.info(f"self.power = {self.power}")
 
-        # Apply control, if setpoint is provided
-        P_setpoint = self._get_power_setpoint(h_dict)
-        self.control(P_setpoint)
+        # Apply control
+        self.control(h_dict[self.component_name]["power_setpoint"])
 
         if self.power < 0.0:
             self.power = 0.0

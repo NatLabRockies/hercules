@@ -58,7 +58,7 @@ def test_return_outputs(SPS: SolarPySAMPVSam):
 
 def test_step(SPS: SolarPySAMPVSam):
     """Test the `step` function: calculating power based on inputs at first timestep."""
-    step_inputs = {"step": 0, "solar_farm": {}}
+    step_inputs = {"step": 0, "solar_farm": {"power_setpoint": 1e10}}
 
     SPS.step(step_inputs)
 

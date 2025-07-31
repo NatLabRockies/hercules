@@ -212,27 +212,6 @@ class SolarPySAMBase(ComponentBase):
         self.system_model.SolarResource.assign({"solar_resource_data": solar_resource_data})
         self.system_model.AdjustmentFactors.assign({"constant": 0})
 
-    def _get_power_setpoint(self, h_dict):
-        """Get power setpoint from h_dict or external signals.
-
-        Args:
-            h_dict (dict): Dictionary containing simulation state.
-
-        Returns:
-            float or None: Power setpoint if specified, None otherwise.
-        """
-        # Apply control, if setpoint is provided
-        if "power_setpoint" in h_dict[self.component_name]:
-            P_setpoint = h_dict[self.component_name]["power_setpoint"]
-        elif "external_signals" in h_dict.keys():
-            if "solar_power_reference" in h_dict["external_signals"].keys():
-                P_setpoint = h_dict["external_signals"]["solar_power_reference"]
-            else:
-                P_setpoint = None
-        else:
-            P_setpoint = None
-        return P_setpoint
-
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
 

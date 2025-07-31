@@ -106,29 +106,6 @@ def SPS():
     return create_solar_pysam()
 
 
-def test_SolarPySAM_regression_no_control(SPS: SolarPySAMPVSam):
-    times_test = np.arange(0, 5, SPS.dt)
-    steps_test = list(range(len(times_test)))
-    powers_test = np.zeros_like(times_test)
-    dni_test = np.zeros_like(times_test)
-    aoi_test = np.zeros_like(times_test)
-
-    for step in steps_test:
-        out = SPS.step({"step": step, "solar_farm": {}})
-        powers_test[step] = out["solar_farm"]["power"]
-        dni_test[step] = out["solar_farm"]["dni"]
-        aoi_test[step] = out["solar_farm"]["aoi"]
-
-    if PRINT_VALUES:
-        print("Powers: ", powers_test)
-        print("DNI: ", dni_test)
-        print("AOI: ", aoi_test)
-
-    assert np.allclose(powers_base_no_control, powers_test)
-    assert np.allclose(dni_base_no_control, dni_test)
-    assert np.allclose(aoi_base_no_control, aoi_test)
-
-
 def test_SolarPySAM_regression_control(SPS: SolarPySAMPVSam):
     power_setpoint = 14550.0  # Slightly below most of the base outputs.
 

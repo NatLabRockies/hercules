@@ -87,10 +87,15 @@ def run_simulation(input_file, num_time_steps):
                 dict: Updated Hercules input dictionary.
             """
             # Set deratings to full rating
-            for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+            if "wind_farm" in h_dict:
+                for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
+                    h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
 
-            h_dict["wind_farm"]["derating_000"] = 500
+                h_dict["wind_farm"]["derating_000"] = 500
+
+            # Add a solar derating signal which is very high to have no impact
+            if "solar_farm" in h_dict:
+                h_dict["solar_farm"]["power_setpoint"] = 1e10
 
             return h_dict
 

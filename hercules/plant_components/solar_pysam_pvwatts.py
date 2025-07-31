@@ -92,9 +92,8 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         ac = np.array(self.system_model.Outputs.gen)  # in kW
         self.power = ac[0]  # calculating one timestep at a time
 
-        # Apply control, if setpoint is provided
-        P_setpoint = self._get_power_setpoint(h_dict)
-        self.control(P_setpoint)
+        # Apply control
+        self.control(h_dict[self.component_name]["power_setpoint"])
 
         if self.power < 0.0:
             self.power = 0.0
