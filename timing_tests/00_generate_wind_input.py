@@ -13,7 +13,7 @@ import pandas as pd
 
 def generate_wind_input(
     num_turbines,
-    num_time_steps, 
+    num_time_steps,
     time_step_minutes,
     base_wind_speed,
     base_wind_direction,
@@ -106,7 +106,7 @@ def main():
     # Generate the wind data
     generate_wind_input(
         num_turbines=50,
-        num_time_steps=720,  # 12 hours
+        num_time_steps=721,  # 12 hours
         time_step_minutes=1,
         base_wind_speed=10.0,
         base_wind_direction=270.0,

@@ -1,6 +1,6 @@
-"""Run wind timing test with power curtailment controller.
+"""Run solar timing test with power curtailment controller.
 
-This script runs a wind farm simulation using the generated wind input data
+This script runs a solar farm simulation using the generated solar input data
 and measures the execution time. It includes a simple controller that curtails
 power to 20 MW halfway through the simulation (at 500 minutes).
 """
@@ -23,7 +23,7 @@ PLOT_OUTPUT = True
 class PowerCurtailmentController:
     """A simple controller that curtails power to 20 MW halfway through simulation.
 
-    This controller sets all turbines to full rating initially, then curtails
+    This controller sets the solar farm to full rating initially, then curtails
     power to 20 MW at 500 minutes (halfway through the 1000-minute simulation).
     """
 
@@ -33,9 +33,8 @@ class PowerCurtailmentController:
         Args:
             h_dict (dict): The hercules input dictionary.
         """
-        self.n_turbines = h_dict["wind_farm"]["n_turbines"]
         self.curtailment_time = 10 * 60 * 60  # seconds
-        self.turbine_curtail_power = 1000  # kW
+        self.curtail_power = 10000  # kW
 
     def step(self, h_dict):
         """Execute one control step.
@@ -48,23 +47,20 @@ class PowerCurtailmentController:
         """
         current_time = h_dict["time"]
 
-        # Set all turbines to full rating initially
-        for t_idx in range(self.n_turbines):
-            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+        # # Set solar farm to full rating initially
+        h_dict["solar_farm"]["power_setpoint"] = None
 
         # Apply curtailment after 500 minutes
         if current_time >= self.curtailment_time:
-            # Simple proportional curtailment to reduce power output
-            for t_idx in range(self.n_turbines):
-                # Reduce power
-                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = self.turbine_curtail_power
+            # Curtail power to specified level
+            h_dict["solar_farm"]["power_setpoint"] = self.curtail_power
 
         return h_dict
 
 
 def main():
-    """Run the wind timing test with power curtailment."""
-    print("Starting wind timing test with power curtailment...")
+    """Run the solar timing test with power curtailment."""
+    print("Starting solar timing test with power curtailment...")
 
     # Clean up output directory
     if os.path.exists("outputs"):
@@ -73,10 +69,10 @@ def main():
 
     # Setup logging
     logger = setup_logging()
-    logger.info("Starting wind timing test with power curtailment")
+    logger.info("Starting solar timing test with power curtailment")
 
     # Load the input file
-    input_file = "hercules_input_wind.yaml"
+    input_file = "hercules_input_solar.yaml"
     logger.info(f"Loading input file: {input_file}")
     h_dict = load_hercules_input(input_file)
 
@@ -109,7 +105,7 @@ def main():
     result_file = "timing_results.csv"
     record_timing_result(
         result_file=result_file,
-        test_name="wind",
+        test_name="solar",
         test_result_seconds=execution_time,
         notes=None,
     )
@@ -122,14 +118,14 @@ def main():
         df_p = pd.read_csv("outputs/hercules_output.csv", index_col=False)
 
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(df_p["time"], df_p["wind_farm.power"])
+        ax.plot(df_p["time"], df_p["solar_farm.power"])
         ax.axvline(
             x=controller.curtailment_time, color="red", linestyle="--", label="Curtailment Start"
         )
         ax.legend()
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Power Output (kW)")
-        ax.set_title("Wind Farm Power Output")
+        ax.set_title("Solar Farm Power Output")
         plt.show()
 
 

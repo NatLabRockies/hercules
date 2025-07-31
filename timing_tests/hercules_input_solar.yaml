@@ -9,7 +9,7 @@ description: Solar Farm Only
 
 dt: 1.0
 starttime: 0.0
-endtime: 86400.0
+endtime: 43200.0
 verbose: False
 
 plant:

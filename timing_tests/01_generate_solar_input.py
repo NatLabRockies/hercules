@@ -104,7 +104,7 @@ def generate_solar_input(
             # Temperature (simplified model)
             base_temp = 20 + 10 * np.sin(np.radians(hour * 15 - 90))  # Daily cycle
             temp_data[i] = base_temp + 5 * np.random.randn()
-            
+
             # Wind speed (simplified model)
             base_wind = 2.0 + 1.0 * np.sin(np.radians(hour * 15))  # Daily cycle
             wind_speed_data[i] = base_wind + 0.5 * np.random.randn()
@@ -139,7 +139,7 @@ def main():
 
     # Generate the solar data
     generate_solar_input(
-        num_time_steps=720,  # 12 hours
+        num_time_steps=721,  # 12 hours
         time_step_minutes=1,
         latitude=40.0,  # Example latitude (Denver area)
         longitude=-105.0,  # Example longitude
