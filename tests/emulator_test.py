@@ -1,9 +1,36 @@
-from hercules.controller_standin import ControllerStandin
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import setup_logging
 
 from .test_inputs.h_dict import h_dict_solar, h_dict_wind
+
+
+class SimpleController:
+    """A simple controller for testing that just returns the h_dict unchanged."""
+
+    def __init__(self, h_dict):
+        """Initialize the controller.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+        """
+        pass
+
+    def step(self, h_dict):
+        """Execute one control step.
+
+        Args:
+            h_dict (dict): The hercules input dictionary.
+
+        Returns:
+            dict: The updated hercules input dictionary.
+        """
+        # Set deratings for wind turbines if wind farm is present
+        if "wind_farm" in h_dict and "n_turbines" in h_dict["wind_farm"]:
+            for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
+                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+
+        return h_dict
 
 
 def test_Emulator_instantiation():
@@ -15,7 +42,7 @@ def test_Emulator_instantiation():
     # Set up logger for testing
     logger = setup_logging(console_output=False)
 
-    controller = ControllerStandin(test_h_dict)
+    controller = SimpleController(test_h_dict)
     hybrid_plant = HybridPlant(test_h_dict)
 
     emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
@@ -53,7 +80,7 @@ def test_log_h_dict_refactored():
     # Set up logger for testing
     logger = setup_logging(console_output=False)
 
-    controller = ControllerStandin(test_h_dict)
+    controller = SimpleController(test_h_dict)
     hybrid_plant = HybridPlant(test_h_dict)
 
     emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
@@ -113,7 +140,7 @@ def test_log_h_dict_with_wind_farm_arrays():
     # Set up logger for testing
     logger = setup_logging(console_output=False)
 
-    controller = ControllerStandin(test_h_dict)
+    controller = SimpleController(test_h_dict)
     hybrid_plant = HybridPlant(test_h_dict)
 
     emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
