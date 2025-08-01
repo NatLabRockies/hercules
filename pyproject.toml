@@ -34,6 +34,7 @@ dependencies = [
 "netCDF4",
 "rainflow~=3.2",
 "tqdm~=4.66",
+"tomllib",
 ]
 
 [project.optional-dependencies]
