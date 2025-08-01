@@ -1,8 +1,7 @@
 """Test to ensure version consistency between pyproject.toml and CITATION.cff."""
 
+import re
 from pathlib import Path
-
-import tomllib
 
 
 def read_version_from_pyproject():
@@ -11,9 +10,15 @@ def read_version_from_pyproject():
     Returns:
         str: Version string from pyproject.toml.
     """
-    with open("pyproject.toml", "rb") as f:
-        data = tomllib.load(f)
-    return data["project"]["version"]
+    with open("pyproject.toml", "r") as f:
+        content = f.read()
+
+    # Use regex to find version line
+    version_match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+    if not version_match:
+        raise ValueError("Version not found in pyproject.toml")
+
+    return version_match.group(1)
 
 
 def read_version_from_citation():
