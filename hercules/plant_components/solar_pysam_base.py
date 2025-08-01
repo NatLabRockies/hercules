@@ -164,7 +164,7 @@ class SolarPySAMBase(ComponentBase):
 
         return h_dict
 
-    def control(self, power_setpoint=None):
+    def control(self, power_setpoint):
         """Controls the PV plant power output to meet a specified setpoint.
 
         This low-level controller enforces power setpoints for the PV plant by
@@ -173,44 +173,17 @@ class SolarPySAMBase(ComponentBase):
 
         Args:
             power_setpoint (float, optional): Desired total PV plant output in kW.
-                If None, no control is applied.
+
         """
         # modify power output based on setpoint
-        if power_setpoint is not None:
-            if self.verbose:
-                self.logger.info(f"power_setpoint = {power_setpoint}")
-            if self.power > power_setpoint:
-                self.power = power_setpoint
-                # Keep track of power that could go to charging battery
-                self.excess_power = self.power - power_setpoint
-            if self.verbose:
-                self.logger.info(f"self.power after control = {self.power}")
-
-    def _assign_solar_resource(self, step):
-        """Assign solar resource data for the current step.
-
-        Args:
-            step (int): Current simulation step.
-        """
-        solar_resource_data = {
-            "tz": self.tz,  # 0 for UTC
-            "elev": self.elev,
-            "lat": self.lat,  # latitude
-            "lon": self.lon,  # longitude
-            "year": tuple([self.year_array[step]]),  # year
-            "month": tuple([self.month_array[step]]),  # month
-            "day": tuple([self.day_array[step]]),  # day
-            "hour": tuple([self.hour_array[step]]),  # hour
-            "minute": tuple([self.minute_array[step]]),  # minute
-            "dn": tuple([self.dni_array[step]]),  # direct normal irradiance
-            "df": tuple([self.dhi_array[step]]),  # diffuse irradiance
-            "gh": tuple([self.ghi_array[step]]),  # global horizontal irradiance
-            "wspd": tuple([self.wind_speed_array[step]]),  # windspeed (not peak)
-            "tdry": tuple([self.temp_array[step]]),  # dry bulb temperature
-        }
-
-        self.system_model.SolarResource.assign({"solar_resource_data": solar_resource_data})
-        self.system_model.AdjustmentFactors.assign({"constant": 0})
+        if self.verbose:
+            self.logger.info(f"power_setpoint = {power_setpoint}")
+        if self.power > power_setpoint:
+            self.power = power_setpoint
+            # Keep track of power that could go to charging battery
+            self.excess_power = self.power - power_setpoint
+        if self.verbose:
+            self.logger.info(f"self.power after control = {self.power}")
 
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
@@ -224,11 +197,30 @@ class SolarPySAMBase(ComponentBase):
         h_dict[self.component_name]["poa"] = self.poa
         h_dict[self.component_name]["aoi"] = self.aoi
 
+    def _precompute_power_array(self):
+        """Pre-compute the full power array for all time steps.
+
+        This method must be implemented by subclasses to handle model-specific
+        pre-computation logic.
+        """
+        raise NotImplementedError("Subclasses must implement _precompute_power_array method")
+
+    def _get_step_outputs(self, step):
+        """Get the outputs for a specific step from pre-computed arrays.
+
+        This method must be implemented by subclasses to handle model-specific
+        output field names.
+
+        Args:
+            step (int): Current simulation step.
+        """
+        raise NotImplementedError("Subclasses must implement _get_step_outputs method")
+
     def step(self, h_dict):
         """Execute one simulation step.
 
-        This method must be implemented by subclasses to handle model-specific
-        execution logic.
+        This is the common step implementation that works for both PVWatts and PVSAM.
+        Subclasses only need to implement _precompute_power_array() and _get_step_outputs().
 
         Args:
             h_dict (dict): Dictionary containing current simulation state.
@@ -236,4 +228,30 @@ class SolarPySAMBase(ComponentBase):
         Returns:
             dict: Updated simulation dictionary.
         """
-        raise NotImplementedError("Subclasses must implement step method")
+        # Get the current step
+        step = h_dict["step"]
+        if self.verbose:
+            self.logger.info(f"step = {step} (of {self.n_steps})")
+
+        # Get the pre-computed uncurtailed power for this step
+        self.power = self.power_uncurtailed[step]
+
+        # Apply control
+        self.control(h_dict[self.component_name]["power_setpoint"])
+
+        if self.power < 0.0:
+            self.power = 0.0
+
+        if self.verbose:
+            self.logger.info(f"self.power = {self.power}")
+
+        # Get model-specific outputs for this step
+        self._get_step_outputs(step)
+
+        if self.verbose:
+            self.logger.info(f"self.poa = {self.poa}")
+
+        # Update the h_dict with outputs
+        self._update_outputs(h_dict)
+
+        return h_dict

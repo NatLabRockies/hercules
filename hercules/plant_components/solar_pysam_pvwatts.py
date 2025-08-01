@@ -26,6 +26,9 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Create and configure the PySAM model
         self._create_system_model()
 
+        # Pre-compute the full power array for all time steps
+        self._precompute_power_array()
+
     def _setup_model_parameters(self, h_dict):
         """Set up the PV system model parameters.
 
@@ -70,48 +73,52 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Save the system model
         self.system_model = system_model
 
-    def step(self, h_dict):
-        """Execute one simulation step.
+    def _precompute_power_array(self):
+        """Pre-compute the full power array for all time steps."""
+        # Prepare solar resource data for all time steps
+        solar_resource_data = {
+            "tz": self.tz,  # 0 for UTC
+            "elev": self.elev,
+            "lat": self.lat,  # latitude
+            "lon": self.lon,  # longitude
+            "year": tuple(self.year_array),  # year array
+            "month": tuple(self.month_array),  # month array
+            "day": tuple(self.day_array),  # day array
+            "hour": tuple(self.hour_array),  # hour array
+            "minute": tuple(self.minute_array),  # minute array
+            "dn": tuple(self.dni_array),  # direct normal irradiance array
+            "df": tuple(self.dhi_array),  # diffuse irradiance array
+            "gh": tuple(self.ghi_array),  # global horizontal irradiance array
+            "wspd": tuple(self.wind_speed_array),  # windspeed array
+            "tdry": tuple(self.temp_array),  # dry bulb temperature array
+        }
 
-        Args:
-            h_dict (dict): Dictionary containing current simulation state.
+        # Assign the full solar resource data
+        self.system_model.SolarResource.assign({"solar_resource_data": solar_resource_data})
+        self.system_model.AdjustmentFactors.assign({"constant": 0})
 
-        Returns:
-            dict: Updated simulation dictionary.
-        """
-        # Get the current step
-        step = h_dict["step"]
-        if self.verbose:
-            self.logger.info(f"step = {step} (of {self.n_steps})")
-
-        # Assign solar resource for this step
-        self._assign_solar_resource(step)
-
+        # Execute the model once for all time steps
         self.system_model.execute()
 
-        ac = np.array(self.system_model.Outputs.gen)  # in kW
-        self.power = ac[0]  # calculating one timestep at a time
+        # Store the pre-computed power array (in kW)
+        self.power_uncurtailed = np.array(self.system_model.Outputs.gen)
 
-        # Apply control
-        self.control(h_dict[self.component_name]["power_setpoint"])
+        # Store other outputs as arrays for efficient access
+        self.dni_array_output = np.array(self.system_model.Outputs.dn)
+        self.dhi_array_output = np.array(self.system_model.Outputs.df)
+        self.ghi_array_output = np.array(self.system_model.Outputs.gh)
+        self.aoi_array_output = np.array(self.system_model.Outputs.aoi)
+        self.poa_array_output = np.array(self.system_model.Outputs.poa)
 
-        if self.power < 0.0:
-            self.power = 0.0
+    def _get_step_outputs(self, step):
+        """Get the outputs for a specific step from pre-computed arrays.
 
-        if self.verbose:
-            self.logger.info(f"self.power = {self.power}")
-
-        # Extract outputs specific to PVWatts model
-        self.dni = self.system_model.Outputs.dn[0]  # direct normal irradiance
-        self.dhi = self.system_model.Outputs.df[0]  # diffuse horizontal irradiance
-        self.ghi = self.system_model.Outputs.gh[0]  # global horizontal irradiance
-        self.aoi = self.system_model.Outputs.aoi[0]  # angle of incidence
-        self.poa = self.system_model.Outputs.poa[0]  # plane of array irradiance
-
-        if self.verbose:
-            self.logger.info(f"self.poa = {self.poa}")
-
-        # Update the h_dict with outputs
-        self._update_outputs(h_dict)
-
-        return h_dict
+        Args:
+            step (int): Current simulation step.
+        """
+        # Extract outputs specific to PVWatts model for this step
+        self.dni = self.dni_array_output[step]  # direct normal irradiance
+        self.dhi = self.dhi_array_output[step]  # diffuse horizontal irradiance
+        self.ghi = self.ghi_array_output[step]  # global horizontal irradiance
+        self.aoi = self.aoi_array_output[step]  # angle of incidence
+        self.poa = self.poa_array_output[step]  # plane of array irradiance

@@ -80,6 +80,9 @@ def main():
     logger.info(f"Loading input file: {input_file}")
     h_dict = load_hercules_input(input_file)
 
+    # Record start time
+    start_time = time.time()
+
     # Initialize the hybrid plant
     hybrid_plant = HybridPlant(h_dict)
 
@@ -91,9 +94,6 @@ def main():
 
     # Initialize the emulator
     emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-    # Record start time
-    start_time = time.time()
 
     # Run the emulator
     logger.info("Starting emulator execution...")

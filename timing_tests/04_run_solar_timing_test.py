@@ -48,7 +48,7 @@ class PowerCurtailmentController:
         current_time = h_dict["time"]
 
         # # Set solar farm to full rating initially
-        h_dict["solar_farm"]["power_setpoint"] = None
+        h_dict["solar_farm"]["power_setpoint"] = 1e10
 
         # Apply curtailment after 500 minutes
         if current_time >= self.curtailment_time:
@@ -76,6 +76,9 @@ def main():
     logger.info(f"Loading input file: {input_file}")
     h_dict = load_hercules_input(input_file)
 
+    # Record start time
+    start_time = time.time()
+
     # Initialize the hybrid plant
     hybrid_plant = HybridPlant(h_dict)
 
@@ -87,9 +90,6 @@ def main():
 
     # Initialize the emulator
     emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-    # Record start time
-    start_time = time.time()
 
     # Run the emulator
     logger.info("Starting emulator execution...")
