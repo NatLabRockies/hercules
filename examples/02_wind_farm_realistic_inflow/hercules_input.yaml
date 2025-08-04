@@ -23,6 +23,7 @@ wind_farm:
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
   log_extra_outputs: True
+  floris_update_time_s: 30.0 # Update wakes every 30 seconds
 
 
 controller:
