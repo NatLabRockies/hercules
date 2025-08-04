@@ -21,9 +21,9 @@ EXAMPLE_DESCRIPTION = "Wind and Solar"
 
 # Test configuration
 NUM_TIME_STEPS = 5
-EXPECTED_FINAL_WIND_POWER = 3943  # Updated after running print_expected_values
+EXPECTED_FINAL_WIND_POWER = 3229  # Updated after wind model changes
 EXPECTED_FINAL_SOLAR_POWER = 1735  # Updated after running print_expected_values
-EXPECTED_FINAL_PLANT_POWER = 5678  # Updated after running print_expected_values
+EXPECTED_FINAL_PLANT_POWER = 4964  # Updated after wind model changes (3229 + 1735)
 
 # File names
 INPUT_FILE = "hercules_input.yaml"

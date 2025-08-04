@@ -18,8 +18,8 @@ EXAMPLE_DESCRIPTION = "Wind Farm Only"
 
 # Test configuration
 NUM_TIME_STEPS = 5
-EXPECTED_FINAL_WIND_POWER = 3909  # Updated after running print_expected_values
-EXPECTED_FINAL_PLANT_POWER = 3909  # Same as wind power for wind-only case
+EXPECTED_FINAL_WIND_POWER = 3271  # Updated after wind model changes
+EXPECTED_FINAL_PLANT_POWER = 3271  # Same as wind power for wind-only case
 
 # File names
 INPUT_FILE = "hercules_input.yaml"
