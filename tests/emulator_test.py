@@ -1,8 +1,9 @@
+import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import setup_logging
 
-from .test_inputs.h_dict import h_dict_solar, h_dict_wind
+from tests.test_inputs.h_dict import h_dict_solar, h_dict_wind
 
 
 class SimpleControllerWind:
@@ -25,10 +26,11 @@ class SimpleControllerWind:
         Returns:
             dict: The updated hercules input dictionary.
         """
-        # Set deratings for wind turbines if wind farm is present
+        # Set power setpoints for wind turbines if wind farm is present
         if "wind_farm" in h_dict and "n_turbines" in h_dict["wind_farm"]:
-            for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+            h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+                h_dict["wind_farm"]["n_turbines"]
+            )
 
         return h_dict
 
