@@ -10,6 +10,7 @@ import shutil
 import time
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
@@ -49,15 +50,16 @@ class PowerCurtailmentController:
         current_time = h_dict["time"]
 
         # Set all turbines to full rating initially
-        for t_idx in range(self.n_turbines):
-            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+        h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+            h_dict["wind_farm"]["n_turbines"]
+        )
 
         # Apply curtailment after 500 minutes
         if current_time >= self.curtailment_time:
             # Simple proportional curtailment to reduce power output
             for t_idx in range(self.n_turbines):
                 # Reduce power
-                h_dict["wind_farm"][f"derating_{t_idx:03d}"] = self.turbine_curtail_power
+                h_dict["wind_farm"]["turbine_power_setpoints"][t_idx] = self.turbine_curtail_power
 
         return h_dict
 
