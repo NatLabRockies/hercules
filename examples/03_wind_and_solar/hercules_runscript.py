@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 
+import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -57,9 +58,10 @@ class ControllerLimitSolar:
         Returns:
             dict: The updated hercules input dictionary.
         """
-        # Set wind farm deratings to full rating
-        for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+        # Set wind turbine power setpoints to full rating
+        h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+            h_dict["wind_farm"]["n_turbines"]
+        )
 
         # Get the total wind farm power
         wind_farm_power = h_dict["wind_farm"]["power"]
