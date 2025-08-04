@@ -78,17 +78,15 @@ def load_perffile(perffile):
 
 class Wind_MesoToPower(ComponentBase):
     def __init__(self, h_dict):
-        """
-        Initializes the Wind_MesoToPower class.
+        """Initialize the Wind_MesoToPower class.
 
         This model focuses on meso-scale wind phenomena by applying a separate wind speed
         time signal to each turbine model derived from data. It combines FLORIS wake
         modeling with detailed turbine dynamics for wind farm performance analysis.
 
         Args:
-            h_dict (dict): Dict containing values for the simulation
+            h_dict (dict): Dictionary containing values for the simulation.
         """
-
         # Store the name of this component
         self.component_name = "wind_farm"
 
@@ -100,7 +98,7 @@ class Wind_MesoToPower(ComponentBase):
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_deratings"]
+        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints"]
 
         # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
@@ -119,55 +117,22 @@ class Wind_MesoToPower(ComponentBase):
                 "waked_velocities",
             ]
 
-        # Track the number of FLORIS calculation
+        # Track the number of FLORIS calculations
         self.num_floris_calcs = 0
-
-        # Initialize memoization cache for FLORIS calculations
-        self.floris_cache = {}
 
         # Read in the input file names
         self.floris_input_file = h_dict[self.component_name]["floris_input_file"]
         self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
         self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
 
-        # Check for FLORIS timing configuration options in h_dict[self.component_name]
-        if "floris_wd_threshold" in h_dict[self.component_name]:
-            self.floris_wd_threshold = h_dict[self.component_name]["floris_wd_threshold"]
-        else:
-            self.floris_wd_threshold = 3.0
+        # Require floris_update_time_s to be in the h_dict
+        if "floris_update_time_s" not in h_dict[self.component_name]:
+            raise ValueError("floris_update_time_s must be in the h_dict")
 
-        if "floris_ws_threshold" in h_dict[self.component_name]:
-            self.floris_ws_threshold = h_dict[self.component_name]["floris_ws_threshold"]
-        else:
-            self.floris_ws_threshold = 1.0
-
-        if "floris_ti_threshold" in h_dict[self.component_name]:
-            self.floris_ti_threshold = h_dict[self.component_name]["floris_ti_threshold"]
-        else:
-            self.floris_ti_threshold = 0.1
-
-        if "floris_derating_threshold" in h_dict[self.component_name]:
-            self.floris_derating_threshold = h_dict[self.component_name][
-                "floris_derating_threshold"
-            ]
-        else:
-            self.floris_derating_threshold = 10  # kW
-
-        if "floris_time_window_width_s" in h_dict[self.component_name]:
-            self.floris_time_window_width_s = h_dict[self.component_name][
-                "floris_time_window_width_s"
-            ]
-            if self.floris_time_window_width_s < 1:
-                raise ValueError("FLORIS time window width must be at least 1 second")
-        else:
-            self.floris_time_window_width_s = 300.0  # Default to 5 minutes
-
-        if "floris_update_time_s" in h_dict[self.component_name]:
-            self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
-            if self.floris_update_time_s < 1:
-                raise ValueError("FLORIS update time must be at least 1 second")
-        else:
-            self.floris_update_time_s = 60.0  # Default to 1 minute
+        # Save the floris update time and make sure it is at least 1 second
+        self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
+        if self.floris_update_time_s < 1:
+            raise ValueError("FLORIS update time must be at least 1 second")
 
         # Read in the weather file data
         # If a csv file is provided, read it in
@@ -235,22 +200,18 @@ class Wind_MesoToPower(ComponentBase):
         self.layout_y = self.fmodel.layout_y
         self.n_turbines = self.fmodel.n_turbines
 
-        # Establish the width of the FLORIS averaging window
-        self.floris_time_window_width_steps = int(self.floris_time_window_width_s / self.dt)
-        self.floris_time_window_width_steps = max(1, self.floris_time_window_width_steps)
-
         # How often to update the wake deficits
         self.floris_update_steps = int(self.floris_update_time_s / self.dt)
         self.floris_update_steps = max(1, self.floris_update_steps)
 
-        # Declare the derating buffer to hold previous derating commands
-        self.derating_buffer = (
-            np.zeros((self.floris_time_window_width_steps, self.n_turbines)) * np.nan
+        # Declare the power_setpoint buffer to hold previous power_setpoint commands
+        self.turbine_power_setpoints_buffer = (
+            np.zeros((self.floris_update_steps, self.n_turbines)) * np.nan
         )
-        self.derating_buffer_idx = 0  # Initialize the index to 0
+        self.turbine_power_setpoints_buffer_idx = 0  # Initialize the index to 0
 
         # Add an initial non-nan value to be over-written on first step
-        self.derating_buffer[0, :] = 1e12
+        self.turbine_power_setpoints_buffer[0, :] = 1e12
 
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speeds
@@ -263,20 +224,28 @@ class Wind_MesoToPower(ComponentBase):
         self.initial_wind_speeds = self.ws_mat[0, :]
         self.floris_wind_speed = self.ws_mat_mean[0]
 
-        # Now the wind directions
-        if "wd_000" in df_wi.columns:
-            self.wd_mat = df_wi[[f"wd_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+        # For now require "wd_mean" to be in the df_wi
+        if "wd_mean" not in df_wi.columns:
+            raise ValueError("Wind input file must contain a column called 'wd_mean'")
+        self.wd_mat_mean = df_wi["wd_mean"].values
 
-            # Compute the turbine-averaged wind directions (axis = 1) using circmean
-            self.wd_mat_mean = np.apply_along_axis(
-                lambda x: circmean(x, high=360.0, low=0.0, nan_policy="omit"),
-                axis=1,
-                arr=self.wd_mat,
-            )
+        # OLD APPROACH
+        # # Now the wind directions
+        # if "wd_000" in df_wi.columns:
+        #     self.wd_mat = df_wi[
+        #         [f"wd_{t_idx:03d}" for t_idx in range(self.n_turbines)]
+        #     ].to_numpy()
 
-            self.initial_wind_directions = self.wd_mat[0, :]
-        elif "wd_mean" in df_wi.columns:
-            self.wd_mat_mean = df_wi["wd_mean"].values
+        #     # Compute the turbine-averaged wind directions (axis = 1) using circmean
+        #     self.wd_mat_mean = np.apply_along_axis(
+        #         lambda x: circmean(x, high=360.0, low=0.0, nan_policy="omit"),
+        #         axis=1,
+        #         arr=self.wd_mat,
+        #     )
+
+        #     self.initial_wind_directions = self.wd_mat[0, :]
+        # elif "wd_mean" in df_wi.columns:
+        #     self.wd_mat_mean = df_wi["wd_mean"].values
 
         # Compute the initial floris wind direction and wind speed as at the start index
         self.floris_wind_direction = self.wd_mat_mean[0]
@@ -295,17 +264,22 @@ class Wind_MesoToPower(ComponentBase):
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
             self.floris_ti = 0.08 * self.ti_mat_mean[0]
 
-        self.floris_derating = np.nanmean(self.derating_buffer, axis=0)
+        self.floris_turbine_power_setpoints = np.nanmean(
+            self.turbine_power_setpoints_buffer, axis=0
+        )
 
         # Initialize the wake deficits
         self.floris_wake_deficits = np.zeros(self.n_turbines)
+
+        # Initialize the turbine powers to nan
+        self.turbine_powers = np.zeros(self.n_turbines) * np.nan
 
         # Get the initial unwaked velocities
         # TODO: This is more a debugging thing, not really necessary
         self.unwaked_velocities = self.ws_mat[0, :]
 
         # # Compute the initial waked velocities
-        self.update_wake_deficits(0)
+        self.update_wake_deficits(step=0)
 
         # Compute waked velocities
         self.waked_velocities = self.ws_mat[0, :] - self.floris_wake_deficits
@@ -367,153 +341,89 @@ class Wind_MesoToPower(ComponentBase):
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
         return h_dict
 
-    def _create_floris_cache_key(self, wind_direction, wind_speed, ti, derating):
-        """Create a cache key for FLORIS calculations.
-
-        Args:
-            wind_direction (float): Wind direction in degrees.
-            wind_speed (float): Wind speed in m/s.
-            ti (float): Turbulence intensity.
-            derating (numpy.ndarray): Derating values for turbines.
-
-        Returns:
-            tuple: Cache key for the FLORIS calculation.
-        """
-        # Round values to threshold precision to enable cache hits
-        wd_rounded = round(wind_direction / self.floris_wd_threshold) * self.floris_wd_threshold
-        ws_rounded = round(wind_speed / self.floris_ws_threshold) * self.floris_ws_threshold
-        ti_rounded = round(ti / self.floris_ti_threshold) * self.floris_ti_threshold
-        derating_rounded = (
-            np.round(derating / self.floris_derating_threshold) * self.floris_derating_threshold
-        )
-
-        return (wd_rounded, ws_rounded, ti_rounded, tuple(derating_rounded.flatten()))
-
     def update_wake_deficits(self, step):
-        """
-        Updates the wake deficits in the FLORIS model based on the current simulation step.
+        """Update the wake deficits in the FLORIS model based on the current simulation step.
 
         This method computes the necessary FLORIS inputs (wind direction, wind speed,
-        turbulence intensity, and derating) over a specified time window. If any of these
+        turbulence intensity, and power_setpoints) over a specified time window. If any of these
         inputs have changed beyond their respective thresholds, the FLORIS model is updated,
         and the wake deficits are recalculated.
+
         Args:
             step (int): The current simulation step.
         """
-
         # Get the window start
-        window_start = max(0, step - self.floris_time_window_width_steps + 1)
+        window_start = max(0, step - self.floris_update_steps + 1)
 
         # Compute new values of the floris inputs
         # TODO: CONFIRM THE +1 in the slice is right
-        floris_wind_direction = circmean(
+        self.floris_wind_direction = circmean(
             self.wd_mat_mean[window_start : step + 1], high=360.0, low=0.0, nan_policy="omit"
         )
-        floris_wind_speed = np.mean(self.ws_mat_mean[window_start : step + 1])
-        floris_ti = np.mean(self.ti_mat_mean[window_start : step + 1])
+        self.floris_wind_speed = np.mean(self.ws_mat_mean[window_start : step + 1])
+        self.floris_ti = np.mean(self.ti_mat_mean[window_start : step + 1])
 
-        # Compute the deratings over the same window
-        floris_derating = np.nanmean(self.derating_buffer, axis=0)
+        # Compute the power_setpoints over the same window
+        self.floris_turbine_power_setpoints = np.nanmean(
+            self.turbine_power_setpoints_buffer, axis=0
+        ).reshape(1, -1)
 
-        # Reshape derating to be 2D with number on axis 1
-        floris_derating = floris_derating.reshape(1, -1)
+        # Run FLORIS
+        self.fmodel.set(
+            wind_directions=[self.floris_wind_direction],
+            wind_speeds=[self.floris_wind_speed],
+            turbulence_intensities=[self.floris_ti],
+            power_setpoints=self.floris_turbine_power_setpoints * 1000.0,
+        )
+        self.fmodel.run()
+        velocities = self.fmodel.turbine_average_velocities.flatten()
+        self.floris_wake_deficits = velocities.max() - velocities
+        self.num_floris_calcs += 1
 
-        # If any of the FLORIS inputs have sufficiently changed, update wake deficits
-        if (
-            np.abs(floris_wind_direction - self.floris_wind_direction) > self.floris_wd_threshold
-            or np.abs(floris_wind_speed - self.floris_wind_speed) > self.floris_ws_threshold
-            or np.abs(floris_ti - self.floris_ti) > self.floris_ti_threshold
-            or np.any(
-                np.abs(floris_derating - self.floris_derating) > self.floris_derating_threshold
-            )
-        ):
-            # Create cache key for current FLORIS inputs
-            cache_key = self._create_floris_cache_key(
-                floris_wind_direction, floris_wind_speed, floris_ti, floris_derating
-            )
-            # Check if we have a cached result
-            if cache_key in self.floris_cache:
-                if self.verbose:
-                    self.logger.info(
-                        "...Using cached FLORIS result=========================================="
-                    )
-                self.floris_wind_direction = floris_wind_direction
-                self.floris_wind_speed = floris_wind_speed
-                self.floris_ti = floris_ti
-                self.floris_derating = floris_derating
-                self.floris_wake_deficits = self.floris_cache[cache_key]
-            else:
-                if self.verbose:
-                    self.logger.info(
-                        "...Updating FLORIS model=========================================="
-                    )
-                self.floris_wind_direction = floris_wind_direction
-                self.floris_wind_speed = floris_wind_speed
-                self.floris_ti = floris_ti
-                self.floris_derating = floris_derating
-                self.fmodel.set(
-                    wind_directions=[self.floris_wind_direction],
-                    wind_speeds=[self.floris_wind_speed],
-                    turbulence_intensities=[self.floris_ti],
-                    power_setpoints=1000 * self.floris_derating,
-                )
-                self.fmodel.run()
-                velocities = self.fmodel.turbine_average_velocities.flatten()
-                self.floris_wake_deficits = velocities.max() - velocities
-                self.floris_cache[cache_key] = self.floris_wake_deficits.copy()
-                self.num_floris_calcs += 1
-                if self.verbose:
-                    self.logger.info(f"Num of FLORIS calculations = {self.num_floris_calcs}")
+    def update_power_setpoints_buffer(self, turbine_power_setpoints):
+        """Update the power_setpoints buffer with the turbine_power_setpoints values.
 
-    def update_derating_buffer(self, derating):
-        """
-        Updates the derating buffer with the derating values and increments the buffer index.
+        This method stores the given power setpoint values in the current position of the
+        power_setpoints buffer and updates the index to point to the next position in a
+        circular manner.
 
-        This method stores the given derating values in the current position of the derating buffer
-        and updates the index to point to the next position in a circular manner.
         Args:
-            derating (numpy.ndarray): A 1D array containing the derating values
-                 to be stored in the buffer.
-        Returns:
-            None
+            turbine_power_setpoints (numpy.ndarray): A 1D array containing the power_setpoint values
+                to be stored in the buffer.
         """
-
-        # Update the derating buffer
-        self.derating_buffer[self.derating_buffer_idx, :] = derating
+        # Update the power_setpoints buffer
+        self.turbine_power_setpoints_buffer[self.turbine_power_setpoints_buffer_idx, :] = (
+            turbine_power_setpoints
+        )
 
         # Increment the index
-        self.derating_buffer_idx = (
-            self.derating_buffer_idx + 1
-        ) % self.floris_time_window_width_steps
+        self.turbine_power_setpoints_buffer_idx = (
+            self.turbine_power_setpoints_buffer_idx + 1
+        ) % self.floris_update_steps
 
     def step(self, h_dict):
         """Execute one simulation step for the wind farm.
 
         Updates wake deficits, computes waked velocities, calculates turbine powers,
-        and updates the simulation dictionary with results. Handles derating signals
-        and optional extra logging outputs.
+        and updates the simulation dictionary with results. Handles power_setpoint
+        signals and optional extra logging outputs.
 
         Args:
             h_dict (dict): Dictionary containing current simulation state including
-                step number and derating values for each turbine.
+                step number and power_setpoint values for each turbine.
 
         Returns:
             dict: Updated simulation dictionary with wind farm outputs including
                 turbine powers, total power, and optional extra outputs.
         """
-        # Get the current  step
+        # Get the current step
         step = h_dict["step"]
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
-        # Grab the instantaneous derating signal and update the derating buffer
-        derating = np.array(
-            [
-                h_dict[self.component_name][f"derating_{t_idx:03d}"]
-                for t_idx in range(self.n_turbines)
-            ]
-        )
-        self.update_derating_buffer(derating)
+        # Grab the instantaneous turbine power setpoint signal and update the power_setpoints buffer
+        turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
+        self.update_power_setpoints_buffer(turbine_power_setpoints)
 
         # Get the unwaked velocities
         # TODO: This is more a debugging thing, not really necessary
@@ -521,41 +431,35 @@ class Wind_MesoToPower(ComponentBase):
 
         # Check if it is time to update the waked velocities
         if step % self.floris_update_steps == 0:
-            if self.verbose:
-                self.logger.info(".check for floris update...")
             self.update_wake_deficits(step)
 
         # Compute waked velocities
         self.waked_velocities = self.ws_mat[step, :] - self.floris_wake_deficits
 
-        # Update the turbine powers given the input wind speeds and derating
-        self.turbine_powers = np.array(
-            [
-                self.turbine_array[t_idx].step(
-                    self.waked_velocities[t_idx],
-                    derating=derating[t_idx],
-                )
-                for t_idx in range(self.n_turbines)
-            ]
-        )
+        # Update the turbine powers
+        for t_idx in range(self.n_turbines):
+            self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
+                self.waked_velocities[t_idx],
+                power_setpoint=turbine_power_setpoints[t_idx],
+            )
 
         # Update instantaneous wind direction and wind speed
         self.wind_direction = self.wd_mat_mean[step]
         self.wind_speed = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
-        h_dict[self.component_name]["turbine_deratings"] = derating
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["wind_direction"] = self.wind_direction
         h_dict[self.component_name]["wind_speed"] = self.wind_speed
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
-
         h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
         h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
         h_dict[self.component_name]["floris_ti"] = self.floris_ti
-        h_dict[self.component_name]["floris_derating"] = self.floris_derating
+        h_dict[self.component_name]["floris_turbine_power_setpoints"] = (
+            self.floris_turbine_power_setpoints
+        )
         h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
         h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
 
@@ -577,7 +481,7 @@ class TurbineFilterModel:
             turbine_dict (dict): Dictionary containing turbine configuration,
                 including filter model parameters and other turbine-specific data.
             dt (float): Time step for the simulation in seconds.
-            fmodel (FLorisModel): FLorisModel of farm.
+            fmodel (FlorisModel): FLORIS model of the farm.
             initial_wind_speed (float): Initial wind speed in m/s to initialize
                 the simulation.
         """
@@ -608,31 +512,34 @@ class TurbineFilterModel:
         self.prev_power = self.power_lut(initial_wind_speed)
 
     def get_rated_power(self):
-        """Get the rated power of the turbine."""
+        """Get the rated power of the turbine.
+
+        Returns:
+            float: The rated power of the turbine in kW.
+        """
         return np.max(self.power_lut(np.arange(0, 25, 1.0)))
 
-    def step(self, wind_speed, derating=0.0):
+    def step(self, wind_speed, power_setpoint):
         """Simulate a single time step of the wind turbine power output.
 
         This method calculates the power output of a wind turbine based on the
-        given wind speed and an optional derating. The power output is
+        given wind speed and power_setpoint. The power output is
         smoothed using an exponential moving average to simulate the turbine's
         response to changing wind conditions.
 
         Args:
             wind_speed (float): The current wind speed in meters per second (m/s).
-            derating (float, optional): The maximum allowable power output in kW.
-                Defaults to 0.0.
+            power_setpoint (float): The maximum allowable power output in kW.
 
         Returns:
             float: The calculated power output of the wind turbine, constrained
-                by the derating and smoothed using the exponential moving average.
+                by the power_setpoint and smoothed using the exponential moving average.
         """
         # Instantaneous power
         instant_power = self.power_lut(wind_speed)
 
-        # Limit the current power to not be greater then derating
-        instant_power = min(instant_power, derating)
+        # Limit the current power to not be greater than power_setpoint
+        instant_power = min(instant_power, power_setpoint)
 
         # Limit the instant power to be greater than 0
         instant_power = max(instant_power, 0.0)
@@ -641,15 +548,15 @@ class TurbineFilterModel:
         if np.isnan(instant_power):
             print(
                 f"NaN instant power at wind speed {wind_speed} m/s, "
-                f"derating {derating} kW, prev power {self.prev_power} kW"
+                f"power setpoint {power_setpoint} kW, prev power {self.prev_power} kW"
             )
             instant_power = self.prev_power
 
         # Update the power
         power = self.alpha * instant_power + (1 - self.alpha) * self.prev_power
 
-        # Limit the power to not be greater then derating
-        power = min(power, derating)
+        # Limit the power to not be greater than power_setpoint
+        power = min(power, power_setpoint)
 
         # Limit the power to be greater than 0
         power = max(power, 0.0)
@@ -675,7 +582,7 @@ class Turbine1dofModel:
             turbine_dict (dict): Dictionary containing turbine configuration and
                 DOF model parameters.
             dt (float): Time step for the simulation in seconds.
-            fmodel (FLorisModel): FLorisModel of farm.
+            fmodel (FlorisModel): FLORIS model of the farm.
             initial_wind_speed (float): Initial wind speed in m/s to initialize
                 the simulation.
         """
@@ -726,22 +633,23 @@ class Turbine1dofModel:
         self.prev_gentq = gentq
         self.prev_pitch = pitch
 
-        pass
-
     def get_rated_power(self):
-        # Raise not implemented error
+        """Get the rated power of the turbine.
+
+        Raises:
+            NotImplementedError: 1-DOF turbine model does not have a rated power.
+        """
         raise NotImplementedError("1-DOF turbine model does not have a rated power")
 
-    def step(self, wind_speed, derating=0.0):
+    def step(self, wind_speed, power_setpoint):
         """Execute one simulation step for the 1-DOF turbine model.
 
         Simulates turbine dynamics including rotor speed, pitch angle, and
-        generator torque while respecting rate limits and derating constraints.
+        generator torque while respecting rate limits and power_setpoint constraints.
 
         Args:
             wind_speed (float): Current wind speed in m/s.
-            derating (float, optional): Maximum allowable power output in kW.
-                Defaults to 0.0.
+            power_setpoint (float): Maximum allowable power output in kW.
 
         Returns:
             float: Calculated turbine power output in kW.
@@ -759,8 +667,8 @@ class Turbine1dofModel:
         # print(omegaf-omega)
         pitch, gentq = self.simplecontroller(wind_speed, omegaf)
         tsr = float(omegaf * self.rotor_radius / wind_speed)
-        if derating > 0:
-            desiredcp = derating * 1000 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
+        if power_setpoint > 0:
+            desiredcp = power_setpoint * 1000 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
             optpitch = minimize_scalar(
                 lambda p: abs(float(self.perffuncs["Cp"]([tsr, float(p)])) - desiredcp),
                 method="bounded",
