@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 
+import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -61,12 +62,14 @@ class ControllerToggleTurbine000:
             dict: The updated hercules input dictionary.
         """
         # Set deratings to full rating
-        for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+        h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+            h_dict["wind_farm"]["n_turbines"]
+        )
 
-        # Lower t0 derating every other 100 seconds
+        # Lower t0 derating to 500 every other 100 seconds
         if h_dict["time"] % 200 < 100:
-            h_dict["wind_farm"]["derating_000"] = 500
+            h_dict["wind_farm"]["turbine_power_setpoints"][0] = 500
+
         return h_dict
 
 
