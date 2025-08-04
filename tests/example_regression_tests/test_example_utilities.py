@@ -13,7 +13,7 @@ from hercules.utilities import load_hercules_input, setup_logging
 
 
 def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file):
-    """Copy example files to the temporary directory.
+    """Copy example files to a temporary directory.
 
     Args:
         example_dir (str): Path to the example directory.
@@ -22,33 +22,42 @@ def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_f
         inputs_dir (str): Name of the inputs directory.
         notebook_file (str): Name of the notebook file.
     """
-    # Copy input files
+    # Copy the input file
     shutil.copy2(f"{example_dir}/{input_file}", f"{temp_dir}/{input_file}")
-    shutil.copytree(f"{example_dir}/{inputs_dir}", f"{temp_dir}/{inputs_dir}")
 
-    # Copy the input generating notebook if it exists
-    notebook_path = f"{example_dir}/{notebook_file}"
-    if os.path.exists(notebook_path):
-        shutil.copy2(notebook_path, f"{temp_dir}/{notebook_file}")
+    # Copy the inputs directory
+    if os.path.exists(f"{example_dir}/{inputs_dir}"):
+        shutil.copytree(f"{example_dir}/{inputs_dir}", f"{temp_dir}/{inputs_dir}")
+
+    # Copy the notebook file if it exists
+    if os.path.exists(f"{example_dir}/{notebook_file}"):
+        shutil.copy2(f"{example_dir}/{notebook_file}", f"{temp_dir}/{notebook_file}")
 
 
 def generate_input_data(temp_dir, notebook_file):
-    """Generate input data by running the notebook if it exists.
+    """Generate input data by running a notebook.
 
     Args:
         temp_dir (str): Path to the temporary directory.
         notebook_file (str): Name of the notebook file.
     """
-    notebook_path = f"{temp_dir}/{notebook_file}"
-    if os.path.exists(notebook_path):
-        os.system(f"jupyter nbconvert --to notebook --execute {notebook_path}")
+    if os.path.exists(f"{temp_dir}/{notebook_file}"):
+        # Run the notebook to generate input data
+        result = subprocess.run(
+            ["jupyter", "nbconvert", "--to", "notebook", "--execute", notebook_file],
+            cwd=temp_dir,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"Notebook execution failed: {result.stderr}")
 
 
 def run_simulation(input_file, num_time_steps):
-    """Run the Hercules simulation and return the output dataframe.
+    """Run a simulation and return the output dataframe.
 
     Args:
-        input_file (str): Name of the input file.
+        input_file (str): Path to the input file.
         num_time_steps (int): Number of time steps to run.
 
     Returns:
@@ -57,15 +66,12 @@ def run_simulation(input_file, num_time_steps):
     # Load the input file
     h_dict = load_hercules_input(input_file)
 
-    # Modify the h_dict to limit running time
-    h_dict["endtime"] = h_dict["starttime"] + num_time_steps * h_dict["dt"]
-    h_dict["verbose"] = False  # Reduce logging for test
+    # Modify the endtime to run for the specified number of time steps
+    h_dict["endtime"] = num_time_steps
 
-    # Set up logger
+    # Set up logging
     logger = setup_logging(console_output=False)
 
-    # Define a simple controller that sets all deratings to full rating
-    # and then sets the derating of turbine 000 to 500
     class ControllerSimple:
         """A simple controller for testing."""
 
@@ -86,14 +92,14 @@ def run_simulation(input_file, num_time_steps):
             Returns:
                 dict: Updated Hercules input dictionary.
             """
-            # Set deratings to full rating
+            # Set power setpoints for wind turbines
             if "wind_farm" in h_dict:
-                for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-                    h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+                h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+                    h_dict["wind_farm"]["n_turbines"]
+                )
+                h_dict["wind_farm"]["turbine_power_setpoints"][0] = 500
 
-                h_dict["wind_farm"]["derating_000"] = 500
-
-            # Add a solar derating signal which is very high to have no impact
+            # Add a solar power setpoint signal which is very high to have no impact
             if "solar_farm" in h_dict:
                 h_dict["solar_farm"]["power_setpoint"] = 1e10
 
