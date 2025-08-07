@@ -291,7 +291,14 @@ class Emulator:
 
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
-        self.close_output_file()
+        try:
+            # Only attempt cleanup if Python is not shutting down
+            import sys
+            if sys.meta_path is not None:
+                self.close_output_file()
+        except (ImportError, AttributeError):
+            # Ignore errors during Python shutdown
+            pass
 
     def close(self):
         """Explicitly close all resources and cleanup."""
