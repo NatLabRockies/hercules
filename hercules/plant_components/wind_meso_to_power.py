@@ -290,12 +290,11 @@ class Wind_MesoToPower(ComponentBase):
 
         # Initialize the turbine array
         if self.turbine_model_type == "filter_model":
-            self.turbine_array = [
-                TurbineFilterModel(
-                    self.turbine_dict, self.dt, self.fmodel, self.waked_velocities[t_idx]
-                )
-                for t_idx in range(self.n_turbines)
-            ]
+            # Use vectorized implementation for improved performance
+            self.turbine_array = TurbineFilterModelVectorized(
+                self.turbine_dict, self.dt, self.fmodel, self.waked_velocities
+            )
+            self.use_vectorized_turbines = True
         elif self.turbine_model_type == "dof1_model":
             self.turbine_array = [
                 Turbine1dofModel(
@@ -303,16 +302,23 @@ class Wind_MesoToPower(ComponentBase):
                 )
                 for t_idx in range(self.n_turbines)
             ]
+            self.use_vectorized_turbines = False
         else:
             raise Exception("Turbine model type should be either filter_model or dof1_model")
 
         # Initialize the power array to the initial wind speeds
-        self.turbine_powers = np.array(
-            [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
-        )
+        if self.use_vectorized_turbines:
+            self.turbine_powers = self.turbine_array.prev_powers.copy()
+        else:
+            self.turbine_powers = np.array(
+                [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
+            )
 
         # Get the rated power of the turbines, for now assume all turbines have the same rated power
-        self.rated_turbine_power = self.turbine_array[0].get_rated_power()
+        if self.use_vectorized_turbines:
+            self.rated_turbine_power = self.turbine_array.get_rated_power()
+        else:
+            self.rated_turbine_power = self.turbine_array[0].get_rated_power()
 
         # Get the capacity of the farm
         self.capacity = self.n_turbines * self.rated_turbine_power
@@ -437,11 +443,19 @@ class Wind_MesoToPower(ComponentBase):
         self.waked_velocities = self.ws_mat[step, :] - self.floris_wake_deficits
 
         # Update the turbine powers
-        for t_idx in range(self.n_turbines):
-            self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
-                self.waked_velocities[t_idx],
-                power_setpoint=turbine_power_setpoints[t_idx],
+        if self.use_vectorized_turbines:
+            # Vectorized calculation for all turbines at once
+            self.turbine_powers = self.turbine_array.step(
+                self.waked_velocities,
+                turbine_power_setpoints,
             )
+        else:
+            # Original loop-based calculation
+            for t_idx in range(self.n_turbines):
+                self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
+                    self.waked_velocities[t_idx],
+                    power_setpoint=turbine_power_setpoints[t_idx],
+                )
 
         # Update instantaneous wind direction and wind speed
         self.wind_direction = self.wd_mat_mean[step]
@@ -472,6 +486,10 @@ class TurbineFilterModel:
     This model simulates wind turbine power output using a first-order filter
     to smooth the response to changing wind conditions, providing a simplified
     representation of turbine dynamics.
+
+    NOTE: This class is now unused and kept for backward compatibility.
+    The filter_model turbine_model_type now uses TurbineFilterModelVectorized
+    for improved performance.
     """
 
     def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
@@ -566,6 +584,109 @@ class TurbineFilterModel:
 
         # Return the power
         return power
+
+
+class TurbineFilterModelVectorized:
+    """Vectorized filter-based wind turbine model for power output simulation.
+
+    This model simulates wind turbine power output using a first-order filter
+    to smooth the response to changing wind conditions, providing a simplified
+    representation of turbine dynamics. This vectorized version processes
+    all turbines simultaneously for improved performance.
+    """
+
+    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speeds):
+        """Initialize the vectorized turbine filter model.
+
+        Args:
+            turbine_dict (dict): Dictionary containing turbine configuration,
+                including filter model parameters and other turbine-specific data.
+            dt (float): Time step for the simulation in seconds.
+            fmodel (FlorisModel): FLORIS model of the farm.
+            initial_wind_speeds (np.ndarray): Initial wind speeds in m/s for all turbines
+                to initialize the simulation.
+        """
+        # Save the time step
+        self.dt = dt
+
+        # Save the turbine dict
+        self.turbine_dict = turbine_dict
+
+        # Save the filter time constant
+        self.filter_time_constant = turbine_dict["filter_model"]["time_constant"]
+
+        # Solve for the filter alpha value given dt and the time constant
+        self.alpha = 1 - np.exp(-self.dt / self.filter_time_constant)
+
+        # Grab the wind speed power curve from the fmodel and create lookup tables
+        turbine_type = fmodel.core.farm.turbine_definitions[0]
+        self.wind_speed_lut = np.array(turbine_type["power_thrust_table"]["wind_speed"])
+        self.power_lut = np.array(turbine_type["power_thrust_table"]["power"])
+
+        # Number of turbines
+        self.n_turbines = len(initial_wind_speeds)
+
+        # Initialize the previous powers for all turbines
+        self.prev_powers = np.interp(
+            initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
+
+    def get_rated_power(self):
+        """Get the rated power of the turbine.
+
+        Returns:
+            float: The rated power of the turbine in kW.
+        """
+        return np.max(self.power_lut)
+
+    def step(self, wind_speeds, power_setpoints):
+        """Simulate a single time step for all wind turbines simultaneously.
+
+        This method calculates the power output of all wind turbines based on the
+        given wind speeds and power setpoints. The power outputs are
+        smoothed using an exponential moving average to simulate the turbines'
+        response to changing wind conditions.
+
+        Args:
+            wind_speeds (np.ndarray): Current wind speeds in m/s for all turbines.
+            power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
+
+        Returns:
+            np.ndarray: Calculated power outputs of all wind turbines, constrained
+                by the power setpoints and smoothed using the exponential moving average.
+        """
+        # Vectorized instantaneous power calculation using numpy interpolation
+        instant_powers = np.interp(
+            wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
+
+        # Vectorized limiting: current power not greater than power_setpoint
+        instant_powers = np.minimum(instant_powers, power_setpoints)
+
+        # Vectorized limiting: instant power not less than 0
+        instant_powers = np.maximum(instant_powers, 0.0)
+
+        # Handle NaNs by replacing with previous power values
+        nan_mask = np.isnan(instant_powers)
+        if np.any(nan_mask):
+            # Log warning for NaN values (but don't print every occurrence for performance)
+            # Could add logging here if needed
+            instant_powers[nan_mask] = self.prev_powers[nan_mask]
+
+        # Vectorized exponential filter update
+        powers = self.alpha * instant_powers + (1 - self.alpha) * self.prev_powers
+
+        # Vectorized limiting: power not greater than power_setpoint
+        powers = np.minimum(powers, power_setpoints)
+
+        # Vectorized limiting: power not less than 0
+        powers = np.maximum(powers, 0.0)
+
+        # Update the previous powers for all turbines
+        self.prev_powers = powers.copy()
+
+        # Return the powers
+        return powers
 
 
 class Turbine1dofModel:
