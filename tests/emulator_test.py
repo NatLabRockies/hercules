@@ -137,23 +137,32 @@ def test_log_h_dict_refactored():
         "solar_farm.power",  # From solar_farm's log_outputs
     }
 
-    actual_keys = set(emulator.h_dict_flat.keys())
+    actual_keys = set(emulator.output_columns)
 
     # Verify that all expected keys are present
     assert expected_keys.issubset(
         actual_keys
     ), f"Missing expected keys: {expected_keys - actual_keys}"
 
-    # Verify that the values are correct
-    assert emulator.h_dict_flat["time"] == 5.0
-    assert emulator.h_dict_flat["step"] == 5
-    assert emulator.h_dict_flat["solar_farm.power"] > 0
-    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive
-    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive
+    # Verify that the values are correct (data stored in output_data array)
+    time_idx = emulator.output_columns.index("time")
+    step_idx = emulator.output_columns.index("step")
+    solar_power_idx = emulator.output_columns.index("solar_farm.power")
+
+    assert emulator.output_data[emulator.step, time_idx] == 5.0
+    assert emulator.output_data[emulator.step, step_idx] == 5
+    assert emulator.output_data[emulator.step, solar_power_idx] > 0
+
+    # Verify plant power values
+    plant_power_idx = emulator.output_columns.index("plant.power")
+    locally_gen_power_idx = emulator.output_columns.index("plant.locally_generated_power")
+    assert emulator.output_data[emulator.step, plant_power_idx] > 0  # Should be positive
+    assert emulator.output_data[emulator.step, locally_gen_power_idx] > 0  # Should be positive
 
     # Verify that clock_time is set
-    assert "clock_time" in emulator.h_dict_flat
-    assert emulator.h_dict_flat["clock_time"] is not None
+    assert "clock_time" in emulator.output_columns
+    clock_time_idx = emulator.output_columns.index("clock_time")
+    assert emulator.output_data[emulator.step, clock_time_idx] is not None
 
     # Verify that we don't have unexpected keys (like the old flattened structure)
     unexpected_keys = [k for k in actual_keys if k.startswith("solar_farm.irradiance")]
@@ -200,25 +209,36 @@ def test_log_h_dict_with_wind_farm_arrays():
         "wind_farm.turbine_powers.002",
     }
 
-    actual_keys = set(emulator.h_dict_flat.keys())
+    actual_keys = set(emulator.output_columns)
 
     # Verify that all expected keys are present
     assert expected_keys.issubset(
         actual_keys
     ), f"Missing expected keys: {expected_keys - actual_keys}"
 
-    # Verify that the values are correct
-    assert emulator.h_dict_flat["time"] == 5.0
-    assert emulator.h_dict_flat["step"] == 5
-    assert emulator.h_dict_flat["wind_farm.power"] > 0
-    assert emulator.h_dict_flat["plant.power"] > 0  # Should be positive
-    assert emulator.h_dict_flat["plant.locally_generated_power"] > 0  # Should be positive
+    # Verify that the values are correct (data stored in output_data array)
+    time_idx = emulator.output_columns.index("time")
+    step_idx = emulator.output_columns.index("step")
+    wind_power_idx = emulator.output_columns.index("wind_farm.power")
+    plant_power_idx = emulator.output_columns.index("plant.power")
+    locally_gen_power_idx = emulator.output_columns.index("plant.locally_generated_power")
+
+    assert emulator.output_data[emulator.step, time_idx] == 5.0
+    assert emulator.output_data[emulator.step, step_idx] == 5
+    assert emulator.output_data[emulator.step, wind_power_idx] > 0
+    assert emulator.output_data[emulator.step, plant_power_idx] > 0  # Should be positive
+    assert emulator.output_data[emulator.step, locally_gen_power_idx] > 0  # Should be positive
 
     # Verify that turbine_powers array is flattened correctly
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.000"] > 0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.001"] > 0
-    assert emulator.h_dict_flat["wind_farm.turbine_powers.002"] > 0
+    turbine_power_0_idx = emulator.output_columns.index("wind_farm.turbine_powers.000")
+    turbine_power_1_idx = emulator.output_columns.index("wind_farm.turbine_powers.001")
+    turbine_power_2_idx = emulator.output_columns.index("wind_farm.turbine_powers.002")
+
+    assert emulator.output_data[emulator.step, turbine_power_0_idx] > 0
+    assert emulator.output_data[emulator.step, turbine_power_1_idx] > 0
+    assert emulator.output_data[emulator.step, turbine_power_2_idx] > 0
 
     # Verify that clock_time is set
-    assert "clock_time" in emulator.h_dict_flat
-    assert emulator.h_dict_flat["clock_time"] is not None
+    assert "clock_time" in emulator.output_columns
+    clock_time_idx = emulator.output_columns.index("clock_time")
+    assert emulator.output_data[emulator.step, clock_time_idx] is not None

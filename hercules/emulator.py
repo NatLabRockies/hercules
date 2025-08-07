@@ -1,4 +1,3 @@
-import csv
 import datetime as dt
 import os
 import sys
@@ -44,20 +43,18 @@ class Emulator:
         else:
             self.output_file = "outputs/hercules_output.csv"
 
-        # Initialize the csv writer
-        self.csv_file = None
-        self.csv_writer = None
-        self.header_written = False
-        self.header = None
-
-        # Initialize the csv buffer
-        self.csv_buffer_size = 1000
-        self.csv_buffer = []
+        # Initialize fast logging with pre-allocated arrays
+        self.output_data = None
+        self.output_columns = None
+        self.output_structure_determined = False
 
         # Save time step, start time and end time
         self.dt = h_dict["dt"]
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
+
+        # Get verbose flag from h_dict
+        self.verbose = h_dict.get("verbose", False)
         self.total_simulation_time = self.endtime - self.starttime  # In seconds
         self.total_simulation_days = self.total_simulation_time / 86400
         self.time = self.starttime
@@ -118,32 +115,6 @@ class Emulator:
             if c != "time":
                 self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
 
-    def _open_output_file(self):
-        """
-        Open the output file for writing with buffering.
-
-        This method creates the output directory if it doesn't exist,
-        opens the output file with buffering for improved performance,
-        and determines whether a header needs to be written based on
-        if the file is empty.
-        """
-        # Create directory if it doesn't exist
-        output_dir = os.path.dirname(os.path.abspath(self.output_file))
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Open the file with buffering
-        self.csv_file = open(self.output_file, "a", newline="", buffering=8192)  # 8KB buffer
-        self.csv_writer = csv.writer(self.csv_file)
-
-        # Check if file is empty to determine if header needs to be written
-        if os.path.getsize(self.output_file) == 0:
-            self.header_written = False
-        else:
-            self.header_written = True
-            # Read the header from file
-            with open(self.output_file, "r") as f:
-                self.header = f.readline().strip().split(",")
-
     def _save_h_dict_as_text(self):
         """
         Save the main dictionary to a text file.
@@ -178,10 +149,9 @@ class Emulator:
                 Defaults to a list containing an empty list.
         """
 
-        # Open the output file
-        self._open_output_file()
+        # No need to open output file upfront with fast logging
 
-        # Wrap this effort in a try block so on failure or completion sure to purge csv buffer
+        # Wrap this effort in a try block to ensure proper cleanup
         try:
             # Record the current wall time
             self.start_time_wall = dt.datetime.now()
@@ -218,9 +188,8 @@ class Emulator:
             raise
 
         finally:
-            # Ensure the CSV file is properly flushed and closed
-            self.logger.info("Closing output files and flushing buffers")
-            self.flush_buffer()  # Flush any remaining buffered rows
+            # Ensure output data is written to file
+            self.logger.info("Writing output data to file")
             self.close_output_file()
 
     def run(self):
@@ -290,13 +259,35 @@ class Emulator:
         progress_bar.close()
 
     def close_output_file(self):
-        """Properly close the output file and flush any remaining data."""
-        if self.csv_file:
-            self.flush_buffer()
-            self.csv_file.flush()
-            self.csv_file.close()
-            self.csv_file = None
-            self.csv_writer = None
+        """Write all simulation data to CSV file at once with deferred rounding."""
+        if self.output_data is not None and self.output_columns is not None:
+            # Create output directory if it doesn't exist
+            output_dir = os.path.dirname(os.path.abspath(self.output_file))
+            os.makedirs(output_dir, exist_ok=True)
+
+            # Convert to DataFrame
+            df = pd.DataFrame(self.output_data, columns=self.output_columns)
+
+            # Apply rounding only once at CSV write time for better precision and performance
+            # Round time to 1 decimal place for readability
+            if "time" in df.columns:
+                df["time"] = df["time"].round(1)
+            
+            # Round power and numeric values to 3 decimal places
+            numeric_columns = df.select_dtypes(include=[np.number]).columns
+            for col in numeric_columns:
+                if col not in ["time", "step"]:  # Skip time (already rounded) and step (integer)
+                    df[col] = df[col].round(3)
+
+            # Convert timestamp back to datetime string format
+            if "clock_time" in df.columns:
+                df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
+
+            # Write to CSV
+            df.to_csv(self.output_file, index=False)
+
+            if self.verbose:
+                self.logger.info(f"Wrote {len(df)} rows to {self.output_file}")
 
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
@@ -306,98 +297,99 @@ class Emulator:
         """Explicitly close all resources and cleanup."""
         self.close_output_file()
 
-    def flush_buffer(self):
-        """Write all buffered rows to the CSV file and clear the buffer."""
-        if not self.csv_buffer:
-            return
-
-        for row in self.csv_buffer:
-            self.csv_writer.writerow(row)
-
-        # Clear the buffer
-        self.csv_buffer = []
-
     def log_h_dict(self):
         """
-        Logs the current state of the main dictionary to a CSV file.
+        Logs the current state of the main dictionary using fast pre-allocated arrays.
 
-        This method logs only specific fields: time, step, clock_time,
-        and the values from each component's log_outputs list.
+        This method uses pre-allocated numpy arrays,
+        writing all data to CSV only once at the end of simulation.
         """
+        # Determine output structure on first call
+        if not self.output_structure_determined:
+            self._determine_output_structure()
 
-        # Clear the flattened dict to start fresh
-        self.h_dict_flat = {}
+        # Extract values directly into pre-allocated array
+        self._extract_values_to_array()
 
-        # Add the basic time information
-        self.h_dict_flat["time"] = round(self.h_dict["time"], 1)
-        self.h_dict_flat["step"] = self.h_dict["step"]
+    def _determine_output_structure(self):
+        """Determine the output structure by analyzing current h_dict state."""
+        # Build output columns list
+        columns = []
 
-        # Add the current wall clock time
-        self.h_dict_flat["clock_time"] = dt.datetime.now()
+        # Basic time information
+        columns.extend(["time", "step", "clock_time"])
 
-        # Add plant power and locally generated power
-        self.h_dict_flat["plant.power"] = self.h_dict["plant"]["power"]
-        self.h_dict_flat["plant.locally_generated_power"] = self.h_dict["plant"][
-            "locally_generated_power"
-        ]
+        # Plant-level outputs
+        columns.extend(["plant.power", "plant.locally_generated_power"])
 
-        # Add the values from each component's log_outputs list.
+        # Component outputs
         for component_name in self.hybrid_plant.component_names:
             component_obj = self.hybrid_plant.component_objects[component_name]
-
-            # Get the log_outputs for this component
             log_outputs = getattr(component_obj, "log_outputs", ["power"])
 
-            # Add each output to the flattened dict
             for output_name in log_outputs:
                 if output_name in self.h_dict[component_name]:
                     output_value = self.h_dict[component_name][output_name]
 
-                    # Handle arrays by flattening them
+                    # Handle arrays by creating individual columns
                     if isinstance(output_value, (list, np.ndarray)):
-                        for i, val in enumerate(output_value):
-                            # Round numerical values to 3 decimal places
-                            if isinstance(val, (int, float)):
-                                self.h_dict_flat[f"{component_name}.{output_name}.{i:03d}"] = round(
-                                    val, 3
-                                )
-                            else:
-                                self.h_dict_flat[f"{component_name}.{output_name}.{i:03d}"] = val
+                        for i in range(len(output_value)):
+                            columns.append(f"{component_name}.{output_name}.{i:03d}")
                     else:
                         # Handle scalar values
-                        if isinstance(output_value, (int, float)):
-                            # Round numerical values to 3 decimal places
-                            self.h_dict_flat[f"{component_name}.{output_name}"] = round(
-                                output_value, 3
-                            )
-                        else:
-                            self.h_dict_flat[f"{component_name}.{output_name}"] = output_value
+                        columns.append(f"{component_name}.{output_name}")
 
-        # The keys and values as two lists
-        keys = list(self.h_dict_flat.keys())
-        values = list(self.h_dict_flat.values())
+        # Store column structure and allocate data array
+        self.output_columns = columns
+        self.output_data = np.full((self.n_steps, len(columns)), np.nan)
+        self.output_structure_determined = True
 
-        # Ensure the output file is open
-        if not self.csv_file:
-            self._open_output_file()
+        if self.verbose:
+            self.logger.info(f"Determined output structure with {len(columns)} columns")
 
-        # Handle header
-        if not self.header_written:
-            self.csv_writer.writerow(keys)
-            self.header = keys
-            self.header_written = True
-        elif self.header != keys:
-            self.logger.warning(
-                "Input dict keys have changed since first iteration. Not writing to csv file."
-            )
+    def _extract_values_to_array(self):
+        """Extract values from h_dict into the pre-allocated output array.
+        
+        Optimized version that eliminates expensive round() calls during simulation.
+        Rounding is deferred to CSV write time for massive performance improvement.
+        """
+        if self.output_data is None:
             return
 
-        # Add the values to the buffer
-        self.csv_buffer.append(values)
+        row_data = []
 
-        # Flush if buffer is full
-        if len(self.csv_buffer) >= self.csv_buffer_size:
-            self.flush_buffer()
+        # Basic time information - only round time for readability
+        row_data.append(self.h_dict["time"])  # Keep full precision during simulation
+        row_data.append(self.h_dict["step"])
+        row_data.append(dt.datetime.now().timestamp())
+
+        # Plant-level outputs
+        row_data.append(self.h_dict["plant"]["power"])
+        row_data.append(self.h_dict["plant"]["locally_generated_power"])
+
+        # Component outputs - store raw values without rounding
+        for component_name in self.hybrid_plant.component_names:
+            component_obj = self.hybrid_plant.component_objects[component_name]
+            log_outputs = getattr(component_obj, "log_outputs", ["power"])
+
+            for output_name in log_outputs:
+                if output_name in self.h_dict[component_name]:
+                    output_value = self.h_dict[component_name][output_name]
+
+                    # Handle arrays - store raw values
+                    if isinstance(output_value, (list, np.ndarray)):
+                        row_data.extend(output_value)
+                    else:
+                        # Handle scalar values - store raw
+                        row_data.append(output_value)
+
+        # Store in pre-allocated array
+        if len(row_data) == len(self.output_columns):
+            self.output_data[self.step] = row_data
+        else:
+            self.logger.warning(
+                f"Data length mismatch: expected {len(self.output_columns)}, got {len(row_data)}"
+            )
 
     def parse_input_yaml(self, filename):
         """Parse input YAML file (not implemented).
