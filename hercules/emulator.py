@@ -272,7 +272,7 @@ class Emulator:
             # Round time to 1 decimal place for readability
             if "time" in df.columns:
                 df["time"] = df["time"].round(1)
-            
+
             # Round power and numeric values to 3 decimal places
             numeric_columns = df.select_dtypes(include=[np.number]).columns
             for col in numeric_columns:
@@ -349,7 +349,7 @@ class Emulator:
 
     def _extract_values_to_array(self):
         """Extract values from h_dict into the pre-allocated output array.
-        
+
         Optimized version that eliminates expensive round() calls during simulation.
         Rounding is deferred to CSV write time for massive performance improvement.
         """
