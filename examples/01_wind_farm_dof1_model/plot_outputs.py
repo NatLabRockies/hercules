@@ -60,8 +60,8 @@ for t_idx in range(3):
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.turbine_deratings.{t_idx:03}"],
-        label=f"Derating {t_idx}",
+        df[f"wind_farm.turbine_power_setpoints.{t_idx:03}"],
+        label=f"Power Setpoint {t_idx}",
         linestyle="--",
         color=colors[t_idx],
     )

@@ -11,6 +11,7 @@ from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
 
 RPM2RADperSec = 2 * np.pi / 60.0
+RAD2DEG = 180.0 / np.pi
 
 
 class Wind_MesoToPower(ComponentBase):
@@ -662,13 +663,13 @@ class Turbine1dofModel:
 
         # Save performance data functions
         perffile = turbine_dict["dof1_model"]["cq_table_file"]
-        self.perffuncs = load_perffile(perffile)
+        self.perffuncs = self.load_perffile(perffile)
 
         self.rho = self.turbine_dict["dof1_model"]["rho"]
         self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
         self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
         omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
-        pitch, gentq = self.simplecontroller(initial_wind_speed, omega0)
+        pitch, gentq = self.simplecontroller(omega0,prev_pitch=0.0)
         tsr = self.rotor_radius * omega0 / initial_wind_speed
         prev_power = (
             self.perffuncs["Cp"]([tsr, pitch])
@@ -693,11 +694,11 @@ class Turbine1dofModel:
 
     def get_rated_power(self):
         """Get the rated power of the turbine.
-
-        Raises:
-            NotImplementedError: 1-DOF turbine model does not have a rated power.
         """
-        raise NotImplementedError("1-DOF turbine model does not have a rated power")
+        return (
+            self.turbine_dict["dof1_model"]["controller"]["r3_torque"]
+            * self.turbine_dict["dof1_model"]["rated_rotor_speed"]
+        )
 
     def step(self, wind_speed, power_setpoint):
         """Execute one simulation step for the 1-DOF turbine model.
@@ -722,8 +723,7 @@ class Turbine1dofModel:
             / self.turbine_dict["dof1_model"]["rotor_inertia"]
         )
         omegaf = (1 - self.filteralpha) * omega + self.filteralpha * (self.prev_omegaf)
-        # print(omegaf-omega)
-        pitch, gentq = self.simplecontroller(wind_speed, omegaf)
+        pitch, gentq = self.simplecontroller(omegaf,self.prev_pitch)
         tsr = float(omegaf * self.rotor_radius / wind_speed)
         if power_setpoint > 0:
             desiredcp = power_setpoint * 1000 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
@@ -768,23 +768,94 @@ class Turbine1dofModel:
 
         return self.prev_power
 
-    def simplecontroller(self, wind_speed, omegaf):
+    def simplecontroller(self,omegaf,prev_pitch):
         """Simple controller for pitch and generator torque.
 
         Implements a basic Region 2 controller that sets pitch to 0 and
         calculates generator torque based on filtered rotor speed.
 
         Args:
-            wind_speed (float): Current wind speed in m/s.
             omegaf (float): Filtered rotor speed in rad/s.
 
         Returns:
             tuple: (pitch_angle, generator_torque) where pitch is in radians
                 and generator torque is in N⋅m.
         """
-        # if omega <= self.turbine_dict['dof1_model']['rated_wind_speed']:
-        pitch = 0.0
-        gentorque = self.turbine_dict["dof1_model"]["controller"]["r2_k_torque"] * omegaf**2
-        # else
-        #     raise Exception("Region-3 controller not implemented yet")
+        if prev_pitch > 1.0 / RAD2DEG or (prev_pitch > 1.0 / RAD2DEG):
+            gentorque = self.turbine_dict["dof1_model"]["controller"]["r3_torque"] * omegaf**2
+            self.omegaferror_integrated += (
+                omegaf - self.turbine_dict["dof1_model"]["rated_rotor_speed"]
+            )
+            pitch = (
+                self.turbine_dict["dof1_model"]["controller"]["ki_pitch"]
+                * self.dt
+                * self.omegaferror_integrated
+            )
+        else:
+            gentorque = self.turbine_dict["dof1_model"]["controller"]["r2_k_torque"] * omegaf**2
+            pitch = 0.0
+            self.omegaferror_integrated = 0.0
         return pitch, gentorque
+
+    def load_perffile(self,perffile):
+        """Load and parse a wind turbine performance file.
+
+        This function reads a performance file containing wind turbine coefficient data
+        including power coefficients (Cp), thrust coefficients (Ct), and torque coefficients (Cq)
+        as functions of tip speed ratio (TSR) and blade pitch angle. The data is converted
+        into RegularGridInterpolator objects for efficient interpolation during simulation.
+
+        Args:
+            perffile (str): Path to the performance file containing turbine coefficient data.
+
+        Returns:
+            dict: A dictionary containing RegularGridInterpolator objects for 'Cp', 'Ct', and 'Cq'
+                coefficients, keyed by coefficient name.
+        """
+        perffuncs = {}
+
+        with open(perffile) as pfile:
+            for line in pfile:
+                # Read Blade Pitch Angles (degrees)
+                if "Pitch angle" in line:
+                    pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                    pitch_initial_rad = pitch_initial * np.deg2rad(
+                        1
+                    )  # degrees to rad            -- should this be conditional?
+
+                # Read Tip Speed Ratios (rad)
+                if "TSR" in line:
+                    TSR_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+
+                # Read Power Coefficients
+                if "Power" in line:
+                    pfile.readline()
+                    Cp = np.empty((len(TSR_initial), len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Cp[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    perffuncs["Cp"] = RegularGridInterpolator(
+                        (TSR_initial, pitch_initial_rad), Cp, bounds_error=False, fill_value=None
+                    )
+
+                # Read Thrust Coefficients
+                if "Thrust" in line:
+                    pfile.readline()
+                    Ct = np.empty((len(TSR_initial), len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    perffuncs["Ct"] = RegularGridInterpolator(
+                        (TSR_initial, pitch_initial_rad), Ct, bounds_error=False, fill_value=None
+                    )
+
+                # Read Torque Coefficients
+                if "Torque" in line:
+                    pfile.readline()
+                    Cq = np.empty((len(TSR_initial), len(pitch_initial)))
+                    for tsr_i in range(len(TSR_initial)):
+                        Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    perffuncs["Cq"] = RegularGridInterpolator(
+                        (TSR_initial, pitch_initial_rad), Cq, bounds_error=False, fill_value=None
+                    )
+
+        return perffuncs
+
