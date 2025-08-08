@@ -49,7 +49,7 @@ def test_SB_init():
     assert SB.P_min == -2000
     assert SB.P_max == 2000
     assert SB.P_max > SB.P_min
-    assert SB.energy_capacity == test_h_dict["battery"]["energy_capacity"] * 1e3
+    assert SB.energy_capacity == test_h_dict["battery"]["energy_capacity"]
     assert SB.eta_charge == 1
     assert SB.eta_discharge == 1
     assert SB.tau_self_discharge == np.inf
@@ -129,7 +129,7 @@ def test_LI_init():
     assert_almost_equal(LI.P_min, -2000, 6)
     assert_almost_equal(LI.P_max, 2000, 6)
     assert LI.P_max > LI.P_min
-    assert LI.energy_capacity == test_h_dict["battery"]["energy_capacity"] * 1e3
+    assert LI.energy_capacity == test_h_dict["battery"]["energy_capacity"]
 
 
 def test_LI_post_init():

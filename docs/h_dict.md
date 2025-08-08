@@ -56,9 +56,9 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
 | `component_type` | str | "BatterySimple" or "BatteryLithiumIon" | Required |
-| `energy_capacity` | float | Total capacity in MWh | Required |
-| `charge_rate` | float | Maximum charge rate in MW | Required |
-| `discharge_rate` | float | Maximum discharge rate in MW | Required |
+| `energy_capacity` | float | Total capacity in kWh | Required |
+| `charge_rate` | float | Maximum charge rate in kW | Required |
+| `discharge_rate` | float | Maximum discharge rate in kW | Required |
 | `max_SOC` | float | Maximum state of charge (0-1) | Required |
 | `min_SOC` | float | Minimum state of charge (0-1) | Required |
 | `initial_conditions` | dict | Contains initial SOC | Required |

@@ -43,9 +43,9 @@ py_sims:
   battery_0: # The name of py_sim object 1
 
     component_type: BatterySimple
-    energy_capacity: 10 # total capacity of the battery in MWh (4-hour 2.5 MW battery)
-    charge_rate: 2.5 # charge rate of the battery in MW
-    discharge_rate: 2.5 # discharge rate of the battery in MW
+    energy_capacity: 10000 # total capacity of the battery in kWh (4-hour 2500 kW battery)
+    charge_rate: 2500 # charge rate of the battery in kW
+    discharge_rate: 2500 # discharge rate of the battery in kW
     max_SOC: .9 # upper boundary on battery SOC
     min_SOC: 0.1 # lower boundary on battery SOC
     roundtrip_efficiency: 0.9 # roundtrip efficiency of the battery

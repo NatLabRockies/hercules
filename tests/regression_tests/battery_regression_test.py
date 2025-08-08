@@ -14,10 +14,10 @@ test_h_dict = {
     "endtime": 10.0,
     "verbose": False,
     "battery": {
-        "size": 20,
-        "energy_capacity": 80,
-        "charge_rate": 20,
-        "discharge_rate": 20,
+        "size": 20000,  # kW size of the battery (20 MW)
+        "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
+        "charge_rate": 20000,  # charge rate in kW (20 MW)
+        "discharge_rate": 20000,  # discharge rate in kW (20 MW)
         "max_SOC": 0.9,
         "min_SOC": 0.1,
         "initial_conditions": {"SOC": 0.5},
@@ -197,10 +197,10 @@ def test_SimpleBattery_usage_calc_regression():
     battery_dict["dt"] = 1
 
     # Modify battery configuration for testing
-    battery_dict["battery"]["size"] = 2
-    battery_dict["battery"]["energy_capacity"] = 8
-    battery_dict["battery"]["charge_rate"] = 2
-    battery_dict["battery"]["discharge_rate"] = 2
+    battery_dict["battery"]["size"] = 2000
+    battery_dict["battery"]["energy_capacity"] = 8000
+    battery_dict["battery"]["charge_rate"] = 2000
+    battery_dict["battery"]["discharge_rate"] = 2000
     battery_dict["battery"]["roundtrip_efficiency"] = 0.9
     battery_dict["battery"]["self_discharge_time_constant"] = 100
     battery_dict["battery"]["track_usage"] = True

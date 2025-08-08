@@ -33,7 +33,7 @@ solar_farm: # The name of component object 1
 
   initial_conditions:
 
-    power: 25 # MW
+    power: 25000 # kW
     dni: 1000
     poa: 1000
 

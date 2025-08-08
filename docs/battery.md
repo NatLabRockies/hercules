@@ -8,9 +8,9 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 
 #### Required Parameters
 - `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`
-- `energy_capacity`: Energy capacity in MWh
-- `charge_rate`: Maximum charge rate in MW
-- `discharge_rate`: Maximum discharge rate in MW
+- `energy_capacity`: Energy capacity in kWh
+- `charge_rate`: Maximum charge rate in kW
+- `discharge_rate`: Maximum discharge rate in kW
 - `max_SOC`: Maximum state of charge (between 0 and 1)
 - `min_SOC`: Minimum state of charge (between 0 and 1)
 - `initial_conditions`

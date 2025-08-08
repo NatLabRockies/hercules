@@ -49,7 +49,7 @@ class ElectrolyzerPlant(ComponentBase):
         self.n_stacks = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
-        # power_in is always in MW
+        # power_in is always in kW
         power_in = h_dict[self.component_name]["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
 

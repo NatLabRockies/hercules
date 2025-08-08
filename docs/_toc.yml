@@ -13,6 +13,7 @@ parts:
   - caption: Key Concepts
     chapters:
     - file: key_concepts
+    - file: units
     - file: h_dict
     - file: hybrid_plant
     - file: emulator

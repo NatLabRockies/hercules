@@ -94,9 +94,9 @@ class BatteryLithiumIon(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
-                - energy_capacity: Battery energy capacity in MWh
-                - charge_rate: Maximum charge rate in MW
-                - discharge_rate: Maximum discharge rate in MW
+                - energy_capacity: Battery energy capacity in kWh
+                - charge_rate: Maximum charge rate in kW
+                - discharge_rate: Maximum discharge rate in kW
                 - max_SOC: Maximum state of charge (0-1)
                 - min_SOC: Minimum state of charge (0-1)
                 - initial_conditions: Dictionary with initial SOC
@@ -119,9 +119,9 @@ class BatteryLithiumIon(ComponentBase):
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
-        self.energy_capacity = h_dict[self.component_name]["energy_capacity"] * 1e3  # [kWh]
-        self.max_charge_power = h_dict[self.component_name]["charge_rate"] * 1e3  # [kW]
-        self.max_discharge_power = h_dict[self.component_name]["discharge_rate"] * 1e3  # [kW]
+        self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
+        self.max_charge_power = h_dict[self.component_name]["charge_rate"]  # [kW]
+        self.max_discharge_power = h_dict[self.component_name]["discharge_rate"]  # [kW]
 
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.SOC = initial_conditions["SOC"]  # [fraction]

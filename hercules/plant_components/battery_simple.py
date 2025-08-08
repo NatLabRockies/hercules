@@ -77,7 +77,7 @@ class BatterySimple(ComponentBase):
     usage-based degradation using rainflow cycle counting.
 
     Note:
-        TODO: Keep consistent units. Everything in kW or everything in MW but not both.
+        All power units are in kW and energy units are in kWh.
     """
 
     def __init__(self, h_dict):
@@ -88,9 +88,9 @@ class BatterySimple(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
-                - energy_capacity: Battery energy capacity in MWh
-                - charge_rate: Maximum charge rate in MW
-                - discharge_rate: Maximum discharge rate in MW
+                - energy_capacity: Battery energy capacity in kWh
+                - charge_rate: Maximum charge rate in kW
+                - discharge_rate: Maximum discharge rate in kW
                 - max_SOC: Maximum state of charge (0-1)
                 - min_SOC: Minimum state of charge (0-1)
                 - initial_conditions: Dictionary with initial SOC
@@ -113,7 +113,7 @@ class BatterySimple(ComponentBase):
         self.log_outputs = self.log_outputs + ["soc", "power_setpoint"]
 
         # size = h_dict[self.component_name]["size"]
-        self.energy_capacity = h_dict[self.component_name]["energy_capacity"] * 1e3  # [kWh]
+        self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.SOC = initial_conditions["SOC"]  # [fraction]
 
@@ -124,8 +124,8 @@ class BatterySimple(ComponentBase):
         self.E_min = kWh2kJ(self.SOC_min * self.energy_capacity)
         self.E_max = kWh2kJ(self.SOC_max * self.energy_capacity)
 
-        charge_rate = h_dict[self.component_name]["charge_rate"] * 1e3  # [kW]
-        discharge_rate = h_dict[self.component_name]["discharge_rate"] * 1e3  # [kW]
+        charge_rate = h_dict[self.component_name]["charge_rate"]  # [kW]
+        discharge_rate = h_dict[self.component_name]["discharge_rate"]  # [kW]
 
         # Charge/discharge (Power) limits [kW]
         self.P_min = -discharge_rate
