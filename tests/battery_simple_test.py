@@ -318,7 +318,6 @@ def test_SB_roundtrip_efficiency():
     assert_almost_equal(SB.eta_charge * SB.eta_discharge, 0.9, 6)
 
     # Record initial state
-    initial_soc = SB.SOC
     initial_energy = SB.current_batt_state
 
     # Use a smaller test that won't hit SOC limits
@@ -330,7 +329,6 @@ def test_SB_roundtrip_efficiency():
         SB.step(step_inputs(P_avail=charge_power, P_signal=charge_power))
 
     # Record state after charging
-    charged_soc = SB.SOC
     charged_energy = SB.current_batt_state
     energy_stored = charged_energy - initial_energy
 
@@ -345,7 +343,6 @@ def test_SB_roundtrip_efficiency():
         SB.step(step_inputs(P_avail=0, P_signal=discharge_power))
 
     # Record final state
-    final_soc = SB.SOC
     final_energy = SB.current_batt_state
 
     # Calculate net energy change
@@ -362,9 +359,10 @@ def test_SB_roundtrip_efficiency():
     relative_error = abs(actual_loss - expected_net_loss) / expected_net_loss
 
     # Allow up to 10% relative error due to numerical integration effects
-    assert (
-        relative_error < 0.1
-    ), f"Actual loss: {actual_loss:.2f} kWh, Expected: {expected_net_loss:.2f} kWh, Relative error: {relative_error:.3f}"
+    assert relative_error < 0.1, (
+        f"Actual loss: {actual_loss:.2f} kWh, Expected: {expected_net_loss:.2f} kWh, "
+        f"Relative error: {relative_error:.3f}"
+    )
 
 
 def test_SB_roundtrip_efficiency_perfect():
@@ -433,6 +431,7 @@ def test_SB_roundtrip_efficiency_various_values():
 
         # Allow for numerical integration effects
         relative_error = abs(energy_loss - expected_loss) / expected_loss
-        assert (
-            relative_error < 0.2
-        ), f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, Relative error: {relative_error:.3f}"
+        assert relative_error < 0.2, (
+            f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, "
+            f"Relative error: {relative_error:.3f}"
+        )
