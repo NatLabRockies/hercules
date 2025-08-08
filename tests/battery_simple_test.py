@@ -301,7 +301,7 @@ def test_allow_grid_power_consumption(SB: BatterySimple):
 
 def test_SB_roundtrip_efficiency():
     """Test round-trip efficiency for BatterySimple.
-    
+
     Tests that a complete charge-discharge cycle returns the expected
     amount of energy based on the specified round-trip efficiency.
     """
@@ -311,58 +311,60 @@ def test_SB_roundtrip_efficiency():
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
     SB = BatterySimple(test_h_dict)
-    
+
     # Verify efficiency parameters are set correctly
     assert_almost_equal(SB.eta_charge, np.sqrt(0.9), 6)
     assert_almost_equal(SB.eta_discharge, np.sqrt(0.9), 6)
     assert_almost_equal(SB.eta_charge * SB.eta_discharge, 0.9, 6)
-    
+
     # Record initial state
     initial_soc = SB.SOC
     initial_energy = SB.current_batt_state
-    
+
     # Use a smaller test that won't hit SOC limits
     # Charge with 500 kW for 30 minutes (250 kWh input)
     charge_power = 500  # kW
     charge_time_steps = int(1800 / SB.dt)  # 30 minutes worth of time steps
-    
+
     for _ in range(charge_time_steps):
         SB.step(step_inputs(P_avail=charge_power, P_signal=charge_power))
-    
+
     # Record state after charging
     charged_soc = SB.SOC
     charged_energy = SB.current_batt_state
     energy_stored = charged_energy - initial_energy
-    
+
     # Expected stored energy should be charge_power * 0.5hr * eta_charge
     expected_stored = charge_power * 0.5 * SB.eta_charge  # 250 * sqrt(0.9)
     assert_almost_equal(energy_stored, expected_stored, 1)
-    
+
     # Now discharge the battery with the same power magnitude for the same time
     discharge_power = -charge_power  # kW (negative for discharge)
-    
+
     for _ in range(charge_time_steps):
         SB.step(step_inputs(P_avail=0, P_signal=discharge_power))
-    
+
     # Record final state
     final_soc = SB.SOC
     final_energy = SB.current_batt_state
-    
+
     # Calculate net energy change
     net_energy_change = final_energy - initial_energy
-    
+
     # For a complete round trip, we should have lost energy due to efficiency
     # Net loss = input_energy * (1 - roundtrip_efficiency)
     input_energy = charge_power * 0.5  # 250 kWh
     expected_net_loss = input_energy * (1 - 0.9)  # 25 kWh loss
-    
+
     # Verify the round-trip efficiency (allow for small numerical errors)
     # The actual loss should be close to the theoretical loss
     actual_loss = -net_energy_change
     relative_error = abs(actual_loss - expected_net_loss) / expected_net_loss
-    
+
     # Allow up to 10% relative error due to numerical integration effects
-    assert relative_error < 0.1, f"Actual loss: {actual_loss:.2f} kWh, Expected: {expected_net_loss:.2f} kWh, Relative error: {relative_error:.3f}"
+    assert (
+        relative_error < 0.1
+    ), f"Actual loss: {actual_loss:.2f} kWh, Expected: {expected_net_loss:.2f} kWh, Relative error: {relative_error:.3f}"
 
 
 def test_SB_roundtrip_efficiency_perfect():
@@ -372,26 +374,26 @@ def test_SB_roundtrip_efficiency_perfect():
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
     SB = BatterySimple(test_h_dict)
-    
+
     # Verify perfect efficiency
     assert SB.eta_charge == 1.0
     assert SB.eta_discharge == 1.0
-    
+
     # Record initial state
     initial_energy = SB.current_batt_state
-    
+
     # Charge and discharge cycle
-    charge_power = 300  # kW  
+    charge_power = 300  # kW
     time_steps = int(1800 / SB.dt)  # 30 minutes
-    
+
     # Charge
     for _ in range(time_steps):
         SB.step(step_inputs(P_avail=charge_power, P_signal=charge_power))
-    
+
     # Discharge
     for _ in range(time_steps):
         SB.step(step_inputs(P_avail=0, P_signal=-charge_power))
-    
+
     # Final energy should equal initial energy (no losses)
     final_energy = SB.current_batt_state
     assert_almost_equal(final_energy, initial_energy, 2)
@@ -400,37 +402,37 @@ def test_SB_roundtrip_efficiency_perfect():
 def test_SB_roundtrip_efficiency_various_values():
     """Test round-trip efficiency with various efficiency values."""
     efficiency_values = [0.7, 0.8, 0.85, 0.9, 0.95]
-    
+
     for rte in efficiency_values:
         test_h_dict = copy.deepcopy(h_dict_simple_battery)
         test_h_dict["battery"]["roundtrip_efficiency"] = rte
         test_h_dict["battery"]["allow_grid_power_consumption"] = True
         test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
         SB = BatterySimple(test_h_dict)
-        
+
         # Small charge-discharge cycle to avoid SOC limits
         initial_energy = SB.current_batt_state
-        
+
         charge_power = 200  # kW
         time_steps = int(900 / SB.dt)  # 15 minutes
-        
+
         # Charge
         for _ in range(time_steps):
             SB.step(step_inputs(P_avail=charge_power, P_signal=charge_power))
-        
+
         # Discharge
         for _ in range(time_steps):
             SB.step(step_inputs(P_avail=0, P_signal=-charge_power))
-        
+
         # Verify the round-trip efficiency
         final_energy = SB.current_batt_state
         energy_loss = initial_energy - final_energy
         energy_throughput = charge_power * (time_steps * SB.dt / 3600)  # kWh
-        
+
         expected_loss = energy_throughput * (1 - rte)
-        
+
         # Allow for numerical integration effects
         relative_error = abs(energy_loss - expected_loss) / expected_loss
-        assert relative_error < 0.2, f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, Relative error: {relative_error:.3f}"
-
-
+        assert (
+            relative_error < 0.2
+        ), f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, Relative error: {relative_error:.3f}"
