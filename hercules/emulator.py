@@ -327,6 +327,10 @@ class Emulator:
         # Basic time information
         columns.extend(["time", "step", "clock_time"])
 
+        # If time_utc is available log it as well
+        if "time_utc" in self.h_dict:
+            columns.append("time_utc")
+
         # Plant-level outputs
         columns.extend(["plant.power", "plant.locally_generated_power"])
 
