@@ -141,9 +141,9 @@ def test_SimpleBattery_regression_():
             {
                 "time": t,
                 "battery": {
-                    "battery_signal": powers_requested[i],
+                    "power_setpoint": powers_requested[i],
                 },
-                "locally_generated_power": powers_requested[i],
+                "plant": {"locally_generated_power": powers_requested[i]},
             }
         )
         powers_test[i] = out["battery"]["power"]
@@ -173,9 +173,9 @@ def test_LIB_regression_():
             {
                 "time": t,
                 "battery": {
-                    "battery_signal": powers_requested[i],
+                    "power_setpoint": powers_requested[i],
                 },
-                "locally_generated_power": powers_requested[i],
+                "plant": {"locally_generated_power": powers_requested[i]},
             }
         )
         powers_test[i] = out["battery"]["power"]
@@ -238,8 +238,8 @@ def test_SimpleBattery_usage_calc_regression():
 
     for i in range(len(power_avail)):
         step_input_dict = {
-            "battery": {"battery_signal": power_signal[i]},
-            "locally_generated_power": power_avail[i],
+            "battery": {"power_setpoint": power_signal[i]},
+            "plant": {"locally_generated_power": power_avail[i]},
         }
         out = SB.step(step_input_dict)
         # assert out["battery"]["power"] == power_signal[i]
@@ -264,8 +264,8 @@ def test_SimpleBattery_usage_calc_regression():
 
     for i in range(len(power_avail)):
         step_input_dict = {
-            "battery": {"battery_signal": 0},
-            "locally_generated_power": power_avail[i],
+            "battery": {"power_setpoint": 0},
+            "plant": {"locally_generated_power": power_avail[i]},
         }
         out = SB.step(step_input_dict)
     assert SB.SOC == usage_calc_base_dict["SB.SOC (2)"]

@@ -102,7 +102,6 @@ class BatteryLithiumIon(ComponentBase):
         self.T = 25  # [C] temperature
         self.SOH = 1  # State of Health
 
-
         self.post_init()
 
     def get_initial_conditions_and_meta_data(self, h_dict):
