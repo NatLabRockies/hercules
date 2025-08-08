@@ -294,6 +294,7 @@ class Emulator:
         try:
             # Only attempt cleanup if Python is not shutting down
             import sys
+
             if sys.meta_path is not None:
                 self.close_output_file()
         except (ImportError, AttributeError):
