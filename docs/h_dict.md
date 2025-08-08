@@ -53,18 +53,22 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
 ### Battery (`battery`)
-| `component_type` | str | "BatterySimple" or "BatteryLithiumIon" |
-| `energy_capacity` | float | Total capacity in MWh |
-| `charge_rate` | float | Charge rate in MW |
-| `discharge_rate` | float | Discharge rate in MW |
-| `max_SOC` | float | Maximum state of charge (0-1) |
-| `min_SOC` | float | Minimum state of charge (0-1) |
-| `size` | float | Battery size in MW |
-| `roundtrip_efficiency` | float | Roundtrip efficiency |
-| `track_usage` | bool | Track battery usage |
-| `usage_calc_interval` | int | Usage calculation interval |
-| `allow_grid_power_consumption` | bool | Allow grid power consumption | True |
-| `initial_conditions` | dict | Initial SOC |
+| Key | Type | Description | Default |
+|-----|------|-------------|---------|
+| `component_type` | str | "BatterySimple" or "BatteryLithiumIon" | Required |
+| `energy_capacity` | float | Total capacity in MWh | Required |
+| `charge_rate` | float | Maximum charge rate in MW | Required |
+| `discharge_rate` | float | Maximum discharge rate in MW | Required |
+| `max_SOC` | float | Maximum state of charge (0-1) | Required |
+| `min_SOC` | float | Minimum state of charge (0-1) | Required |
+| `initial_conditions` | dict | Contains initial SOC | Required |
+| `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
+| `roundtrip_efficiency` | float | Roundtrip efficiency (BatterySimple only) | 1.0 |
+| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatterySimple only) | inf |
+| `track_usage` | bool | Enable usage tracking (BatterySimple only) | False |
+| `usage_calc_interval` | int | Usage calculation interval in seconds (BatterySimple only) | 100 |
+| `usage_lifetime` | float | Battery lifetime in years (BatterySimple only) | - |
+| `usage_cycles` | int | Number of cycles until replacement (BatterySimple only) | - |
 
 ### Electrolyzer (`electrolyzer`)
 | Key | Type | Description |

@@ -16,20 +16,38 @@ from hercules.plant_components.component_base import ComponentBase
 
 
 def kJ2kWh(kJ):
-    """Convert a value in kJ to kWh"""
+    """Convert a value in kJ to kWh.
+
+    Args:
+        kJ (float): Energy value in kilojoules.
+
+    Returns:
+        float: Energy value in kilowatt-hours.
+    """
     return kJ / 3600
 
 
 def kWh2kJ(kWh):
-    """Convert a value in kWh to kJ"""
+    """Convert a value in kWh to kJ.
+
+    Args:
+        kWh (float): Energy value in kilowatt-hours.
+
+    Returns:
+        float: Energy value in kilojoules.
+    """
     return kWh * 3600
 
 
 def years_to_usage_rate(years, dt):
-    """Convert a number of years to a usage rate
-    inputs:
-        years: life of the storage system in years
-        dt: time step of the simulation, in seconds
+    """Convert a number of years to a usage rate.
+
+    Args:
+        years (float): Life of the storage system in years.
+        dt (float): Time step of the simulation in seconds.
+
+    Returns:
+        float: Usage rate per time step.
     """
     days = years * 365
     hours = days * 24
@@ -40,25 +58,46 @@ def years_to_usage_rate(years, dt):
 
 
 def cycles_to_usage_rate(cycles):
-    """Convert cycle number to degradation rate
-    inputs:
-        cycles: number of cycles until the unit needs to be replaced
-        dt: time step of the simulation, in seconds
+    """Convert cycle number to degradation rate.
+
+    Args:
+        cycles (int): Number of cycles until the unit needs to be replaced.
+
+    Returns:
+        float: Degradation rate per cycle.
     """
     return 1 / cycles
 
 
 class BatterySimple(ComponentBase):
-    # TODO: keep consistent units. Everything in kW or everything in MW but not both
+    """Simple battery energy storage model.
+
+    This model represents a basic battery with energy storage and power constraints.
+    It tracks state of charge, applies efficiency losses, and optionally tracks
+    usage-based degradation using rainflow cycle counting.
+
+    Note:
+        TODO: Keep consistent units. Everything in kW or everything in MW but not both.
+    """
+
     def __init__(self, h_dict):
-        """
-        Initializes the BatterySimple class.
+        """Initialize the BatterySimple class.
 
         This model represents a simple battery with energy storage and power constraints.
         It tracks state of charge and applies efficiency losses.
 
         Args:
-            h_dict (dict): Dict containing values for the simulation
+            h_dict (dict): Dictionary containing simulation parameters including:
+                - energy_capacity: Battery energy capacity in MWh
+                - charge_rate: Maximum charge rate in MW
+                - discharge_rate: Maximum discharge rate in MW
+                - max_SOC: Maximum state of charge (0-1)
+                - min_SOC: Minimum state of charge (0-1)
+                - initial_conditions: Dictionary with initial SOC
+                - allow_grid_power_consumption: Optional, defaults to False
+                - roundtrip_efficiency: Optional roundtrip efficiency (0-1)
+                - self_discharge_time_constant: Optional self-discharge time constant
+                - track_usage: Optional boolean to enable usage tracking
         """
         # Store the name of this component
         self.component_name = "battery"
@@ -189,11 +228,31 @@ class BatterySimple(ComponentBase):
         return h_dict
 
     def step(self, h_dict):
+        """Advance the battery simulation by one time step.
+
+        Updates the battery state including SOC, energy storage, and power output
+        based on the requested power setpoint and available power. Optionally
+        calculates usage-based degradation.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation state including:
+                - battery.power_setpoint: Requested charging/discharging power [kW]
+                - plant.locally_generated_power: Available power for charging [kW]
+
+        Returns:
+            dict: Updated h_dict with battery outputs:
+                - power: Actual charging/discharging power [kW]
+                - reject: Rejected power due to constraints [kW]
+                - soc: State of charge [0-1]
+                - usage_in_time: Time-based usage percentage
+                - usage_in_cycles: Cycle-based usage percentage
+                - total_cycles: Total equivalent cycles completed
+        """
         self.step_counter += 1
 
-        # power available for the battery to use for charging (should be >=0)
+        # Power available for the battery to use for charging (should be >=0)
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
-        # power signal desired by the controller
+        # Power signal desired by the controller
         if self.allow_grid_power_consumption:
             P_avail = np.inf
         else:
@@ -231,19 +290,20 @@ class BatterySimple(ComponentBase):
         return h_dict
 
     def control(self, P_avail, power_setpoint):
-        """
-        Low-level controller to enforce charging and energy constraints
+        """Apply battery operational constraints to requested power.
 
-        Inputs
-        - P_avail: [kW] the available power for charging
-        - power_setpoint: [kW] the desired charging power
+        Low-level controller that enforces energy, power, and ramp rate constraints.
+        Determines the actual charging/discharging power and any rejected power.
 
-        Outputs
-        - P_charge: [kW] (positive of negative) the charging/discharging power
-        - P_reject: [kW] (positive or negative) either the extra power that the
-                    battery cannot absorb (positive) or the power required but
-                    not provided for the battery to charge/discharge without violating
-                    constraints (negative)
+        Args:
+            P_avail (float): Available power for charging in kW.
+            power_setpoint (float): Desired charging/discharging power in kW.
+
+        Returns:
+            tuple: (P_charge, P_reject) where:
+                - P_charge: Actual charging/discharging power in kW (positive for charging)
+                - P_reject: Rejected power due to constraints in kW (positive when
+                  power cannot be absorbed, negative when required power unavailable)
         """
 
         # TODO remove ramp rate constraints because they are never used?
@@ -286,12 +346,28 @@ class BatterySimple(ComponentBase):
         return P_charge, P_reject
 
     def build_SS(self):
+        """Build state-space model matrices for battery dynamics.
+
+        Constructs the state-space representation that includes self-discharge
+        and efficiency losses.
+        """
         self.A = np.array([[-1 / self.tau_self_discharge]])
-        # B is the function in
+        # B matrix is handled by the SS_input_function
         self.C = np.array([[1, 0]]).T
         self.D = np.array([[0, 1]]).T
 
     def SS_input_function(self, P_charge):
+        """Apply efficiency losses to charging/discharging power.
+
+        Converts the commanded power to actual power stored/released from
+        the battery considering efficiency losses.
+
+        Args:
+            P_charge (float): Commanded charging/discharging power in kW.
+
+        Returns:
+            float: Actual power stored/released considering efficiency in kW.
+        """
         # P_in is the amount of power that actually gets stored in the state E
         # P_charge is the amount of power given to the charging physics
 
@@ -302,6 +378,17 @@ class BatterySimple(ComponentBase):
         return P_in
 
     def SS_input_function_inverse(self, P_in):
+        """Calculate required commanded power for desired stored power.
+
+        Inverse of SS_input_function to determine the commanded power needed
+        to achieve a desired power storage/release rate.
+
+        Args:
+            P_in (float): Desired power to be stored/released in kW.
+
+        Returns:
+            float: Required commanded power considering efficiency in kW.
+        """
         if P_in >= 0:
             P_charge = P_in / self.eta_charge
         else:
@@ -309,6 +396,14 @@ class BatterySimple(ComponentBase):
         return P_charge
 
     def step_SS(self, u):
+        """Advance the state-space model by one time step.
+
+        Updates the battery energy state considering self-discharge and
+        efficiency losses.
+
+        Args:
+            u (float): Input power command in kW.
+        """
         # Advance the state-space loop
         xd = self.A * self.x + self.SS_input_function(u)
         y = self.C * self.x + self.D * u
@@ -317,15 +412,30 @@ class BatterySimple(ComponentBase):
         self.y = y
 
     def integrate(self, x, xd):
-        # better integration -> use the closed form step response solution?
+        """Integrate state derivatives using Euler method.
+
+        Args:
+            x (np.ndarray): Current state vector.
+            xd (np.ndarray): State derivative vector.
+
+        Returns:
+            np.ndarray: Updated state vector.
+        """
+        # TODO: Use better integration method like closed form step response solution
         return x + xd * self.dt  # Euler integration
 
     def calc_usage(self):
+        """Calculate battery usage based on cycle counting and time.
+
+        Uses the rainflow algorithm to count cycles in the energy storage operation
+        following the three-point technique (ASTM Standard E 1049-85). Also tracks
+        time-based usage for degradation modeling.
+        """
         # Count rainflow cycles
-        # This step uses sthe rainflow algorithm to count how many cycles exist in the
-        #   storage operation using the three-point technique (ASTM Standard E 1049-85)
-        #   The algorithm returns the size (amplitude) of the cycle, and the number of cycles at
-        #       that amplitude at that point in the signal
+        # This step uses the rainflow algorithm to count how many cycles exist in the
+        # storage operation using the three-point technique (ASTM Standard E 1049-85)
+        # The algorithm returns the size (amplitude) of the cycle, and the number of cycles at
+        # that amplitude at that point in the signal
         ranges_counts = rainflow.count_cycles(self.E_store)
         ranges = np.array([rc[0] for rc in ranges_counts])
         counts = np.array([rc[1] for rc in ranges_counts])
@@ -339,6 +449,17 @@ class BatterySimple(ComponentBase):
         # self.apply_degradation(this_period_degradation)
 
     def apply_degradation(self, degradation):
+        """Apply degradation effects to battery performance.
+
+        This method would apply the calculated degradation to battery efficiency
+        and capacity, but is not yet implemented.
+
+        Args:
+            degradation (float): Degradation factor to apply.
+
+        Raises:
+            NotImplementedError: Method is not yet implemented.
+        """
         # total_degradation_effect = self.total_degradation*self.degradation_rate
         # print('degradation penalty', total_degradation_effect, np.sqrt(total_degradation_effect))
         # self.eta_charge = self.eta_charge - np.sqrt(total_degradation_effect)

@@ -15,20 +15,38 @@ from hercules.plant_components.component_base import ComponentBase
 
 
 def kJ2kWh(kJ):
-    """Convert a value in kJ to kWh"""
+    """Convert a value in kJ to kWh.
+
+    Args:
+        kJ (float): Energy value in kilojoules.
+
+    Returns:
+        float: Energy value in kilowatt-hours.
+    """
     return kJ / 3600
 
 
 def kWh2kJ(kWh):
-    """Convert a value in kWh to kJ"""
+    """Convert a value in kWh to kJ.
+
+    Args:
+        kWh (float): Energy value in kilowatt-hours.
+
+    Returns:
+        float: Energy value in kilojoules.
+    """
     return kWh * 3600
 
 
 def years_to_usage_rate(years, dt):
-    """Convert a number of years to a usage rate
-    inputs:
-        years: life of the storage system in years
-        dt: time step of the simulation, in seconds
+    """Convert a number of years to a usage rate.
+
+    Args:
+        years (float): Life of the storage system in years.
+        dt (float): Time step of the simulation in seconds.
+
+    Returns:
+        float: Usage rate per time step.
     """
     days = years * 365
     hours = days * 24
@@ -39,31 +57,50 @@ def years_to_usage_rate(years, dt):
 
 
 def cycles_to_usage_rate(cycles):
-    """Convert cycle number to degradation rate
-    inputs:
-        cycles: number of cycles until the unit needs to be replaced
-        dt: time step of the simulation, in seconds
+    """Convert cycle number to degradation rate.
+
+    Args:
+        cycles (int): Number of cycles until the unit needs to be replaced.
+
+    Returns:
+        float: Degradation rate per cycle.
     """
     return 1 / cycles
 
 
 class BatteryLithiumIon(ComponentBase):
-    """
-    Calculations in this class are primarily from [1]
+    """Detailed lithium-ion battery model with equivalent circuit modeling.
 
-    Cathode Material LiFePO4 (all 5 cells)
-    Anode Material Graphite (all 5 cells)
+    This model represents a detailed lithium-ion battery with diffusion transients
+    and losses modeled as an equivalent circuit model. Calculations in this class
+    are primarily from [1].
+
+    Battery specifications:
+    - Cathode Material: LiFePO4 (all 5 cells)
+    - Anode Material: Graphite (all 5 cells)
+
+    References:
+        [1] M.-K. Tran et al., "A comprehensive equivalent circuit model for lithium-ion
+        batteries, incorporating the effects of state of health, state of charge, and
+        temperature on model parameters," Journal of Energy Storage, vol. 43, p. 103252,
+        Nov. 2021, doi: 10.1016/j.est.2021.103252.
     """
 
     def __init__(self, h_dict):
-        """
-        Initializes the BatteryLithiumIon class.
+        """Initialize the BatteryLithiumIon class.
 
         This model represents a detailed lithium-ion battery with diffusion transients
         and losses modeled as an equivalent circuit model.
 
         Args:
-            h_dict (dict): Dict containing values for the simulation
+            h_dict (dict): Dictionary containing simulation parameters including:
+                - energy_capacity: Battery energy capacity in MWh
+                - charge_rate: Maximum charge rate in MW
+                - discharge_rate: Maximum discharge rate in MW
+                - max_SOC: Maximum state of charge (0-1)
+                - min_SOC: Minimum state of charge (0-1)
+                - initial_conditions: Dictionary with initial SOC
+                - allow_grid_power_consumption: Optional, defaults to False
         """
 
         # Store the name of this component
@@ -123,8 +160,10 @@ class BatteryLithiumIon(ComponentBase):
         return h_dict
 
     def post_init(self):
-        """
-        Calculations for other battery variables not specified in the initialization
+        """Calculate derived battery parameters after initialization.
+
+        This method calculates cell configuration, capacity, voltage, current limits,
+        and initializes the equivalent circuit model parameters.
         """
 
         # Calculate the total cells and series/parallel configuration
@@ -194,11 +233,12 @@ class BatteryLithiumIon(ComponentBase):
         self.P_charge = 0
 
     def OCV(self):
-        """
-        Calculate cell open circuit voltage (OCV) as a function of SOC
+        """Calculate cell open circuit voltage (OCV) as a function of SOC.
+
+        Uses a 10th order polynomial fit of the OCV curve from [1] Fig.4.
 
         Returns:
-        - OCV: Cell open circuit voltage [V]
+            float: Cell open circuit voltage in volts.
         """
 
         ocv = 0
@@ -208,12 +248,13 @@ class BatteryLithiumIon(ComponentBase):
         return ocv
 
     def build_SS(self):
-        """
-        Return RC branch state space matrices for the current SOH (state of health),
-        T (temperature), and SOC (state of charge).
+        """Build RC branch state space matrices for equivalent circuit model.
+
+        Constructs state space matrices for the current SOH (state of health),
+        T (temperature), and SOC (state of charge) using coefficients from [1] Table 2.
 
         Returns:
-            - A, B, C, D: RC branch state space matrices
+            tuple: A, B, C, D state space matrices for the RC branch.
         """
 
         R_0, R_1, C_1 = self.ECM_coefficients @ np.array(
@@ -230,9 +271,10 @@ class BatteryLithiumIon(ComponentBase):
         return A, B, C, D
 
     def step_cell(self, u):
-        """
-        Inputs:
-        - u: cell current (i [A])
+        """Update the equivalent circuit model state for one time step.
+
+        Args:
+            u (float): Cell current in amperes.
         """
         # TODO: What if dt is very slow? skip this integration and return steady state value
         # update the state of the cell model
@@ -245,24 +287,54 @@ class BatteryLithiumIon(ComponentBase):
         self.V_RC = y
 
     def integrate(self, x, xd):
-        # better integration -> use the closed form step response solution?
+        """Integrate state derivatives using Euler method.
+
+        Args:
+            x (float): Current state value.
+            xd (float): State derivative.
+
+        Returns:
+            float: Updated state value.
+        """
+        # TODO: Use better integration method like closed form step response solution
         return x + xd * self.dt  # Euler integration
 
     def V_cell(self):
-        """Return cell voltage"""
+        """Calculate total cell voltage.
+
+        Returns:
+            float: Cell voltage in volts (OCV + RC voltage drop).
+        """
         return self.OCV() + self.V_RC
 
     def calc_power(self, I_bat):
-        """Return battery power in kW"""
-        # NOTE: this might be in watts, ask Zack!
-        return self.V_cell() * self.n_s * I_bat  # [kW]
+        """Calculate battery power from current.
+
+        Args:
+            I_bat (float): Battery current in amperes.
+
+        Returns:
+            float: Battery power in watts.
+        """
+        # Total battery voltage (cells in series) times current
+        return self.V_cell() * self.n_s * I_bat  # [W]
 
     def step(self, h_dict):
-        """
-        Perform all of the internal update calculations as the simulation advances a time step.
+        """Advance the battery simulation by one time step.
 
-        Inputs:
-        - h_dict
+        Updates the battery state including SOC, equivalent circuit dynamics, and power output
+        based on the requested power setpoint and available power.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation state including:
+                - battery.power_setpoint: Requested charging/discharging power [kW]
+                - plant.locally_generated_power: Available power for charging [kW]
+
+        Returns:
+            dict: Updated h_dict with battery outputs:
+                - power: Actual charging/discharging power [kW]
+                - reject: Rejected power due to constraints [kW]
+                - soc: State of charge [0-1]
         """
 
         P_signal = h_dict[self.component_name]["power_setpoint"]  # [kW] requested power
@@ -299,18 +371,19 @@ class BatteryLithiumIon(ComponentBase):
         return h_dict
 
     def control(self, P_signal, P_avail):
-        """
-        Calculate the charging/discharging current from the requested charging/discharging power.
-        There is an iterative update to the charging current to account for errors between the
-        nominal and actual battery voltage.
+        """Calculate charging/discharging current from requested power.
 
-        Inputs:
-        - P_signal: [kW] requested charging/discharging power
-        - P_avail: [kW] power available for charging/discharging
+        Uses an iterative approach to account for errors between nominal and actual
+        battery voltage. Includes integral control to correct for persistent voltage errors.
+
+        Args:
+            P_signal (float): Requested charging/discharging power in kW.
+            P_avail (float): Power available for charging/discharging in kW.
 
         Returns:
-        - I_charge: [A] charging/discharging current for P_signal if the battery is able
-        - I_reject: [A] current needed to meet P_signal if the batter is not able
+            tuple: (I_charge, I_reject) where:
+                - I_charge: Charging/discharging current in amperes that the battery can provide
+                - I_reject: Current equivalent of power that cannot be provided in amperes
         """
 
         # Current according to nominal voltage
@@ -341,18 +414,20 @@ class BatteryLithiumIon(ComponentBase):
         return I_charge, I_reject
 
     def constraints(self, I_signal, I_avail):
-        """
-        Check whether the requested charging/discharging action will violate the battery charge or
-        amperage limits. If it does not, charge the battery as requested. If it does, charge the
-        battery according to the most restrictive constraint.
+        """Apply battery operational constraints to the requested current.
 
-        Inputs:
-        - I_avail: [A] current available for charging/discharging
-        - I_signal: [A] charging/discharging current requested of battery.
+        Checks whether the requested charging/discharging action will violate battery
+        charge limits, power limits, or available power. Returns the constrained current
+        and any rejected current.
+
+        Args:
+            I_signal (float): Requested charging/discharging current in amperes.
+            I_avail (float): Current available for charging/discharging in amperes.
 
         Returns:
-        - I_charge: [A] the closest charging/discharging current that satisfies all constraints
-        - I_reject: [A] the additional current needed to charge at I_avail
+            tuple: (I_charge, I_reject) where:
+                - I_charge: Constrained charging/discharging current in amperes
+                - I_reject: Rejected current due to constraints in amperes
         """
 
         # Charge (energy) constraint, upper. Charging current that would fill the battery up
