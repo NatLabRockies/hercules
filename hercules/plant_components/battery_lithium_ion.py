@@ -14,14 +14,14 @@ import numpy as np
 from hercules.plant_components.component_base import ComponentBase
 
 
-def kJ2kWh(kWh):
-    """Convert a value in kWh to kJ"""
-    return kWh / 3600
-
-
-def kWh2kJ(kJ):
+def kJ2kWh(kJ):
     """Convert a value in kJ to kWh"""
-    return kJ * 3600
+    return kJ / 3600
+
+
+def kWh2kJ(kWh):
+    """Convert a value in kWh to kJ"""
+    return kWh * 3600
 
 
 def years_to_usage_rate(years, dt):
@@ -75,6 +75,10 @@ class BatteryLithiumIon(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
+        # Add to the log outputs with specific outputs
+        # Note that power is assumed in the base class
+        self.log_outputs = self.log_outputs + ["soc", "power_setpoint"]
+
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
@@ -98,7 +102,6 @@ class BatteryLithiumIon(ComponentBase):
         self.T = 25  # [C] temperature
         self.SOH = 1  # State of Health
 
-        self.needed_inputs = {"battery_signal": 0.0}
 
         self.post_init()
 
@@ -116,6 +119,7 @@ class BatteryLithiumIon(ComponentBase):
         """
 
         # Add what we want later
+        h_dict[self.component_name]["power"] = 0
 
         return h_dict
 
@@ -262,11 +266,11 @@ class BatteryLithiumIon(ComponentBase):
         - h_dict
         """
 
-        P_signal = h_dict[self.component_name]["battery_signal"]  # [kW] requested power
+        P_signal = h_dict[self.component_name]["power_setpoint"]  # [kW] requested power
         if self.allow_grid_power_consumption:
             P_avail = np.inf
         else:
-            P_avail = h_dict["locally_generated_power"]  # [kW] available power
+            P_avail = h_dict["plant"]["locally_generated_power"]  # [kW] available power
 
         # Calculate charging/discharging current [A] from power
         I_charge, I_reject = self.control(P_signal, P_avail)

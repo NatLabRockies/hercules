@@ -32,8 +32,8 @@ def LI():
 def step_inputs(P_avail, P_signal):
     return dict(
         {
-            "battery": {"battery_signal": P_signal},
-            "locally_generated_power": P_avail,
+            "battery": {"power_setpoint": P_signal},
+            "plant": {"locally_generated_power": P_avail},
         }
     )
 

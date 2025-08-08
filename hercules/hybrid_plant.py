@@ -77,6 +77,9 @@ class HybridPlant:
                 h_dict
             )
 
+        # Add the plant level outputs to the h_dict
+        h_dict = self.compute_plant_level_outputs(h_dict)
+
         return h_dict
 
     def get_plant_component(self, component_name, h_dict):
@@ -148,6 +151,8 @@ class HybridPlant:
         h_dict["plant"]["locally_generated_power"] = np.sum(
             [h_dict[generator_name]["power"] for generator_name in self.generator_names]
         )
+
+        return h_dict
 
     def close_logging(self):
         """Close all loggers for all plant component objects.

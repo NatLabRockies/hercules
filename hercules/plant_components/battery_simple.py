@@ -15,14 +15,14 @@ import rainflow
 from hercules.plant_components.component_base import ComponentBase
 
 
-def kJ2kWh(kWh):
-    """Convert a value in kWh to kJ"""
-    return kWh / 3600
-
-
-def kWh2kJ(kJ):
+def kJ2kWh(kJ):
     """Convert a value in kJ to kWh"""
-    return kJ * 3600
+    return kJ / 3600
+
+
+def kWh2kJ(kWh):
+    """Convert a value in kWh to kJ"""
+    return kWh * 3600
 
 
 def years_to_usage_rate(years, dt):
@@ -68,6 +68,10 @@ class BatterySimple(ComponentBase):
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)
+
+        # Add to the log outputs with specific outputs
+        # Note that power is assumed in the base class
+        self.log_outputs = self.log_outputs + ["soc", "power_setpoint"]
 
         # size = h_dict[self.component_name]["size"]
         self.energy_capacity = h_dict[self.component_name]["energy_capacity"] * 1e3  # [kWh]
@@ -180,6 +184,7 @@ class BatterySimple(ComponentBase):
         """
 
         # Add what we want later
+        h_dict[self.component_name]["power"] = 0
 
         return h_dict
 
@@ -187,14 +192,14 @@ class BatterySimple(ComponentBase):
         self.step_counter += 1
 
         # power available for the battery to use for charging (should be >=0)
-        P_signal = h_dict[self.component_name]["battery_signal"]
+        power_setpoint = h_dict[self.component_name]["power_setpoint"]
         # power signal desired by the controller
         if self.allow_grid_power_consumption:
             P_avail = np.inf
         else:
-            P_avail = h_dict["locally_generated_power"]  # [kW] available power
+            P_avail = h_dict["plant"]["locally_generated_power"]  # [kW] available power
 
-        P_charge, P_reject = self.control(P_avail, P_signal)
+        P_charge, P_reject = self.control(P_avail, power_setpoint)
 
         # Update energy state
         # self.E += self.P_charge * self.dt
@@ -225,13 +230,13 @@ class BatterySimple(ComponentBase):
         # Return the updated dictionary
         return h_dict
 
-    def control(self, P_avail, P_signal):
+    def control(self, P_avail, power_setpoint):
         """
         Low-level controller to enforce charging and energy constraints
 
         Inputs
         - P_avail: [kW] the available power for charging
-        - P_signal: [kW] the desired charging power
+        - power_setpoint: [kW] the desired charging power
 
         Outputs
         - P_charge: [kW] (positive of negative) the charging/discharging power
@@ -265,15 +270,15 @@ class BatterySimple(ComponentBase):
         c_lo = np.min([c_lo, 0])
 
         # TODO: force low constraint to be no higher than lowest high constraint
-        if (P_signal >= c_lo) & (P_signal <= c_hi):
-            P_charge = P_signal
+        if (power_setpoint >= c_lo) & (power_setpoint <= c_hi):
+            P_charge = power_setpoint
             P_reject = 0
-        elif P_signal < c_lo:
+        elif power_setpoint < c_lo:
             P_charge = c_lo
-            P_reject = P_signal - P_charge
-        elif P_signal > c_hi:
+            P_reject = power_setpoint - P_charge
+        elif power_setpoint > c_hi:
             P_charge = c_hi
-            P_reject = P_signal - P_charge
+            P_reject = power_setpoint - P_charge
 
         self.P_charge = P_charge
         self.P_reject = P_reject
