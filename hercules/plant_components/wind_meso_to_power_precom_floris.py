@@ -208,9 +208,12 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             n_turbines=self.fmodel.n_turbines,
         )
 
-        # Make free stream velocities as a 2D array where each row is the
-        # free stream velocity repeated for each turbine
-        free_stream_velocities = np.tile(self.ws_mat_mean[:, np.newaxis], (1, self.n_turbines))
+        # Determine the free_stream velocities as the maximum velocity in each row
+        # of floris velocities.  Make sure to keep shape (len(wind_directions), n_turbines)
+        # by repeating the maximum velocity accross each column for each row
+        free_stream_velocities = np.tile(
+            np.max(floris_velocities, axis=1)[:, np.newaxis], (1, self.n_turbines)
+        )
 
         # Compute all the waked velocities
         floris_wake_deficits_all = free_stream_velocities - floris_velocities
