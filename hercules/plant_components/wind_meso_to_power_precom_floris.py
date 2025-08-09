@@ -179,12 +179,15 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
 
         # Precompute the wake deficitis for the mean wind speeds and directions
+        self.logger.info("Precomputing FLORIS wake deficitis...")
         self.fmodel.set(
             wind_directions=self.wd_mat_mean,
             wind_speeds=self.ws_mat_mean,
             turbulence_intensities=self.ti_mat_mean,
         )
+        self.logger.info("Running FLORIS...")
         self.fmodel.run()
+        self.logger.info("FLORIS run complete")
 
         # TODO: THIS CODE WILL WORK IN THE FUTURE
         # https://github.com/NREL/floris/pull/1135
