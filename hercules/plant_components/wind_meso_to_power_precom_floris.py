@@ -1,0 +1,724 @@
+# Implements the meso-scale wind model for Hercules.
+
+
+import numpy as np
+import pandas as pd
+from floris import ApproxFlorisModel
+from floris.core import average_velocity
+from floris.uncertain_floris_model import map_turbine_powers_uncertain
+from hercules.plant_components.component_base import ComponentBase
+from hercules.utilities import interpolate_df, load_perffile, load_yaml
+from scipy.interpolate import interp1d
+from scipy.optimize import minimize_scalar
+
+RPM2RADperSec = 2 * np.pi / 60.0
+
+
+class Wind_MesoToPowerPrecomFloris(ComponentBase):
+    def __init__(self, h_dict):
+        """Initialize the Wind_MesoToPower class.
+
+        This model focuses on meso-scale wind phenomena by applying a separate wind speed
+        time signal to each turbine model derived from data. It combines FLORIS wake
+        modeling with detailed turbine dynamics for wind farm performance analysis.
+
+        In contrast to the Wind_MesoToPower class, this class pre-computes the FLORIS wake
+        deficits for all possible wind speeds and power setpoints. This is done by running for
+        all wind speeds and wind directions (but not over all power setpoints).  This is valid
+        for cases where the wind farm is operating:
+            - all turbines operating normally
+            - all turbines off
+            - following a wind-farm wide derating level
+
+        It is in practice conservative with respect to the wake deficits, but it is more efficient
+        than running FLORIS for each condition.  In cases where turbines are:
+            - partially derated below the curtailment level
+            - not uniformly curtailed or     some turbines are off
+
+        This is not an appropriate model and the more general Wind_MesoToPower class should be used.
+
+        Args:
+            h_dict (dict): Dictionary containing values for the simulation.
+        """
+        # Store the name of this component
+        self.component_name = "wind_farm"
+
+        # Store the type of this component
+        self.component_type = "Wind_MesoToPowerPrecomFloris"
+
+        # Call the base class init
+        super().__init__(h_dict, self.component_name)
+
+        # Add to the log outputs with specific outputs
+        # Note that power is assumed in the base class
+        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints"]
+
+        # If "log_extra_outputs" is in h_dict[self.component_name],
+        # Save this value to self.log_extra_outputs
+        if "log_extra_outputs" in h_dict[self.component_name]:
+            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
+        else:
+            self.log_extra_outputs = False
+
+        # If log_extra_outputs is True, add the extra outputs to the log outputs
+        if self.log_extra_outputs:
+            self.log_outputs = self.log_outputs + [
+                "floris_wind_speed",
+                "floris_wind_direction",
+                "floris_ti",
+                "unwaked_velocities",
+                "waked_velocities",
+            ]
+
+        # Track the number of FLORIS calculations
+        self.num_floris_calcs = 0
+
+        # Read in the input file names
+        self.floris_input_file = h_dict[self.component_name]["floris_input_file"]
+        self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
+        self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
+
+        # floris_update_time_s should not be in h_dict, it will not be used
+        if "floris_update_time_s" in h_dict[self.component_name]:
+            raise ValueError("floris_update_time_s should not be in the h_dict")
+
+        # Read in the weather file data
+        # If a csv file is provided, read it in
+        if self.wind_input_filename.endswith(".csv"):
+            df_wi = pd.read_csv(self.wind_input_filename)
+        elif self.wind_input_filename.endswith(".p") | self.wind_input_filename.endswith(".pkl"):
+            df_wi = pd.read_pickle(self.wind_input_filename)
+        elif (self.wind_input_filename.endswith(".f")) | (
+            self.wind_input_filename.endswith(".ftr")
+        ):
+            df_wi = pd.read_feather(self.wind_input_filename)
+        else:
+            raise ValueError("Wind input file must be a .csv or .p, .f or .ftr file")
+
+        # Make sure the df_wi contains a column called "time"
+        if "time" not in df_wi.columns:
+            raise ValueError("Wind input file must contain a column called 'time'")
+
+        # Make sure that both starttime and endtime are in the df_wi
+        if not (df_wi["time"].min() <= self.starttime <= df_wi["time"].max()):
+            raise ValueError(
+                f"Start time {self.starttime} is not in the range of the wind input file"
+            )
+        if not (df_wi["time"].min() <= self.endtime - self.dt <= df_wi["time"].max()):
+            raise ValueError(
+                f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
+            )
+
+        # If time_utc is in the file, convert it to a datetime if it's not already
+        if "time_utc" in df_wi.columns:
+            if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
+                # Strip whitespace from time_utc values to handle CSV formatting issues
+                df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
+                try:
+                    df_wi["time_utc"] = pd.to_datetime(
+                        df_wi["time_utc"], format="ISO8601", utc=True
+                    )
+                except (ValueError, TypeError):
+                    # If ISO8601 format fails, try parsing without specifying format
+                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
+
+        # Determine the dt implied by the weather file
+        self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
+
+        # Log the values
+        if self.verbose:
+            self.logger.info(f"dt_wi = {self.dt_wi}")
+            self.logger.info(f"dt = {self.dt}")
+
+        # Interpolate df_wi on to the time steps
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
+        df_wi = interpolate_df(df_wi, time_steps_all)
+
+        # FLORIS PRECOMPUTATION
+
+        # Initialize the FLORIS model as an ApproxFlorisModel
+        self.fmodel = ApproxFlorisModel(
+            self.floris_input_file,
+            wd_resolution=1.0,
+            ws_resolution=1.0,
+        )
+
+        # Get the layout and number of turbines from FLORIS
+        self.layout_x = self.fmodel.layout_x
+        self.layout_y = self.fmodel.layout_y
+        self.n_turbines = self.fmodel.n_turbines
+
+        # Convert the wind directions and wind speeds and ti to simply numpy matrices
+        # Starting with wind speed
+        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+
+        # Compute the turbine averaged wind speeds (axis = 1) using mean
+        self.ws_mat_mean = np.mean(self.ws_mat, axis=1)
+
+        self.initial_wind_speeds = self.ws_mat[0, :]
+        self.floris_wind_speed = self.ws_mat_mean[0]
+
+        # For now require "wd_mean" to be in the df_wi
+        if "wd_mean" not in df_wi.columns:
+            raise ValueError("Wind input file must contain a column called 'wd_mean'")
+        self.wd_mat_mean = df_wi["wd_mean"].values
+
+        if "ti_000" in df_wi.columns:
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+
+            # Compute the turbine averaged turbulence intensities (axis = 1) using mean
+            self.ti_mat_mean = np.mean(self.ti_mat, axis=1)
+
+            self.initial_tis = self.ti_mat[0, :]
+
+        else:
+            self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
+
+        # Precompute the wake deficitis for the mean wind speeds and directions
+        self.fmodel.set(
+            wind_directions=self.wd_mat_mean,
+            wind_speeds=self.ws_mat_mean,
+            turbulence_intensities=self.ti_mat_mean,
+        )
+        self.fmodel.run()
+
+        # TODO: THIS CODE WILL WORK IN THE FUTURE
+        # https://github.com/NREL/floris/pull/1135
+        # floris_velocities = (
+        #     self.fmodel.turbine_average_velocities
+        # )  # This is a 2D array of shape (len(wind_directions), n_turbines)
+
+        # For now compute in place here (replace later)
+        expanded_velocities = average_velocity(
+            velocities=self.fmodel.fmodel_expanded.core.flow_field.u,
+            method=self.fmodel.fmodel_expanded.core.grid.average_method,
+            cubature_weights=self.fmodel.fmodel_expanded.core.grid.cubature_weights,
+        )
+
+        floris_velocities = map_turbine_powers_uncertain(
+            unique_turbine_powers=expanded_velocities,
+            map_to_expanded_inputs=self.fmodel.map_to_expanded_inputs,
+            weights=self.fmodel.weights,
+            n_unexpanded=self.fmodel.n_unexpanded,
+            n_sample_points=self.fmodel.n_sample_points,
+            n_turbines=self.fmodel.n_turbines,
+        )
+
+        # Make free stream velocities as a 2D array where each row is the
+        # free stream velocity repeated for each turbine
+        free_stream_velocities = np.tile(self.ws_mat_mean[:, np.newaxis], (1, self.n_turbines))
+
+        # Compute all the waked velocities
+        floris_wake_deficits_all = free_stream_velocities - floris_velocities
+
+        # Compute all the waked velocities
+        self.waked_velocities_all = self.ws_mat - floris_wake_deficits_all
+
+        # Initialize the turbine powers to nan
+        self.turbine_powers = np.zeros(self.n_turbines) * np.nan
+
+        # Get the initial unwaked velocities
+        self.unwaked_velocities = self.ws_mat[0, :]
+
+        # Compute initial waked velocities
+        self.waked_velocities = self.waked_velocities_all[0, :]
+
+        # Get the initial FLORIS wake deficits
+        self.floris_wake_deficits = self.unwaked_velocities - self.waked_velocities
+
+        # Get the turbine information
+        self.turbine_dict = load_yaml(self.turbine_file_name)
+        self.turbine_model_type = self.turbine_dict["turbine_model_type"]
+
+        # Initialize the turbine array
+        if self.turbine_model_type == "filter_model":
+            # Use vectorized implementation for improved performance
+            self.turbine_array = TurbineFilterModelVectorized(
+                self.turbine_dict, self.dt, self.fmodel, self.waked_velocities
+            )
+            self.use_vectorized_turbines = True
+        elif self.turbine_model_type == "dof1_model":
+            self.turbine_array = [
+                Turbine1dofModel(
+                    self.turbine_dict, self.dt, self.fmodel, self.waked_velocities[t_idx]
+                )
+                for t_idx in range(self.n_turbines)
+            ]
+            self.use_vectorized_turbines = False
+        else:
+            raise Exception("Turbine model type should be either filter_model or dof1_model")
+
+        # Initialize the power array to the initial wind speeds
+        if self.use_vectorized_turbines:
+            self.turbine_powers = self.turbine_array.prev_powers.copy()
+        else:
+            self.turbine_powers = np.array(
+                [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
+            )
+
+        # Get the rated power of the turbines, for now assume all turbines have the same rated power
+        if self.use_vectorized_turbines:
+            self.rated_turbine_power = self.turbine_array.get_rated_power()
+        else:
+            self.rated_turbine_power = self.turbine_array[0].get_rated_power()
+
+        # Get the capacity of the farm
+        self.capacity = self.n_turbines * self.rated_turbine_power
+
+        # Update the user
+        self.logger.info(f"Initialized Wind_MesoToPower with {self.n_turbines} turbines")
+
+    def get_initial_conditions_and_meta_data(self, h_dict):
+        """Add any initial conditions or meta data to the h_dict.
+
+        Meta data is data not explicitly in the input yaml but still useful for other
+        modules.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation parameters.
+
+        Returns:
+            dict: Dictionary containing simulation parameters with initial conditions and meta data.
+        """
+        h_dict["wind_farm"]["n_turbines"] = self.n_turbines
+        h_dict["wind_farm"]["capacity"] = self.capacity
+        h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
+        h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
+        h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
+        return h_dict
+
+    def step(self, h_dict):
+        """Execute one simulation step for the wind farm.
+
+        Calculates turbine powers,
+        and updates the simulation dictionary with results. Handles power_setpoint
+        signals and optional extra logging outputs.
+
+        Args:
+            h_dict (dict): Dictionary containing current simulation state including
+                step number and power_setpoint values for each turbine.
+
+        Returns:
+            dict: Updated simulation dictionary with wind farm outputs including
+                turbine powers, total power, and optional extra outputs.
+        """
+        # Get the current step
+        step = h_dict["step"]
+        if self.verbose:
+            self.logger.info(f"step = {step} (of {self.n_steps})")
+
+        # Grab the instantaneous turbine power setpoint signal and update the power_setpoints buffer
+        turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
+
+        # Update all the velocities
+        self.unwaked_velocities = self.ws_mat[step, :]
+        self.waked_velocities = self.waked_velocities_all[step, :]
+        self.floris_wake_deficits = self.unwaked_velocities - self.waked_velocities
+
+        # Update the turbine powers
+        if self.use_vectorized_turbines:
+            # Vectorized calculation for all turbines at once
+            self.turbine_powers = self.turbine_array.step(
+                self.waked_velocities,
+                turbine_power_setpoints,
+            )
+        else:
+            # Original loop-based calculation
+            for t_idx in range(self.n_turbines):
+                self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
+                    self.waked_velocities[t_idx],
+                    power_setpoint=turbine_power_setpoints[t_idx],
+                )
+
+        # Update instantaneous wind direction and wind speed
+        self.wind_direction = self.wd_mat_mean[step]
+        self.wind_speed = self.ws_mat_mean[step]
+
+        # Update the h_dict with outputs
+        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["wind_direction"] = self.wind_direction
+        h_dict[self.component_name]["wind_speed"] = self.wind_speed
+
+        # If log_extra_outputs is True, add the extra outputs to the h_dict
+        h_dict[self.component_name]["floris_wind_speed"] = self.wind_speed
+        h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction
+        h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
+        h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
+
+        return h_dict
+
+
+class TurbineFilterModel:
+    """Simple filter-based wind turbine model for power output simulation.
+
+    This model simulates wind turbine power output using a first-order filter
+    to smooth the response to changing wind conditions, providing a simplified
+    representation of turbine dynamics.
+
+    NOTE: This class is now unused and kept for backward compatibility.
+    The filter_model turbine_model_type now uses TurbineFilterModelVectorized
+    for improved performance.
+    """
+
+    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
+        """Initialize the turbine filter model.
+
+        Args:
+            turbine_dict (dict): Dictionary containing turbine configuration,
+                including filter model parameters and other turbine-specific data.
+            dt (float): Time step for the simulation in seconds.
+            fmodel (FlorisModel): FLORIS model of the farm.
+            initial_wind_speed (float): Initial wind speed in m/s to initialize
+                the simulation.
+        """
+        # Save the time step
+        self.dt = dt
+
+        # Save the turbine dict
+        self.turbine_dict = turbine_dict
+
+        # Save the filter time constant
+        self.filter_time_constant = turbine_dict["filter_model"]["time_constant"]
+
+        # Solve for the filter alpha value given dt and the time constant
+        self.alpha = 1 - np.exp(-self.dt / self.filter_time_constant)
+
+        # Grab the wind speed power curve from the fmodel and define a simple 1D LUT
+        turbine_type = fmodel.core.farm.turbine_definitions[0]
+        wind_speeds = turbine_type["power_thrust_table"]["wind_speed"]
+        powers = turbine_type["power_thrust_table"]["power"]
+        self.power_lut = interp1d(
+            wind_speeds,
+            powers,
+            fill_value=0.0,
+            bounds_error=False,
+        )
+
+        # Initialize the previous power to the initial wind speed
+        self.prev_power = self.power_lut(initial_wind_speed)
+
+    def get_rated_power(self):
+        """Get the rated power of the turbine.
+
+        Returns:
+            float: The rated power of the turbine in kW.
+        """
+        return np.max(self.power_lut(np.arange(0, 25, 1.0)))
+
+    def step(self, wind_speed, power_setpoint):
+        """Simulate a single time step of the wind turbine power output.
+
+        This method calculates the power output of a wind turbine based on the
+        given wind speed and power_setpoint. The power output is
+        smoothed using an exponential moving average to simulate the turbine's
+        response to changing wind conditions.
+
+        Args:
+            wind_speed (float): The current wind speed in meters per second (m/s).
+            power_setpoint (float): The maximum allowable power output in kW.
+
+        Returns:
+            float: The calculated power output of the wind turbine, constrained
+                by the power_setpoint and smoothed using the exponential moving average.
+        """
+        # Instantaneous power
+        instant_power = self.power_lut(wind_speed)
+
+        # Limit the current power to not be greater than power_setpoint
+        instant_power = min(instant_power, power_setpoint)
+
+        # Limit the instant power to be greater than 0
+        instant_power = max(instant_power, 0.0)
+
+        # TEMP: why are NaNs occurring?
+        if np.isnan(instant_power):
+            print(
+                f"NaN instant power at wind speed {wind_speed} m/s, "
+                f"power setpoint {power_setpoint} kW, prev power {self.prev_power} kW"
+            )
+            instant_power = self.prev_power
+
+        # Update the power
+        power = self.alpha * instant_power + (1 - self.alpha) * self.prev_power
+
+        # Limit the power to not be greater than power_setpoint
+        power = min(power, power_setpoint)
+
+        # Limit the power to be greater than 0
+        power = max(power, 0.0)
+
+        # Update the previous power
+        self.prev_power = power
+
+        # Return the power
+        return power
+
+
+class TurbineFilterModelVectorized:
+    """Vectorized filter-based wind turbine model for power output simulation.
+
+    This model simulates wind turbine power output using a first-order filter
+    to smooth the response to changing wind conditions, providing a simplified
+    representation of turbine dynamics. This vectorized version processes
+    all turbines simultaneously for improved performance.
+    """
+
+    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speeds):
+        """Initialize the vectorized turbine filter model.
+
+        Args:
+            turbine_dict (dict): Dictionary containing turbine configuration,
+                including filter model parameters and other turbine-specific data.
+            dt (float): Time step for the simulation in seconds.
+            fmodel (FlorisModel): FLORIS model of the farm.
+            initial_wind_speeds (np.ndarray): Initial wind speeds in m/s for all turbines
+                to initialize the simulation.
+        """
+        # Save the time step
+        self.dt = dt
+
+        # Save the turbine dict
+        self.turbine_dict = turbine_dict
+
+        # Save the filter time constant
+        self.filter_time_constant = turbine_dict["filter_model"]["time_constant"]
+
+        # Solve for the filter alpha value given dt and the time constant
+        self.alpha = 1 - np.exp(-self.dt / self.filter_time_constant)
+
+        # Grab the wind speed power curve from the fmodel and create lookup tables
+        turbine_type = fmodel.core.farm.turbine_definitions[0]
+        self.wind_speed_lut = np.array(turbine_type["power_thrust_table"]["wind_speed"])
+        self.power_lut = np.array(turbine_type["power_thrust_table"]["power"])
+
+        # Number of turbines
+        self.n_turbines = len(initial_wind_speeds)
+
+        # Initialize the previous powers for all turbines
+        self.prev_powers = np.interp(
+            initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
+
+    def get_rated_power(self):
+        """Get the rated power of the turbine.
+
+        Returns:
+            float: The rated power of the turbine in kW.
+        """
+        return np.max(self.power_lut)
+
+    def step(self, wind_speeds, power_setpoints):
+        """Simulate a single time step for all wind turbines simultaneously.
+
+        This method calculates the power output of all wind turbines based on the
+        given wind speeds and power setpoints. The power outputs are
+        smoothed using an exponential moving average to simulate the turbines'
+        response to changing wind conditions.
+
+        Args:
+            wind_speeds (np.ndarray): Current wind speeds in m/s for all turbines.
+            power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
+
+        Returns:
+            np.ndarray: Calculated power outputs of all wind turbines, constrained
+                by the power setpoints and smoothed using the exponential moving average.
+        """
+        # Vectorized instantaneous power calculation using numpy interpolation
+        instant_powers = np.interp(
+            wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
+
+        # Vectorized limiting: current power not greater than power_setpoint
+        instant_powers = np.minimum(instant_powers, power_setpoints)
+
+        # Vectorized limiting: instant power not less than 0
+        instant_powers = np.maximum(instant_powers, 0.0)
+
+        # Handle NaNs by replacing with previous power values
+        nan_mask = np.isnan(instant_powers)
+        if np.any(nan_mask):
+            # Log warning for NaN values (but don't print every occurrence for performance)
+            # Could add logging here if needed
+            instant_powers[nan_mask] = self.prev_powers[nan_mask]
+
+        # Vectorized exponential filter update
+        powers = self.alpha * instant_powers + (1 - self.alpha) * self.prev_powers
+
+        # Vectorized limiting: power not greater than power_setpoint
+        powers = np.minimum(powers, power_setpoints)
+
+        # Vectorized limiting: power not less than 0
+        powers = np.maximum(powers, 0.0)
+
+        # Update the previous powers for all turbines
+        self.prev_powers = powers.copy()
+
+        # Return the powers
+        return powers
+
+
+class Turbine1dofModel:
+    """Single degree-of-freedom wind turbine model with detailed dynamics.
+
+    This model simulates wind turbine behavior using a 1-DOF representation
+    that includes rotor dynamics, pitch control, and generator torque control.
+    """
+
+    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
+        """Initialize the 1-DOF turbine model.
+
+        Args:
+            turbine_dict (dict): Dictionary containing turbine configuration and
+                DOF model parameters.
+            dt (float): Time step for the simulation in seconds.
+            fmodel (FlorisModel): FLORIS model of the farm.
+            initial_wind_speed (float): Initial wind speed in m/s to initialize
+                the simulation.
+        """
+        # Save the time step
+        self.dt = dt
+
+        # Save the turbine dict
+        self.turbine_dict = turbine_dict
+
+        # Set filter parameter for rotor speed
+        self.filteralpha = np.exp(
+            -self.dt * self.turbine_dict["dof1_model"]["filterfreq_rotor_speed"]
+        )
+
+        # Obtain more data from floris
+        turbine_type = fmodel.core.farm.turbine_definitions[0]
+        self.rotor_radius = turbine_type["rotor_diameter"] / 2
+        self.rotor_area = np.pi * self.rotor_radius**2
+
+        # Save performance data functions
+        perffile = turbine_dict["dof1_model"]["cq_table_file"]
+        self.perffuncs = load_perffile(perffile)
+
+        self.rho = self.turbine_dict["dof1_model"]["rho"]
+        self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
+        self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
+        omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
+        pitch, gentq = self.simplecontroller(initial_wind_speed, omega0)
+        tsr = self.rotor_radius * omega0 / initial_wind_speed
+        prev_power = (
+            self.perffuncs["Cp"]([tsr, pitch])
+            * 0.5
+            * self.rho
+            * self.rotor_area
+            * initial_wind_speed**3
+        )
+        self.prev_power = np.array(prev_power[0] / 1000.0)
+        self.prev_omega = omega0
+        self.prev_omegaf = omega0
+        self.prev_aerotq = (
+            0.5
+            * self.rho
+            * self.rotor_area
+            * self.rotor_radius
+            * initial_wind_speed**2
+            * self.perffuncs["Cq"]([tsr, pitch])
+        )
+        self.prev_gentq = gentq
+        self.prev_pitch = pitch
+
+    def get_rated_power(self):
+        """Get the rated power of the turbine.
+
+        Raises:
+            NotImplementedError: 1-DOF turbine model does not have a rated power.
+        """
+        raise NotImplementedError("1-DOF turbine model does not have a rated power")
+
+    def step(self, wind_speed, power_setpoint):
+        """Execute one simulation step for the 1-DOF turbine model.
+
+        Simulates turbine dynamics including rotor speed, pitch angle, and
+        generator torque while respecting rate limits and power_setpoint constraints.
+
+        Args:
+            wind_speed (float): Current wind speed in m/s.
+            power_setpoint (float): Maximum allowable power output in kW.
+
+        Returns:
+            float: Calculated turbine power output in kW.
+        """
+        omega = (
+            self.prev_omega
+            + (
+                self.prev_aerotq
+                - self.prev_gentq * self.turbine_dict["dof1_model"]["gearbox_ratio"]
+            )
+            * self.dt
+            / self.turbine_dict["dof1_model"]["rotor_inertia"]
+        )
+        omegaf = (1 - self.filteralpha) * omega + self.filteralpha * (self.prev_omegaf)
+        # print(omegaf-omega)
+        pitch, gentq = self.simplecontroller(wind_speed, omegaf)
+        tsr = float(omegaf * self.rotor_radius / wind_speed)
+        if power_setpoint > 0:
+            desiredcp = power_setpoint * 1000 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
+            optpitch = minimize_scalar(
+                lambda p: abs(float(self.perffuncs["Cp"]([tsr, float(p)])) - desiredcp),
+                method="bounded",
+                bounds=(0, 1.57),
+            )
+            pitch = optpitch.x
+
+        pitch = np.clip(
+            pitch,
+            self.prev_pitch - self.max_pitch_rate * self.dt,
+            self.prev_pitch + self.max_pitch_rate * self.dt,
+        )
+        gentq = np.clip(
+            gentq,
+            self.prev_gentq - self.max_torque_rate * self.dt,
+            self.prev_gentq + self.max_torque_rate * self.dt,
+        )
+
+        aerotq = (
+            0.5
+            * self.rho
+            * self.rotor_area
+            * self.rotor_radius
+            * wind_speed**2
+            * self.perffuncs["Cq"]([tsr, pitch])
+        )
+
+        # power = (
+        #     self.perffuncs["Cp"]([tsr, pitch]) * 0.5 * self.rho * self.rotor_area * wind_speed**3
+        # )
+        power = gentq * omega * self.turbine_dict["dof1_model"]["gearbox_ratio"]
+
+        self.prev_omega = omega
+        self.prev_aerotq = aerotq
+        self.prev_gentq = gentq
+        self.prev_pitch = pitch
+        self.prev_omegaf = omegaf
+        self.prev_power = power[0] / 1000.0
+
+        return self.prev_power
+
+    def simplecontroller(self, wind_speed, omegaf):
+        """Simple controller for pitch and generator torque.
+
+        Implements a basic Region 2 controller that sets pitch to 0 and
+        calculates generator torque based on filtered rotor speed.
+
+        Args:
+            wind_speed (float): Current wind speed in m/s.
+            omegaf (float): Filtered rotor speed in rad/s.
+
+        Returns:
+            tuple: (pitch_angle, generator_torque) where pitch is in radians
+                and generator torque is in N⋅m.
+        """
+        # if omega <= self.turbine_dict['dof1_model']['rated_wind_speed']:
+        pitch = 0.0
+        gentorque = self.turbine_dict["dof1_model"]["controller"]["r2_k_torque"] * omegaf**2
+        # else
+        #     raise Exception("Region-3 controller not implemented yet")
+        return pitch, gentorque
