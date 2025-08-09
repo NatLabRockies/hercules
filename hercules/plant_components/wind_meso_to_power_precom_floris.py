@@ -7,24 +7,28 @@ from floris import ApproxFlorisModel
 from floris.core import average_velocity
 from floris.uncertain_floris_model import map_turbine_powers_uncertain
 from hercules.plant_components.component_base import ComponentBase
-from hercules.utilities import interpolate_df, load_perffile, load_yaml
+from hercules.plant_components.wind_meso_to_power import (
+    Turbine1dofModel,
+    TurbineFilterModelVectorized,
+)
+from hercules.utilities import interpolate_df, load_yaml
 from scipy.interpolate import interp1d
-from scipy.optimize import minimize_scalar
 
 RPM2RADperSec = 2 * np.pi / 60.0
 
 
 class Wind_MesoToPowerPrecomFloris(ComponentBase):
     def __init__(self, h_dict):
-        """Initialize the Wind_MesoToPower class.
+        """Initialize the Wind_MesoToPowerPrecomFloris class.
 
         This model focuses on meso-scale wind phenomena by applying a separate wind speed
         time signal to each turbine model derived from data. It combines FLORIS wake
         modeling with detailed turbine dynamics for wind farm performance analysis.
 
         In contrast to the Wind_MesoToPower class, this class pre-computes the FLORIS wake
-        deficits for all possible wind speeds and power setpoints. This is done by running for
-        all wind speeds and wind directions (but not over all power setpoints).  This is valid
+        deficits for all wind speeds and wind directions. This is done by running FLORIS
+        once for all wind speeds and wind directions (but not for varying power setpoints).
+        This is valid
         for cases where the wind farm is operating:
             - all turbines operating normally
             - all turbines off
@@ -266,7 +270,9 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.capacity = self.n_turbines * self.rated_turbine_power
 
         # Update the user
-        self.logger.info(f"Initialized Wind_MesoToPower with {self.n_turbines} turbines")
+        self.logger.info(
+            f"Initialized Wind_MesoToPowerPrecomFloris with {self.n_turbines} turbines"
+        )
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -343,10 +349,12 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict[self.component_name]["wind_speed"] = self.wind_speed
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
-        h_dict[self.component_name]["floris_wind_speed"] = self.wind_speed
-        h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction
-        h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
-        h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
+        if self.log_extra_outputs:
+            h_dict[self.component_name]["floris_wind_speed"] = self.wind_speed
+            h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction
+            h_dict[self.component_name]["floris_ti"] = self.ti_mat_mean[step]
+            h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
+            h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
 
         return h_dict
 
@@ -455,270 +463,3 @@ class TurbineFilterModel:
 
         # Return the power
         return power
-
-
-class TurbineFilterModelVectorized:
-    """Vectorized filter-based wind turbine model for power output simulation.
-
-    This model simulates wind turbine power output using a first-order filter
-    to smooth the response to changing wind conditions, providing a simplified
-    representation of turbine dynamics. This vectorized version processes
-    all turbines simultaneously for improved performance.
-    """
-
-    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speeds):
-        """Initialize the vectorized turbine filter model.
-
-        Args:
-            turbine_dict (dict): Dictionary containing turbine configuration,
-                including filter model parameters and other turbine-specific data.
-            dt (float): Time step for the simulation in seconds.
-            fmodel (FlorisModel): FLORIS model of the farm.
-            initial_wind_speeds (np.ndarray): Initial wind speeds in m/s for all turbines
-                to initialize the simulation.
-        """
-        # Save the time step
-        self.dt = dt
-
-        # Save the turbine dict
-        self.turbine_dict = turbine_dict
-
-        # Save the filter time constant
-        self.filter_time_constant = turbine_dict["filter_model"]["time_constant"]
-
-        # Solve for the filter alpha value given dt and the time constant
-        self.alpha = 1 - np.exp(-self.dt / self.filter_time_constant)
-
-        # Grab the wind speed power curve from the fmodel and create lookup tables
-        turbine_type = fmodel.core.farm.turbine_definitions[0]
-        self.wind_speed_lut = np.array(turbine_type["power_thrust_table"]["wind_speed"])
-        self.power_lut = np.array(turbine_type["power_thrust_table"]["power"])
-
-        # Number of turbines
-        self.n_turbines = len(initial_wind_speeds)
-
-        # Initialize the previous powers for all turbines
-        self.prev_powers = np.interp(
-            initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
-        )
-
-    def get_rated_power(self):
-        """Get the rated power of the turbine.
-
-        Returns:
-            float: The rated power of the turbine in kW.
-        """
-        return np.max(self.power_lut)
-
-    def step(self, wind_speeds, power_setpoints):
-        """Simulate a single time step for all wind turbines simultaneously.
-
-        This method calculates the power output of all wind turbines based on the
-        given wind speeds and power setpoints. The power outputs are
-        smoothed using an exponential moving average to simulate the turbines'
-        response to changing wind conditions.
-
-        Args:
-            wind_speeds (np.ndarray): Current wind speeds in m/s for all turbines.
-            power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
-
-        Returns:
-            np.ndarray: Calculated power outputs of all wind turbines, constrained
-                by the power setpoints and smoothed using the exponential moving average.
-        """
-        # Vectorized instantaneous power calculation using numpy interpolation
-        instant_powers = np.interp(
-            wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
-        )
-
-        # Vectorized limiting: current power not greater than power_setpoint
-        instant_powers = np.minimum(instant_powers, power_setpoints)
-
-        # Vectorized limiting: instant power not less than 0
-        instant_powers = np.maximum(instant_powers, 0.0)
-
-        # Handle NaNs by replacing with previous power values
-        nan_mask = np.isnan(instant_powers)
-        if np.any(nan_mask):
-            # Log warning for NaN values (but don't print every occurrence for performance)
-            # Could add logging here if needed
-            instant_powers[nan_mask] = self.prev_powers[nan_mask]
-
-        # Vectorized exponential filter update
-        powers = self.alpha * instant_powers + (1 - self.alpha) * self.prev_powers
-
-        # Vectorized limiting: power not greater than power_setpoint
-        powers = np.minimum(powers, power_setpoints)
-
-        # Vectorized limiting: power not less than 0
-        powers = np.maximum(powers, 0.0)
-
-        # Update the previous powers for all turbines
-        self.prev_powers = powers.copy()
-
-        # Return the powers
-        return powers
-
-
-class Turbine1dofModel:
-    """Single degree-of-freedom wind turbine model with detailed dynamics.
-
-    This model simulates wind turbine behavior using a 1-DOF representation
-    that includes rotor dynamics, pitch control, and generator torque control.
-    """
-
-    def __init__(self, turbine_dict, dt, fmodel, initial_wind_speed):
-        """Initialize the 1-DOF turbine model.
-
-        Args:
-            turbine_dict (dict): Dictionary containing turbine configuration and
-                DOF model parameters.
-            dt (float): Time step for the simulation in seconds.
-            fmodel (FlorisModel): FLORIS model of the farm.
-            initial_wind_speed (float): Initial wind speed in m/s to initialize
-                the simulation.
-        """
-        # Save the time step
-        self.dt = dt
-
-        # Save the turbine dict
-        self.turbine_dict = turbine_dict
-
-        # Set filter parameter for rotor speed
-        self.filteralpha = np.exp(
-            -self.dt * self.turbine_dict["dof1_model"]["filterfreq_rotor_speed"]
-        )
-
-        # Obtain more data from floris
-        turbine_type = fmodel.core.farm.turbine_definitions[0]
-        self.rotor_radius = turbine_type["rotor_diameter"] / 2
-        self.rotor_area = np.pi * self.rotor_radius**2
-
-        # Save performance data functions
-        perffile = turbine_dict["dof1_model"]["cq_table_file"]
-        self.perffuncs = load_perffile(perffile)
-
-        self.rho = self.turbine_dict["dof1_model"]["rho"]
-        self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
-        self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
-        omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
-        pitch, gentq = self.simplecontroller(initial_wind_speed, omega0)
-        tsr = self.rotor_radius * omega0 / initial_wind_speed
-        prev_power = (
-            self.perffuncs["Cp"]([tsr, pitch])
-            * 0.5
-            * self.rho
-            * self.rotor_area
-            * initial_wind_speed**3
-        )
-        self.prev_power = np.array(prev_power[0] / 1000.0)
-        self.prev_omega = omega0
-        self.prev_omegaf = omega0
-        self.prev_aerotq = (
-            0.5
-            * self.rho
-            * self.rotor_area
-            * self.rotor_radius
-            * initial_wind_speed**2
-            * self.perffuncs["Cq"]([tsr, pitch])
-        )
-        self.prev_gentq = gentq
-        self.prev_pitch = pitch
-
-    def get_rated_power(self):
-        """Get the rated power of the turbine.
-
-        Raises:
-            NotImplementedError: 1-DOF turbine model does not have a rated power.
-        """
-        raise NotImplementedError("1-DOF turbine model does not have a rated power")
-
-    def step(self, wind_speed, power_setpoint):
-        """Execute one simulation step for the 1-DOF turbine model.
-
-        Simulates turbine dynamics including rotor speed, pitch angle, and
-        generator torque while respecting rate limits and power_setpoint constraints.
-
-        Args:
-            wind_speed (float): Current wind speed in m/s.
-            power_setpoint (float): Maximum allowable power output in kW.
-
-        Returns:
-            float: Calculated turbine power output in kW.
-        """
-        omega = (
-            self.prev_omega
-            + (
-                self.prev_aerotq
-                - self.prev_gentq * self.turbine_dict["dof1_model"]["gearbox_ratio"]
-            )
-            * self.dt
-            / self.turbine_dict["dof1_model"]["rotor_inertia"]
-        )
-        omegaf = (1 - self.filteralpha) * omega + self.filteralpha * (self.prev_omegaf)
-        # print(omegaf-omega)
-        pitch, gentq = self.simplecontroller(wind_speed, omegaf)
-        tsr = float(omegaf * self.rotor_radius / wind_speed)
-        if power_setpoint > 0:
-            desiredcp = power_setpoint * 1000 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
-            optpitch = minimize_scalar(
-                lambda p: abs(float(self.perffuncs["Cp"]([tsr, float(p)])) - desiredcp),
-                method="bounded",
-                bounds=(0, 1.57),
-            )
-            pitch = optpitch.x
-
-        pitch = np.clip(
-            pitch,
-            self.prev_pitch - self.max_pitch_rate * self.dt,
-            self.prev_pitch + self.max_pitch_rate * self.dt,
-        )
-        gentq = np.clip(
-            gentq,
-            self.prev_gentq - self.max_torque_rate * self.dt,
-            self.prev_gentq + self.max_torque_rate * self.dt,
-        )
-
-        aerotq = (
-            0.5
-            * self.rho
-            * self.rotor_area
-            * self.rotor_radius
-            * wind_speed**2
-            * self.perffuncs["Cq"]([tsr, pitch])
-        )
-
-        # power = (
-        #     self.perffuncs["Cp"]([tsr, pitch]) * 0.5 * self.rho * self.rotor_area * wind_speed**3
-        # )
-        power = gentq * omega * self.turbine_dict["dof1_model"]["gearbox_ratio"]
-
-        self.prev_omega = omega
-        self.prev_aerotq = aerotq
-        self.prev_gentq = gentq
-        self.prev_pitch = pitch
-        self.prev_omegaf = omegaf
-        self.prev_power = power[0] / 1000.0
-
-        return self.prev_power
-
-    def simplecontroller(self, wind_speed, omegaf):
-        """Simple controller for pitch and generator torque.
-
-        Implements a basic Region 2 controller that sets pitch to 0 and
-        calculates generator torque based on filtered rotor speed.
-
-        Args:
-            wind_speed (float): Current wind speed in m/s.
-            omegaf (float): Filtered rotor speed in rad/s.
-
-        Returns:
-            tuple: (pitch_angle, generator_torque) where pitch is in radians
-                and generator torque is in N⋅m.
-        """
-        # if omega <= self.turbine_dict['dof1_model']['rated_wind_speed']:
-        pitch = 0.0
-        gentorque = self.turbine_dict["dof1_model"]["controller"]["r2_k_torque"] * omegaf**2
-        # else
-        #     raise Exception("Region-3 controller not implemented yet")
-        return pitch, gentorque
