@@ -50,8 +50,10 @@ class ComponentBase:
         Sets up logging for the component.
 
         This method configures a logger named after the component to log messages to a specified
-        file. It ensures the log directory exists, clears any existing handlers to avoid duplicates,
-        and formats log messages with timestamps, log levels, and messages.
+        file and console. It ensures the log directory exists, clears any existing handlers to
+        avoid duplicates, and formats log messages with timestamps, log levels, and messages.
+        Both file and console output are enabled with component identification in console messages.
+
         Args:
             log_file_name (str): The full path to the log file where log messages will be written.
         Returns:
@@ -74,6 +76,12 @@ class ComponentBase:
         file_handler = logging.FileHandler(log_file_name)
         file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         logger.addHandler(file_handler)
+
+        # Add console handler with component identification
+        console_handler = logging.StreamHandler()
+        formatter_str = f"[{self.component_name.upper()}] %(asctime)s - %(levelname)s - %(message)s"
+        console_handler.setFormatter(logging.Formatter(formatter_str))
+        logger.addHandler(console_handler)
 
         return logger
 

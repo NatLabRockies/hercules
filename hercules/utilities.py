@@ -203,17 +203,17 @@ def load_hercules_input(filename):
 
 
 # Configure logging
-def setup_logging(logfile="log_hercules.log", console_output=False):
+def setup_logging(logfile="log_hercules.log", console_output=True):
     """Set up logging to file and console.
 
     This function configures logging for the Hercules emulator. It creates an 'outputs'
     directory if it doesn't exist and sets up file logging with a timestamped format.
-    Optionally, it can also enable console output for real-time logging.
+    By default, it enables console output for real-time logging with logger identification.
 
     Args:
         logfile (str, optional): Name of the log file. Defaults to "log_hercules.log".
         console_output (bool, optional): Whether to enable console logging output.
-            Defaults to False.
+            Defaults to True.
 
     Returns:
         logging.Logger: The configured logger instance for the emulator.
@@ -239,7 +239,9 @@ def setup_logging(logfile="log_hercules.log", console_output=False):
     # Add console handler
     if console_output:
         console_handler = logging.StreamHandler()
-        console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        console_handler.setFormatter(
+            logging.Formatter("[EMULATOR] %(asctime)s - %(levelname)s - %(message)s")
+        )
         logger.addHandler(console_handler)
 
     return logger
