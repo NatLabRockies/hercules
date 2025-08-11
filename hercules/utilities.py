@@ -139,6 +139,8 @@ def load_hercules_input(filename):
         "controller",
         "verbose",
         "output_file",
+        "output_format",
+        "output_time_step",
         "time_log_interval",
         "external_data_file",
     ]
@@ -199,6 +201,24 @@ def load_hercules_input(filename):
                 )
 
     # Check that verbose is a boolean
+
+    # Validate output configuration options
+    if "output_format" in h_dict:
+        valid_formats = ["feather", "parquet", "csv"]
+        if h_dict["output_format"].lower() not in valid_formats:
+            raise ValueError(
+                f"output_format must be one of {valid_formats}, " f"got '{h_dict['output_format']}'"
+            )
+
+    if "output_time_step" in h_dict:
+        if (
+            not isinstance(h_dict["output_time_step"], (int, float))
+            or h_dict["output_time_step"] <= 0
+        ):
+            raise ValueError("output_time_step must be a positive number")
+        if h_dict["output_time_step"] < h_dict["dt"]:
+            raise ValueError("output_time_step must be greater than or equal to dt")
+
     return h_dict
 
 
