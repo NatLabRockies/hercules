@@ -13,6 +13,7 @@ from hercules.plant_components.wind_meso_to_power import (
 )
 from hercules.utilities import interpolate_df, load_yaml
 from scipy.interpolate import interp1d
+from scipy.stats import circmean
 
 RPM2RADperSec = 2 * np.pi / 60.0
 
@@ -43,6 +44,16 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing values for the simulation.
+
+        Required keys in `h_dict['wind_farm']`:
+            - `floris_input_file` (str): Path to FLORIS configuration file.
+            - `wind_input_filename` (str): Path to wind input data file.
+            - `turbine_file_name` (str): Path to turbine configuration file.
+            - `floris_update_time_s` (float): Update period in seconds. This value
+              determines the cadence of the wake precomputation. Wind inputs are
+              averaged over the most recent `floris_update_time_s` and FLORIS is
+              evaluated at that interval. The resulting wake deficits are then held
+              constant until the next FLORIS update.
         """
         # Store the name of this component
         self.component_name = "wind_farm"
@@ -82,9 +93,14 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
         self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
 
-        # floris_update_time_s should not be in h_dict, it will not be used
-        if "floris_update_time_s" in h_dict[self.component_name]:
-            raise ValueError("floris_update_time_s should not be in the h_dict")
+        # Require floris_update_time_s for interface consistency, though it is unused
+        if "floris_update_time_s" not in h_dict[self.component_name]:
+            raise ValueError("floris_update_time_s must be in the h_dict")
+        self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
+        if self.floris_update_time_s < 1:
+            raise ValueError("FLORIS update time must be at least 1 second")
+        # Derived step count (not used by this precomputed model, but kept for parity)
+        self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
 
         # Read in the weather file data
         # If a csv file is provided, read it in
@@ -178,15 +194,48 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         else:
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
 
-        # Precompute the wake deficitis for the mean wind speeds and directions
-        self.logger.info("Precomputing FLORIS wake deficitis...")
+        # Precompute the wake deficits at the cadence specified by floris_update_time_s
+        self.logger.info("Precomputing FLORIS wake deficits...")
+
+        # Determine update step cadence and indices to evaluate FLORIS
+        update_steps = self.floris_update_steps
+        n_steps = len(self.ws_mat_mean)
+        eval_indices = np.arange(update_steps - 1, n_steps, update_steps)
+        # Ensure at least the final time is evaluated
+        if eval_indices.size == 0:
+            eval_indices = np.array([n_steps - 1])
+        elif eval_indices[-1] != n_steps - 1:
+            eval_indices = np.append(eval_indices, n_steps - 1)
+
+        # Build right-aligned windowed means for ws, wd, ti at the evaluation indices
+        def window_mean(arr_1d, idx, win):
+            start = max(0, idx - win + 1)
+            return np.mean(arr_1d[start : idx + 1])
+
+        def window_circmean(arr_1d, idx, win):
+            start = max(0, idx - win + 1)
+            return circmean(arr_1d[start : idx + 1], high=360.0, low=0.0, nan_policy="omit")
+
+        ws_eval = np.array([window_mean(self.ws_mat_mean, i, update_steps) for i in eval_indices])
+        wd_eval = np.array(
+            [window_circmean(self.wd_mat_mean, i, update_steps) for i in eval_indices]
+        )
+        if np.isscalar(self.ti_mat_mean):
+            ti_eval = self.ti_mat_mean * np.ones_like(ws_eval)
+        else:
+            ti_eval = np.array(
+                [window_mean(self.ti_mat_mean, i, update_steps) for i in eval_indices]
+            )
+
+        # Evaluate FLORIS at the evaluation cadence
         self.fmodel.set(
-            wind_directions=self.wd_mat_mean,
-            wind_speeds=self.ws_mat_mean,
-            turbulence_intensities=self.ti_mat_mean,
+            wind_directions=wd_eval,
+            wind_speeds=ws_eval,
+            turbulence_intensities=ti_eval,
         )
         self.logger.info("Running FLORIS...")
         self.fmodel.run()
+        self.num_floris_calcs = 1
         self.logger.info("FLORIS run complete")
 
         # TODO: THIS CODE WILL WORK IN THE FUTURE
@@ -218,11 +267,21 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             np.max(floris_velocities, axis=1)[:, np.newaxis], (1, self.n_turbines)
         )
 
-        # Compute all the waked velocities
-        floris_wake_deficits_all = free_stream_velocities - floris_velocities
+        # Compute wake deficits at evaluation times
+        floris_wake_deficits_eval = free_stream_velocities - floris_velocities
 
-        # Compute all the waked velocities
-        self.waked_velocities_all = self.ws_mat - floris_wake_deficits_all
+        # Expand the wake deficits to all time steps by holding constant within each interval
+        deficits_all = np.zeros_like(self.ws_mat)
+        # For each block, fill with the corresponding deficits
+        prev_end = -1
+        for block_idx, end_idx in enumerate(eval_indices):
+            start_idx = prev_end + 1
+            prev_end = end_idx
+            # Use deficits from this evaluation time for the whole block
+            deficits_all[start_idx : end_idx + 1, :] = floris_wake_deficits_eval[block_idx, :]
+
+        # Compute all the waked velocities from unwaked minus deficits
+        self.waked_velocities_all = self.ws_mat - deficits_all
 
         # Initialize the turbine powers to nan
         self.turbine_powers = np.zeros(self.n_turbines) * np.nan
