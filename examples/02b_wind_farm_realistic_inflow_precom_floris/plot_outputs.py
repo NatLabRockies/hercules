@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Read the Hercules output file
-df = pd.read_csv("outputs/hercules_output.csv", index_col=False)
+df = pd.read_feather("outputs/hercules_output.feather")
 
 # Limit to the first 4 hours
 df = df.iloc[: 3600 * 4]

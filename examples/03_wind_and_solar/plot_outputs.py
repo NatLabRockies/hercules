@@ -5,7 +5,7 @@ import pandas as pd
 from hercules.utilities import load_h_dict_from_text
 
 # Read the Hercules output file
-df = pd.read_csv("outputs/hercules_output.csv", index_col=False)
+df = pd.read_feather("outputs/hercules_output.feather")
 
 # Read in the meta data file
 h_dict = load_h_dict_from_text("outputs/h_dict.echo")

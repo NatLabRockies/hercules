@@ -7,7 +7,7 @@ import pandas as pd
 labels = ["aggressive", "protective"]
 battery_cols = ["C2", "teal"]
 linestyles = ["-", "--"]
-output_files = ["outputs/hercules_output_ag.csv", "outputs/hercules_output_pr.csv"]
+output_files = ["outputs/hercules_output_ag.feather", "outputs/hercules_output_pr.feather"]
 
 # Plotting colors for non-battery components
 wind_col = "C0"
@@ -18,7 +18,7 @@ _, ax_tracking = plt.subplots(2, 1, sharex=True, figsize=(7, 5))
 _, ax_cycles = plt.subplots(1, 1, sharex=True, figsize=(7, 5))
 for label, battery_col, ls, output_file in zip(labels, battery_cols, linestyles, output_files):
     # Read the Hercules output file
-    df = pd.read_csv(output_file, index_col=False)
+    df = pd.read_feather(output_file)
 
     power_ref_input = df["external_signals.plant_power_reference"] / 1e3
 
