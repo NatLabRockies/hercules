@@ -43,12 +43,13 @@ def modify_input_file_for_precom_floris(temp_dir, input_file):
     with open(input_path, "r") as f:
         h_dict = yaml.safe_load(f)
 
-    # Modify the wind farm component type and remove floris_update_time_s
+    # Modify the wind farm component type and ensure floris_update_time_s is present
     if "wind_farm" in h_dict:
         h_dict["wind_farm"]["component_type"] = "Wind_MesoToPowerPrecomFloris"
-        # Remove floris_update_time_s as it's not used by precomputed FLORIS
-        if "floris_update_time_s" in h_dict["wind_farm"]:
-            del h_dict["wind_farm"]["floris_update_time_s"]
+        # Ensure a reasonable floris_update_time_s value exists
+        h_dict["wind_farm"]["floris_update_time_s"] = h_dict["wind_farm"].get(
+            "floris_update_time_s", 300.0
+        )
 
     # Write the modified YAML file back
     with open(input_path, "w") as f:
