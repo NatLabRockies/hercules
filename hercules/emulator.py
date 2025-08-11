@@ -255,7 +255,7 @@ class Emulator:
             # If this is first iteration log the input dict
             # And turn off the first iteration flag
             if first_iteration:
-                self.logger.info(self.h_dict)
+                # self.logger.info(self.h_dict)
                 self._save_h_dict_as_text()
                 first_iteration = False
 
