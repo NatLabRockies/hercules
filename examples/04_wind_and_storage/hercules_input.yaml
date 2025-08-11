@@ -28,7 +28,7 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
 battery:
   component_type: BatterySimple
   size: 20000  # kW size of the battery (20 MW)
-  energy_capacity: 80000 # total capacity of the battery in kWh (80 MWh)
+  energy_capacity: 10000 # total capacity of the battery in kWh (10 MWh)
   charge_rate: 2000 # charge rate in kW (2 MW)
   discharge_rate: 2000 # discharge rate in kW (2 MW)
   max_SOC: 0.9
