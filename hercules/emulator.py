@@ -220,12 +220,13 @@ class Emulator:
             self.time = self.starttime + (self.step * self.dt)
 
             # Log the current time
-            if (self.step % self.step_log_interval == 0) or first_iteration:
-                self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
-                self.logger.info(f"Step: {self.step} of {self.n_steps}")
-                self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
-                # Update progress bar only when logging
-                progress_bar.update(self.step_log_interval)
+            if self.verbose:
+                if (self.step % self.step_log_interval == 0) or first_iteration:
+                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
+                    self.logger.info(f"Step: {self.step} of {self.n_steps}")
+                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
+                    # Update progress bar only when logging
+                    progress_bar.update(self.step_log_interval)
 
             for k in self.external_data_all:
                 self.h_dict["external_signals"][k] = self.external_data_all[k][
