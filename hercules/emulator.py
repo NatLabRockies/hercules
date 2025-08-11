@@ -83,6 +83,10 @@ class Emulator:
         # Round to step_log_interval to be an integer greater than 0
         self.step_log_interval = np.max([1, np.round(self.step_log_interval)])
 
+        # Calculate progress bar update interval (independent of verbose logging)
+        # Update every 1% of completion or every 100 steps, whichever is more frequent
+        self.progress_update_interval = min(max(1, self.n_steps // 100), 100)
+
         # Initialize components
         self.controller = controller
         self.hybrid_plant = hybrid_plant
@@ -232,6 +236,7 @@ class Emulator:
 
         # Set current time and run simulation through steps
         self.time = self.starttime
+        last_progress_update = 0
         for self.step in range(self.n_steps):
             # Log the current time
             if self.verbose:
@@ -239,8 +244,13 @@ class Emulator:
                     self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
                     self.logger.info(f"Step: {self.step} of {self.n_steps}")
                     self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
-                    # Update progress bar only when logging
-                    progress_bar.update(self.step_log_interval)
+
+            # Update progress bar independently of verbose logging, more frequently
+            if (self.step % self.progress_update_interval == 0) or first_iteration:
+                steps_to_update = self.step - last_progress_update
+                if steps_to_update > 0:
+                    progress_bar.update(steps_to_update)
+                    last_progress_update = self.step
 
             # Fast external data lookup by step index (avoids per-step array equality checks)
             if external_data_all:
@@ -270,9 +280,9 @@ class Emulator:
             self.time = self.time + self.dt
 
         # Update progress bar to final step and close
-        remaining_steps = self.n_steps - progress_bar.n
-        if remaining_steps > 0:
-            progress_bar.update(remaining_steps)
+        final_steps_to_update = self.n_steps - last_progress_update
+        if final_steps_to_update > 0:
+            progress_bar.update(final_steps_to_update)
         progress_bar.close()
 
     def close_output_file(self):
