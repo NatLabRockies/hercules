@@ -29,7 +29,7 @@ EXPECTED_FINAL_PLANT_POWER = 4964  # Updated after wind model changes (3229 + 17
 INPUT_FILE = "hercules_input.yaml"
 INPUTS_DIR = "inputs"
 OUTPUTS_DIR = "outputs"
-OUTPUT_FILE = "outputs/hercules_output.csv"
+OUTPUT_FILE = "outputs/hercules_output.feather"
 NOTEBOOK_FILE = "resample_solar_history.ipynb"
 PLOT_SCRIPT_FILE = "plot_outputs.py"
 

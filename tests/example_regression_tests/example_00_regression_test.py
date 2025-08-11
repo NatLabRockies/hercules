@@ -25,7 +25,7 @@ EXPECTED_FINAL_PLANT_POWER = 3271  # Same as wind power for wind-only case
 INPUT_FILE = "hercules_input.yaml"
 INPUTS_DIR = "inputs"
 OUTPUTS_DIR = "outputs"
-OUTPUT_FILE = "outputs/hercules_output.csv"
+OUTPUT_FILE = "outputs/hercules_output.feather"
 NOTEBOOK_FILE = "generate_wind_history.ipynb"
 PLOT_SCRIPT_FILE = "plot_outputs.py"
 

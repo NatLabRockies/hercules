@@ -118,11 +118,11 @@ def run_simulation(input_file, num_time_steps):
     emulator.enter_execution(function_targets=[], function_arguments=[[]])
 
     # Check that the output file was created
-    output_file = "outputs/hercules_output.csv"
+    output_file = "outputs/hercules_output.feather"
     assert os.path.exists(output_file), "Output file was not created"
 
     # Read and return the output file
-    return pd.read_csv(output_file)
+    return pd.read_feather(output_file)
 
 
 def verify_outputs(
