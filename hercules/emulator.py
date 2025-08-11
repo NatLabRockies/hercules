@@ -38,22 +38,29 @@ class Emulator:
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
 
+        # Save time step, start time and end time first
+        self.dt = h_dict["dt"]
+        self.starttime = h_dict["starttime"]
+        self.endtime = h_dict["endtime"]
+
         # Initialize the output file
         if "output_file" in h_dict:
             self.output_file = h_dict["output_file"]
         else:
-            self.output_file = "outputs/hercules_output.csv"
+            self.output_file = "outputs/hercules_output.feather"
+
+        # Initialize output configuration
+        self.output_format = h_dict.get("output_format", "feather")  # feather, parquet, or csv
+        self.output_time_step = h_dict.get("output_time_step", self.dt)  # Output downsampling
+
+        # Calculate downsampling factor
+        self.output_downsample_factor = max(1, int(self.output_time_step / self.dt))
 
         # Initialize fast logging with pre-allocated arrays
         self.output_data = None
         self.output_columns = None
         self.output_structure_determined = False
         self.output_written = False
-
-        # Save time step, start time and end time
-        self.dt = h_dict["dt"]
-        self.starttime = h_dict["starttime"]
-        self.endtime = h_dict["endtime"]
 
         # Get verbose flag from h_dict
         self.verbose = h_dict.get("verbose", False)
@@ -269,7 +276,12 @@ class Emulator:
         progress_bar.close()
 
     def close_output_file(self):
-        """Write all simulation data to CSV file at once with deferred rounding."""
+        """Write all simulation data to efficient file format with optional downsampling.
+
+        This method writes simulation data to file using configurable formats (Feather,
+        Parquet, or CSV) with optional downsampling and precision control for optimized
+        file size and write speed.
+        """
         # Avoid duplicate writes (e.g., explicit close and __del__)
         if self.output_written:
             return
@@ -282,29 +294,85 @@ class Emulator:
             # Convert to DataFrame
             df = pd.DataFrame(self.output_data, columns=self.output_columns)
 
-            # Apply rounding only once at CSV write time for better precision and performance
-            # Round time to 1 decimal place for readability
-            if "time" in df.columns:
-                df["time"] = df["time"].round(1)
+            # Apply downsampling if requested
+            if self.output_downsample_factor > 1:
+                # Keep every nth row based on downsampling factor
+                df = df.iloc[:: self.output_downsample_factor, :].copy()
+                if self.verbose:
+                    self.logger.info(
+                        f"Downsampled output by factor {self.output_downsample_factor}"
+                    )
 
-            # Round power and numeric values to 3 decimal places
-            numeric_columns = df.select_dtypes(include=[np.number]).columns
-            for col in numeric_columns:
-                if col not in ["time", "step"]:  # Skip time (already rounded) and step (integer)
-                    df[col] = df[col].round(3)
+            # Apply simple rounding for CSV readability only
+            if self.output_format.lower() == "csv":
+                # Round time to 1 decimal place for readability
+                if "time" in df.columns:
+                    df["time"] = df["time"].round(1)
+                # Round other numeric values to 3 decimal places for CSV readability
+                numeric_columns = df.select_dtypes(include=[np.number]).columns
+                for col in numeric_columns:
+                    if col not in ["step", "time"]:  # Skip step (int) and time (already rounded)
+                        df[col] = df[col].round(3)
 
-            # Convert timestamp back to datetime string format
-            if "clock_time" in df.columns:
+            # Convert timestamp back to datetime string format for CSV compatibility
+            if "clock_time" in df.columns and self.output_format == "csv":
                 df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
 
-            # Write to CSV
-            df.to_csv(self.output_file, index=False)
+            # Optimize data types for smaller file size
+            self._optimize_dtypes(df)
+
+            # Write to file based on format
+            self._write_dataframe_to_file(df)
 
             if self.verbose:
-                self.logger.info(f"Wrote {len(df)} rows to {self.output_file}")
+                file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                self.logger.info(f"Wrote {len(df)} rows to {self.output_file} ({file_size:.2f} MB)")
 
             # Mark as written so subsequent calls are no-ops
             self.output_written = True
+
+    def _optimize_dtypes(self, df):
+        """Optimize DataFrame data types for smaller file size.
+
+        Args:
+            df (pd.DataFrame): DataFrame to optimize.
+        """
+        # Convert float64 to float32 where appropriate for significant size savings
+        for col in df.select_dtypes(include=["float64"]).columns:
+            if col not in ["time"]:  # Keep time as float64 for precision
+                # Check if conversion to float32 would lose significant precision
+                original_max = df[col].max()
+                original_min = df[col].min()
+                if (
+                    original_max < 3.4e38
+                    and original_min > -3.4e38
+                    and not np.isinf(original_max)
+                    and not np.isinf(original_min)
+                ):
+                    df[col] = df[col].astype("float32")
+
+    def _write_dataframe_to_file(self, df):
+        """Write DataFrame to file using the specified format.
+
+        Args:
+            df (pd.DataFrame): DataFrame to write.
+        """
+        if self.output_format.lower() == "feather":
+            # Feather format - fastest read/write, good compression
+            df.to_feather(self.output_file)
+        elif self.output_format.lower() == "parquet":
+            # Parquet format - best compression, good for analytics
+            df.to_parquet(self.output_file, engine="pyarrow", compression="snappy")
+        elif self.output_format.lower() == "csv":
+            # CSV format - most compatible, human readable
+            df.to_csv(self.output_file, index=False)
+        else:
+            # Default to feather with warning
+            self.logger.warning(
+                f"Unknown output format '{self.output_format}', defaulting to Feather"
+            )
+            df.to_feather(self.output_file)
+
 
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
