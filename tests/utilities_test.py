@@ -321,3 +321,64 @@ def test_load_h_dict_from_text_not_a_dict():
             load_h_dict_from_text(temp_file)
     finally:
         os.unlink(temp_file)
+
+
+def test_output_configuration_validation():
+    """Test validation of new output configuration options."""
+
+    base_h_dict = {
+        "dt": 1.0,
+        "starttime": 0.0,
+        "endtime": 10.0,
+        "plant": {"interconnect_limit": 5000},
+        "solar_farm": {"component_type": "SolarPySAMPVWatts"},
+    }
+
+    # Test valid output_format
+    test_dict = base_h_dict.copy()
+    test_dict["output_format"] = "feather"
+    result = load_hercules_input_from_dict(test_dict)
+    assert result["output_format"] == "feather"
+
+    test_dict["output_format"] = "parquet"
+    result = load_hercules_input_from_dict(test_dict)
+    assert result["output_format"] == "parquet"
+
+    test_dict["output_format"] = "csv"
+    result = load_hercules_input_from_dict(test_dict)
+    assert result["output_format"] == "csv"
+
+    # Test invalid output_format
+    test_dict["output_format"] = "invalid_format"
+    with pytest.raises(ValueError, match="output_format must be one of"):
+        load_hercules_input_from_dict(test_dict)
+
+    # Test valid output_time_step
+    test_dict = base_h_dict.copy()
+    test_dict["output_time_step"] = 2.0
+    result = load_hercules_input_from_dict(test_dict)
+    assert result["output_time_step"] == 2.0
+
+    # Test invalid output_time_step (negative)
+    test_dict["output_time_step"] = -1.0
+    with pytest.raises(ValueError, match="output_time_step must be a positive number"):
+        load_hercules_input_from_dict(test_dict)
+
+    # Test invalid output_time_step (less than dt)
+    test_dict["output_time_step"] = 0.5  # Less than dt=1.0
+    with pytest.raises(ValueError, match="output_time_step must be greater than or equal to dt"):
+        load_hercules_input_from_dict(test_dict)
+
+
+def load_hercules_input_from_dict(h_dict):
+    """Helper function to test hercules input validation from a dictionary."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        import yaml
+
+        yaml.dump(h_dict, f)
+        temp_file = f.name
+
+    try:
+        return load_hercules_input(temp_file)
+    finally:
+        os.unlink(temp_file)

@@ -77,7 +77,9 @@ def test_Emulator_instantiation():
     emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
 
     # Check default settings
-    assert emulator.output_file == "outputs/hercules_output.csv"
+    assert emulator.output_file == "outputs/hercules_output.feather"
+    assert emulator.output_format == "feather"
+    assert emulator.output_downsample_factor == 1
     assert emulator.external_data_all == {}
 
     # Test with external data file and custom output file
@@ -242,3 +244,118 @@ def test_log_h_dict_with_wind_farm_arrays():
     assert "clock_time" in emulator.output_columns
     clock_time_idx = emulator.output_columns.index("clock_time")
     assert emulator.output_data[emulator.step, clock_time_idx] is not None
+
+
+def test_output_configuration_options():
+    """Test new output configuration options: format, downsampling, and precision."""
+    import os
+    import tempfile
+
+    import pandas as pd
+
+    # Use h_dict_solar as base for testing
+    test_h_dict = h_dict_solar.copy()
+
+    # Set up logger for testing
+    logger = setup_logging(console_output=False)
+
+    # Test 1: Feather format with downsampling
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_h_dict_feather = test_h_dict.copy()
+        test_h_dict_feather["output_file"] = os.path.join(temp_dir, "test_output.feather")
+        test_h_dict_feather["output_format"] = "feather"
+        test_h_dict_feather["output_time_step"] = 2.0  # 2x downsampling
+        test_h_dict_feather["dt"] = 1.0
+        test_h_dict_feather["starttime"] = 0.0
+        test_h_dict_feather["endtime"] = 5.0
+
+        controller = SimpleControllerSolar(test_h_dict_feather)
+        hybrid_plant = HybridPlant(test_h_dict_feather)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_feather, logger)
+
+        # Check configuration
+        assert emulator.output_format == "feather"
+        assert emulator.output_time_step == 2.0
+        assert emulator.output_downsample_factor == 2
+
+        # Run simulation and write output
+        for step in range(5):  # 5 steps (0-4) for dt=1.0, endtime=5.0, starttime=0.0
+            emulator.step = step
+            emulator.time = step * emulator.dt
+            emulator.h_dict["time"] = emulator.time
+            emulator.h_dict["step"] = step
+            emulator.h_dict = controller.step(emulator.h_dict)
+            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+            emulator.log_h_dict()
+
+        emulator.close_output_file()
+
+        # Verify file exists and is readable
+        assert os.path.exists(emulator.output_file)
+        df_feather = pd.read_feather(emulator.output_file)
+        # 5 steps downsampled by factor 2 should give 3 rows (0, 2, 4)
+        # Let's check for non-null rows since downsampling may leave some NaN rows
+        non_null_rows = df_feather.dropna().shape[0]
+        assert non_null_rows == 3
+
+    # Test 2: Parquet format
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_h_dict_parquet = test_h_dict.copy()
+        test_h_dict_parquet["output_file"] = os.path.join(temp_dir, "test_output.parquet")
+        test_h_dict_parquet["output_format"] = "parquet"
+        test_h_dict_parquet["dt"] = 1.0
+        test_h_dict_parquet["starttime"] = 0.0
+        test_h_dict_parquet["endtime"] = 5.0
+
+        controller = SimpleControllerSolar(test_h_dict_parquet)
+        hybrid_plant = HybridPlant(test_h_dict_parquet)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_parquet, logger)
+
+        # Run simulation and write output
+        for step in range(5):  # 5 steps to match the array size
+            emulator.step = step
+            emulator.time = step * emulator.dt
+            emulator.h_dict["time"] = emulator.time
+            emulator.h_dict["step"] = step
+            emulator.h_dict = controller.step(emulator.h_dict)
+            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+            emulator.log_h_dict()
+
+        emulator.close_output_file()
+
+        # Verify file exists and is readable
+        assert os.path.exists(emulator.output_file)
+        df_parquet = pd.read_parquet(emulator.output_file)
+        # No downsampling, so should have all 5 rows
+        assert len(df_parquet) == 5
+
+    # Test 3: CSV format (backward compatibility)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_h_dict_csv = test_h_dict.copy()
+        test_h_dict_csv["output_file"] = os.path.join(temp_dir, "test_output.csv")
+        test_h_dict_csv["output_format"] = "csv"
+        test_h_dict_csv["dt"] = 1.0
+        test_h_dict_csv["starttime"] = 0.0
+        test_h_dict_csv["endtime"] = 5.0
+
+        controller = SimpleControllerSolar(test_h_dict_csv)
+        hybrid_plant = HybridPlant(test_h_dict_csv)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_csv, logger)
+
+        # Run simulation and write output
+        for step in range(5):  # 5 steps to match the array size
+            emulator.step = step
+            emulator.time = step * emulator.dt
+            emulator.h_dict["time"] = emulator.time
+            emulator.h_dict["step"] = step
+            emulator.h_dict = controller.step(emulator.h_dict)
+            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+            emulator.log_h_dict()
+
+        emulator.close_output_file()
+
+        # Verify file exists and is readable
+        assert os.path.exists(emulator.output_file)
+        df_csv = pd.read_csv(emulator.output_file)
+        # No downsampling, so should have all 5 rows
+        assert len(df_csv) == 5
