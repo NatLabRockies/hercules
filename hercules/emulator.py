@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 import sys
+import time as _time
 from pathlib import Path
 
 import numpy as np
@@ -47,6 +48,7 @@ class Emulator:
         self.output_data = None
         self.output_columns = None
         self.output_structure_determined = False
+        self.output_written = False
 
         # Save time step, start time and end time
         self.dt = h_dict["dt"]
@@ -214,11 +216,16 @@ class Emulator:
             maxinterval=30.0,  # Update at least every 30 seconds
         )
 
-        # Run simulation through steps
-        for self.step in range(self.n_steps):
-            # Compute the current time
-            self.time = self.starttime + (self.step * self.dt)
+        # Cache frequently accessed attributes and methods locally for speed
+        controller_step = self.controller.step
+        plant_step = self.hybrid_plant.step
+        log_current_state = self.log_h_dict
+        external_data_all = self.external_data_all
+        h_dict = self.h_dict
 
+        # Set current time and run simulation through steps
+        self.time = self.starttime
+        for self.step in range(self.n_steps):
             # Log the current time
             if self.verbose:
                 if (self.step % self.step_log_interval == 0) or first_iteration:
@@ -228,20 +235,22 @@ class Emulator:
                     # Update progress bar only when logging
                     progress_bar.update(self.step_log_interval)
 
-            for k in self.external_data_all:
-                self.h_dict["external_signals"][k] = self.external_data_all[k][
-                    self.external_data_all["time"] == self.time
-                ][0]
+            # Fast external data lookup by step index (avoids per-step array equality checks)
+            if external_data_all:
+                for k in external_data_all:
+                    if k == "time":
+                        continue
+                    h_dict["external_signals"][k] = external_data_all[k][self.step]
 
             # Update controller and py sims
-            self.h_dict["time"] = self.time
-            self.h_dict["step"] = self.step
-            self.h_dict = self.controller.step(self.h_dict)
-
-            self.h_dict = self.hybrid_plant.step(self.h_dict)
+            h_dict["time"] = self.time
+            h_dict["step"] = self.step
+            h_dict = controller_step(h_dict)
+            h_dict = plant_step(h_dict)
+            self.h_dict = h_dict
 
             # Log the current state
-            self.log_h_dict()
+            log_current_state()
 
             # If this is first iteration log the input dict
             # And turn off the first iteration flag
@@ -261,6 +270,10 @@ class Emulator:
 
     def close_output_file(self):
         """Write all simulation data to CSV file at once with deferred rounding."""
+        # Avoid duplicate writes (e.g., explicit close and __del__)
+        if self.output_written:
+            return
+
         if self.output_data is not None and self.output_columns is not None:
             # Create output directory if it doesn't exist
             output_dir = os.path.dirname(os.path.abspath(self.output_file))
@@ -289,6 +302,9 @@ class Emulator:
 
             if self.verbose:
                 self.logger.info(f"Wrote {len(df)} rows to {self.output_file}")
+
+            # Mark as written so subsequent calls are no-ops
+            self.output_written = True
 
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
@@ -369,16 +385,22 @@ class Emulator:
         if self.output_data is None:
             return
 
-        row_data = []
+        row = self.output_data[self.step]
+        col_idx = 0
 
-        # Basic time information - only round time for readability
-        row_data.append(self.h_dict["time"])  # Keep full precision during simulation
-        row_data.append(self.h_dict["step"])
-        row_data.append(dt.datetime.now().timestamp())
+        # Basic time information
+        row[col_idx] = self.h_dict["time"]
+        col_idx += 1
+        row[col_idx] = self.h_dict["step"]
+        col_idx += 1
+        row[col_idx] = _time.time()
+        col_idx += 1
 
         # Plant-level outputs
-        row_data.append(self.h_dict["plant"]["power"])
-        row_data.append(self.h_dict["plant"]["locally_generated_power"])
+        row[col_idx] = self.h_dict["plant"]["power"]
+        col_idx += 1
+        row[col_idx] = self.h_dict["plant"]["locally_generated_power"]
+        col_idx += 1
 
         # Component outputs - store raw values without rounding
         for component_name in self.hybrid_plant.component_names:
@@ -389,19 +411,17 @@ class Emulator:
                 if output_name in self.h_dict[component_name]:
                     output_value = self.h_dict[component_name][output_name]
 
-                    # Handle arrays - store raw values
                     if isinstance(output_value, (list, np.ndarray)):
-                        row_data.extend(output_value)
+                        arr = np.asarray(output_value)
+                        row[col_idx : col_idx + len(arr)] = arr
+                        col_idx += len(arr)
                     else:
-                        # Handle scalar values - store raw
-                        row_data.append(output_value)
+                        row[col_idx] = output_value
+                        col_idx += 1
 
-        # Store in pre-allocated array
-        if len(row_data) == len(self.output_columns):
-            self.output_data[self.step] = row_data
-        else:
+        if col_idx != len(self.output_columns):
             self.logger.warning(
-                f"Data length mismatch: expected {len(self.output_columns)}, got {len(row_data)}"
+                f"Data length mismatch: expected {len(self.output_columns)}, got {col_idx}"
             )
 
     def parse_input_yaml(self, filename):
