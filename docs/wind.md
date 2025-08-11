@@ -14,13 +14,15 @@ Both wind farm components integrate FLORIS for wake effects with individual turb
 
 ### Precomputed FLORIS Approach
 
-Wind_MesoToPowerPrecomFloris pre-computes wake deficits for all wind speeds and directions at initialization, making it more efficient for long simulations. This approach is valid when the wind farm operates under these conditions:
+Wind_MesoToPowerPrecomFloris pre-computes wake deficits using a fixed cadence determined by `floris_update_time_s`. At initialization, FLORIS is evaluated at that cadence using right-aligned time-window averages of wind speed, wind direction, and turbulence intensity. The resulting wake deficits are then held constant between evaluations and applied to the per-turbine inflow time series.
+
+This approach is valid when the wind farm operates under these conditions:
 
 - All turbines operating normally
 - All turbines off 
 - Following a wind-farm wide derating level
 
-**Important**: This model is not appropriate when turbines are partially derated below the curtailment level or not uniformly curtailed. In such cases, use the standard Wind_MesoToPower class instead.
+Important: This model is not appropriate when turbines are partially derated below the curtailment level or not uniformly curtailed. In such cases, use the standard Wind_MesoToPower class instead.
 
 ## Configuration
 
@@ -41,10 +43,11 @@ Optional parameters for Wind_MesoToPower:
 
 ### Wind_MesoToPowerPrecomFloris Specific Parameters
 
+Required parameters for Wind_MesoToPowerPrecomFloris:
+- `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
+
 Optional parameters for Wind_MesoToPowerPrecomFloris:
 - `log_extra_outputs`: Enable detailed logging
-
-**Note**: `floris_update_time_s` is not used in the precomputed version since FLORIS is run only once during initialization.
 
 ## Turbine Models
 
