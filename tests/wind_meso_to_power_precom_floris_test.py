@@ -13,11 +13,8 @@ from hercules.plant_components.wind_meso_to_power_precom_floris import (
 
 from tests.test_inputs.h_dict import h_dict_wind
 
-# Create a test dictionary specifically for Wind_MesoToPowerPrecomFloris
-# (without floris_update_time_s since it's not used)
+# Create a base test dictionary for Wind_MesoToPowerPrecomFloris
 h_dict_wind_precom_floris = copy.deepcopy(h_dict_wind)
-if "floris_update_time_s" in h_dict_wind_precom_floris["wind_farm"]:
-    del h_dict_wind_precom_floris["wind_farm"]["floris_update_time_s"]
 
 
 def test_wind_meso_to_power_precom_floris_initialization():
@@ -30,17 +27,29 @@ def test_wind_meso_to_power_precom_floris_initialization():
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
-    # No FLORIS calculations during initialization for precomputed version
-    assert wind_sim.num_floris_calcs == 0
+    # FLORIS is called during initialization for precomputed version
+    assert wind_sim.num_floris_calcs == 1
+    assert (
+        wind_sim.floris_update_time_s
+        == h_dict_wind_precom_floris["wind_farm"]["floris_update_time_s"]
+    )
 
 
-def test_wind_meso_to_power_precom_floris_rejects_floris_update_time():
-    """Test that floris_update_time_s in h_dict raises ValueError."""
-    test_h_dict = h_dict_wind.copy()
-    # This should already be present, but ensure it is
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 30.0
+def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
+    """Test that missing floris_update_time_s raises ValueError."""
+    test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
+    del test_h_dict["wind_farm"]["floris_update_time_s"]
 
-    with pytest.raises(ValueError, match="floris_update_time_s should not be in the h_dict"):
+    with pytest.raises(ValueError, match="floris_update_time_s must be in the h_dict"):
+        Wind_MesoToPowerPrecomFloris(test_h_dict)
+
+
+def test_wind_meso_to_power_precom_floris_invalid_update_time():
+    """Test that invalid floris_update_time_s (<1) raises ValueError."""
+    test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
+    test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5
+
+    with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
         Wind_MesoToPowerPrecomFloris(test_h_dict)
 
 
