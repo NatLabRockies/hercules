@@ -224,6 +224,7 @@ class BatterySimple(ComponentBase):
 
         # Add what we want later
         h_dict[self.component_name]["power"] = 0
+        h_dict[self.component_name]["soc"] = self.SOC
 
         return h_dict
 
