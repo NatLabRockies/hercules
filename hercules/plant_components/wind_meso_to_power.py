@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from floris import FlorisModel
 from hercules.plant_components.component_base import ComponentBase
-from hercules.utilities import interpolate_df, load_perffile, load_yaml
-from scipy.interpolate import interp1d,RegularGridInterpolator
+from hercules.utilities import interpolate_df, load_yaml
+from scipy.interpolate import interp1d, RegularGridInterpolator
 from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
 
