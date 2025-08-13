@@ -656,6 +656,9 @@ class Turbine1dofModel:
             -self.dt * self.turbine_dict["dof1_model"]["filterfreq_rotor_speed"]
         )
 
+        # Initialize the integrated controller error to 0
+        self.omegaferror_integrated = 0.0
+
         # Obtain more data from floris
         turbine_type = fmodel.core.farm.turbine_definitions[0]
         self.rotor_radius = turbine_type["rotor_diameter"] / 2
@@ -781,7 +784,9 @@ class Turbine1dofModel:
             tuple: (pitch_angle, generator_torque) where pitch is in radians
                 and generator torque is in N⋅m.
         """
-        if prev_pitch > 1.0 / RAD2DEG or (prev_pitch > 1.0 / RAD2DEG):
+        if (prev_pitch > 1.0 / RAD2DEG) or (
+            omegaf <= self.turbine_dict["dof1_model"]["rated_rotor_speed"]
+        ):
             gentorque = self.turbine_dict["dof1_model"]["controller"]["r3_torque"] * omegaf**2
             self.omegaferror_integrated += (
                 omegaf - self.turbine_dict["dof1_model"]["rated_rotor_speed"]
