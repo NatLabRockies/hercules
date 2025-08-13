@@ -383,7 +383,6 @@ class Emulator:
             )
             df.to_feather(self.output_file)
 
-
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
         try:
