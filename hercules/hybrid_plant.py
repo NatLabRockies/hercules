@@ -130,8 +130,18 @@ class HybridPlant:
         """
         # Collect the component objects
         for component_name in self.component_names:
+            # If component_name is battery, invert the sign of the power_setpoint
+            if component_name == "battery":
+                h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
+
             # Update h_dict by calling the step method of each component object
             h_dict = self.component_objects[component_name].step(h_dict)
+
+            # If component_name is battery, invert the sign of the power_setpoint back
+            # And invert the sign of the power output
+            if component_name == "battery":
+                h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
+                h_dict[component_name]["power"] = -h_dict[component_name]["power"]
 
         # Update the plant level outputs
         self.compute_plant_level_outputs(h_dict)

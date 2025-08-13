@@ -2,6 +2,14 @@
 
 There are two battery models currently implemented in Hercules: `BatterySimple` and `BatteryLithiumIon`. 
 
+## Sign Conventions
+
+It is important to note that within the battery modules, the convention that positive power is charging the  
+battery is followed for consistency with battery standards.  However, at the level of the `HybridPlant`
+this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
+for consistency with other components.  This inversions applies to power_setpoint and also occurs within
+`HybridPlant`.
+
 ### Parameters
 
 Battery parameters are defined in the hercules input yaml file used to initialize `emulator`.
@@ -34,7 +42,7 @@ Inputs are passed to `step()` as a dict named `h_dict`, which must have the foll
 ```python
 h_dict = {
     "battery": {
-        "power_setpoint": 1000  # Requested charging/discharging power in kW
+        "power_setpoint": 1000  # Requested battery power in kW (positive=discharge, negative=charge)
     },
     "plant": {
         "locally_generated_power": 5000  # Available power for charging in kW
@@ -44,7 +52,7 @@ h_dict = {
 
 ### Outputs
 Outputs are returned as a dict containing the following values:
-- `power`: Actual charging/discharging power of the battery in kW
+- `power`: Actual battery power in kW 
 - `reject`: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)
 - `soc`: Battery state of charge (0-1)
 
