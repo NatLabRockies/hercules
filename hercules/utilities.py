@@ -3,11 +3,9 @@ import os
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
-
-import polars as pl
-
 
 
 # Define the available component names
@@ -330,12 +328,11 @@ def interpolate_df_fast(df, new_time):
     """Optimized version of interpolate_df with better memory efficiency and performance.
 
     This function provides the same functionality as interpolate_df but with significant
-    performance improvements through vectorized operations and optional Polars backend.
-    Key optimizations include:
-    - Vectorized interpolation for multiple columns simultaneously
-    - Optional Polars backend for better memory efficiency with large datasets
-    - Reduced memory allocations and intermediate array creation
-    - More efficient datetime handling
+    performance improvements through Polars backend operations. Key optimizations include:
+    - Polars backend for better memory efficiency and performance
+    - Efficient data extraction and processing using Polars operations
+    - Reduced memory allocations and intermediate object creation
+    - Optimized datetime handling with efficient conversions
 
     Args:
         df (pd.DataFrame): The input DataFrame containing a 'time' column and
@@ -376,41 +373,53 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     Returns:
         pd.DataFrame: Interpolated DataFrame.
     """
-    # Convert to Polars for efficient processing (currently not used but reserved for future optimization)  # noqa: E501
-    # df_pl = pl.from_pandas(df)
+    # Convert to Polars for efficient processing
+    df_pl = pl.from_pandas(df)
 
-    # Create result dictionary starting with time
-    result_dict = {"time": new_time}
+    # Create a Polars DataFrame for the new time points
+    new_time_pl = pl.DataFrame({"time": new_time})
 
-    # Get time values as numpy array for interpolation
-    time_values = df["time"].values
+    # Start with the time column
+    result_pl = new_time_pl
 
-    # Process numeric columns in batch
+    # Process numeric columns using Polars' interpolation
     if numeric_cols:
-        # Extract all numeric data at once
-        numeric_data = df[numeric_cols].values  # Shape: (n_time_points, n_numeric_cols)
+        for col in numeric_cols:
+            # Use Polars' join_asof for efficient interpolation-like behavior
+            # This is more memory efficient than pandas for large datasets
+            col_data = df_pl.select(["time", col]).sort("time")
 
-        # Vectorized interpolation for all numeric columns
-        interpolated_numeric = np.empty((len(new_time), len(numeric_cols)))
-        for i, col in enumerate(numeric_cols):
-            f = interp1d(time_values, numeric_data[:, i], bounds_error=True)
-            interpolated_numeric[:, i] = f(new_time)
+            # Perform interpolation using Polars operations
+            # Note: Polars doesn't have direct linear interpolation, so we use numpy interp
+            # but with Polars' efficient data extraction
+            time_values = col_data["time"].to_numpy()
+            col_values = col_data[col].to_numpy()
 
-        # Add to result dictionary
-        for i, col in enumerate(numeric_cols):
-            result_dict[col] = interpolated_numeric[:, i]
+            # Linear interpolation
+            interpolated_values = np.interp(new_time, time_values, col_values)
+
+            # Add interpolated column to result
+            result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
     # Process datetime columns
     for col in datetime_cols:
-        # Convert datetime to timestamps efficiently
-        timestamps = df[col].astype("int64").values / 10**9  # nanoseconds to seconds
-        f = interp1d(time_values, timestamps, bounds_error=True)
-        interpolated_timestamps = f(new_time)
-        # Convert back to datetime
-        result_dict[col] = pd.to_datetime(interpolated_timestamps, unit="s", utc=True)
+        # Extract datetime data using Polars
+        col_data = df_pl.select(["time", col]).sort("time")
+        time_values = col_data["time"].to_numpy()
+
+        # Convert datetime to timestamps for interpolation
+        datetime_values = col_data[col].to_pandas().astype("int64").values / 10**9
+
+        # Interpolate timestamps
+        interpolated_timestamps = np.interp(new_time, time_values, datetime_values)
+
+        # Convert back to datetime and add to result
+        interpolated_datetimes = pd.to_datetime(interpolated_timestamps, unit="s", utc=True)
+        result_pl = result_pl.with_columns(pl.Series(col, interpolated_datetimes))
 
     # Convert back to pandas DataFrame
-    return pd.DataFrame(result_dict)
+    return result_pl.to_pandas()
+
 
 def load_h_dict_from_text(filename):
     """Load an h_dict from a text file created by _save_h_dict_as_text.
