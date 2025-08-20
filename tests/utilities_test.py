@@ -1,6 +1,5 @@
 import os
 import tempfile
-import time
 
 import numpy as np
 import pandas as pd
@@ -539,4 +538,3 @@ def test_interpolate_df_functions_identical_multiple_dtypes():
 
     # Verify results are identical
     pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
-

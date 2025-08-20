@@ -6,9 +6,6 @@ import pandas as pd
 import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
-import polars as pl
-
-
 
 # Define the available component names
 def get_available_component_names():
@@ -411,6 +408,7 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
 
     # Convert back to pandas DataFrame
     return pd.DataFrame(result_dict)
+
 
 def load_h_dict_from_text(filename):
     """Load an h_dict from a text file created by _save_h_dict_as_text.
