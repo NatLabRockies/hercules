@@ -111,6 +111,9 @@ class Wind_MesoToPower(ComponentBase):
                     # If ISO8601 format fails, try parsing without specifying format
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
+            # Log the value of time_utc that corresponds to time == 0
+            self.start_time_utc = df_wi['time_utc'][df_wi['time'] == 0].values[0]
+
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
 
@@ -282,6 +285,10 @@ class Wind_MesoToPower(ComponentBase):
         h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
+
+        # Log the start time UTC
+        h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+
         return h_dict
 
     def update_wake_deficits(self, step):
