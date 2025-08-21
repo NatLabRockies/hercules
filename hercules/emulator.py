@@ -43,24 +43,35 @@ class Emulator:
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
 
-        # Initialize the output file
+        # Initialize output configuration
+        self.output_format = h_dict.get("output_format", "feather")  # feather, parquet, or csv
+
+        # Initialize the output file with proper extension
         if "output_file" in h_dict:
             self.output_file = h_dict["output_file"]
         else:
-            self.output_file = "outputs/hercules_output.feather"
+            # Set default filename based on format
+            format_extensions = {"feather": ".feather", "parquet": ".parquet", "csv": ".csv"}
+            extension = format_extensions.get(self.output_format.lower(), ".feather")
+            self.output_file = f"outputs/hercules_output{extension}"
 
-        # Initialize output configuration
-        self.output_format = h_dict.get("output_format", "feather")  # feather, parquet, or csv
+        # Initialize output time configuration
         self.output_time_step = h_dict.get("output_time_step", self.dt)  # Output downsampling
 
         # Calculate downsampling factor
         self.output_downsample_factor = max(1, int(self.output_time_step / self.dt))
 
-        # Initialize fast logging with pre-allocated arrays
-        self.output_data = None
+        # Initialize buffered output system
         self.output_columns = None
         self.output_structure_determined = False
         self.output_written = False
+
+        # Buffer configuration
+        self.buffer_size = h_dict.get("output_buffer_size", 10000)  # Default 10k rows
+        self.output_buffer = None
+        self.buffer_position = 0
+        self.total_rows_written = 0
+        self.temp_files = []  # Track temporary chunk files
 
         # Get verbose flag from h_dict
         self.verbose = h_dict.get("verbose", False)
@@ -296,47 +307,70 @@ class Emulator:
         if self.output_written:
             return
 
-        if self.output_data is not None and self.output_columns is not None:
+        if self.output_columns is not None:
             # Create output directory if it doesn't exist
             output_dir = os.path.dirname(os.path.abspath(self.output_file))
             os.makedirs(output_dir, exist_ok=True)
 
-            # Convert to DataFrame
-            df = pd.DataFrame(self.output_data, columns=self.output_columns)
+            # Flush any remaining buffer data to temporary file
+            if self.buffer_position > 0:
+                self._flush_buffer_to_temp_file()
 
-            # Apply downsampling if requested
-            if self.output_downsample_factor > 1:
-                # Keep every nth row based on downsampling factor
-                df = df.iloc[:: self.output_downsample_factor, :].copy()
-                if self.verbose:
-                    self.logger.info(
-                        f"Downsampled output by factor {self.output_downsample_factor}"
-                    )
+            # Combine all temporary files into final output
+            if self.temp_files:
+                # Read and concatenate all temporary files
+                dfs = []
+                for temp_file in self.temp_files:
+                    if os.path.exists(temp_file):
+                        df_chunk = pd.read_feather(temp_file)
+                        dfs.append(df_chunk)
 
-            # Apply simple rounding for CSV readability only
-            if self.output_format.lower() == "csv":
-                # Round time to 1 decimal place for readability
-                if "time" in df.columns:
-                    df["time"] = df["time"].round(1)
-                # Round other numeric values to 3 decimal places for CSV readability
-                numeric_columns = df.select_dtypes(include=[np.number]).columns
-                for col in numeric_columns:
-                    if col not in ["step", "time"]:  # Skip step (int) and time (already rounded)
-                        df[col] = df[col].round(3)
+                if dfs:
+                    # Concatenate all chunks
+                    df = pd.concat(dfs, ignore_index=True)
 
-            # Convert timestamp back to datetime string format for CSV compatibility
-            if "clock_time" in df.columns and self.output_format == "csv":
-                df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
+                    # Apply downsampling if requested
+                    if self.output_downsample_factor > 1:
+                        # Keep every nth row based on downsampling factor
+                        df = df.iloc[:: self.output_downsample_factor, :].copy()
+                        if self.verbose:
+                            self.logger.info(
+                                f"Downsampled output by factor {self.output_downsample_factor}"
+                            )
 
-            # Optimize data types for smaller file size
-            self._optimize_dtypes(df)
+                    # Apply simple rounding for CSV readability only
+                    if self.output_format.lower() == "csv":
+                        # Round time to 1 decimal place for readability
+                        if "time" in df.columns:
+                            df["time"] = df["time"].round(1)
+                        # Round other numeric values to 3 decimal places for CSV readability
+                        numeric_columns = df.select_dtypes(include=[np.number]).columns
+                        for col in numeric_columns:
+                            # Skip step (int) and time (already rounded)
+                            if col not in ["step", "time"]:
+                                df[col] = df[col].round(3)
 
-            # Write to file based on format
-            self._write_dataframe_to_file(df)
+                    # Convert timestamp back to datetime string format for CSV compatibility
+                    if "clock_time" in df.columns and self.output_format == "csv":
+                        df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
 
-            if self.verbose:
-                file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
-                self.logger.info(f"Wrote {len(df)} rows to {self.output_file} ({file_size:.2f} MB)")
+                    # Optimize data types for smaller file size
+                    self._optimize_dtypes(df)
+
+                    # Write to file based on format
+                    self._write_dataframe_to_file(df)
+
+                    if self.verbose:
+                        file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                        self.logger.info(
+                            f"Wrote {len(df)} rows to {self.output_file} ({file_size:.2f} MB)"
+                        )
+
+                # Clean up temporary files
+                for temp_file in self.temp_files:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                self.temp_files.clear()
 
             # Mark as written so subsequent calls are no-ops
             self.output_written = True
@@ -445,9 +479,9 @@ class Emulator:
                         # Handle scalar values
                         columns.append(f"{component_name}.{output_name}")
 
-        # Store column structure and allocate data array
+        # Store column structure and allocate buffer
         self.output_columns = columns
-        self.output_data = np.full((self.n_steps, len(columns)), np.nan)
+        self.output_buffer = np.full((self.buffer_size, len(columns)), np.nan)
         self.output_structure_determined = True
 
         if self.verbose:
@@ -459,10 +493,10 @@ class Emulator:
         Optimized version that eliminates expensive round() calls during simulation.
         Rounding is deferred to CSV write time for massive performance improvement.
         """
-        if self.output_data is None:
+        if self.output_buffer is None:
             return
 
-        row = self.output_data[self.step]
+        row = self.output_buffer[self.buffer_position]
         col_idx = 0
 
         # Basic time information
@@ -500,6 +534,36 @@ class Emulator:
             self.logger.warning(
                 f"Data length mismatch: expected {len(self.output_columns)}, got {col_idx}"
             )
+
+        # Increment buffer position
+        self.buffer_position += 1
+
+        # Check if buffer is full and needs to be flushed
+        if self.buffer_position >= self.buffer_size:
+            self._flush_buffer_to_temp_file()
+            self.buffer_position = 0
+
+    def _flush_buffer_to_temp_file(self):
+        """Write current buffer contents to a temporary file chunk."""
+        if self.buffer_position == 0:
+            return  # Nothing to write
+
+        # Create temporary file name
+        temp_filename = f"{self.output_file}.temp_{len(self.temp_files):04d}.feather"
+
+        # Extract data from buffer (only filled portion)
+        buffer_data = self.output_buffer[: self.buffer_position].copy()
+
+        # Create DataFrame and write to temporary file
+        df_chunk = pd.DataFrame(buffer_data, columns=self.output_columns)
+        df_chunk.to_feather(temp_filename)
+
+        # Track this temporary file
+        self.temp_files.append(temp_filename)
+        self.total_rows_written += self.buffer_position
+
+        if self.verbose:
+            self.logger.info(f"Flushed {self.buffer_position} rows to {temp_filename}")
 
     def parse_input_yaml(self, filename):
         """Parse input YAML file (not implemented).
