@@ -421,7 +421,6 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     return result_pl.to_pandas()
 
 
-
 def load_h_dict_from_text(filename):
     """Load an h_dict from a text file created by _save_h_dict_as_text.
 
