@@ -11,7 +11,7 @@ from hercules.plant_components.wind_meso_to_power import (
     Turbine1dofModel,
     TurbineFilterModelVectorized,
 )
-from hercules.utilities import interpolate_df, load_yaml
+from hercules.utilities import interpolate_df_fast, load_yaml
 from scipy.interpolate import interp1d
 from scipy.stats import circmean
 
@@ -64,6 +64,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
+        self.logger.info("Completed base class init...")
+
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
         self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints"]
@@ -88,6 +90,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Track the number of FLORIS calculations
         self.num_floris_calcs = 0
 
+        self.logger.info("Reading in FLORIS input files...")
+
         # Read in the input file names
         self.floris_input_file = h_dict[self.component_name]["floris_input_file"]
         self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
@@ -102,6 +106,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Derived step count (not used by this precomputed model, but kept for parity)
         self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
 
+        self.logger.info("Reading in wind input file...")
+
         # Read in the weather file data
         # If a csv file is provided, read it in
         if self.wind_input_filename.endswith(".csv"):
@@ -114,6 +120,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             df_wi = pd.read_feather(self.wind_input_filename)
         else:
             raise ValueError("Wind input file must be a .csv or .p, .f or .ftr file")
+
+        self.logger.info("Checking wind input file...")
 
         # Make sure the df_wi contains a column called "time"
         if "time" not in df_wi.columns:
@@ -129,6 +137,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                 f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
             )
 
+        self.logger.info("Setting time_utc...")
+
         # If time_utc is in the file, convert it to a datetime if it's not already
         if "time_utc" in df_wi.columns:
             if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
@@ -142,6 +152,9 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                     # If ISO8601 format fails, try parsing without specifying format
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
+            # Log the value of time_utc that corresponds to time == 0
+            self.start_time_utc = df_wi['time_utc'][df_wi['time'] == 0].values[0]
+
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
 
@@ -150,9 +163,13 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             self.logger.info(f"dt_wi = {self.dt_wi}")
             self.logger.info(f"dt = {self.dt}")
 
+        self.logger.info("Interpolating wind input file...")
+
         # Interpolate df_wi on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
-        df_wi = interpolate_df(df_wi, time_steps_all)
+        df_wi = interpolate_df_fast(df_wi, time_steps_all)
+
+        self.logger.info("...finished interpolating wind input file")
 
         # FLORIS PRECOMPUTATION
 
@@ -167,6 +184,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.layout_x = self.fmodel.layout_x
         self.layout_y = self.fmodel.layout_y
         self.n_turbines = self.fmodel.n_turbines
+
+        self.logger.info("Converting wind input file to numpy matrices...")
 
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speed
@@ -358,6 +377,10 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
+
+        # Log the start time UTC
+        h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+
         return h_dict
 
     def step(self, h_dict):
