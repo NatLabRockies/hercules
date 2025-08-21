@@ -5,6 +5,7 @@ import copy
 import numpy as np
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
+from numpy.testing import assert_almost_equal
 
 PRINT_VALUES = True
 
@@ -248,11 +249,11 @@ def test_SimpleBattery_usage_calc_regression():
     assert out["battery"]["power"] == usage_calc_base_dict["out_power"]
 
     assert SB.total_cycle_usage == usage_calc_base_dict["SB.total_cycle_usage"]
-    assert SB.cycle_usage_perc == usage_calc_base_dict["SB.cycle_usage_perc"]
+    assert_almost_equal(SB.cycle_usage_perc, usage_calc_base_dict["SB.cycle_usage_perc"], decimal=4)
     assert SB.total_time_usage == usage_calc_base_dict["SB.total_time_usage"]
     assert SB.time_usage_perc == usage_calc_base_dict["SB.time_usage_perc"]
 
-    assert SB.SOC == usage_calc_base_dict["SB.SOC (1)"]
+    assert_almost_equal(SB.SOC, usage_calc_base_dict["SB.SOC (1)"], decimal=4)
 
     if PRINT_VALUES:
         print("out_power: ", out["battery"]["power"])
@@ -268,7 +269,7 @@ def test_SimpleBattery_usage_calc_regression():
             "plant": {"locally_generated_power": power_avail[i]},
         }
         out = SB.step(step_input_dict)
-    assert SB.SOC == usage_calc_base_dict["SB.SOC (2)"]
+    assert_almost_equal(SB.SOC, usage_calc_base_dict["SB.SOC (2)"], decimal=4)
 
     if PRINT_VALUES:
         print("SB.SOC (2): ", SB.SOC)

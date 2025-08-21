@@ -379,7 +379,7 @@ class Emulator:
 
     def _optimize_dtypes(self, df):
         """Convert float64 columns to hercules_float_type for consistent precision and file size.
-        
+
         This function ensures all floating-point data uses hercules_float_type (float32)
         for consistency with the rest of the codebase and optimal file sizes.
         """
