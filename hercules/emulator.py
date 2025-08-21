@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from hercules.utilities import hercules_float_type
+
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
 
 Path("outputs").mkdir(parents=True, exist_ok=True)
@@ -376,15 +378,15 @@ class Emulator:
             self.output_written = True
 
     def _optimize_dtypes(self, df):
-        """Optimize DataFrame data types for smaller file size.
-
-        Args:
-            df (pd.DataFrame): DataFrame to optimize.
+        """Convert float64 columns to hercules_float_type for consistent precision and file size.
+        
+        This function ensures all floating-point data uses hercules_float_type (float32)
+        for consistency with the rest of the codebase and optimal file sizes.
         """
-        # Convert float64 to float32 where appropriate for significant size savings
+        # Convert float64 to hercules_float_type where appropriate
         for col in df.select_dtypes(include=["float64"]).columns:
             if col not in ["time"]:  # Keep time as float64 for precision
-                # Check if conversion to float32 would lose significant precision
+                # Check if conversion to hercules_float_type would lose significant precision
                 original_max = df[col].max()
                 original_min = df[col].min()
                 if (
@@ -393,7 +395,7 @@ class Emulator:
                     and not np.isinf(original_max)
                     and not np.isinf(original_min)
                 ):
-                    df[col] = df[col].astype("float32")
+                    df[col] = df[col].astype(hercules_float_type)
 
     def _write_dataframe_to_file(self, df):
         """Write DataFrame to file using the specified format.
@@ -481,7 +483,9 @@ class Emulator:
 
         # Store column structure and allocate buffer
         self.output_columns = columns
-        self.output_buffer = np.full((self.buffer_size, len(columns)), np.nan)
+        self.output_buffer = np.full(
+            (self.buffer_size, len(columns)), np.nan, dtype=hercules_float_type
+        )
         self.output_structure_determined = True
 
         if self.verbose:

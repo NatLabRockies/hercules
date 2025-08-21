@@ -5,7 +5,12 @@ import numpy as np
 import pandas as pd
 from floris import FlorisModel
 from hercules.plant_components.component_base import ComponentBase
-from hercules.utilities import interpolate_df, load_perffile, load_yaml
+from hercules.utilities import (
+    hercules_float_type,
+    interpolate_df,
+    load_perffile,
+    load_yaml,
+)
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
@@ -146,7 +151,8 @@ class Wind_MesoToPower(ComponentBase):
 
         # Declare the power_setpoint buffer to hold previous power_setpoint commands
         self.turbine_power_setpoints_buffer = (
-            np.zeros((self.floris_update_steps, self.n_turbines)) * np.nan
+            np.zeros((self.floris_update_steps, self.n_turbines), dtype=hercules_float_type)
+            * np.nan
         )
         self.turbine_power_setpoints_buffer_idx = 0  # Initialize the index to 0
 
@@ -156,10 +162,12 @@ class Wind_MesoToPower(ComponentBase):
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speeds
 
-        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+            dtype=hercules_float_type
+        )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
-        self.ws_mat_mean = np.mean(self.ws_mat, axis=1)
+        self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
         self.floris_wind_speed = self.ws_mat_mean[0]
@@ -167,7 +175,7 @@ class Wind_MesoToPower(ComponentBase):
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
             raise ValueError("Wind input file must contain a column called 'wd_mean'")
-        self.wd_mat_mean = df_wi["wd_mean"].values
+        self.wd_mat_mean = df_wi["wd_mean"].values.astype(hercules_float_type)
 
         # OLD APPROACH
         # # Now the wind directions
@@ -191,28 +199,30 @@ class Wind_MesoToPower(ComponentBase):
         self.floris_wind_direction = self.wd_mat_mean[0]
 
         if "ti_000" in df_wi.columns:
-            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
-            self.ti_mat_mean = np.mean(self.ti_mat, axis=1)
+            self.ti_mat_mean = np.mean(self.ti_mat, axis=1, dtype=hercules_float_type)
 
             self.initial_tis = self.ti_mat[0, :]
 
             self.floris_ti = self.ti_mat_mean[0]
 
         else:
-            self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
+            self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean, dtype=hercules_float_type)
             self.floris_ti = 0.08 * self.ti_mat_mean[0]
 
         self.floris_turbine_power_setpoints = np.nanmean(
             self.turbine_power_setpoints_buffer, axis=0
-        )
+        ).astype(hercules_float_type)
 
         # Initialize the wake deficits
-        self.floris_wake_deficits = np.zeros(self.n_turbines)
+        self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Initialize the turbine powers to nan
-        self.turbine_powers = np.zeros(self.n_turbines) * np.nan
+        self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
         # Get the initial unwaked velocities
         # TODO: This is more a debugging thing, not really necessary
@@ -252,7 +262,7 @@ class Wind_MesoToPower(ComponentBase):
         else:
             self.turbine_powers = np.array(
                 [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
-            )
+            ).astype(hercules_float_type)
 
         # Get the rated power of the turbines, for now assume all turbines have the same rated power
         if self.use_vectorized_turbines:
@@ -311,13 +321,19 @@ class Wind_MesoToPower(ComponentBase):
         self.floris_wind_direction = circmean(
             self.wd_mat_mean[window_start : step + 1], high=360.0, low=0.0, nan_policy="omit"
         )
-        self.floris_wind_speed = np.mean(self.ws_mat_mean[window_start : step + 1])
-        self.floris_ti = np.mean(self.ti_mat_mean[window_start : step + 1])
+        self.floris_wind_speed = np.mean(
+            self.ws_mat_mean[window_start : step + 1], dtype=hercules_float_type
+        )
+        self.floris_ti = np.mean(
+            self.ti_mat_mean[window_start : step + 1], dtype=hercules_float_type
+        )
 
         # Compute the power_setpoints over the same window
-        self.floris_turbine_power_setpoints = np.nanmean(
-            self.turbine_power_setpoints_buffer, axis=0
-        ).reshape(1, -1)
+        self.floris_turbine_power_setpoints = (
+            np.nanmean(self.turbine_power_setpoints_buffer, axis=0)
+            .astype(hercules_float_type)
+            .reshape(1, -1)
+        )
 
         # Run FLORIS
         self.fmodel.set(
@@ -480,7 +496,7 @@ class TurbineFilterModel:
         Returns:
             float: The rated power of the turbine in kW.
         """
-        return np.max(self.power_lut(np.arange(0, 25, 1.0)))
+        return np.max(self.power_lut(np.arange(0, 25, 1.0, dtype=hercules_float_type)))
 
     def step(self, wind_speed, power_setpoint):
         """Simulate a single time step of the wind turbine power output.
@@ -565,8 +581,12 @@ class TurbineFilterModelVectorized:
 
         # Grab the wind speed power curve from the fmodel and create lookup tables
         turbine_type = fmodel.core.farm.turbine_definitions[0]
-        self.wind_speed_lut = np.array(turbine_type["power_thrust_table"]["wind_speed"])
-        self.power_lut = np.array(turbine_type["power_thrust_table"]["power"])
+        self.wind_speed_lut = np.array(
+            turbine_type["power_thrust_table"]["wind_speed"], dtype=hercules_float_type
+        )
+        self.power_lut = np.array(
+            turbine_type["power_thrust_table"]["power"], dtype=hercules_float_type
+        )
 
         # Number of turbines
         self.n_turbines = len(initial_wind_speeds)
@@ -574,7 +594,7 @@ class TurbineFilterModelVectorized:
         # Initialize the previous powers for all turbines
         self.prev_powers = np.interp(
             initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
-        )
+        ).astype(hercules_float_type)
 
     def get_rated_power(self):
         """Get the rated power of the turbine.
@@ -685,7 +705,7 @@ class Turbine1dofModel:
             * self.rotor_area
             * initial_wind_speed**3
         )
-        self.prev_power = np.array(prev_power[0] / 1000.0)
+        self.prev_power = np.array(prev_power[0] / 1000.0, dtype=hercules_float_type)
         self.prev_omega = omega0
         self.prev_omegaf = omega0
         self.prev_aerotq = (

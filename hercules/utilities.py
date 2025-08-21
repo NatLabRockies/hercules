@@ -7,6 +7,9 @@ import polars as pl
 import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
+# Define the Hercules float type
+hercules_float_type = np.float32
+
 
 # Define the available component names
 def get_available_component_names():
@@ -449,6 +452,7 @@ def load_h_dict_from_text(filename):
             "np": np,
             "array": np.array,
             "float64": np.float64,
+            "float32": np.float32,
             "int64": np.int64,
             "True": True,
             "False": False,
