@@ -53,7 +53,11 @@ class Emulator:
             self.output_file = h_dict["output_file"]
         else:
             # Set default filename based on format
-            format_extensions = {"feather": ".feather", "parquet": ".parquet", "csv": ".csv"}
+            format_extensions = {
+                "feather": ".feather",
+                "parquet": ".parquet",
+                "csv": ".csv",
+            }
             extension = format_extensions.get(self.output_format.lower(), ".feather")
             self.output_file = f"outputs/hercules_output{extension}"
 
@@ -69,7 +73,7 @@ class Emulator:
         self.output_written = False
 
         # Buffer configuration
-        self.buffer_size = h_dict.get("output_buffer_size", 10000)  # Default 10k rows
+        self.buffer_size = h_dict.get("output_buffer_size", 86400)  # Default 86400 rows
         self.output_buffer = None
         self.buffer_position = 0
         self.total_rows_written = 0
@@ -216,7 +220,7 @@ class Emulator:
         finally:
             # Ensure output data is written to file
             self.logger.info("Writing output data to file")
-            self.close_output_file()
+            self._consolidate_temp_files()
 
     def run(self):
         """Run the main emulation loop until the end time is reached.
@@ -243,7 +247,7 @@ class Emulator:
         # Cache frequently accessed attributes and methods locally for speed
         controller_step = self.controller.step
         plant_step = self.hybrid_plant.step
-        log_current_state = self.log_h_dict
+        log_current_state = self._log_h_dict
         external_data_all = self.external_data_all
         h_dict = self.h_dict
 
@@ -298,84 +302,26 @@ class Emulator:
             progress_bar.update(final_steps_to_update)
         progress_bar.close()
 
-    def close_output_file(self):
-        """Write all simulation data to efficient file format with optional downsampling.
+    def _apply_output_formatting(self, df):
+        """Apply output formatting (rounding, data type conversion, etc.) to DataFrame."""
+        # Apply simple rounding for CSV readability only
+        if self.output_format.lower() == "csv":
+            # Round time to 1 decimal place for readability
+            if "time" in df.columns:
+                df["time"] = df["time"].round(1)
+            # Round other numeric values to 3 decimal places for CSV readability
+            numeric_columns = df.select_dtypes(include=[np.number]).columns
+            for col in numeric_columns:
+                # Skip step (int) and time (already rounded)
+                if col not in ["step", "time"]:
+                    df[col] = df[col].round(3)
 
-        This method writes simulation data to file using configurable formats (Feather,
-        Parquet, or CSV) with optional downsampling and precision control for optimized
-        file size and write speed.
-        """
-        # Avoid duplicate writes (e.g., explicit close and __del__)
-        if self.output_written:
-            return
+        # Convert timestamp back to datetime string format for CSV compatibility
+        if "clock_time" in df.columns and self.output_format == "csv":
+            df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
 
-        if self.output_columns is not None:
-            # Create output directory if it doesn't exist
-            output_dir = os.path.dirname(os.path.abspath(self.output_file))
-            os.makedirs(output_dir, exist_ok=True)
-
-            # Flush any remaining buffer data to temporary file
-            if self.buffer_position > 0:
-                self._flush_buffer_to_temp_file()
-
-            # Combine all temporary files into final output
-            if self.temp_files:
-                # Read and concatenate all temporary files
-                dfs = []
-                for temp_file in self.temp_files:
-                    if os.path.exists(temp_file):
-                        df_chunk = pd.read_feather(temp_file)
-                        dfs.append(df_chunk)
-
-                if dfs:
-                    # Concatenate all chunks
-                    df = pd.concat(dfs, ignore_index=True)
-
-                    # Apply downsampling if requested
-                    if self.output_downsample_factor > 1:
-                        # Keep every nth row based on downsampling factor
-                        df = df.iloc[:: self.output_downsample_factor, :].copy()
-                        if self.verbose:
-                            self.logger.info(
-                                f"Downsampled output by factor {self.output_downsample_factor}"
-                            )
-
-                    # Apply simple rounding for CSV readability only
-                    if self.output_format.lower() == "csv":
-                        # Round time to 1 decimal place for readability
-                        if "time" in df.columns:
-                            df["time"] = df["time"].round(1)
-                        # Round other numeric values to 3 decimal places for CSV readability
-                        numeric_columns = df.select_dtypes(include=[np.number]).columns
-                        for col in numeric_columns:
-                            # Skip step (int) and time (already rounded)
-                            if col not in ["step", "time"]:
-                                df[col] = df[col].round(3)
-
-                    # Convert timestamp back to datetime string format for CSV compatibility
-                    if "clock_time" in df.columns and self.output_format == "csv":
-                        df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
-
-                    # Optimize data types for smaller file size
-                    self._optimize_dtypes(df)
-
-                    # Write to file based on format
-                    self._write_dataframe_to_file(df)
-
-                    if self.verbose:
-                        file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
-                        self.logger.info(
-                            f"Wrote {len(df)} rows to {self.output_file} ({file_size:.2f} MB)"
-                        )
-
-                # Clean up temporary files
-                for temp_file in self.temp_files:
-                    if os.path.exists(temp_file):
-                        os.remove(temp_file)
-                self.temp_files.clear()
-
-            # Mark as written so subsequent calls are no-ops
-            self.output_written = True
+        # Optimize data types for smaller file size
+        self._optimize_dtypes(df)
 
     def _optimize_dtypes(self, df):
         """Convert float64 columns to hercules_float_type for consistent precision and file size.
@@ -419,6 +365,35 @@ class Emulator:
             )
             df.to_feather(self.output_file)
 
+    def _append_dataframe_to_file(self, df):
+        """Append DataFrame to existing file using the specified format.
+
+        Args:
+            df (pd.DataFrame): DataFrame to append.
+        """
+        if self.output_format.lower() == "feather":
+            # For feather, we need to read existing, concat, and rewrite
+            # This is not ideal but feather doesn't support true append
+            existing_df = pd.read_feather(self.output_file)
+            combined_df = pd.concat([existing_df, df], ignore_index=True)
+            combined_df.to_feather(self.output_file)
+        elif self.output_format.lower() == "parquet":
+            # For parquet, also need to read and rewrite
+            existing_df = pd.read_parquet(self.output_file)
+            combined_df = pd.concat([existing_df, df], ignore_index=True)
+            combined_df.to_parquet(self.output_file, engine="pyarrow", compression="snappy")
+        elif self.output_format.lower() == "csv":
+            # CSV supports true append mode
+            df.to_csv(self.output_file, mode="a", header=False, index=False)
+        else:
+            # Default to feather with warning
+            self.logger.warning(
+                f"Unknown output format '{self.output_format}', defaulting to Feather for append"
+            )
+            existing_df = pd.read_feather(self.output_file)
+            combined_df = pd.concat([existing_df, df], ignore_index=True)
+            combined_df.to_feather(self.output_file)
+
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
         try:
@@ -426,16 +401,16 @@ class Emulator:
             import sys
 
             if sys.meta_path is not None:
-                self.close_output_file()
+                self._consolidate_temp_files()
         except (ImportError, AttributeError):
             # Ignore errors during Python shutdown
             pass
 
     def close(self):
         """Explicitly close all resources and cleanup."""
-        self.close_output_file()
+        self._consolidate_temp_files()
 
-    def log_h_dict(self):
+    def _log_h_dict(self):
         """
         Logs the current state of the main dictionary using fast pre-allocated arrays.
 
@@ -569,13 +544,183 @@ class Emulator:
         if self.verbose:
             self.logger.info(f"Flushed {self.buffer_position} rows to {temp_filename}")
 
-    def parse_input_yaml(self, filename):
-        """Parse input YAML file (not implemented).
+    def _consolidate_temp_files(self, chunk_size=50):
+        """
+        Consolidate temporary output files into final output format using memory-efficient chunking.
+
+        This method processes temporary files in small chunks to avoid memory errors when dealing
+        with large datasets (e.g., 11-month simulations with thousands of temp files). It supports
+        all output formats (Feather, Parquet, CSV) with optional downsampling and data optimization.
 
         Args:
-            filename (str): Path to the YAML file to parse.
-
-        Raises:
-            NotImplementedError: This method is not implemented.
+            chunk_size (int): Number of temporary files to process at once. Default 50.
+                             Lower values use less memory but may be slower.
         """
-        raise NotImplementedError("parse_input_yaml is not implemented.")
+        # Avoid duplicate writes (e.g., explicit close and __del__)
+        if self.output_written:
+            return
+
+        # # Auto-discover temp files if temp_files list is empty or incomplete
+        # self._discover_temp_files()
+
+        if not self.temp_files:
+            if self.verbose:
+                self.logger.info("No temporary files found to consolidate")
+            return
+
+        if self.verbose:
+            self.logger.info(
+                f"Consolidating {len(self.temp_files)} temporary files in chunks of {chunk_size}"
+            )
+
+        # Create output directory if it doesn't exist
+        output_dir = os.path.dirname(os.path.abspath(self.output_file))
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Flush any remaining buffer data to temporary file
+        if self.buffer_position > 0:
+            self._flush_buffer_to_temp_file()
+
+        # Process files in chunks to avoid memory issues
+        intermediate_files = []
+        total_chunks = (len(self.temp_files) + chunk_size - 1) // chunk_size
+
+        for chunk_idx in range(total_chunks):
+            start_idx = chunk_idx * chunk_size
+            end_idx = min(start_idx + chunk_size, len(self.temp_files))
+            chunk_files = self.temp_files[start_idx:end_idx]
+
+            if self.verbose:
+                self.logger.info(
+                    f"Processing chunk {chunk_idx + 1}/{total_chunks} ({len(chunk_files)} files)"
+                )
+
+            # Read and concatenate files in this chunk
+            chunk_dfs = []
+            for temp_file in chunk_files:
+                if os.path.exists(temp_file):
+                    try:
+                        df_chunk = pd.read_feather(temp_file)
+                        chunk_dfs.append(df_chunk)
+                    except Exception as e:
+                        self.logger.warning(f"Error reading {temp_file}: {e}")
+
+            if chunk_dfs:
+                # Concatenate chunk
+                chunk_df = pd.concat(chunk_dfs, ignore_index=True)
+
+                # Apply downsampling if requested (per chunk to save memory)
+                if self.output_downsample_factor > 1:
+                    chunk_df = chunk_df.iloc[:: self.output_downsample_factor, :].copy()
+
+                # Save intermediate chunk file
+                intermediate_file = f"{self.output_file}.intermediate_{chunk_idx:04d}.feather"
+                chunk_df.to_feather(intermediate_file)
+                intermediate_files.append(intermediate_file)
+
+                # Clear memory
+                del chunk_df, chunk_dfs
+
+        # Now combine intermediate files using memory-efficient chunked approach
+        if intermediate_files:
+            if self.verbose:
+                self.logger.info(
+                    f"Combining {len(intermediate_files)} intermediate files into final output"
+                )
+
+            # Use chunked approach for intermediate files too if there are many
+            max_intermediate_chunk_size = 10  # Process max 10 intermediate files at once
+
+            if len(intermediate_files) <= max_intermediate_chunk_size:
+                # Few intermediate files - can load all at once
+                final_dfs = []
+                for intermediate_file in intermediate_files:
+                    if os.path.exists(intermediate_file):
+                        df_intermediate = pd.read_feather(intermediate_file)
+                        final_dfs.append(df_intermediate)
+
+                if final_dfs:
+                    # Final concatenation
+                    final_df = pd.concat(final_dfs, ignore_index=True)
+
+                    # Apply final formatting
+                    self._apply_output_formatting(final_df)
+
+                    # Write to final output file
+                    self._write_dataframe_to_file(final_df)
+
+                    if self.verbose:
+                        file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                        self.logger.info(
+                            f"Wrote {len(final_df)} rows to {self.output_file} ({file_size:.2f} MB)"
+                        )
+            else:
+                # Many intermediate files - use iterative writing approach
+                if self.verbose:
+                    self.logger.info(
+                        f"Too many intermediate files ({len(intermediate_files)}), using iterative consolidation"
+                    )
+
+                # Write to final file incrementally
+                first_write = True
+                total_rows = 0
+
+                # Process intermediate files in small chunks
+                for i in range(0, len(intermediate_files), max_intermediate_chunk_size):
+                    chunk_intermediates = intermediate_files[i : i + max_intermediate_chunk_size]
+
+                    chunk_dfs = []
+                    for intermediate_file in chunk_intermediates:
+                        if os.path.exists(intermediate_file):
+                            df_intermediate = pd.read_feather(intermediate_file)
+                            chunk_dfs.append(df_intermediate)
+
+                    if chunk_dfs:
+                        chunk_final = pd.concat(chunk_dfs, ignore_index=True)
+
+                        # Apply formatting to chunk
+                        self._apply_output_formatting(chunk_final)
+
+                        # Write to file (append mode for subsequent chunks)
+                        if first_write:
+                            # First chunk - write normally
+                            self._write_dataframe_to_file(chunk_final)
+                            first_write = False
+                        else:
+                            # Subsequent chunks - append to existing file
+                            self._append_dataframe_to_file(chunk_final)
+
+                        total_rows += len(chunk_final)
+                        del chunk_final, chunk_dfs
+
+                if self.verbose:
+                    file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                    self.logger.info(
+                        f"Wrote {total_rows} rows to {self.output_file} ({file_size:.2f} MB)"
+                    )
+
+            # Clean up intermediate files
+            for intermediate_file in intermediate_files:
+                if os.path.exists(intermediate_file):
+                    os.remove(intermediate_file)
+
+        # Clean up original temporary files
+        for temp_file in self.temp_files:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+        self.temp_files.clear()
+
+        # Mark as written so subsequent calls are no-ops
+        self.output_written = True
+
+        # def parse_input_yaml(self, filename):
+
+    #     """Parse input YAML file (not implemented).
+
+    #     Args:
+    #         filename (str): Path to the YAML file to parse.
+
+    #     Raises:
+    #         NotImplementedError: This method is not implemented.
+    #     """
+    #     raise NotImplementedError("parse_input_yaml is not implemented.")
