@@ -16,14 +16,14 @@ fig, axarr = plt.subplots(2, 1, sharex=True)
 
 # Plot the wind speeds
 ax = axarr[0]
-for t_idx in range(3):
+for t_idx in range(n_turbines):
     ax.plot(
         df["time"],
         df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
-for t_idx in range(3):
+for t_idx in range(n_turbines):
     ax.plot(
         df["time"],
         df[f"wind_farm.waked_velocities.{t_idx:03}"],
@@ -48,7 +48,7 @@ ax.set_ylabel("Wind Speed [m/s]")
 
 # Plot the power
 ax = axarr[1]
-for t_idx in range(3):
+for t_idx in range(n_turbines):
     ax.plot(
         df["time"],
         df[f"wind_farm.turbine_powers.{t_idx:03}"],
@@ -57,7 +57,7 @@ for t_idx in range(3):
     )
 
 # Check if derating columns exist and plot them if they do
-for t_idx in range(3):
+for t_idx in range(n_turbines):
     ax.plot(
         df["time"],
         df[f"wind_farm.turbine_power_setpoints.{t_idx:03}"],
