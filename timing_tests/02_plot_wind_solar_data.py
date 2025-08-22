@@ -121,7 +121,7 @@ def plot_wind_solar_data(
     print(f"Wind data shape: {wind_data.shape}")
     print(f"Solar data shape: {solar_data.shape}")
     print(
-        f"Time range: {wind_data['time'].min() / 60:.1f} to {wind_data['time'].max() / 60:.1f} hours"
+        f"Time range: {wind_data['time'].min() / 60:.1f} - {wind_data['time'].max() / 60:.1f} hours"
     )
     print(f"Number of wind turbines: {total_turbines}")
 

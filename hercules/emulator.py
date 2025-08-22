@@ -46,7 +46,9 @@ class Emulator:
         self.endtime = h_dict["endtime"]
 
         # Initialize output configuration
-        self.output_format = h_dict.get("output_format", "feather")  # feather, parquet, or csv
+        self.output_format = h_dict.get(
+            "output_format", "feather"
+        )  # feather, parquet, or csv
 
         # Initialize the output file with proper extension
         if "output_file" in h_dict:
@@ -62,7 +64,9 @@ class Emulator:
             self.output_file = f"outputs/hercules_output{extension}"
 
         # Initialize output time configuration
-        self.output_time_step = h_dict.get("output_time_step", self.dt)  # Output downsampling
+        self.output_time_step = h_dict.get(
+            "output_time_step", self.dt
+        )  # Output downsampling
 
         # Calculate downsampling factor
         self.output_downsample_factor = max(1, int(self.output_time_step / self.dt))
@@ -161,7 +165,9 @@ class Emulator:
         with open("outputs/h_dict.echo", "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
-            sys.stdout = original_stdout  # Reset the standard output to its original value
+            sys.stdout = (
+                original_stdout  # Reset the standard output to its original value
+            )
 
     def enter_execution(self, function_targets=[], function_arguments=[[]]):
         """
@@ -258,9 +264,13 @@ class Emulator:
             # Log the current time
             if self.verbose:
                 if (self.step % self.step_log_interval == 0) or first_iteration:
-                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
+                    self.logger.info(
+                        f"Emulator time: {self.time} (ending at {self.endtime})"
+                    )
                     self.logger.info(f"Step: {self.step} of {self.n_steps}")
-                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
+                    self.logger.info(
+                        f"--Percent completed: {100 * self.step / self.n_steps:.2f}%"
+                    )
 
             # Update progress bar independently of verbose logging, more frequently
             if (self.step % self.progress_update_interval == 0) or first_iteration:
@@ -381,7 +391,9 @@ class Emulator:
             # For parquet, also need to read and rewrite
             existing_df = pd.read_parquet(self.output_file)
             combined_df = pd.concat([existing_df, df], ignore_index=True)
-            combined_df.to_parquet(self.output_file, engine="pyarrow", compression="snappy")
+            combined_df.to_parquet(
+                self.output_file, engine="pyarrow", compression="snappy"
+            )
         elif self.output_format.lower() == "csv":
             # CSV supports true append mode
             df.to_csv(self.output_file, mode="a", header=False, index=False)
@@ -614,7 +626,9 @@ class Emulator:
                     chunk_df = chunk_df.iloc[:: self.output_downsample_factor, :].copy()
 
                 # Save intermediate chunk file
-                intermediate_file = f"{self.output_file}.intermediate_{chunk_idx:04d}.feather"
+                intermediate_file = (
+                    f"{self.output_file}.intermediate_{chunk_idx:04d}.feather"
+                )
                 chunk_df.to_feather(intermediate_file)
                 intermediate_files.append(intermediate_file)
 
@@ -629,7 +643,9 @@ class Emulator:
                 )
 
             # Use chunked approach for intermediate files too if there are many
-            max_intermediate_chunk_size = 10  # Process max 10 intermediate files at once
+            max_intermediate_chunk_size = (
+                10  # Process max 10 intermediate files at once
+            )
 
             if len(intermediate_files) <= max_intermediate_chunk_size:
                 # Few intermediate files - can load all at once
@@ -650,7 +666,9 @@ class Emulator:
                     self._write_dataframe_to_file(final_df)
 
                     if self.verbose:
-                        file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                        file_size = os.path.getsize(self.output_file) / (
+                            1024 * 1024
+                        )  # MB
                         self.logger.info(
                             f"Wrote {len(final_df)} rows to {self.output_file} ({file_size:.2f} MB)"
                         )
@@ -658,7 +676,8 @@ class Emulator:
                 # Many intermediate files - use iterative writing approach
                 if self.verbose:
                     self.logger.info(
-                        f"Too many intermediate files ({len(intermediate_files)}), using iterative consolidation"
+                        f"Too many intermediate files ({len(intermediate_files)}),"
+                        "using iterative consolidation"
                     )
 
                 # Write to final file incrementally
@@ -667,7 +686,9 @@ class Emulator:
 
                 # Process intermediate files in small chunks
                 for i in range(0, len(intermediate_files), max_intermediate_chunk_size):
-                    chunk_intermediates = intermediate_files[i : i + max_intermediate_chunk_size]
+                    chunk_intermediates = intermediate_files[
+                        i : i + max_intermediate_chunk_size
+                    ]
 
                     chunk_dfs = []
                     for intermediate_file in chunk_intermediates:
