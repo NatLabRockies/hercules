@@ -90,9 +90,9 @@ def test_wind_meso_to_power_precom_floris_power_setpoint_applies():
     power_setpoint_values = [100.0, 200.0, 300.0]
 
     for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoint_values)):
-        assert (
-            power == setpoint
-        ), f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        assert power == setpoint, (
+            f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        )
 
 
 def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data():
@@ -197,12 +197,12 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         wind_sim.step(step_h_dict)
 
         # Verify that velocities have been updated
-        assert not np.array_equal(
-            wind_sim.unwaked_velocities, initial_unwaked
-        ), "Unwaked velocities should have been updated"
-        assert not np.array_equal(
-            wind_sim.waked_velocities, initial_waked
-        ), "Waked velocities should have been updated"
+        assert not np.array_equal(wind_sim.unwaked_velocities, initial_unwaked), (
+            "Unwaked velocities should have been updated"
+        )
+        assert not np.array_equal(wind_sim.waked_velocities, initial_waked), (
+            "Waked velocities should have been updated"
+        )
 
         # Verify the velocities match the expected values from the input data
         expected_unwaked = np.array([9.0, 9.5, 10.0])  # ws values for step 1

@@ -211,7 +211,7 @@ def load_hercules_input(filename):
         valid_formats = ["feather", "parquet", "csv"]
         if h_dict["output_format"].lower() not in valid_formats:
             raise ValueError(
-                f"output_format must be one of {valid_formats}, " f"got '{h_dict['output_format']}'"
+                f"output_format must be one of {valid_formats}, got '{h_dict['output_format']}'"
             )
 
     if "output_time_step" in h_dict:
