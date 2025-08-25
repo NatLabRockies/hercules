@@ -40,7 +40,7 @@ class Wind_MesoToPower(ComponentBase):
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints"]
+        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints", "wind_speed", "wind_direction", "waked_wind_speed"]
 
         # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
@@ -427,6 +427,9 @@ class Wind_MesoToPower(ComponentBase):
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["wind_direction"] = self.wind_direction
         h_dict[self.component_name]["wind_speed"] = self.wind_speed
+        h_dict[self.component_name]["waked_wind_speed"] = np.mean(
+            self.waked_velocities, dtype=hercules_float_type
+        )
 
         # If log_extra_outputs is True, add the extra outputs to the h_dict
         h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
