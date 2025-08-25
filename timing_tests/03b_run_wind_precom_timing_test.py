@@ -123,7 +123,7 @@ def main():
     # Plot the outputs
     if PLOT_OUTPUT:
         # Read the Hercules output file
-        df_p = pd.read_csv("outputs/hercules_output.csv", index_col=False)
+        df_p = pd.read_feather("outputs/hercules_output.feather")
 
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(df_p["time"], df_p["wind_farm.power"])

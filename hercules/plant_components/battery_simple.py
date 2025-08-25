@@ -13,6 +13,7 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 import numpy as np
 import rainflow
 from hercules.plant_components.component_base import ComponentBase
+from hercules.utilities import hercules_float_type
 
 
 def kJ2kWh(kJ):
@@ -198,7 +199,9 @@ class BatterySimple(ComponentBase):
         # TODO there should be a better way to dynamically store these than to append a list
 
         self.build_SS()
-        self.x = np.array([[initial_conditions["SOC"] * self.energy_capacity * 3600]])
+        self.x = np.array(
+            [[initial_conditions["SOC"] * self.energy_capacity * 3600]], dtype=hercules_float_type
+        )
         self.y = None
 
         # self.total_battery_capacity = 3600 * self.energy_capacity / self.dt
@@ -352,10 +355,10 @@ class BatterySimple(ComponentBase):
         Constructs the state-space representation that includes self-discharge
         and efficiency losses.
         """
-        self.A = np.array([[-1 / self.tau_self_discharge]])
+        self.A = np.array([[-1 / self.tau_self_discharge]], dtype=hercules_float_type)
         # B matrix is handled by the SS_input_function
-        self.C = np.array([[1, 0]]).T
-        self.D = np.array([[0, 1]]).T
+        self.C = np.array([[1, 0]], dtype=hercules_float_type).T
+        self.D = np.array([[0, 1]], dtype=hercules_float_type).T
 
     def SS_input_function(self, P_charge):
         """Apply efficiency losses to charging/discharging power.
@@ -438,8 +441,8 @@ class BatterySimple(ComponentBase):
         # The algorithm returns the size (amplitude) of the cycle, and the number of cycles at
         # that amplitude at that point in the signal
         ranges_counts = rainflow.count_cycles(self.E_store)
-        ranges = np.array([rc[0] for rc in ranges_counts])
-        counts = np.array([rc[1] for rc in ranges_counts])
+        ranges = np.array([rc[0] for rc in ranges_counts], dtype=hercules_float_type)
+        counts = np.array([rc[1] for rc in ranges_counts], dtype=hercules_float_type)
         self.total_cycle_usage = (ranges * counts).sum() / self.E_max
         self.cycle_usage_perc = self.total_cycle_usage * self.usage_cycles_rate * 100
 

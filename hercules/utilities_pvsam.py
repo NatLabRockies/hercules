@@ -4,6 +4,8 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
+from hercules.utilities import hercules_float_type
+
 """
 
 This file contains all the utilities required to make intermediate 
@@ -275,7 +277,13 @@ def verify_capacity_from_electrical_parameters(
     """
     # PERCENT_MAX_DEVIATION = 5       # [%]
     assert len(n_strings) == len(modules_per_string)
-    calc_sys_capacity = sum(np.array(n_strings) * np.array(modules_per_string)) * module_power
+    calc_sys_capacity = (
+        sum(
+            np.array(n_strings, dtype=hercules_float_type)
+            * np.array(modules_per_string, dtype=hercules_float_type)
+        )
+        * module_power
+    )
     if (
         percent_max_deviation is not None
         and abs((calc_sys_capacity / system_capacity_target - 1)) * 100 > percent_max_deviation

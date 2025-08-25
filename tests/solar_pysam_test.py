@@ -63,7 +63,9 @@ def test_step(SPS: SolarPySAMPVSam):
     SPS.step(step_inputs)
 
     # test that system capacity of model matches the input target_system_capacity
-    assert_almost_equal(SPS.system_model.SystemDesign.system_capacity, SPS.target_system_capacity)
+    assert_almost_equal(
+        SPS.system_model.SystemDesign.system_capacity, SPS.target_system_capacity, decimal=2
+    )
 
     # test the calculated power output
     assert_almost_equal(SPS.power, 14523.542232511712, decimal=8)

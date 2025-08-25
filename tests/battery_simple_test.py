@@ -148,10 +148,10 @@ def test_LI_post_init():
 
 def test_LI_OCV(LI):
     LI.SOC = 0.25
-    assert LI.OCV() == 3.2654698427383457
+    assert_almost_equal(LI.OCV(), 3.2654698427383457, decimal=4)
 
     LI.SOC = 0.75
-    assert LI.OCV() == 3.316731143986497
+    assert_almost_equal(LI.OCV(), 3.316731143986497, decimal=4)
 
 
 def test_LI_build_SS(LI):
@@ -160,7 +160,7 @@ def test_LI_build_SS(LI):
     assert_array_almost_equal(
         LI.build_SS(),
         [-0.017767729688006585, 1, 7.533462876320113e-05, 0.002720095833999999],
-        12,
+        5,
     )
 
     LI.SOC = 0.75
@@ -169,7 +169,7 @@ def test_LI_build_SS(LI):
     assert_array_almost_equal(
         LI.build_SS(),
         [-0.026421742559794213, 1, 0.00012815793568836145, 0.00555564775],
-        12,
+        5,
     )
 
 
@@ -189,18 +189,18 @@ def test_LI_step_cell(LI):
             0.028694265662063904,
             0.029421079268856364,
         ],
-        9,
+        5,
     )
 
 
 def test_LI_calc_power(LI):
-    assert LI.calc_power(400) == 1593832.1960216616
+    assert_almost_equal(LI.calc_power(400), 1593832.1960216616, decimal=-2)
 
     LI.SOC = 0.75
-    assert LI.calc_power(400) == 1645641.7527372995
+    assert_almost_equal(LI.calc_power(400), 1645641.7527372995, decimal=-2)
 
     LI.step_cell(10)
-    assert LI.calc_power(400) == 1658686.3702462215
+    assert_almost_equal(LI.calc_power(400), 1658686.3702462215, decimal=-2)
 
 
 def test_LI_step(LI):
@@ -210,8 +210,8 @@ def test_LI_step(LI):
     out = LI.step(step_inputs(P_avail=P_avail, P_signal=P_signal))
 
     assert_almost_equal(out["battery"]["power"], P_signal, 0)
-    assert LI.SOC == 0.10200356700632712
-    assert LI.V_RC == 0.0005503468409411925
+    assert_almost_equal(LI.SOC, 0.10200356700632712, decimal=5)
+    assert_almost_equal(LI.V_RC, 0.0005503468409411925, decimal=5)
 
 
 def test_LI_control(LI):

@@ -7,6 +7,9 @@ import polars as pl
 import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
+# Define the Hercules float type
+hercules_float_type = np.float32
+
 
 # Define the available component names
 def get_available_component_names():
@@ -208,7 +211,7 @@ def load_hercules_input(filename):
         valid_formats = ["feather", "parquet", "csv"]
         if h_dict["output_format"].lower() not in valid_formats:
             raise ValueError(
-                f"output_format must be one of {valid_formats}, " f"got '{h_dict['output_format']}'"
+                f"output_format must be one of {valid_formats}, got '{h_dict['output_format']}'"
             )
 
     if "output_time_step" in h_dict:
@@ -421,7 +424,6 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     return result_pl.to_pandas()
 
 
-
 def load_h_dict_from_text(filename):
     """Load an h_dict from a text file created by _save_h_dict_as_text.
 
@@ -450,6 +452,7 @@ def load_h_dict_from_text(filename):
             "np": np,
             "array": np.array,
             "float64": np.float64,
+            "float32": np.float32,
             "int64": np.int64,
             "True": True,
             "False": False,
@@ -495,21 +498,28 @@ def load_perffile(perffile):
         for line in pfile:
             # Read Blade Pitch Angles (degrees)
             if "Pitch angle" in line:
-                pitch_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                pitch_initial = np.array(
+                    [float(x) for x in pfile.readline().strip().split()], dtype=hercules_float_type
+                )
                 pitch_initial_rad = pitch_initial * np.deg2rad(
                     1
                 )  # degrees to rad            -- should this be conditional?
 
             # Read Tip Speed Ratios (rad)
             if "TSR" in line:
-                TSR_initial = np.array([float(x) for x in pfile.readline().strip().split()])
+                TSR_initial = np.array(
+                    [float(x) for x in pfile.readline().strip().split()], dtype=hercules_float_type
+                )
 
             # Read Power Coefficients
             if "Power" in line:
                 pfile.readline()
-                Cp = np.empty((len(TSR_initial), len(pitch_initial)))
+                Cp = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
                 for tsr_i in range(len(TSR_initial)):
-                    Cp[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    Cp[tsr_i] = np.array(
+                        [float(x) for x in pfile.readline().strip().split()],
+                        dtype=hercules_float_type,
+                    )
                 perffuncs["Cp"] = RegularGridInterpolator(
                     (TSR_initial, pitch_initial_rad), Cp, bounds_error=False, fill_value=None
                 )
@@ -517,9 +527,12 @@ def load_perffile(perffile):
             # Read Thrust Coefficients
             if "Thrust" in line:
                 pfile.readline()
-                Ct = np.empty((len(TSR_initial), len(pitch_initial)))
+                Ct = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
                 for tsr_i in range(len(TSR_initial)):
-                    Ct[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    Ct[tsr_i] = np.array(
+                        [float(x) for x in pfile.readline().strip().split()],
+                        dtype=hercules_float_type,
+                    )
                 perffuncs["Ct"] = RegularGridInterpolator(
                     (TSR_initial, pitch_initial_rad), Ct, bounds_error=False, fill_value=None
                 )
@@ -527,9 +540,12 @@ def load_perffile(perffile):
             # Read Torque Coefficients
             if "Torque" in line:
                 pfile.readline()
-                Cq = np.empty((len(TSR_initial), len(pitch_initial)))
+                Cq = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
                 for tsr_i in range(len(TSR_initial)):
-                    Cq[tsr_i] = np.array([float(x) for x in pfile.readline().strip().split()])
+                    Cq[tsr_i] = np.array(
+                        [float(x) for x in pfile.readline().strip().split()],
+                        dtype=hercules_float_type,
+                    )
                 perffuncs["Cq"] = RegularGridInterpolator(
                     (TSR_initial, pitch_initial_rad), Cq, bounds_error=False, fill_value=None
                 )

@@ -6,6 +6,7 @@ import sys
 import numpy as np
 import PySAM.Pvsamv1 as pvsam
 from hercules.plant_components.solar_pysam_base import SolarPySAMBase
+from hercules.utilities import hercules_float_type
 from hercules.utilities_pvsam import size_electrical_parameters
 
 
@@ -129,14 +130,18 @@ class SolarPySAMPVSam(SolarPySAMBase):
         self.system_model.execute()
 
         # Store the pre-computed power array (in kW)
-        self.power_uncurtailed = np.array(self.system_model.Outputs.gen)
+        self.power_uncurtailed = np.array(self.system_model.Outputs.gen, dtype=hercules_float_type)
 
         # Store other outputs as arrays for efficient access
-        self.dni_array_output = np.array(self.system_model.Outputs.dn)
-        self.dhi_array_output = np.array(self.system_model.Outputs.df)
-        self.ghi_array_output = np.array(self.system_model.Outputs.gh)
-        self.aoi_array_output = np.array(self.system_model.Outputs.subarray1_aoi)
-        self.poa_array_output = np.array(self.system_model.Outputs.subarray1_poa_eff)
+        self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
+        self.dhi_array_output = np.array(self.system_model.Outputs.df, dtype=hercules_float_type)
+        self.ghi_array_output = np.array(self.system_model.Outputs.gh, dtype=hercules_float_type)
+        self.aoi_array_output = np.array(
+            self.system_model.Outputs.subarray1_aoi, dtype=hercules_float_type
+        )
+        self.poa_array_output = np.array(
+            self.system_model.Outputs.subarray1_poa_eff, dtype=hercules_float_type
+        )
 
     def _get_step_outputs(self, step):
         """Get the outputs for a specific step from pre-computed arrays.

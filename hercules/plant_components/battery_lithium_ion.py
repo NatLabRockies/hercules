@@ -12,6 +12,7 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 
 import numpy as np
 from hercules.plant_components.component_base import ComponentBase
+from hercules.utilities import hercules_float_type
 
 
 def kJ2kWh(kJ):
@@ -213,7 +214,8 @@ class BatteryLithiumIon(ComponentBase):
                 -3.35943038e02,
                 2.49233107e01,
                 2.47115515e00,
-            ]
+            ],
+            dtype=hercules_float_type,
         )
         self.poly_order = len(self.OCV_polynomial)
 
@@ -224,7 +226,8 @@ class BatteryLithiumIon(ComponentBase):
                 [10424.73, -48.2181, -114.74, -1.40433],  # R0 [micro ohms]
                 [13615.54, -68.0889, -87.527, -37.1084],  # R1 [micro ohms]
                 [-11116.7, 180.4576, 237.4219, 40.14711],  # C1 [F]
-            ]
+            ],
+            dtype=hercules_float_type,
         )
 
         # initial state of battery outputs for hercules emulator
@@ -258,7 +261,7 @@ class BatteryLithiumIon(ComponentBase):
         """
 
         R_0, R_1, C_1 = self.ECM_coefficients @ np.array(
-            [1, self.SOH * 100, self.T, self.SOC * 100]
+            [1, self.SOH * 100, self.T, self.SOC * 100], dtype=hercules_float_type
         )
         R_0 *= 1e-6
         R_1 *= 1e-6

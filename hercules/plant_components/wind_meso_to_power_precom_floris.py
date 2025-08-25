@@ -11,7 +11,7 @@ from hercules.plant_components.wind_meso_to_power import (
     Turbine1dofModel,
     TurbineFilterModelVectorized,
 )
-from hercules.utilities import interpolate_df_fast, load_yaml
+from hercules.utilities import hercules_float_type, interpolate_df_fast, load_yaml
 from scipy.interpolate import interp1d
 from scipy.stats import circmean
 
@@ -153,7 +153,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
             # Log the value of time_utc that corresponds to time == 0
-            self.start_time_utc = df_wi['time_utc'][df_wi['time'] == 0].values[0]
+            self.start_time_utc = df_wi["time_utc"][df_wi["time"] == 0].values[0]
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -189,10 +189,13 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speed
-        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+        # Apply the Hercules float type to the wind speeds
+        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+            dtype=hercules_float_type
+        )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
-        self.ws_mat_mean = np.mean(self.ws_mat, axis=1)
+        self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
         self.floris_wind_speed = self.ws_mat_mean[0]
@@ -200,18 +203,20 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
             raise ValueError("Wind input file must contain a column called 'wd_mean'")
-        self.wd_mat_mean = df_wi["wd_mean"].values
+        self.wd_mat_mean = df_wi["wd_mean"].values.astype(hercules_float_type)
 
         if "ti_000" in df_wi.columns:
-            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy()
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
-            self.ti_mat_mean = np.mean(self.ti_mat, axis=1)
+            self.ti_mat_mean = np.mean(self.ti_mat, axis=1, dtype=hercules_float_type)
 
             self.initial_tis = self.ti_mat[0, :]
 
         else:
-            self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean)
+            self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean, dtype=hercules_float_type)
 
         # Precompute the wake deficits at the cadence specified by floris_update_time_s
         self.logger.info("Precomputing FLORIS wake deficits...")
@@ -229,21 +234,26 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Build right-aligned windowed means for ws, wd, ti at the evaluation indices
         def window_mean(arr_1d, idx, win):
             start = max(0, idx - win + 1)
-            return np.mean(arr_1d[start : idx + 1])
+            return np.mean(arr_1d[start : idx + 1], dtype=hercules_float_type)
 
         def window_circmean(arr_1d, idx, win):
             start = max(0, idx - win + 1)
             return circmean(arr_1d[start : idx + 1], high=360.0, low=0.0, nan_policy="omit")
 
-        ws_eval = np.array([window_mean(self.ws_mat_mean, i, update_steps) for i in eval_indices])
+        ws_eval = np.array(
+            [window_mean(self.ws_mat_mean, i, update_steps) for i in eval_indices],
+            dtype=hercules_float_type,
+        )
         wd_eval = np.array(
-            [window_circmean(self.wd_mat_mean, i, update_steps) for i in eval_indices]
+            [window_circmean(self.wd_mat_mean, i, update_steps) for i in eval_indices],
+            dtype=hercules_float_type,
         )
         if np.isscalar(self.ti_mat_mean):
-            ti_eval = self.ti_mat_mean * np.ones_like(ws_eval)
+            ti_eval = self.ti_mat_mean * np.ones_like(ws_eval, dtype=hercules_float_type)
         else:
             ti_eval = np.array(
-                [window_mean(self.ti_mat_mean, i, update_steps) for i in eval_indices]
+                [window_mean(self.ti_mat_mean, i, update_steps) for i in eval_indices],
+                dtype=hercules_float_type,
             )
 
         # Evaluate FLORIS at the evaluation cadence
@@ -277,20 +287,20 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             n_unexpanded=self.fmodel.n_unexpanded,
             n_sample_points=self.fmodel.n_sample_points,
             n_turbines=self.fmodel.n_turbines,
-        )
+        ).astype(hercules_float_type)
 
         # Determine the free_stream velocities as the maximum velocity in each row
         # of floris velocities.  Make sure to keep shape (len(wind_directions), n_turbines)
         # by repeating the maximum velocity accross each column for each row
         free_stream_velocities = np.tile(
             np.max(floris_velocities, axis=1)[:, np.newaxis], (1, self.n_turbines)
-        )
+        ).astype(hercules_float_type)
 
         # Compute wake deficits at evaluation times
         floris_wake_deficits_eval = free_stream_velocities - floris_velocities
 
         # Expand the wake deficits to all time steps by holding constant within each interval
-        deficits_all = np.zeros_like(self.ws_mat)
+        deficits_all = np.zeros_like(self.ws_mat, dtype=hercules_float_type)
         # For each block, fill with the corresponding deficits
         prev_end = -1
         for block_idx, end_idx in enumerate(eval_indices):
@@ -303,7 +313,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.waked_velocities_all = self.ws_mat - deficits_all
 
         # Initialize the turbine powers to nan
-        self.turbine_powers = np.zeros(self.n_turbines) * np.nan
+        self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
         # Get the initial unwaked velocities
         self.unwaked_velocities = self.ws_mat[0, :]
@@ -341,7 +351,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             self.turbine_powers = self.turbine_array.prev_powers.copy()
         else:
             self.turbine_powers = np.array(
-                [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)]
+                [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)],
+                dtype=hercules_float_type,
             )
 
         # Get the rated power of the turbines, for now assume all turbines have the same rated power
@@ -378,8 +389,9 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
-        # Log the start time UTC
-        h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+        # Log the start time UTC if available
+        if hasattr(self, "start_time_utc"):
+            h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
 
         return h_dict
 
@@ -502,7 +514,7 @@ class TurbineFilterModel:
         Returns:
             float: The rated power of the turbine in kW.
         """
-        return np.max(self.power_lut(np.arange(0, 25, 1.0)))
+        return np.max(self.power_lut(np.arange(0, 25, 1.0, dtype=hercules_float_type)))
 
     def step(self, wind_speed, power_setpoint):
         """Simulate a single time step of the wind turbine power output.
