@@ -140,7 +140,7 @@ def test_log_data_to_hdf5():
         "clock_time",
         "plant_power",
         "plant_locally_generated_power",
-        "solar_farm_power",
+        "solar_farm.power",
     }
 
     actual_datasets = set(emulator.hdf5_datasets.keys())
@@ -157,7 +157,7 @@ def test_log_data_to_hdf5():
     assert emulator.hdf5_datasets["time"][0] == 5.0
     assert emulator.hdf5_datasets["step"][0] == 5
     assert emulator.hdf5_datasets["plant_power"][0] > 0
-    assert emulator.hdf5_datasets["solar_farm_power"][0] > 0
+    assert emulator.hdf5_datasets["solar_farm.power"][0] > 0
 
     # Clean up
     emulator.close()
@@ -197,10 +197,10 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
         "clock_time",
         "plant_power",
         "plant_locally_generated_power",
-        "wind_farm_power",
-        "wind_farm_turbine_powers_000",
-        "wind_farm_turbine_powers_001",
-        "wind_farm_turbine_powers_002",
+        "wind_farm.power",
+        "wind_farm.turbine_powers.000",
+        "wind_farm.turbine_powers.001",
+        "wind_farm.turbine_powers.002",
     }
 
     actual_datasets = set(emulator.hdf5_datasets.keys())
@@ -218,14 +218,14 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     # Check that data was written correctly
     assert emulator.hdf5_datasets["time"][0] == 5.0
     assert emulator.hdf5_datasets["step"][0] == 5
-    assert emulator.hdf5_datasets["wind_farm_power"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm.power"][0] > 0
     assert emulator.hdf5_datasets["plant_power"][0] > 0
     assert emulator.hdf5_datasets["plant_locally_generated_power"][0] > 0
 
     # Verify that turbine_powers array is handled correctly
-    assert emulator.hdf5_datasets["wind_farm_turbine_powers_000"][0] > 0
-    assert emulator.hdf5_datasets["wind_farm_turbine_powers_001"][0] > 0
-    assert emulator.hdf5_datasets["wind_farm_turbine_powers_002"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm.turbine_powers.000"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm.turbine_powers.001"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm.turbine_powers.002"][0] > 0
 
     # Clean up
     emulator.close()
