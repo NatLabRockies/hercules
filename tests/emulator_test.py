@@ -3,7 +3,7 @@ from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import setup_logging
 
-from tests.test_inputs.h_dict import h_dict_solar, h_dict_wind
+from tests.test_inputs.h_dict import h_dict_battery, h_dict_solar, h_dict_wind
 
 
 class SimpleControllerWind:
@@ -31,6 +31,10 @@ class SimpleControllerWind:
             h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
                 h_dict["wind_farm"]["n_turbines"]
             )
+
+        # Set power setpoints for battery if present
+        if "battery" in h_dict:
+            h_dict["battery"]["power_setpoint"] = 0.0
 
         return h_dict
 
@@ -158,6 +162,67 @@ def test_log_data_to_hdf5():
     assert emulator.hdf5_datasets["step"][0] == 5
     assert emulator.hdf5_datasets["plant_power"][0] > 0
     assert emulator.hdf5_datasets["solar_farm.power"][0] > 0
+
+    # Clean up
+    emulator.close()
+
+
+def test_log_data_to_hdf5_with_external_signals():
+    """Test that external signals are logged correctly to HDF5."""
+
+    # Use h_dict_battery as base for testing (no external data requirements)
+    test_h_dict = h_dict_battery.copy()
+
+    # Add external data file
+    test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict["dt"] = 1.0
+    test_h_dict["starttime"] = 0.0
+    test_h_dict["endtime"] = 10.0
+
+    # Set up logger for testing
+    logger = setup_logging(console_output=False)
+
+    controller = SimpleControllerWind(test_h_dict)  # Use wind controller (works with any config)
+    hybrid_plant = HybridPlant(test_h_dict)
+
+    emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
+
+    # Set up the simulation state
+    emulator.time = 5.0
+    emulator.step = 5
+    emulator.h_dict["time"] = 5.0
+    emulator.h_dict["step"] = 5
+
+    # Update external signals (simulate what happens in the run loop)
+    if emulator.external_data_all:
+        for k in emulator.external_data_all:
+            if k == "time":
+                continue
+            emulator.h_dict["external_signals"][k] = emulator.external_data_all[k][emulator.step]
+
+    # Run controller and hybrid_plant steps to generate plant-level outputs
+    emulator.h_dict = controller.step(emulator.h_dict)
+    emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+
+    # Call the new HDF5 logging function
+    emulator._log_data_to_hdf5()
+
+    # Check that HDF5 file was initialized
+    assert emulator.output_structure_determined
+    assert emulator.hdf5_file is not None
+    assert len(emulator.hdf5_datasets) > 0
+
+    # Check that external signals dataset exists
+    expected_external_dataset = "external_signals.power_reference"
+    assert expected_external_dataset in emulator.hdf5_datasets
+
+    # Flush buffer to write data to HDF5
+    if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:
+        emulator._flush_buffer_to_hdf5()
+
+    # Check that external signal data was written correctly
+    expected_value = emulator.external_data_all["power_reference"][5]  # Value at step 5
+    assert emulator.hdf5_datasets[expected_external_dataset][0] == expected_value
 
     # Clean up
     emulator.close()

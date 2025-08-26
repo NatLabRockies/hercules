@@ -258,6 +258,18 @@ class Emulator:
                             **compression_params,
                         )
 
+        # Create external signals datasets
+        if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
+            external_signals_group = data_group.create_group("external_signals")
+            for signal_name in self.h_dict["external_signals"].keys():
+                dataset_name = f"external_signals.{signal_name}"
+                self.hdf5_datasets[dataset_name] = external_signals_group.create_dataset(
+                    dataset_name,
+                    shape=(total_rows,),
+                    dtype=hercules_float_type,
+                    **compression_params,
+                )
+
         self.output_structure_determined = True
 
         if self.verbose:
@@ -530,6 +542,13 @@ class Emulator:
                         dataset_name = f"{component_name}.{output_name}"
                         if dataset_name in self.data_buffers:
                             self.data_buffers[dataset_name][self.buffer_row] = output_value
+
+        # Buffer external signals
+        if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
+            for signal_name, signal_value in self.h_dict["external_signals"].items():
+                dataset_name = f"external_signals.{signal_name}"
+                if dataset_name in self.data_buffers:
+                    self.data_buffers[dataset_name][self.buffer_row] = signal_value
 
         # Increment buffer row counter
         self.buffer_row += 1
