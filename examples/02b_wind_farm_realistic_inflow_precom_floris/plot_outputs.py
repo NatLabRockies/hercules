@@ -1,10 +1,10 @@
 # Plot the outputs of the simulation
 
 import matplotlib.pyplot as plt
-import pandas as pd
+from hercules.utilities import read_hercules_hdf5
 
 # Read the Hercules output file
-df = pd.read_feather("outputs/hercules_output.feather")
+df = read_hercules_hdf5("outputs/hercules_output.h5")
 
 # Limit to the first 4 hours
 df = df.iloc[: 3600 * 4]
