@@ -166,6 +166,18 @@ class HybridPlant:
             [h_dict[generator_name]["power"] for generator_name in self.generator_names]
         )
 
+        # If any components include a field "start_time_utc", confirm that all components
+        # have the same start_time_utc and add it to the h_dict at top level
+        start_time_utc = None
+        for component_name in self.component_names:
+            if "start_time_utc" in h_dict[component_name]:
+                if start_time_utc is None:
+                    start_time_utc = h_dict[component_name]["start_time_utc"]
+                elif h_dict[component_name]["start_time_utc"] != start_time_utc:
+                    raise ValueError("All components must have the same start_time_utc")
+        if start_time_utc is not None:
+            h_dict["start_time_utc"] = start_time_utc
+
         return h_dict
 
     def close_logging(self):

@@ -581,6 +581,16 @@ def read_hercules_hdf5(filename):
         if "time_utc" in f["data"]:
             data["time_utc"] = f["data/time_utc"][:]
 
+        # If start_time_utc is available, and time_utc is not, add time_utc to data
+        # using time and start_time_utc
+        if "start_time_utc" in f["metadata"].attrs and "time_utc" not in data:
+            # Save as datetime
+            start_time_utc = pd.to_datetime(
+                f["metadata"].attrs["start_time_utc"], unit="s", utc=True
+            )
+            time = pd.to_timedelta(data["time"], unit="s")
+            data["time_utc"] = start_time_utc + time
+
         # Read plant-level data
         data["plant.power"] = f["data/plant_power"][:]
         data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][:]
