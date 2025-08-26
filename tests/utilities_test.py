@@ -538,3 +538,55 @@ def test_interpolate_df_functions_identical_multiple_dtypes():
 
     # Verify results are identical
     pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
+
+
+def test_read_hercules_hdf5_external_signals():
+    """Test reading external signals from HDF5 file.
+
+    Creates a mock HDF5 file with external signals and verifies
+    they are correctly read and added to the DataFrame.
+    """
+    import h5py
+
+    with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
+        temp_file = f.name
+
+    try:
+        # Create mock HDF5 file with external signals
+        with h5py.File(temp_file, "w") as f:
+            # Create basic data structure
+            f.create_group("data")
+            f.create_group("metadata")
+
+            # Add basic time data
+            f["data/time"] = np.array([0, 1, 2])
+            f["data/step"] = np.array([0, 1, 2])
+            f["data/clock_time"] = np.array([0.0, 1.0, 2.0])
+
+            # Add plant data
+            f["data/plant_power"] = np.array([100, 200, 300])
+            f["data/plant_locally_generated_power"] = np.array([90, 180, 270])
+
+            # Add components group (required)
+            f.create_group("data/components")
+
+            # Add external signals
+            external_signals_group = f.create_group("data/external_signals")
+            external_signals_group["wind_speed"] = np.array([8.5, 9.0, 8.8])
+            external_signals_group["temperature"] = np.array([20.0, 21.0, 20.5])
+
+        # Read the file
+        from hercules.utilities import read_hercules_hdf5
+
+        result = read_hercules_hdf5(temp_file)
+
+        # Verify external signals are present
+        assert "external_signals.wind_speed" in result.columns
+        assert "external_signals.temperature" in result.columns
+
+        # Verify values are correct
+        np.testing.assert_array_equal(result["external_signals.wind_speed"], [8.5, 9.0, 8.8])
+        np.testing.assert_array_equal(result["external_signals.temperature"], [20.0, 21.0, 20.5])
+
+    finally:
+        os.unlink(temp_file)
