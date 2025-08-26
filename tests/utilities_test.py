@@ -572,8 +572,8 @@ def test_read_hercules_hdf5_external_signals():
 
             # Add external signals
             external_signals_group = f.create_group("data/external_signals")
-            external_signals_group["wind_speed"] = np.array([8.5, 9.0, 8.8])
-            external_signals_group["temperature"] = np.array([20.0, 21.0, 20.5])
+            external_signals_group["external_signals.wind_speed"] = np.array([8.5, 9.0, 8.8])
+            external_signals_group["external_signals.temperature"] = np.array([20.0, 21.0, 20.5])
 
         # Read the file
         from hercules.utilities import read_hercules_hdf5

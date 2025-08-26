@@ -602,10 +602,10 @@ def read_hercules_hdf5(filename):
             # Use dataset name directly as column name
             data[dataset_name] = components_group[dataset_name][:]
 
-        # Read in in all external signals external_signals.signal_name
+        # Read in all external signals
         if "external_signals" in f["data"]:
-            for signal_name in f["data/external_signals"].keys():
-                data[f"external_signals.{signal_name}"] = f["data/external_signals"][signal_name][:]
+            for dataset_name in f["data/external_signals"].keys():
+                data[dataset_name] = f["data/external_signals"][dataset_name][:]
 
     return pd.DataFrame(data)
 
