@@ -241,7 +241,7 @@ class Emulator:
                         # Handle arrays by creating individual datasets
                         arr = np.asarray(output_value)
                         for i in range(len(arr)):
-                            dataset_name = f"{component_name}_{output_name}_{i:03d}"
+                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
                             self.hdf5_datasets[dataset_name] = components_group.create_dataset(
                                 dataset_name,
                                 shape=(total_rows,),
@@ -250,7 +250,7 @@ class Emulator:
                             )
                     else:
                         # Handle scalar values
-                        dataset_name = f"{component_name}_{output_name}"
+                        dataset_name = f"{component_name}.{output_name}"
                         self.hdf5_datasets[dataset_name] = components_group.create_dataset(
                             dataset_name,
                             shape=(total_rows,),
@@ -522,12 +522,12 @@ class Emulator:
                         # Handle arrays by buffering to individual datasets
                         arr = np.asarray(output_value)
                         for i in range(len(arr)):
-                            dataset_name = f"{component_name}_{output_name}_{i:03d}"
+                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
                             if dataset_name in self.data_buffers:
                                 self.data_buffers[dataset_name][self.buffer_row] = arr[i]
                     else:
                         # Handle scalar values
-                        dataset_name = f"{component_name}_{output_name}"
+                        dataset_name = f"{component_name}.{output_name}"
                         if dataset_name in self.data_buffers:
                             self.data_buffers[dataset_name][self.buffer_row] = output_value
 
