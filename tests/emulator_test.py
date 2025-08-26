@@ -77,15 +77,14 @@ def test_Emulator_instantiation():
     emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
 
     # Check default settings
-    assert emulator.output_file == "outputs/hercules_output.feather"
-    assert emulator.output_format == "feather"
+    assert emulator.output_file == "outputs/hercules_output.h5"
     assert emulator.output_downsample_factor == 1
     assert emulator.external_data_all == {}
 
     # Test with external data file and custom output file
     test_h_dict_2 = test_h_dict.copy()
     test_h_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
-    test_h_dict_2["output_file"] = "test_output.csv"
+    test_h_dict_2["output_file"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
     test_h_dict_2["starttime"] = 0.0
     test_h_dict_2["endtime"] = 10.0
@@ -99,11 +98,11 @@ def test_Emulator_instantiation():
     assert emulator.external_data_all["power_reference"][-1] == 3000
 
     # Check custom output file
-    assert emulator.output_file == "test_output.csv"
+    assert emulator.output_file == "test_output.h5"
 
 
-def test_log_h_dict_refactored():
-    """Test that the refactored log_h_dict function only logs specific fields."""
+def test_log_data_to_hdf5():
+    """Test that the new HDF5 logging function works correctly."""
 
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
@@ -126,55 +125,46 @@ def test_log_h_dict_refactored():
     emulator.h_dict = controller.step(emulator.h_dict)
     emulator.h_dict = hybrid_plant.step(emulator.h_dict)
 
-    # Call the refactored log_h_dict function
-    emulator.log_h_dict()
+    # Call the new HDF5 logging function
+    emulator._log_data_to_hdf5()
 
-    # Check that only the expected fields are logged
-    expected_keys = {
+    # Check that HDF5 file was initialized
+    assert emulator.output_structure_determined
+    assert emulator.hdf5_file is not None
+    assert len(emulator.hdf5_datasets) > 0
+
+    # Check that expected datasets exist
+    expected_datasets = {
         "time",
         "step",
         "clock_time",
-        "plant.power",
-        "plant.locally_generated_power",
-        "solar_farm.power",  # From solar_farm's log_outputs
+        "plant_power",
+        "plant_locally_generated_power",
+        "solar_farm_power",
     }
 
-    actual_keys = set(emulator.output_columns)
+    actual_datasets = set(emulator.hdf5_datasets.keys())
+    missing_datasets = expected_datasets - actual_datasets
+    assert expected_datasets.issubset(
+        actual_datasets
+    ), f"Missing expected datasets: {missing_datasets}"
 
-    # Verify that all expected keys are present
-    assert expected_keys.issubset(actual_keys), (
-        f"Missing expected keys: {expected_keys - actual_keys}"
-    )
+    # Flush buffer to write data to HDF5
+    if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:
+        emulator._flush_buffer_to_hdf5()
 
-    # Verify that the values are correct (data stored in output_data array)
-    time_idx = emulator.output_columns.index("time")
-    step_idx = emulator.output_columns.index("step")
-    solar_power_idx = emulator.output_columns.index("solar_farm.power")
+    # Check that data was written correctly
+    assert emulator.hdf5_datasets["time"][0] == 5.0
+    assert emulator.hdf5_datasets["step"][0] == 5
+    assert emulator.hdf5_datasets["plant_power"][0] > 0
+    assert emulator.hdf5_datasets["solar_farm_power"][0] > 0
 
-    # Since we use a buffered approach, access the current buffer position
-    buffer_pos = emulator.buffer_position - 1  # Last written position
-    assert emulator.output_buffer[buffer_pos, time_idx] == 5.0
-    assert emulator.output_buffer[buffer_pos, step_idx] == 5
-    assert emulator.output_buffer[buffer_pos, solar_power_idx] > 0
-
-    # Verify plant power values
-    plant_power_idx = emulator.output_columns.index("plant.power")
-    locally_gen_power_idx = emulator.output_columns.index("plant.locally_generated_power")
-    assert emulator.output_buffer[buffer_pos, plant_power_idx] > 0  # Should be positive
-    assert emulator.output_buffer[buffer_pos, locally_gen_power_idx] > 0  # Should be positive
-
-    # Verify that clock_time is set
-    assert "clock_time" in emulator.output_columns
-    clock_time_idx = emulator.output_columns.index("clock_time")
-    assert emulator.output_buffer[buffer_pos, clock_time_idx] is not None
-
-    # Verify that we don't have unexpected keys (like the old flattened structure)
-    unexpected_keys = [k for k in actual_keys if k.startswith("solar_farm.irradiance")]
-    assert len(unexpected_keys) == 0, f"Unexpected keys found: {unexpected_keys}"
+    # Clean up
+    emulator.close()
 
 
-def test_log_h_dict_with_wind_farm_arrays():
-    """Test that the refactored log_h_dict function handles wind farm array outputs correctly."""
+def test_log_data_to_hdf5_with_wind_farm_arrays():
+    """Test that the new HDF5 logging function handles wind farm array outputs correctly."""
 
     # Use h_dict_wind as base for testing
     test_h_dict = h_dict_wind.copy()
@@ -197,65 +187,56 @@ def test_log_h_dict_with_wind_farm_arrays():
     emulator.h_dict = controller.step(emulator.h_dict)
     emulator.h_dict = hybrid_plant.step(emulator.h_dict)
 
-    # Call the refactored log_h_dict function
-    emulator.log_h_dict()
+    # Call the new HDF5 logging function
+    emulator._log_data_to_hdf5()
 
-    # Check that array outputs are flattened correctly
-    expected_keys = {
+    # Check that array outputs are handled correctly
+    expected_datasets = {
         "time",
         "step",
         "clock_time",
-        "plant.power",
-        "plant.locally_generated_power",
-        "wind_farm.power",
-        "wind_farm.turbine_powers.000",
-        "wind_farm.turbine_powers.001",
-        "wind_farm.turbine_powers.002",
+        "plant_power",
+        "plant_locally_generated_power",
+        "wind_farm_power",
+        "wind_farm_turbine_powers_000",
+        "wind_farm_turbine_powers_001",
+        "wind_farm_turbine_powers_002",
     }
 
-    actual_keys = set(emulator.output_columns)
+    actual_datasets = set(emulator.hdf5_datasets.keys())
 
-    # Verify that all expected keys are present
-    assert expected_keys.issubset(actual_keys), (
-        f"Missing expected keys: {expected_keys - actual_keys}"
-    )
+    # Verify that all expected datasets are present
+    missing_datasets = expected_datasets - actual_datasets
+    assert expected_datasets.issubset(
+        actual_datasets
+    ), f"Missing expected datasets: {missing_datasets}"
 
-    # Verify that the values are correct (data stored in output_data array)
-    time_idx = emulator.output_columns.index("time")
-    step_idx = emulator.output_columns.index("step")
-    wind_power_idx = emulator.output_columns.index("wind_farm.power")
-    plant_power_idx = emulator.output_columns.index("plant.power")
-    locally_gen_power_idx = emulator.output_columns.index("plant.locally_generated_power")
+    # Flush buffer to write data to HDF5
+    if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:
+        emulator._flush_buffer_to_hdf5()
 
-    # Since we use a buffered approach, access the current buffer position
-    buffer_pos = emulator.buffer_position - 1  # Last written position
-    assert emulator.output_buffer[buffer_pos, time_idx] == 5.0
-    assert emulator.output_buffer[buffer_pos, step_idx] == 5
-    assert emulator.output_buffer[buffer_pos, wind_power_idx] > 0
-    assert emulator.output_buffer[buffer_pos, plant_power_idx] > 0  # Should be positive
-    assert emulator.output_buffer[buffer_pos, locally_gen_power_idx] > 0  # Should be positive
+    # Check that data was written correctly
+    assert emulator.hdf5_datasets["time"][0] == 5.0
+    assert emulator.hdf5_datasets["step"][0] == 5
+    assert emulator.hdf5_datasets["wind_farm_power"][0] > 0
+    assert emulator.hdf5_datasets["plant_power"][0] > 0
+    assert emulator.hdf5_datasets["plant_locally_generated_power"][0] > 0
 
-    # Verify that turbine_powers array is flattened correctly
-    turbine_power_0_idx = emulator.output_columns.index("wind_farm.turbine_powers.000")
-    turbine_power_1_idx = emulator.output_columns.index("wind_farm.turbine_powers.001")
-    turbine_power_2_idx = emulator.output_columns.index("wind_farm.turbine_powers.002")
+    # Verify that turbine_powers array is handled correctly
+    assert emulator.hdf5_datasets["wind_farm_turbine_powers_000"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm_turbine_powers_001"][0] > 0
+    assert emulator.hdf5_datasets["wind_farm_turbine_powers_002"][0] > 0
 
-    assert emulator.output_buffer[buffer_pos, turbine_power_0_idx] > 0
-    assert emulator.output_buffer[buffer_pos, turbine_power_1_idx] > 0
-    assert emulator.output_buffer[buffer_pos, turbine_power_2_idx] > 0
-
-    # Verify that clock_time is set
-    assert "clock_time" in emulator.output_columns
-    clock_time_idx = emulator.output_columns.index("clock_time")
-    assert emulator.output_buffer[buffer_pos, clock_time_idx] is not None
+    # Clean up
+    emulator.close()
 
 
-def test_output_configuration_options():
-    """Test new output configuration options: format, downsampling, and precision."""
+def test_hdf5_output_configuration():
+    """Test HDF5 output configuration options: downsampling and chunking."""
     import os
     import tempfile
 
-    import pandas as pd
+    from hercules.utilities import read_hercules_hdf5
 
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
@@ -263,22 +244,20 @@ def test_output_configuration_options():
     # Set up logger for testing
     logger = setup_logging(console_output=False)
 
-    # Test 1: Feather format with downsampling
+    # Test 1: HDF5 format with downsampling
     with tempfile.TemporaryDirectory() as temp_dir:
-        test_h_dict_feather = test_h_dict.copy()
-        test_h_dict_feather["output_file"] = os.path.join(temp_dir, "test_output.feather")
-        test_h_dict_feather["output_format"] = "feather"
-        test_h_dict_feather["output_time_step"] = 2.0  # 2x downsampling
-        test_h_dict_feather["dt"] = 1.0
-        test_h_dict_feather["starttime"] = 0.0
-        test_h_dict_feather["endtime"] = 5.0
+        test_h_dict_hdf5 = test_h_dict.copy()
+        test_h_dict_hdf5["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_hdf5["output_time_step"] = 2.0  # 2x downsampling
+        test_h_dict_hdf5["dt"] = 1.0
+        test_h_dict_hdf5["starttime"] = 0.0
+        test_h_dict_hdf5["endtime"] = 5.0
 
-        controller = SimpleControllerSolar(test_h_dict_feather)
-        hybrid_plant = HybridPlant(test_h_dict_feather)
-        emulator = Emulator(controller, hybrid_plant, test_h_dict_feather, logger)
+        controller = SimpleControllerSolar(test_h_dict_hdf5)
+        hybrid_plant = HybridPlant(test_h_dict_hdf5)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_hdf5, logger)
 
         # Check configuration
-        assert emulator.output_format == "feather"
         assert emulator.output_time_step == 2.0
         assert emulator.output_downsample_factor == 2
 
@@ -290,30 +269,34 @@ def test_output_configuration_options():
             emulator.h_dict["step"] = step
             emulator.h_dict = controller.step(emulator.h_dict)
             emulator.h_dict = hybrid_plant.step(emulator.h_dict)
-            emulator.log_h_dict()
+            emulator._log_data_to_hdf5()
 
-        emulator.close_output_file()
+        emulator.close()
 
         # Verify file exists and is readable
         assert os.path.exists(emulator.output_file)
-        df_feather = pd.read_feather(emulator.output_file)
+        df_hdf5 = read_hercules_hdf5(emulator.output_file)
         # 5 steps downsampled by factor 2 should give 3 rows (0, 2, 4)
-        # Let's check for non-null rows since downsampling may leave some NaN rows
-        non_null_rows = df_feather.dropna().shape[0]
-        assert non_null_rows == 3
+        assert len(df_hdf5) == 3
+        assert df_hdf5["time"].iloc[0] == 0.0
+        assert df_hdf5["time"].iloc[1] == 2.0
+        assert df_hdf5["time"].iloc[2] == 4.0
 
-    # Test 2: Parquet format
+    # Test 2: HDF5 format with custom chunk size
     with tempfile.TemporaryDirectory() as temp_dir:
-        test_h_dict_parquet = test_h_dict.copy()
-        test_h_dict_parquet["output_file"] = os.path.join(temp_dir, "test_output.parquet")
-        test_h_dict_parquet["output_format"] = "parquet"
-        test_h_dict_parquet["dt"] = 1.0
-        test_h_dict_parquet["starttime"] = 0.0
-        test_h_dict_parquet["endtime"] = 5.0
+        test_h_dict_hdf5_2 = test_h_dict.copy()
+        test_h_dict_hdf5_2["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_hdf5_2["output_buffer_size"] = 500  # Custom chunk size
+        test_h_dict_hdf5_2["dt"] = 1.0
+        test_h_dict_hdf5_2["starttime"] = 0.0
+        test_h_dict_hdf5_2["endtime"] = 5.0
 
-        controller = SimpleControllerSolar(test_h_dict_parquet)
-        hybrid_plant = HybridPlant(test_h_dict_parquet)
-        emulator = Emulator(controller, hybrid_plant, test_h_dict_parquet, logger)
+        controller = SimpleControllerSolar(test_h_dict_hdf5_2)
+        hybrid_plant = HybridPlant(test_h_dict_hdf5_2)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_hdf5_2, logger)
+
+        # Check configuration
+        assert emulator.chunk_size == 500
 
         # Run simulation and write output
         for step in range(5):  # 5 steps to match the array size
@@ -323,43 +306,11 @@ def test_output_configuration_options():
             emulator.h_dict["step"] = step
             emulator.h_dict = controller.step(emulator.h_dict)
             emulator.h_dict = hybrid_plant.step(emulator.h_dict)
-            emulator.log_h_dict()
+            emulator._log_data_to_hdf5()
 
-        emulator.close_output_file()
-
-        # Verify file exists and is readable
-        assert os.path.exists(emulator.output_file)
-        df_parquet = pd.read_parquet(emulator.output_file)
-        # No downsampling, so should have all 5 rows
-        assert len(df_parquet) == 5
-
-    # Test 3: CSV format (backward compatibility)
-    with tempfile.TemporaryDirectory() as temp_dir:
-        test_h_dict_csv = test_h_dict.copy()
-        test_h_dict_csv["output_file"] = os.path.join(temp_dir, "test_output.csv")
-        test_h_dict_csv["output_format"] = "csv"
-        test_h_dict_csv["dt"] = 1.0
-        test_h_dict_csv["starttime"] = 0.0
-        test_h_dict_csv["endtime"] = 5.0
-
-        controller = SimpleControllerSolar(test_h_dict_csv)
-        hybrid_plant = HybridPlant(test_h_dict_csv)
-        emulator = Emulator(controller, hybrid_plant, test_h_dict_csv, logger)
-
-        # Run simulation and write output
-        for step in range(5):  # 5 steps to match the array size
-            emulator.step = step
-            emulator.time = step * emulator.dt
-            emulator.h_dict["time"] = emulator.time
-            emulator.h_dict["step"] = step
-            emulator.h_dict = controller.step(emulator.h_dict)
-            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
-            emulator.log_h_dict()
-
-        emulator.close_output_file()
+        emulator.close()
 
         # Verify file exists and is readable
         assert os.path.exists(emulator.output_file)
-        df_csv = pd.read_csv(emulator.output_file)
-        # No downsampling, so should have all 5 rows
-        assert len(df_csv) == 5
+        df_hdf5 = read_hercules_hdf5(emulator.output_file)
+        assert len(df_hdf5) == 5

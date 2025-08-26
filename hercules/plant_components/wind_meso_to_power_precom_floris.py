@@ -68,7 +68,13 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         # Add to the log outputs with specific outputs
         # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints", "wind_speed", "wind_direction", "waked_wind_speed"]
+        self.log_outputs = self.log_outputs + [
+            "turbine_powers",
+            "turbine_power_setpoints",
+            "wind_speed",
+            "wind_direction",
+            "waked_wind_speed",
+        ]
 
         # If "log_extra_outputs" is in h_dict[self.component_name],
         # Save this value to self.log_extra_outputs
@@ -388,7 +394,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
-        
 
         # Log the start time UTC if available
         if hasattr(self, "start_time_utc"):

@@ -1,6 +1,7 @@
 import logging
 import os
 
+import h5py
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -147,6 +148,9 @@ def load_hercules_input(filename):
         "output_time_step",
         "time_log_interval",
         "external_data_file",
+        "output_use_compression",
+        "output_buffer_size",
+        "output_flush_frequency",
     ]
 
     # Check that required keys are present
@@ -551,3 +555,93 @@ def load_perffile(perffile):
                 )
 
     return perffuncs
+
+
+def read_hercules_hdf5(filename):
+    """Read Hercules HDF5 output file and return data as pandas DataFrame.
+
+    This function reads a Hercules HDF5 output file and converts it to a pandas DataFrame
+    with the same structure as the original output format for backward compatibility.
+
+    Args:
+        filename (str): Path to the Hercules HDF5 output file.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the simulation data with columns matching
+            the original output format.
+    """
+    with h5py.File(filename, "r") as f:
+        # Read basic time data
+        data = {
+            "time": f["data/time"][:],
+            "step": f["data/step"][:],
+            "clock_time": f["data/clock_time"][:],
+        }
+
+        # Read time_utc if available
+        if "time_utc" in f["data"]:
+            data["time_utc"] = f["data/time_utc"][:]
+
+        # Read plant-level data
+        data["plant.power"] = f["data/plant_power"][:]
+        data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][:]
+
+        # Read component data
+        components_group = f["data/components"]
+        for dataset_name in components_group.keys():
+            # Convert dataset names back to original format
+            if "_" in dataset_name:
+                parts = dataset_name.split("_")
+                if len(parts) >= 3 and parts[-1].isdigit():
+                    # Handle array data (e.g., wind_farm_turbine_powers_000 ->
+                    # wind_farm.turbine_powers.000)
+                    # Find the last underscore that separates the index
+                    last_underscore_idx = dataset_name.rfind("_")
+                    base_name = dataset_name[:last_underscore_idx]
+                    index = dataset_name[last_underscore_idx + 1 :]
+
+                    # Convert base name (e.g., wind_farm_turbine_powers -> wind_farm.turbine_powers)
+                    base_parts = base_name.split("_")
+                    if len(base_parts) >= 3:
+                        component_name = base_parts[0] + "_" + base_parts[1]  # wind_farm
+                        output_name = "_".join(base_parts[2:])  # turbine_powers
+                        column_name = f"{component_name}.{output_name}.{index}"
+                    else:
+                        column_name = dataset_name
+                else:
+                    # Handle scalar data (e.g., wind_farm_power -> wind_farm.power)
+                    component_name = "_".join(parts[:-1])
+                    output_name = parts[-1]
+                    column_name = f"{component_name}.{output_name}"
+            else:
+                column_name = dataset_name
+
+            data[column_name] = components_group[dataset_name][:]
+
+    return pd.DataFrame(data)
+
+
+def get_hercules_metadata(filename):
+    """Read Hercules HDF5 output file metadata.
+
+    Args:
+        filename (str): Path to the Hercules HDF5 output file.
+
+    Returns:
+        dict: Dictionary containing simulation metadata including h_dict and simulation info.
+    """
+    with h5py.File(filename, "r") as f:
+        metadata = {}
+
+        # Read h_dict from JSON string
+        if "h_dict" in f["metadata"].attrs:
+            import json
+
+            metadata["h_dict"] = json.loads(f["metadata"].attrs["h_dict"])
+
+        # Read simulation info
+        for key, value in f["metadata"].attrs.items():
+            if key != "h_dict":
+                metadata[key] = value
+
+    return metadata

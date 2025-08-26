@@ -6,7 +6,6 @@ import subprocess
 import tempfile
 
 import numpy as np
-import pandas as pd
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -118,11 +117,13 @@ def run_simulation(input_file, num_time_steps):
     emulator.enter_execution(function_targets=[], function_arguments=[[]])
 
     # Check that the output file was created
-    output_file = "outputs/hercules_output.feather"
+    output_file = "outputs/hercules_output.h5"
     assert os.path.exists(output_file), "Output file was not created"
 
     # Read and return the output file
-    return pd.read_feather(output_file)
+    from hercules.utilities import read_hercules_hdf5
+
+    return read_hercules_hdf5(output_file)
 
 
 def verify_outputs(

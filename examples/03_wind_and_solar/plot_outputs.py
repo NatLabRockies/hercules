@@ -1,14 +1,13 @@
 # Plot the outputs of the simulation for the wind and solar example
 
 import matplotlib.pyplot as plt
-import pandas as pd
-from hercules.utilities import load_h_dict_from_text
+from hercules.utilities import get_hercules_metadata, read_hercules_hdf5
 
 # Read the Hercules output file
-df = pd.read_feather("outputs/hercules_output.feather")
+df = read_hercules_hdf5("outputs/hercules_output.h5")
 
 # Read in the meta data file
-h_dict = load_h_dict_from_text("outputs/h_dict.echo")
+h_dict = get_hercules_metadata("outputs/hercules_output.h5")["h_dict"]
 
 
 fig, ax = plt.subplots()

@@ -1,9 +1,11 @@
 import datetime as dt
+import json
 import os
 import sys
 import time as _time
 from pathlib import Path
 
+import h5py
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -45,43 +47,39 @@ class Emulator:
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
 
-        # Initialize output configuration
-        self.output_format = h_dict.get(
-            "output_format", "feather"
-        )  # feather, parquet, or csv
-
-        # Initialize the output file with proper extension
+        # Initialize HDF5 output configuration
         if "output_file" in h_dict:
             self.output_file = h_dict["output_file"]
+            # Ensure .h5 extension
+            if not self.output_file.endswith(".h5"):
+                self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
         else:
-            # Set default filename based on format
-            format_extensions = {
-                "feather": ".feather",
-                "parquet": ".parquet",
-                "csv": ".csv",
-            }
-            extension = format_extensions.get(self.output_format.lower(), ".feather")
-            self.output_file = f"outputs/hercules_output{extension}"
+            self.output_file = "outputs/hercules_output.h5"
 
         # Initialize output time configuration
-        self.output_time_step = h_dict.get(
-            "output_time_step", self.dt
-        )  # Output downsampling
+        self.output_time_step = h_dict.get("output_time_step", self.dt)  # Output downsampling
 
         # Calculate downsampling factor
         self.output_downsample_factor = max(1, int(self.output_time_step / self.dt))
 
-        # Initialize buffered output system
-        self.output_columns = None
+        # Initialize HDF5 output system
+        self.hdf5_file = None
+        self.hdf5_datasets = {}
         self.output_structure_determined = False
         self.output_written = False
-
-        # Buffer configuration
-        self.buffer_size = h_dict.get("output_buffer_size", 86400)  # Default 86400 rows
-        self.output_buffer = None
-        self.buffer_position = 0
+        self.current_row = 0
         self.total_rows_written = 0
-        self.temp_files = []  # Track temporary chunk files
+
+        # HDF5 configuration
+        self.chunk_size = h_dict.get("output_buffer_size", 50000)  # Default 50000 rows per chunk
+        self.flush_frequency = h_dict.get("output_flush_frequency", 20000)  # Flush every 20000 rows
+        # Enable/disable compression
+        self.use_compression = h_dict.get("output_use_compression", True)
+
+        # Buffering configuration
+        self.buffer_size = h_dict.get("output_buffer_size", 1000)  # Buffer 1000 rows in memory
+        self.data_buffers = {}  # Dictionary to hold buffered data
+        self.buffer_row = 0  # Current position in buffer
 
         # Get verbose flag from h_dict
         self.verbose = h_dict.get("verbose", False)
@@ -149,6 +147,135 @@ class Emulator:
             if c != "time":
                 self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
 
+    def _initialize_hdf5_file(self):
+        """Initialize HDF5 file with metadata and data structure."""
+        # Create output directory if it doesn't exist
+        output_dir = os.path.dirname(os.path.abspath(self.output_file))
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Open HDF5 file
+        self.hdf5_file = h5py.File(self.output_file, "w")
+
+        # Create metadata group
+        metadata_group = self.hdf5_file.create_group("metadata")
+
+        # Store h_dict as JSON string in attributes
+        h_dict_json = json.dumps(self.h_dict, default=str)
+        metadata_group.attrs["h_dict"] = h_dict_json
+
+        # Store simulation info
+        metadata_group.attrs["starttime"] = self.starttime
+        metadata_group.attrs["endtime"] = self.endtime
+        metadata_group.attrs["dt"] = self.dt
+        metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
+        metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
+
+        # Create data group
+        data_group = self.hdf5_file.create_group("data")
+
+        # Calculate total number of rows (with downsampling)
+        total_rows = self.n_steps // self.output_downsample_factor
+        if self.n_steps % self.output_downsample_factor != 0:
+            total_rows += 1
+
+        # Create datasets for basic time information
+        chunk_size = min(self.chunk_size, total_rows)
+
+        # Set compression parameters based on configuration
+        if self.use_compression:
+            compression_params = {"compression": "gzip", "compression_opts": 1}
+        else:
+            compression_params = {}
+
+        self.hdf5_datasets["time"] = data_group.create_dataset(
+            "time",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            chunks=(chunk_size,),
+            **compression_params,
+        )
+
+        self.hdf5_datasets["step"] = data_group.create_dataset(
+            "step",
+            shape=(total_rows,),
+            dtype=np.int32,
+            chunks=(chunk_size,),
+            **compression_params,
+        )
+
+        self.hdf5_datasets["clock_time"] = data_group.create_dataset(
+            "clock_time",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            chunks=(chunk_size,),
+            **compression_params,
+        )
+
+        # Create time_utc dataset if available
+        if "time_utc" in self.h_dict:
+            self.hdf5_datasets["time_utc"] = data_group.create_dataset(
+                "time_utc",
+                shape=(total_rows,),
+                dtype=hercules_float_type,
+                chunks=(chunk_size,),
+                **compression_params,
+            )
+
+        # Create plant-level datasets
+        self.hdf5_datasets["plant_power"] = data_group.create_dataset(
+            "plant_power",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            chunks=(chunk_size,),
+            **compression_params,
+        )
+
+        self.hdf5_datasets["plant_locally_generated_power"] = data_group.create_dataset(
+            "plant_locally_generated_power",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            chunks=(chunk_size,),
+            **compression_params,
+        )
+
+        # Create component datasets
+        components_group = data_group.create_group("components")
+        for component_name in self.hybrid_plant.component_names:
+            component_obj = self.hybrid_plant.component_objects[component_name]
+            log_outputs = getattr(component_obj, "log_outputs", ["power"])
+
+            for output_name in log_outputs:
+                if output_name in self.h_dict[component_name]:
+                    output_value = self.h_dict[component_name][output_name]
+
+                    if isinstance(output_value, (list, np.ndarray)):
+                        # Handle arrays by creating individual datasets
+                        arr = np.asarray(output_value)
+                        for i in range(len(arr)):
+                            dataset_name = f"{component_name}_{output_name}_{i:03d}"
+                            self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                                dataset_name,
+                                shape=(total_rows,),
+                                dtype=hercules_float_type,
+                                chunks=(chunk_size,),
+                                **compression_params,
+                            )
+                    else:
+                        # Handle scalar values
+                        dataset_name = f"{component_name}_{output_name}"
+                        self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                            dataset_name,
+                            shape=(total_rows,),
+                            dtype=hercules_float_type,
+                            chunks=(chunk_size,),
+                            **compression_params,
+                        )
+
+        self.output_structure_determined = True
+
+        if self.verbose:
+            self.logger.info(f"Initialized HDF5 file with {len(self.hdf5_datasets)} datasets")
+
     def _save_h_dict_as_text(self):
         """
         Save the main dictionary to a text file.
@@ -165,9 +292,7 @@ class Emulator:
         with open("outputs/h_dict.echo", "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
-            sys.stdout = (
-                original_stdout  # Reset the standard output to its original value
-            )
+            sys.stdout = original_stdout  # Reset the standard output to its original value
 
     def enter_execution(self, function_targets=[], function_arguments=[[]]):
         """
@@ -225,8 +350,8 @@ class Emulator:
 
         finally:
             # Ensure output data is written to file
-            self.logger.info("Writing output data to file")
-            self._consolidate_temp_files()
+            self.logger.info("Finalizing HDF5 output file")
+            self._finalize_hdf5_file()
 
     def run(self):
         """Run the main emulation loop until the end time is reached.
@@ -253,7 +378,7 @@ class Emulator:
         # Cache frequently accessed attributes and methods locally for speed
         controller_step = self.controller.step
         plant_step = self.hybrid_plant.step
-        log_current_state = self._log_h_dict
+        log_current_state = self._log_data_to_hdf5
         external_data_all = self.external_data_all
         h_dict = self.h_dict
 
@@ -264,13 +389,9 @@ class Emulator:
             # Log the current time
             if self.verbose:
                 if (self.step % self.step_log_interval == 0) or first_iteration:
-                    self.logger.info(
-                        f"Emulator time: {self.time} (ending at {self.endtime})"
-                    )
+                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
                     self.logger.info(f"Step: {self.step} of {self.n_steps}")
-                    self.logger.info(
-                        f"--Percent completed: {100 * self.step / self.n_steps:.2f}%"
-                    )
+                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
 
             # Update progress bar independently of verbose logging, more frequently
             if (self.step % self.progress_update_interval == 0) or first_iteration:
@@ -312,99 +433,44 @@ class Emulator:
             progress_bar.update(final_steps_to_update)
         progress_bar.close()
 
-    def _apply_output_formatting(self, df):
-        """Apply output formatting (rounding, data type conversion, etc.) to DataFrame."""
-        # Apply simple rounding for CSV readability only
-        if self.output_format.lower() == "csv":
-            # Round time to 1 decimal place for readability
-            if "time" in df.columns:
-                df["time"] = df["time"].round(1)
-            # Round other numeric values to 3 decimal places for CSV readability
-            numeric_columns = df.select_dtypes(include=[np.number]).columns
-            for col in numeric_columns:
-                # Skip step (int) and time (already rounded)
-                if col not in ["step", "time"]:
-                    df[col] = df[col].round(3)
+    def _finalize_hdf5_file(self):
+        """Finalize HDF5 file with proper compression and metadata."""
+        if self.output_written or self.hdf5_file is None:
+            return
 
-        # Convert timestamp back to datetime string format for CSV compatibility
-        if "clock_time" in df.columns and self.output_format == "csv":
-            df["clock_time"] = pd.to_datetime(df["clock_time"], unit="s")
+        try:
+            # Flush any remaining buffered data
+            if hasattr(self, "data_buffers") and self.data_buffers and self.buffer_row > 0:
+                self._flush_buffer_to_hdf5()
 
-        # Optimize data types for smaller file size
-        self._optimize_dtypes(df)
+            # Flush any remaining data
+            if self.hdf5_file:
+                self.hdf5_file.flush()
 
-    def _optimize_dtypes(self, df):
-        """Convert float64 columns to hercules_float_type for consistent precision and file size.
+            # Add final metadata
+            if self.hdf5_file:
+                metadata_group = self.hdf5_file["metadata"]
+                metadata_group.attrs["total_rows_written"] = self.total_rows_written
+                metadata_group.attrs["finalization_time"] = _time.time()
+                metadata_group.attrs["hercules_version"] = "2.0"
 
-        This function ensures all floating-point data uses hercules_float_type (float32)
-        for consistency with the rest of the codebase and optimal file sizes.
-        """
-        # Convert float64 to hercules_float_type where appropriate
-        for col in df.select_dtypes(include=["float64"]).columns:
-            if col not in ["time"]:  # Keep time as float64 for precision
-                # Check if conversion to hercules_float_type would lose significant precision
-                original_max = df[col].max()
-                original_min = df[col].min()
-                if (
-                    original_max < 3.4e38
-                    and original_min > -3.4e38
-                    and not np.isinf(original_max)
-                    and not np.isinf(original_min)
-                ):
-                    df[col] = df[col].astype(hercules_float_type)
+            if self.verbose:
+                file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                self.logger.info(
+                    f"Finalized HDF5 file: {self.output_file} "
+                    f"({file_size:.2f} MB, {self.total_rows_written} rows)"
+                )
 
-    def _write_dataframe_to_file(self, df):
-        """Write DataFrame to file using the specified format.
+        except Exception as e:
+            self.logger.error(f"Error finalizing HDF5 file: {e}")
+            raise
+        finally:
+            # Close HDF5 file
+            if self.hdf5_file:
+                self.hdf5_file.close()
+                self.hdf5_file = None
 
-        Args:
-            df (pd.DataFrame): DataFrame to write.
-        """
-        if self.output_format.lower() == "feather":
-            # Feather format - fastest read/write, good compression
-            df.to_feather(self.output_file)
-        elif self.output_format.lower() == "parquet":
-            # Parquet format - best compression, good for analytics
-            df.to_parquet(self.output_file, engine="pyarrow", compression="snappy")
-        elif self.output_format.lower() == "csv":
-            # CSV format - most compatible, human readable
-            df.to_csv(self.output_file, index=False)
-        else:
-            # Default to feather with warning
-            self.logger.warning(
-                f"Unknown output format '{self.output_format}', defaulting to Feather"
-            )
-            df.to_feather(self.output_file)
-
-    def _append_dataframe_to_file(self, df):
-        """Append DataFrame to existing file using the specified format.
-
-        Args:
-            df (pd.DataFrame): DataFrame to append.
-        """
-        if self.output_format.lower() == "feather":
-            # For feather, we need to read existing, concat, and rewrite
-            # This is not ideal but feather doesn't support true append
-            existing_df = pd.read_feather(self.output_file)
-            combined_df = pd.concat([existing_df, df], ignore_index=True)
-            combined_df.to_feather(self.output_file)
-        elif self.output_format.lower() == "parquet":
-            # For parquet, also need to read and rewrite
-            existing_df = pd.read_parquet(self.output_file)
-            combined_df = pd.concat([existing_df, df], ignore_index=True)
-            combined_df.to_parquet(
-                self.output_file, engine="pyarrow", compression="snappy"
-            )
-        elif self.output_format.lower() == "csv":
-            # CSV supports true append mode
-            df.to_csv(self.output_file, mode="a", header=False, index=False)
-        else:
-            # Default to feather with warning
-            self.logger.warning(
-                f"Unknown output format '{self.output_format}', defaulting to Feather for append"
-            )
-            existing_df = pd.read_feather(self.output_file)
-            combined_df = pd.concat([existing_df, df], ignore_index=True)
-            combined_df.to_feather(self.output_file)
+        self.output_written = True
 
     def __del__(self):
         """Cleanup method to properly close output files when object is destroyed."""
@@ -413,45 +479,50 @@ class Emulator:
             import sys
 
             if sys.meta_path is not None:
-                self._consolidate_temp_files()
+                self._finalize_hdf5_file()
         except (ImportError, AttributeError):
             # Ignore errors during Python shutdown
             pass
 
     def close(self):
         """Explicitly close all resources and cleanup."""
-        self._consolidate_temp_files()
+        self._finalize_hdf5_file()
 
-    def _log_h_dict(self):
+    def _log_data_to_hdf5(self):
         """
-        Logs the current state of the main dictionary using fast pre-allocated arrays.
+        Logs the  state of the main dict to memory buffers and writes to HDF5 periodically.
 
-        This method uses pre-allocated numpy arrays,
-        writing all data to CSV only once at the end of simulation.
+        This method buffers data in memory and only writes to disk when the buffer is full,
+        significantly improving performance by reducing disk I/O frequency.
         """
-        # Determine output structure on first call
+        # Initialize HDF5 file on first call
         if not self.output_structure_determined:
-            self._determine_output_structure()
+            self._initialize_hdf5_file()
 
-        # Extract values directly into pre-allocated array
-        self._extract_values_to_array()
+        # Apply downsampling
+        if self.step % self.output_downsample_factor != 0:
+            return
 
-    def _determine_output_structure(self):
-        """Determine the output structure by analyzing current h_dict state."""
-        # Build output columns list
-        columns = []
+        # Initialize buffers on first call
+        if not self.data_buffers:
+            self._initialize_data_buffers()
 
-        # Basic time information
-        columns.extend(["time", "step", "clock_time"])
+        # Buffer basic time information
+        self.data_buffers["time"][self.buffer_row] = self.h_dict["time"]
+        self.data_buffers["step"][self.buffer_row] = self.h_dict["step"]
+        self.data_buffers["clock_time"][self.buffer_row] = _time.time()
 
-        # If time_utc is available log it as well
-        if "time_utc" in self.h_dict:
-            columns.append("time_utc")
+        # Buffer time_utc if available
+        if "time_utc" in self.data_buffers:
+            self.data_buffers["time_utc"][self.buffer_row] = self.h_dict.get("time_utc", np.nan)
 
-        # Plant-level outputs
-        columns.extend(["plant.power", "plant.locally_generated_power"])
+        # Buffer plant-level outputs
+        self.data_buffers["plant_power"][self.buffer_row] = self.h_dict["plant"]["power"]
+        self.data_buffers["plant_locally_generated_power"][self.buffer_row] = self.h_dict["plant"][
+            "locally_generated_power"
+        ]
 
-        # Component outputs
+        # Buffer component outputs
         for component_name in self.hybrid_plant.component_names:
             component_obj = self.hybrid_plant.component_objects[component_name]
             log_outputs = getattr(component_obj, "log_outputs", ["power"])
@@ -460,288 +531,59 @@ class Emulator:
                 if output_name in self.h_dict[component_name]:
                     output_value = self.h_dict[component_name][output_name]
 
-                    # Handle arrays by creating individual columns
                     if isinstance(output_value, (list, np.ndarray)):
-                        for i in range(len(output_value)):
-                            columns.append(f"{component_name}.{output_name}.{i:03d}")
+                        # Handle arrays by buffering to individual datasets
+                        arr = np.asarray(output_value)
+                        for i in range(len(arr)):
+                            dataset_name = f"{component_name}_{output_name}_{i:03d}"
+                            if dataset_name in self.data_buffers:
+                                self.data_buffers[dataset_name][self.buffer_row] = arr[i]
                     else:
                         # Handle scalar values
-                        columns.append(f"{component_name}.{output_name}")
+                        dataset_name = f"{component_name}_{output_name}"
+                        if dataset_name in self.data_buffers:
+                            self.data_buffers[dataset_name][self.buffer_row] = output_value
 
-        # Store column structure and allocate buffer
-        self.output_columns = columns
-        self.output_buffer = np.full(
-            (self.buffer_size, len(columns)), np.nan, dtype=hercules_float_type
-        )
-        self.output_structure_determined = True
+        # Increment buffer row counter
+        self.buffer_row += 1
+        self.total_rows_written += 1
 
-        if self.verbose:
-            self.logger.info(f"Determined output structure with {len(columns)} columns")
+        # Write buffer to disk when full
+        if self.buffer_row >= self.buffer_size:
+            self._flush_buffer_to_hdf5()
 
-    def _extract_values_to_array(self):
-        """Extract values from h_dict into the pre-allocated output array.
-
-        Optimized version that eliminates expensive round() calls during simulation.
-        Rounding is deferred to CSV write time for massive performance improvement.
-        """
-        if self.output_buffer is None:
-            return
-
-        row = self.output_buffer[self.buffer_position]
-        col_idx = 0
-
-        # Basic time information
-        row[col_idx] = self.h_dict["time"]
-        col_idx += 1
-        row[col_idx] = self.h_dict["step"]
-        col_idx += 1
-        row[col_idx] = _time.time()
-        col_idx += 1
-
-        # Plant-level outputs
-        row[col_idx] = self.h_dict["plant"]["power"]
-        col_idx += 1
-        row[col_idx] = self.h_dict["plant"]["locally_generated_power"]
-        col_idx += 1
-
-        # Component outputs - store raw values without rounding
-        for component_name in self.hybrid_plant.component_names:
-            component_obj = self.hybrid_plant.component_objects[component_name]
-            log_outputs = getattr(component_obj, "log_outputs", ["power"])
-
-            for output_name in log_outputs:
-                if output_name in self.h_dict[component_name]:
-                    output_value = self.h_dict[component_name][output_name]
-
-                    if isinstance(output_value, (list, np.ndarray)):
-                        arr = np.asarray(output_value)
-                        row[col_idx : col_idx + len(arr)] = arr
-                        col_idx += len(arr)
-                    else:
-                        row[col_idx] = output_value
-                        col_idx += 1
-
-        if col_idx != len(self.output_columns):
-            self.logger.warning(
-                f"Data length mismatch: expected {len(self.output_columns)}, got {col_idx}"
-            )
-
-        # Increment buffer position
-        self.buffer_position += 1
-
-        # Check if buffer is full and needs to be flushed
-        if self.buffer_position >= self.buffer_size:
-            self._flush_buffer_to_temp_file()
-            self.buffer_position = 0
-
-    def _flush_buffer_to_temp_file(self):
-        """Write current buffer contents to a temporary file chunk."""
-        if self.buffer_position == 0:
-            return  # Nothing to write
-
-        # Create temporary file name
-        temp_filename = f"{self.output_file}.temp_{len(self.temp_files):04d}.feather"
-
-        # Extract data from buffer (only filled portion)
-        buffer_data = self.output_buffer[: self.buffer_position].copy()
-
-        # Create DataFrame and write to temporary file
-        df_chunk = pd.DataFrame(buffer_data, columns=self.output_columns)
-        df_chunk.to_feather(temp_filename)
-
-        # Track this temporary file
-        self.temp_files.append(temp_filename)
-        self.total_rows_written += self.buffer_position
-
-        if self.verbose:
-            self.logger.info(f"Flushed {self.buffer_position} rows to {temp_filename}")
-
-    def _consolidate_temp_files(self, chunk_size=50):
-        """
-        Consolidate temporary output files into final output format using memory-efficient chunking.
-
-        This method processes temporary files in small chunks to avoid memory errors when dealing
-        with large datasets (e.g., 11-month simulations with thousands of temp files). It supports
-        all output formats (Feather, Parquet, CSV) with optional downsampling and data optimization.
-
-        Args:
-            chunk_size (int): Number of temporary files to process at once. Default 50.
-                             Lower values use less memory but may be slower.
-        """
-        # Avoid duplicate writes (e.g., explicit close and __del__)
-        if self.output_written:
-            return
-
-        # # Auto-discover temp files if temp_files list is empty or incomplete
-        # self._discover_temp_files()
-
-        if not self.temp_files:
-            if self.verbose:
-                self.logger.info("No temporary files found to consolidate")
-            return
-
-        if self.verbose:
-            self.logger.info(
-                f"Consolidating {len(self.temp_files)} temporary files in chunks of {chunk_size}"
-            )
-
-        # Create output directory if it doesn't exist
-        output_dir = os.path.dirname(os.path.abspath(self.output_file))
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Flush any remaining buffer data to temporary file
-        if self.buffer_position > 0:
-            self._flush_buffer_to_temp_file()
-
-        # Process files in chunks to avoid memory issues
-        intermediate_files = []
-        total_chunks = (len(self.temp_files) + chunk_size - 1) // chunk_size
-
-        for chunk_idx in range(total_chunks):
-            start_idx = chunk_idx * chunk_size
-            end_idx = min(start_idx + chunk_size, len(self.temp_files))
-            chunk_files = self.temp_files[start_idx:end_idx]
-
-            if self.verbose:
-                self.logger.info(
-                    f"Processing chunk {chunk_idx + 1}/{total_chunks} ({len(chunk_files)} files)"
-                )
-
-            # Read and concatenate files in this chunk
-            chunk_dfs = []
-            for temp_file in chunk_files:
-                if os.path.exists(temp_file):
-                    try:
-                        df_chunk = pd.read_feather(temp_file)
-                        chunk_dfs.append(df_chunk)
-                    except Exception as e:
-                        self.logger.warning(f"Error reading {temp_file}: {e}")
-
-            if chunk_dfs:
-                # Concatenate chunk
-                chunk_df = pd.concat(chunk_dfs, ignore_index=True)
-
-                # Apply downsampling if requested (per chunk to save memory)
-                if self.output_downsample_factor > 1:
-                    chunk_df = chunk_df.iloc[:: self.output_downsample_factor, :].copy()
-
-                # Save intermediate chunk file
-                intermediate_file = (
-                    f"{self.output_file}.intermediate_{chunk_idx:04d}.feather"
-                )
-                chunk_df.to_feather(intermediate_file)
-                intermediate_files.append(intermediate_file)
-
-                # Clear memory
-                del chunk_df, chunk_dfs
-
-        # Now combine intermediate files using memory-efficient chunked approach
-        if intermediate_files:
-            if self.verbose:
-                self.logger.info(
-                    f"Combining {len(intermediate_files)} intermediate files into final output"
-                )
-
-            # Use chunked approach for intermediate files too if there are many
-            max_intermediate_chunk_size = (
-                10  # Process max 10 intermediate files at once
-            )
-
-            if len(intermediate_files) <= max_intermediate_chunk_size:
-                # Few intermediate files - can load all at once
-                final_dfs = []
-                for intermediate_file in intermediate_files:
-                    if os.path.exists(intermediate_file):
-                        df_intermediate = pd.read_feather(intermediate_file)
-                        final_dfs.append(df_intermediate)
-
-                if final_dfs:
-                    # Final concatenation
-                    final_df = pd.concat(final_dfs, ignore_index=True)
-
-                    # Apply final formatting
-                    self._apply_output_formatting(final_df)
-
-                    # Write to final output file
-                    self._write_dataframe_to_file(final_df)
-
-                    if self.verbose:
-                        file_size = os.path.getsize(self.output_file) / (
-                            1024 * 1024
-                        )  # MB
-                        self.logger.info(
-                            f"Wrote {len(final_df)} rows to {self.output_file} ({file_size:.2f} MB)"
-                        )
+    def _initialize_data_buffers(self):
+        """Initialize memory buffers for all datasets."""
+        for dataset_name in self.hdf5_datasets.keys():
+            if dataset_name == "step":
+                # Integer buffer for step
+                self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.int32)
             else:
-                # Many intermediate files - use iterative writing approach
-                if self.verbose:
-                    self.logger.info(
-                        f"Too many intermediate files ({len(intermediate_files)}),"
-                        "using iterative consolidation"
-                    )
+                # Float buffer for everything else
+                self.data_buffers[dataset_name] = np.zeros(
+                    self.buffer_size, dtype=hercules_float_type
+                )
 
-                # Write to final file incrementally
-                first_write = True
-                total_rows = 0
+    def _flush_buffer_to_hdf5(self):
+        """Write buffered data to HDF5 datasets and reset buffer."""
+        if self.buffer_row == 0:
+            return  # Nothing to flush
 
-                # Process intermediate files in small chunks
-                for i in range(0, len(intermediate_files), max_intermediate_chunk_size):
-                    chunk_intermediates = intermediate_files[
-                        i : i + max_intermediate_chunk_size
-                    ]
+        # Calculate the range to write
+        start_row = self.current_row
+        end_row = start_row + self.buffer_row
 
-                    chunk_dfs = []
-                    for intermediate_file in chunk_intermediates:
-                        if os.path.exists(intermediate_file):
-                            df_intermediate = pd.read_feather(intermediate_file)
-                            chunk_dfs.append(df_intermediate)
+        # Write all buffered data at once
+        for dataset_name, buffer_data in self.data_buffers.items():
+            if dataset_name in self.hdf5_datasets:
+                self.hdf5_datasets[dataset_name][start_row:end_row] = buffer_data[: self.buffer_row]
 
-                    if chunk_dfs:
-                        chunk_final = pd.concat(chunk_dfs, ignore_index=True)
+        # Update current row position
+        self.current_row = end_row
 
-                        # Apply formatting to chunk
-                        self._apply_output_formatting(chunk_final)
+        # Reset buffer
+        self.buffer_row = 0
 
-                        # Write to file (append mode for subsequent chunks)
-                        if first_write:
-                            # First chunk - write normally
-                            self._write_dataframe_to_file(chunk_final)
-                            first_write = False
-                        else:
-                            # Subsequent chunks - append to existing file
-                            self._append_dataframe_to_file(chunk_final)
-
-                        total_rows += len(chunk_final)
-                        del chunk_final, chunk_dfs
-
-                if self.verbose:
-                    file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
-                    self.logger.info(
-                        f"Wrote {total_rows} rows to {self.output_file} ({file_size:.2f} MB)"
-                    )
-
-            # Clean up intermediate files
-            for intermediate_file in intermediate_files:
-                if os.path.exists(intermediate_file):
-                    os.remove(intermediate_file)
-
-        # Clean up original temporary files
-        for temp_file in self.temp_files:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-        self.temp_files.clear()
-
-        # Mark as written so subsequent calls are no-ops
-        self.output_written = True
-
-        # def parse_input_yaml(self, filename):
-
-    #     """Parse input YAML file (not implemented).
-
-    #     Args:
-    #         filename (str): Path to the YAML file to parse.
-
-    #     Raises:
-    #         NotImplementedError: This method is not implemented.
-    #     """
-    #     raise NotImplementedError("parse_input_yaml is not implemented.")
+        # Flush to disk periodically
+        if self.current_row % self.flush_frequency == 0:
+            self.hdf5_file.flush()

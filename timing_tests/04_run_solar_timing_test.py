@@ -10,7 +10,6 @@ import shutil
 import time
 
 import matplotlib.pyplot as plt
-import pandas as pd
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
@@ -115,7 +114,9 @@ def main():
     # Plot the outputs
     if PLOT_OUTPUT:
         # Read the Hercules output file
-        df_p = pd.read_feather("outputs/hercules_output.feather")
+        from hercules.utilities import read_hercules_hdf5
+
+        df_p = read_hercules_hdf5("outputs/hercules_output.h5")
 
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(df_p["time"], df_p["solar_farm.power"])
