@@ -4,7 +4,7 @@ The `Emulator` class orchestrates the entire Hercules simulation, managing the m
 
 ## Overview
 
-The emulator serves as the central coordinator that drives the simulation forward step-by-step.
+The emulator serves as the central coordinator that drives the simulation forward step-by-step, handling data logging, performance monitoring, and output file generation.
 
 ## Simulation Flow
 
@@ -14,4 +14,11 @@ For each time step:
 3. Execute hybrid plant step (update component states)
 4. Log current state to output file
 5. Advance simulation time
+
+## Output File Generation
+
+The emulator generates HDF5 output files containing comprehensive simulation data for analysis and visualization.
+
+
+For detailed information about the output file format and reading utilities, see the [Output Files](output_files.md) documentation.
 

@@ -17,6 +17,7 @@ parts:
     - file: h_dict
     - file: hybrid_plant
     - file: emulator
+    - file: output_files
   - caption: Inputs
     chapters:
     - file: hercules_input
