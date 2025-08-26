@@ -71,13 +71,11 @@ class Emulator:
         self.total_rows_written = 0
 
         # HDF5 configuration
-        self.chunk_size = h_dict.get("output_buffer_size", 50000)  # Default 50000 rows per chunk
-        self.flush_frequency = h_dict.get("output_flush_frequency", 20000)  # Flush every 20000 rows
         # Enable/disable compression
         self.use_compression = h_dict.get("output_use_compression", True)
 
         # Buffering configuration
-        self.buffer_size = h_dict.get("output_buffer_size", 1000)  # Buffer 1000 rows in memory
+        self.buffer_size = h_dict.get("output_buffer_size", 86400)  # Buffer 86400 rows in memory
         self.data_buffers = {}  # Dictionary to hold buffered data
         self.buffer_row = 0  # Current position in buffer
 
@@ -178,9 +176,6 @@ class Emulator:
         if self.n_steps % self.output_downsample_factor != 0:
             total_rows += 1
 
-        # Create datasets for basic time information
-        chunk_size = min(self.chunk_size, total_rows)
-
         # Set compression parameters based on configuration
         if self.use_compression:
             compression_params = {"compression": "gzip", "compression_opts": 1}
@@ -191,7 +186,6 @@ class Emulator:
             "time",
             shape=(total_rows,),
             dtype=hercules_float_type,
-            chunks=(chunk_size,),
             **compression_params,
         )
 
@@ -199,7 +193,6 @@ class Emulator:
             "step",
             shape=(total_rows,),
             dtype=np.int32,
-            chunks=(chunk_size,),
             **compression_params,
         )
 
@@ -207,7 +200,6 @@ class Emulator:
             "clock_time",
             shape=(total_rows,),
             dtype=hercules_float_type,
-            chunks=(chunk_size,),
             **compression_params,
         )
 
@@ -217,7 +209,6 @@ class Emulator:
                 "time_utc",
                 shape=(total_rows,),
                 dtype=hercules_float_type,
-                chunks=(chunk_size,),
                 **compression_params,
             )
 
@@ -226,7 +217,6 @@ class Emulator:
             "plant_power",
             shape=(total_rows,),
             dtype=hercules_float_type,
-            chunks=(chunk_size,),
             **compression_params,
         )
 
@@ -234,7 +224,6 @@ class Emulator:
             "plant_locally_generated_power",
             shape=(total_rows,),
             dtype=hercules_float_type,
-            chunks=(chunk_size,),
             **compression_params,
         )
 
@@ -257,7 +246,6 @@ class Emulator:
                                 dataset_name,
                                 shape=(total_rows,),
                                 dtype=hercules_float_type,
-                                chunks=(chunk_size,),
                                 **compression_params,
                             )
                     else:
@@ -267,7 +255,6 @@ class Emulator:
                             dataset_name,
                             shape=(total_rows,),
                             dtype=hercules_float_type,
-                            chunks=(chunk_size,),
                             **compression_params,
                         )
 
@@ -583,7 +570,3 @@ class Emulator:
 
         # Reset buffer
         self.buffer_row = 0
-
-        # Flush to disk periodically
-        if self.current_row % self.flush_frequency == 0:
-            self.hdf5_file.flush()

@@ -150,7 +150,6 @@ def load_hercules_input(filename):
         "external_data_file",
         "output_use_compression",
         "output_buffer_size",
-        "output_flush_frequency",
     ]
 
     # Check that required keys are present
