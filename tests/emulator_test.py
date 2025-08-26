@@ -296,7 +296,7 @@ def test_hdf5_output_configuration():
         emulator = Emulator(controller, hybrid_plant, test_h_dict_hdf5_2, logger)
 
         # Check configuration
-        assert emulator.chunk_size == 500
+        assert emulator.buffer_size == 500
 
         # Run simulation and write output
         for step in range(5):  # 5 steps to match the array size
