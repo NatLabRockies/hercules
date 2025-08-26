@@ -590,3 +590,83 @@ def test_read_hercules_hdf5_external_signals():
 
     finally:
         os.unlink(temp_file)
+
+
+def test_read_hercules_hdf5_subset():
+    """Test reading subset of HDF5 file data.
+
+    Creates a mock HDF5 file and verifies that the subset function
+    correctly filters by columns and time range.
+    """
+    import h5py
+
+    with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
+        temp_file = f.name
+
+    try:
+        # Create mock HDF5 file with more data
+        with h5py.File(temp_file, "w") as f:
+            f.create_group("data")
+            f.create_group("metadata")
+
+            # Add time data (0, 1, 2, 3, 4, 5 seconds)
+            f["data/time"] = np.array([0, 1, 2, 3, 4, 5])
+            f["data/step"] = np.array([0, 1, 2, 3, 4, 5])
+            f["data/clock_time"] = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
+
+            # Add plant data
+            f["data/plant_power"] = np.array([100, 200, 300, 400, 500, 600])
+            f["data/plant_locally_generated_power"] = np.array([90, 180, 270, 360, 450, 540])
+
+            # Add components group
+            components_group = f.create_group("data/components")
+            components_group["wind_farm.power"] = np.array([50, 100, 150, 200, 250, 300])
+            components_group["solar_farm.power"] = np.array([40, 80, 120, 160, 200, 240])
+
+            # Add external signals
+            external_signals_group = f.create_group("data/external_signals")
+            external_signals_group["external_signals.wind_speed"] = np.array(
+                [8.5, 9.0, 8.8, 9.2, 8.9, 9.1]
+            )
+            external_signals_group["external_signals.temperature"] = np.array(
+                [20.0, 21.0, 20.5, 22.0, 21.5, 22.5]
+            )
+
+        # Test column filtering
+        from hercules.utilities import read_hercules_hdf5_subset
+
+        result_columns = read_hercules_hdf5_subset(
+            temp_file, columns=["wind_farm.power", "external_signals.wind_speed"]
+        )
+
+        # Verify only requested columns are present
+        expected_columns = {
+            "time",
+            "step",
+            "clock_time",
+            "plant.power",
+            "plant.locally_generated_power",
+            "wind_farm.power",
+            "external_signals.wind_speed",
+        }
+        assert set(result_columns.columns) == expected_columns
+
+        # Test time range filtering
+        result_time = read_hercules_hdf5_subset(temp_file, time_range=(1.5, 4.5))
+
+        # Verify time range is correct (should include times 2, 3, 4)
+        assert len(result_time) == 3
+        np.testing.assert_array_equal(result_time["time"], [2, 3, 4])
+
+        # Test both filters together
+        result_both = read_hercules_hdf5_subset(
+            temp_file, columns=["solar_farm.power"], time_range=(1.0, 3.0)
+        )
+
+        # Verify both filters work together
+        assert len(result_both) == 3  # times 1, 2, 3 (inclusive of end time)
+        assert "solar_farm.power" in result_both.columns
+        assert "wind_farm.power" not in result_both.columns
+
+    finally:
+        os.unlink(temp_file)

@@ -610,6 +610,73 @@ def read_hercules_hdf5(filename):
     return pd.DataFrame(data)
 
 
+def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
+    """Read a subset of Hercules HDF5 output file data.
+
+    This function reads a Hercules HDF5 output file and returns only the specified
+    columns and time range, reducing memory usage for large datasets.
+
+    Args:
+        filename (str): Path to the Hercules HDF5 output file.
+        columns (list, optional): List of column names to include. If None, includes all columns.
+            Defaults to None.
+        time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
+            times.
+            Defaults to None.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the subset of simulation data.
+    """
+    with h5py.File(filename, "r") as f:
+        # Determine time indices if time_range is specified
+        time_data = f["data/time"][:]
+        start_idx = 0
+        end_idx = len(time_data)
+
+        if time_range is not None:
+            start_time, end_time = time_range
+            start_idx = np.searchsorted(time_data, start_time, side="left")
+            end_idx = np.searchsorted(time_data, end_time, side="right")
+
+        # Always include time
+        data = {
+            "time": time_data[start_idx:end_idx],
+            "step": f["data/step"][start_idx:end_idx],
+            "clock_time": f["data/clock_time"][start_idx:end_idx],
+        }
+
+        # Read time_utc if available
+        if "time_utc" in f["data"]:
+            data["time_utc"] = f["data/time_utc"][start_idx:end_idx]
+        elif "start_time_utc" in f["metadata"].attrs:
+            # Reconstruct time_utc if start_time_utc is available
+            start_time_utc = pd.to_datetime(
+                f["metadata"].attrs["start_time_utc"], unit="s", utc=True
+            )
+            time_subset = pd.to_timedelta(data["time"], unit="s")
+            data["time_utc"] = start_time_utc + time_subset
+
+        # Read plant-level data
+        data["plant.power"] = f["data/plant_power"][start_idx:end_idx]
+        data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][
+            start_idx:end_idx
+        ]
+
+        # Read component data
+        components_group = f["data/components"]
+        for dataset_name in components_group.keys():
+            if columns is None or dataset_name in columns:
+                data[dataset_name] = components_group[dataset_name][start_idx:end_idx]
+
+        # Read external signals
+        if "external_signals" in f["data"]:
+            for dataset_name in f["data/external_signals"].keys():
+                if columns is None or dataset_name in columns:
+                    data[dataset_name] = f["data/external_signals"][dataset_name][start_idx:end_idx]
+
+    return pd.DataFrame(data)
+
+
 def get_hercules_metadata(filename):
     """Read Hercules HDF5 output file metadata.
 
