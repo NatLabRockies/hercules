@@ -588,34 +588,9 @@ def read_hercules_hdf5(filename):
         # Read component data
         components_group = f["data/components"]
         for dataset_name in components_group.keys():
-            # Convert dataset names back to original format
-            if "_" in dataset_name:
-                parts = dataset_name.split("_")
-                if len(parts) >= 3 and parts[-1].isdigit():
-                    # Handle array data (e.g., wind_farm_turbine_powers_000 ->
-                    # wind_farm.turbine_powers.000)
-                    # Find the last underscore that separates the index
-                    last_underscore_idx = dataset_name.rfind("_")
-                    base_name = dataset_name[:last_underscore_idx]
-                    index = dataset_name[last_underscore_idx + 1 :]
-
-                    # Convert base name (e.g., wind_farm_turbine_powers -> wind_farm.turbine_powers)
-                    base_parts = base_name.split("_")
-                    if len(base_parts) >= 3:
-                        component_name = base_parts[0] + "_" + base_parts[1]  # wind_farm
-                        output_name = "_".join(base_parts[2:])  # turbine_powers
-                        column_name = f"{component_name}.{output_name}.{index}"
-                    else:
-                        column_name = dataset_name
-                else:
-                    # Handle scalar data (e.g., wind_farm_power -> wind_farm.power)
-                    component_name = "_".join(parts[:-1])
-                    output_name = parts[-1]
-                    column_name = f"{component_name}.{output_name}"
-            else:
-                column_name = dataset_name
-
-            data[column_name] = components_group[dataset_name][:]
+            # Dataset names use dot format (e.g., wind_farm.floris_wind_direction)
+            # Use dataset name directly as column name
+            data[dataset_name] = components_group[dataset_name][:]
 
     return pd.DataFrame(data)
 
