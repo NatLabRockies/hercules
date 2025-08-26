@@ -38,6 +38,10 @@ hercules/local_amr_wind_demo/sample_copy.nc
 !example_case_folders/00_wind_farm_only/inputs/floris_standin_data.csv
 !example_case_folders/00_wind_farm_only/inputs/wind_power_reference_data.csv
 
+# h5 files
+*.h5
+*.hdf5
+
 # Larger wind input file
 wind_resource_rex
 
