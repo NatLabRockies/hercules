@@ -8,16 +8,15 @@ import polars as pl
 import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
-# Define the Hercules float type
+# Hercules float type for consistent precision
 hercules_float_type = np.float32
 
 
-# Define the available component names
 def get_available_component_names():
-    """Return a list of available component names.
+    """Return available component names.
 
     Returns:
-        list: A list of strings containing the names of available plant components.
+        list: Available plant component names.
     """
     return [
         "wind_farm",
@@ -27,15 +26,14 @@ def get_available_component_names():
     ]
 
 
-# Note this is a subset of the components
 def get_available_generator_names():
-    """Return a list of available generator names.
+    """Return available generator component names.
 
-    This function returns a subset of component names that represent power generators
-    (wind_farm and solar_farm), excluding storage and conversion components.
+    Returns power generators (wind_farm, solar_farm), excluding storage and conversion
+    components.
 
     Returns:
-        list: A list of strings containing the names of available generator components.
+        list: Available generator component names.
     """
     return [
         "wind_farm",
@@ -44,10 +42,10 @@ def get_available_generator_names():
 
 
 def get_available_component_types():
-    """Return a list of available component types, by component.
+    """Return available component types by component.
 
     Returns:
-        dict: A dictionary mapping component names to lists of available simulation types.
+        dict: Component names mapped to available simulation types.
     """
     return {
         "wind_farm": ["Wind_MesoToPower", "Wind_MesoToPowerPrecomFloris"],
@@ -58,30 +56,29 @@ def get_available_component_types():
 
 
 class Loader(yaml.SafeLoader):
-    """Custom YAML loader that supports !include tags.
+    """Custom YAML loader supporting !include tags.
 
-    This loader extends yaml.SafeLoader to support custom !include tags that allow
-    including other YAML files within a main YAML file.
+    Extends yaml.SafeLoader to include other YAML files within a main YAML file.
     """
 
     def __init__(self, stream):
-        """Initialize the Loader with a stream.
+        """Initialize Loader with stream.
 
         Args:
-            stream: The YAML stream to load from.
+            stream: YAML stream to load from.
         """
         self._root = os.path.split(stream.name)[0]
 
         super().__init__(stream)
 
     def include(self, node):
-        """Include another YAML file at the current location.
+        """Include another YAML file at current location.
 
         Args:
-            node: The YAML node containing the filename to include.
+            node: YAML node containing filename to include.
 
         Returns:
-            dict: The parsed YAML content from the included file.
+            dict: Parsed YAML content from included file.
         """
         filename = os.path.join(self._root, self.construct_scalar(node))
 
@@ -93,21 +90,16 @@ Loader.add_constructor("!include", Loader.include)
 
 
 def load_yaml(filename, loader=Loader):
-    """Load and parse a YAML file into a Python dictionary.
+    """Load and parse YAML file into dictionary.
 
-    This function loads a YAML file and parses it into a Python dictionary. It supports
-    custom YAML tags like !include through the custom Loader class. If a dictionary is
-    passed instead of a filename, it returns the dictionary unchanged.
+    Supports custom YAML tags like !include. If filename is already a dict, returns it unchanged.
 
     Args:
-        filename (Union[str, dict]): Path to the YAML file to load, or an existing
-            dictionary containing YAML data.
-        loader (yaml.Loader, optional): The YAML loader class to use for parsing.
-            Defaults to the custom Loader class that supports !include tags.
+        filename (Union[str, dict]): Path to YAML file or existing dictionary.
+        loader (yaml.Loader, optional): YAML loader class. Defaults to custom Loader.
 
     Returns:
-        dict: The parsed YAML data as a Python dictionary.
-
+        dict: Parsed YAML data.
     """
     if isinstance(filename, dict):
         return filename  # filename already yaml dict
@@ -116,25 +108,22 @@ def load_yaml(filename, loader=Loader):
 
 
 def load_hercules_input(filename):
-    """Load and parse a Hercules input file and return h_dict dictionary.
+    """Load and validate Hercules input file.
 
-    This function loads a Hercules input YAML file and performs comprehensive validation
-    of the input structure. It checks for required keys, validates data types, and
-    ensures the configuration follows the expected format for Hercules simulations.
+    Loads YAML file and validates input structure, required keys, and data types.
 
     Args:
-        filename (str): Path to the Hercules input YAML file.
+        filename (str): Path to Hercules input YAML file.
 
     Returns:
-        dict: A validated dictionary containing the Hercules input configuration.
+        dict: Validated Hercules input configuration.
 
     Raises:
-        ValueError: If required keys are missing, data types are invalid, or the
-            configuration structure is incorrect.
+        ValueError: If required keys missing, invalid data types, or incorrect structure.
     """
     h_dict = load_yaml(filename)
 
-    # Known keys
+    # Define valid keys
     required_keys = ["dt", "starttime", "endtime", "plant"]
     component_names = get_available_component_names()
     component_types = get_available_component_types()
@@ -152,49 +141,44 @@ def load_hercules_input(filename):
         "output_buffer_size",
     ]
 
-    # Check that required keys are present
-
+    # Validate required keys
     for key in required_keys:
         if key not in h_dict:
             raise ValueError(f"Required key {key} not found in input file {filename}")
 
-    # Check that plant is a dictionary
+    # Validate plant structure
     if not isinstance(h_dict["plant"], dict):
         raise ValueError(f"Plant must be a dictionary in input file {filename}")
 
-    # Ensure that plant contains a interconnect_limit key
     if "interconnect_limit" not in h_dict["plant"]:
         raise ValueError(f"Plant must contain an interconnect_limit key in input file {filename}")
 
-    # Ensure that interconnect_limit is a float or an int
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
 
-    # Check that all keys are either required or optional
+    # Validate all keys are valid
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
             raise ValueError(f"Key {key} not a valid key in input file {filename}")
 
-    # Of the component keys present in h_dict, confirm all are dictionaries
+    # Validate component structures
     for key in component_names:
         if key in h_dict:
             if not isinstance(h_dict[key], dict):
                 raise ValueError(f"{key} must be a dictionary in input file {filename}")
 
-    # If verbose is not present, set it to False
+    # Set verbose default and validate
     if "verbose" not in h_dict:
         h_dict["verbose"] = False
-    # If verbose is present, check that it is a boolean
     elif not isinstance(h_dict["verbose"], bool):
         raise ValueError(f"Verbose must be a boolean in input file {filename}")
 
-    # Check that none of the included components include a verbose key
+    # Validate no components have verbose key
     for key in component_names:
-        if key in h_dict:
-            if "verbose" in h_dict[key]:
-                raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
+        if key in h_dict and "verbose" in h_dict[key]:
+            raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
 
-    # Check that all of the included components have a component_type key and that key is valid
+    # Validate component types
     for key in component_names:
         if key in h_dict:
             if "component_type" not in h_dict[key]:
@@ -207,9 +191,7 @@ def load_hercules_input(filename):
                     f"in input file {filename}"
                 )
 
-    # Check that verbose is a boolean
-
-    # Validate output configuration options
+    # Validate output configuration
     if "output_format" in h_dict:
         valid_formats = ["feather", "parquet", "csv"]
         if h_dict["output_format"].lower() not in valid_formats:
@@ -229,21 +211,17 @@ def load_hercules_input(filename):
     return h_dict
 
 
-# Configure logging
 def setup_logging(logfile="log_hercules.log", console_output=True):
     """Set up logging to file and console.
 
-    This function configures logging for the Hercules emulator. It creates an 'outputs'
-    directory if it doesn't exist and sets up file logging with a timestamped format.
-    By default, it enables console output for real-time logging with logger identification.
+    Creates 'outputs' directory and configures file/console logging with timestamps.
 
     Args:
-        logfile (str, optional): Name of the log file. Defaults to "log_hercules.log".
-        console_output (bool, optional): Whether to enable console logging output.
-            Defaults to True.
+        logfile (str, optional): Log file name. Defaults to "log_hercules.log".
+        console_output (bool, optional): Enable console output. Defaults to True.
 
     Returns:
-        logging.Logger: The configured logger instance for the emulator.
+        logging.Logger: Configured logger instance.
     """
     log_dir = os.path.join(os.getcwd(), "outputs")
     os.makedirs(log_dir, exist_ok=True)
@@ -275,11 +253,10 @@ def setup_logging(logfile="log_hercules.log", console_output=True):
 
 
 def close_logging(logger):
-    """
-    Properly close all handlers for a logger to prevent resource warnings.
+    """Close all handlers for logger to prevent resource warnings.
 
     Args:
-        logger (logging.Logger): The logger instance to close.
+        logger (logging.Logger): Logger instance to close.
     """
     if logger:
         for handler in logger.handlers[:]:
@@ -288,23 +265,16 @@ def close_logging(logger):
 
 
 def interpolate_df(df, new_time):
-    """Interpolates the values of a DataFrame to match a new time axis.
+    """Interpolate DataFrame values to match new time axis.
 
-    This function takes a DataFrame with a 'time' column and other data columns,
-    and interpolates the data columns to align with a new set of time points
-    provided in `new_time`. The interpolation is performed using linear
-    interpolation. For datetime columns, the function converts to timestamps
-    for interpolation and then converts back to datetime format.
+    Uses linear interpolation. Converts datetime columns to timestamps for interpolation.
 
     Args:
-        df (pd.DataFrame): The input DataFrame containing a 'time' column and
-            other columns to be interpolated.
-        new_time (array-like): A sequence of new time points to which the data
-            should be interpolated.
+        df (pd.DataFrame): DataFrame with 'time' column and data columns.
+        new_time (array-like): New time points for interpolation.
 
     Returns:
-        pd.DataFrame: A new DataFrame containing the 'time' column with values
-            from `new_time` and the interpolated data columns.
+        pd.DataFrame: DataFrame with new time axis and interpolated data columns.
     """
     # Create dictionary to store all columns
     result_dict = {"time": new_time}
@@ -331,24 +301,16 @@ def interpolate_df(df, new_time):
 
 
 def interpolate_df_fast(df, new_time):
-    """Optimized version of interpolate_df with better memory efficiency and performance.
+    """Optimized interpolate_df with Polars backend for better performance.
 
-    This function provides the same functionality as interpolate_df but with significant
-    performance improvements through Polars backend operations. Key optimizations include:
-    - Polars backend for better memory efficiency and performance
-    - Efficient data extraction and processing using Polars operations
-    - Reduced memory allocations and intermediate object creation
-    - Optimized datetime handling with efficient conversions
+    Same functionality as interpolate_df but with improved memory efficiency and speed.
 
     Args:
-        df (pd.DataFrame): The input DataFrame containing a 'time' column and
-            other columns to be interpolated.
-        new_time (array-like): A sequence of new time points to which the data
-            should be interpolated.
+        df (pd.DataFrame): DataFrame with 'time' column and data columns.
+        new_time (array-like): New time points for interpolation.
 
     Returns:
-        pd.DataFrame: A new DataFrame containing the 'time' column with values
-            from `new_time` and the interpolated data columns.
+        pd.DataFrame: DataFrame with new time axis and interpolated data columns.
     """
     # Convert new_time to numpy array for consistency
     new_time = np.asarray(new_time)
@@ -368,13 +330,13 @@ def interpolate_df_fast(df, new_time):
 
 
 def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
-    """Interpolate using Polars backend for memory efficiency.
+    """Interpolate using Polars backend.
 
     Args:
         df (pd.DataFrame): Input DataFrame.
         new_time (np.ndarray): New time points.
-        datetime_cols (list): List of datetime column names.
-        numeric_cols (list): List of numeric column names.
+        datetime_cols (list): Datetime column names.
+        numeric_cols (list): Numeric column names.
 
     Returns:
         pd.DataFrame: Interpolated DataFrame.
@@ -428,22 +390,19 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
 
 
 def load_h_dict_from_text(filename):
-    """Load an h_dict from a text file created by _save_h_dict_as_text.
+    """Load h_dict from text file created by _save_h_dict_as_text.
 
-    This function reads a text file that contains a Python dictionary representation
-    (as created by the print() function) and converts it back to a Python dictionary.
-    The file is expected to contain a single dictionary that was saved using
-    _save_h_dict_as_text method from the Emulator class.
+    Reads Python dictionary representation from text file and converts back to dict.
 
     Args:
-        filename (str): Path to the text file containing the h_dict representation.
+        filename (str): Path to text file containing h_dict representation.
 
     Returns:
-        dict: The reconstructed h_dict dictionary.
+        dict: Reconstructed h_dict dictionary.
 
     Raises:
-        FileNotFoundError: If the specified file does not exist.
-        ValueError: If the file content cannot be parsed as a valid Python dictionary.
+        FileNotFoundError: If file does not exist.
+        ValueError: If file content cannot be parsed as valid Python dictionary.
     """
 
     try:
@@ -557,20 +516,18 @@ def load_perffile(perffile):
 
 
 def read_hercules_hdf5(filename):
-    """Read Hercules HDF5 output file and return data as pandas DataFrame.
+    """Read Hercules HDF5 output file.
 
-    This function reads a Hercules HDF5 output file and converts it to a pandas DataFrame
-    with the same structure as the original output format for backward compatibility.
+    Converts HDF5 file to pandas DataFrame with original output format structure.
 
     Args:
-        filename (str): Path to the Hercules HDF5 output file.
+        filename (str): Path to Hercules HDF5 output file.
 
     Returns:
-        pd.DataFrame: DataFrame containing the simulation data with columns matching
-            the original output format.
+        pd.DataFrame: Simulation data with original output format columns.
     """
     with h5py.File(filename, "r") as f:
-        # Read basic time data
+        # Read time data
         data = {
             "time": f["data/time"][:],
             "step": f["data/step"][:],
@@ -581,28 +538,24 @@ def read_hercules_hdf5(filename):
         if "time_utc" in f["data"]:
             data["time_utc"] = f["data/time_utc"][:]
 
-        # If start_time_utc is available, and time_utc is not, add time_utc to data
-        # using time and start_time_utc
+        # Reconstruct time_utc if start_time_utc available
         if "start_time_utc" in f["metadata"].attrs and "time_utc" not in data:
-            # Save as datetime
             start_time_utc = pd.to_datetime(
                 f["metadata"].attrs["start_time_utc"], unit="s", utc=True
             )
             time = pd.to_timedelta(data["time"], unit="s")
             data["time_utc"] = start_time_utc + time
 
-        # Read plant-level data
+        # Read plant data
         data["plant.power"] = f["data/plant_power"][:]
         data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][:]
 
         # Read component data
         components_group = f["data/components"]
         for dataset_name in components_group.keys():
-            # Dataset names use dot format (e.g., wind_farm.floris_wind_direction)
-            # Use dataset name directly as column name
             data[dataset_name] = components_group[dataset_name][:]
 
-        # Read in all external signals
+        # Read external signals
         if "external_signals" in f["data"]:
             for dataset_name in f["data/external_signals"].keys():
                 data[dataset_name] = f["data/external_signals"][dataset_name][:]
@@ -611,24 +564,21 @@ def read_hercules_hdf5(filename):
 
 
 def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
-    """Read a subset of Hercules HDF5 output file data.
+    """Read subset of Hercules HDF5 output file data.
 
-    This function reads a Hercules HDF5 output file and returns only the specified
-    columns and time range, reducing memory usage for large datasets.
+    Returns only specified columns and time range, reducing memory usage for large datasets.
 
     Args:
-        filename (str): Path to the Hercules HDF5 output file.
-        columns (list, optional): List of column names to include. If None, includes all columns.
-            Defaults to None.
+        filename (str): Path to Hercules HDF5 output file.
+        columns (list, optional): Column names to include. If None, includes all columns.
         time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
             times.
-            Defaults to None.
 
     Returns:
-        pd.DataFrame: DataFrame containing the subset of simulation data.
+        pd.DataFrame: Subset of simulation data.
     """
     with h5py.File(filename, "r") as f:
-        # Determine time indices if time_range is specified
+        # Get time indices for subset
         time_data = f["data/time"][:]
         start_idx = 0
         end_idx = len(time_data)
@@ -638,7 +588,7 @@ def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
             start_idx = np.searchsorted(time_data, start_time, side="left")
             end_idx = np.searchsorted(time_data, end_time, side="right")
 
-        # Always include time
+        # Always include time data
         data = {
             "time": time_data[start_idx:end_idx],
             "step": f["data/step"][start_idx:end_idx],
@@ -649,14 +599,14 @@ def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
         if "time_utc" in f["data"]:
             data["time_utc"] = f["data/time_utc"][start_idx:end_idx]
         elif "start_time_utc" in f["metadata"].attrs:
-            # Reconstruct time_utc if start_time_utc is available
+            # Reconstruct time_utc from start_time_utc
             start_time_utc = pd.to_datetime(
                 f["metadata"].attrs["start_time_utc"], unit="s", utc=True
             )
             time_subset = pd.to_timedelta(data["time"], unit="s")
             data["time_utc"] = start_time_utc + time_subset
 
-        # Read plant-level data
+        # Read plant data
         data["plant.power"] = f["data/plant_power"][start_idx:end_idx]
         data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][
             start_idx:end_idx
@@ -681,10 +631,10 @@ def get_hercules_metadata(filename):
     """Read Hercules HDF5 output file metadata.
 
     Args:
-        filename (str): Path to the Hercules HDF5 output file.
+        filename (str): Path to Hercules HDF5 output file.
 
     Returns:
-        dict: Dictionary containing simulation metadata including h_dict and simulation info.
+        dict: Simulation metadata including h_dict and simulation info.
     """
     with h5py.File(filename, "r") as f:
         metadata = {}
