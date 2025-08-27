@@ -563,16 +563,18 @@ def read_hercules_hdf5(filename):
     return pd.DataFrame(data)
 
 
-def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
+def read_hercules_hdf5_subset(filename, columns=None, time_range=None, stride=1):
     """Read subset of Hercules HDF5 output file data.
 
     Returns only specified columns and time range, reducing memory usage for large datasets.
+    Optionally applies stride to read every Nth data point for further downsampling.
 
     Args:
         filename (str): Path to Hercules HDF5 output file.
-        columns (list, optional): Column names to include. If None, includes all columns.
+        columns (list, optional): Column names to include. If None, includes only time column.
         time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
             times.
+        stride (int, optional): Read every Nth data point. Defaults to 1 (read all points).
 
     Returns:
         pd.DataFrame: Subset of simulation data.
@@ -588,41 +590,40 @@ def read_hercules_hdf5_subset(filename, columns=None, time_range=None):
             start_idx = np.searchsorted(time_data, start_time, side="left")
             end_idx = np.searchsorted(time_data, end_time, side="right")
 
+        # Apply stride to indices
+        indices = np.arange(start_idx, end_idx, stride)
+
         # Always include time data
-        data = {
-            "time": time_data[start_idx:end_idx],
-            "step": f["data/step"][start_idx:end_idx],
-            "clock_time": f["data/clock_time"][start_idx:end_idx],
-        }
+        data = {"time": time_data[indices]}
 
-        # Read time_utc if available
-        if "time_utc" in f["data"]:
-            data["time_utc"] = f["data/time_utc"][start_idx:end_idx]
-        elif "start_time_utc" in f["metadata"].attrs:
-            # Reconstruct time_utc from start_time_utc
-            start_time_utc = pd.to_datetime(
-                f["metadata"].attrs["start_time_utc"], unit="s", utc=True
-            )
-            time_subset = pd.to_timedelta(data["time"], unit="s")
-            data["time_utc"] = start_time_utc + time_subset
+        # If no columns specified, return only time
+        if columns is None:
+            return pd.DataFrame(data)
 
-        # Read plant data
-        data["plant.power"] = f["data/plant_power"][start_idx:end_idx]
-        data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][
-            start_idx:end_idx
-        ]
-
-        # Read component data
-        components_group = f["data/components"]
-        for dataset_name in components_group.keys():
-            if columns is None or dataset_name in columns:
-                data[dataset_name] = components_group[dataset_name][start_idx:end_idx]
-
-        # Read external signals
-        if "external_signals" in f["data"]:
-            for dataset_name in f["data/external_signals"].keys():
-                if columns is None or dataset_name in columns:
-                    data[dataset_name] = f["data/external_signals"][dataset_name][start_idx:end_idx]
+        # Read requested columns
+        for col in columns:
+            if col == "step":
+                data[col] = f["data/step"][indices]
+            elif col == "clock_time":
+                data[col] = f["data/clock_time"][indices]
+            elif col == "time_utc":
+                if "time_utc" in f["data"]:
+                    data[col] = f["data/time_utc"][indices]
+                elif "start_time_utc" in f["metadata"].attrs:
+                    # Reconstruct time_utc from start_time_utc
+                    start_time_utc = pd.to_datetime(
+                        f["metadata"].attrs["start_time_utc"], unit="s", utc=True
+                    )
+                    time_subset = pd.to_timedelta(data["time"], unit="s")
+                    data[col] = start_time_utc + time_subset
+            elif col == "plant.power":
+                data[col] = f["data/plant_power"][indices]
+            elif col == "plant.locally_generated_power":
+                data[col] = f["data/plant_locally_generated_power"][indices]
+            elif col in f["data/components"]:
+                data[col] = f["data/components"][col][indices]
+            elif col in f["data/external_signals"]:
+                data[col] = f["data/external_signals"][col][indices]
 
     return pd.DataFrame(data)
 

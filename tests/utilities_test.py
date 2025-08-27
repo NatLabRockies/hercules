@@ -639,13 +639,9 @@ def test_read_hercules_hdf5_subset():
             temp_file, columns=["wind_farm.power", "external_signals.wind_speed"]
         )
 
-        # Verify only requested columns are present
+        # Verify only requested columns plus time are present
         expected_columns = {
             "time",
-            "step",
-            "clock_time",
-            "plant.power",
-            "plant.locally_generated_power",
             "wind_farm.power",
             "external_signals.wind_speed",
         }
@@ -667,6 +663,26 @@ def test_read_hercules_hdf5_subset():
         assert len(result_both) == 3  # times 1, 2, 3 (inclusive of end time)
         assert "solar_farm.power" in result_both.columns
         assert "wind_farm.power" not in result_both.columns
+        assert set(result_both.columns) == {"time", "solar_farm.power"}
+
+        # Test stride parameter
+        result_stride = read_hercules_hdf5_subset(temp_file, stride=2)
+
+        # Verify stride works (should read every 2nd point: 0, 2, 4)
+        assert len(result_stride) == 3
+        np.testing.assert_array_equal(result_stride["time"], [0, 2, 4])
+
+        # Test stride with time range
+        result_stride_time = read_hercules_hdf5_subset(temp_file, time_range=(1.0, 4.0), stride=2)
+
+        # Should get times 1, 3 (within range, every 2nd point starting from first in range)
+        assert len(result_stride_time) == 2
+        np.testing.assert_array_equal(result_stride_time["time"], [1, 3])
+
+        # Test with no columns specified (should return only time)
+        result_time_only = read_hercules_hdf5_subset(temp_file)
+        assert set(result_time_only.columns) == {"time"}
+        assert len(result_time_only) == 6  # All time points
 
     finally:
         os.unlink(temp_file)
