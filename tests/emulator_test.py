@@ -82,7 +82,7 @@ def test_Emulator_instantiation():
 
     # Check default settings
     assert emulator.output_file == "outputs/hercules_output.h5"
-    assert emulator.output_downsample_factor == 1
+    assert emulator.log_every_n == 1
     assert emulator.external_data_all == {}
 
     # Test with external data file and custom output file
@@ -311,7 +311,6 @@ def test_hdf5_output_configuration():
     with tempfile.TemporaryDirectory() as temp_dir:
         test_h_dict_hdf5 = test_h_dict.copy()
         test_h_dict_hdf5["output_file"] = os.path.join(temp_dir, "test_output.h5")
-        test_h_dict_hdf5["output_time_step"] = 2.0  # 2x downsampling
         test_h_dict_hdf5["dt"] = 1.0
         test_h_dict_hdf5["starttime"] = 0.0
         test_h_dict_hdf5["endtime"] = 5.0
@@ -319,10 +318,6 @@ def test_hdf5_output_configuration():
         controller = SimpleControllerSolar(test_h_dict_hdf5)
         hybrid_plant = HybridPlant(test_h_dict_hdf5)
         emulator = Emulator(controller, hybrid_plant, test_h_dict_hdf5, logger)
-
-        # Check configuration
-        assert emulator.output_time_step == 2.0
-        assert emulator.output_downsample_factor == 2
 
         # Run simulation and write output
         for step in range(5):  # 5 steps (0-4) for dt=1.0, endtime=5.0, starttime=0.0
@@ -339,11 +334,13 @@ def test_hdf5_output_configuration():
         # Verify file exists and is readable
         assert os.path.exists(emulator.output_file)
         df_hdf5 = read_hercules_hdf5(emulator.output_file)
-        # 5 steps downsampled by factor 2 should give 3 rows (0, 2, 4)
-        assert len(df_hdf5) == 3
+        # 5 steps with default log_every_n=1 should give 5 rows
+        assert len(df_hdf5) == 5
         assert df_hdf5["time"].iloc[0] == 0.0
-        assert df_hdf5["time"].iloc[1] == 2.0
-        assert df_hdf5["time"].iloc[2] == 4.0
+        assert df_hdf5["time"].iloc[1] == 1.0
+        assert df_hdf5["time"].iloc[2] == 2.0
+        assert df_hdf5["time"].iloc[3] == 3.0
+        assert df_hdf5["time"].iloc[4] == 4.0
 
     # Test 2: HDF5 format with custom chunk size
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -377,3 +374,99 @@ def test_hdf5_output_configuration():
         assert os.path.exists(emulator.output_file)
         df_hdf5 = read_hercules_hdf5(emulator.output_file)
         assert len(df_hdf5) == 5
+
+
+def test_log_every_n_option():
+    """Test that the log_every_n option works correctly."""
+    import os
+    import tempfile
+
+    from hercules.utilities import read_hercules_hdf5
+
+    # Use h_dict_solar as base for testing
+    test_h_dict = h_dict_solar.copy()
+
+    # Set up logger for testing
+    logger = setup_logging(console_output=False)
+
+    # Test with log_every_n = 2
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_h_dict_log = test_h_dict.copy()
+        test_h_dict_log["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_log["log_every_n"] = 2  # Log every 2 steps
+        test_h_dict_log["dt"] = 1.0
+        test_h_dict_log["starttime"] = 0.0
+        test_h_dict_log["endtime"] = 6.0  # 6 steps total
+
+        controller = SimpleControllerSolar(test_h_dict_log)
+        hybrid_plant = HybridPlant(test_h_dict_log)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_log, logger)
+
+        # Check configuration
+        assert emulator.log_every_n == 2
+        assert emulator.dt_log == 2.0
+
+        # Run simulation and write output
+        for step in range(6):  # 6 steps (0-5) for dt=1.0, endtime=6.0, starttime=0.0
+            emulator.step = step
+            emulator.time = step * emulator.dt
+            emulator.h_dict["time"] = emulator.time
+            emulator.h_dict["step"] = step
+            emulator.h_dict = controller.step(emulator.h_dict)
+            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+            emulator._log_data_to_hdf5()
+
+        emulator.close()
+
+        # Verify file exists and is readable
+        assert os.path.exists(emulator.output_file)
+        df_hdf5 = read_hercules_hdf5(emulator.output_file)
+        # 6 steps with log_every_n=2 should give 3 rows (0, 2, 4)
+        assert len(df_hdf5) == 3
+        assert df_hdf5["time"].iloc[0] == 0.0
+        assert df_hdf5["time"].iloc[1] == 2.0
+        assert df_hdf5["time"].iloc[2] == 4.0
+        assert df_hdf5["step"].iloc[0] == 0
+        assert df_hdf5["step"].iloc[1] == 2
+        assert df_hdf5["step"].iloc[2] == 4
+
+    # Test with log_every_n = 3
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_h_dict_log2 = test_h_dict.copy()
+        test_h_dict_log2["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_log2["log_every_n"] = 3  # Log every 3 steps
+        test_h_dict_log2["dt"] = 1.0
+        test_h_dict_log2["starttime"] = 0.0
+        test_h_dict_log2["endtime"] = 7.0  # 7 steps total
+
+        controller = SimpleControllerSolar(test_h_dict_log2)
+        hybrid_plant = HybridPlant(test_h_dict_log2)
+        emulator = Emulator(controller, hybrid_plant, test_h_dict_log2, logger)
+
+        # Check configuration
+        assert emulator.log_every_n == 3
+        assert emulator.dt_log == 3.0
+
+        # Run simulation and write output
+        for step in range(7):  # 7 steps (0-6)
+            emulator.step = step
+            emulator.time = step * emulator.dt
+            emulator.h_dict["time"] = emulator.time
+            emulator.h_dict["step"] = step
+            emulator.h_dict = controller.step(emulator.h_dict)
+            emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+            emulator._log_data_to_hdf5()
+
+        emulator.close()
+
+        # Verify file exists and is readable
+        assert os.path.exists(emulator.output_file)
+        df_hdf5 = read_hercules_hdf5(emulator.output_file)
+        # 7 steps with log_every_n=3 should give 3 rows (0, 3, 6)
+        assert len(df_hdf5) == 3
+        assert df_hdf5["time"].iloc[0] == 0.0
+        assert df_hdf5["time"].iloc[1] == 3.0
+        assert df_hdf5["time"].iloc[2] == 6.0
+        assert df_hdf5["step"].iloc[0] == 0
+        assert df_hdf5["step"].iloc[1] == 3
+        assert df_hdf5["step"].iloc[2] == 6

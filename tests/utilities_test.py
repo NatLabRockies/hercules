@@ -339,39 +339,19 @@ def test_output_configuration_validation():
         "solar_farm": {"component_type": "SolarPySAMPVWatts"},
     }
 
-    # Test valid output_format
+    # Test valid log_every_n
     test_dict = base_h_dict.copy()
-    test_dict["output_format"] = "feather"
+    test_dict["log_every_n"] = 2
     result = load_hercules_input_from_dict(test_dict)
-    assert result["output_format"] == "feather"
+    assert result["log_every_n"] == 2
 
-    test_dict["output_format"] = "parquet"
+    test_dict["log_every_n"] = 5
     result = load_hercules_input_from_dict(test_dict)
-    assert result["output_format"] == "parquet"
+    assert result["log_every_n"] == 5
 
-    test_dict["output_format"] = "csv"
-    result = load_hercules_input_from_dict(test_dict)
-    assert result["output_format"] == "csv"
-
-    # Test invalid output_format
-    test_dict["output_format"] = "invalid_format"
-    with pytest.raises(ValueError, match="output_format must be one of"):
-        load_hercules_input_from_dict(test_dict)
-
-    # Test valid output_time_step
-    test_dict = base_h_dict.copy()
-    test_dict["output_time_step"] = 2.0
-    result = load_hercules_input_from_dict(test_dict)
-    assert result["output_time_step"] == 2.0
-
-    # Test invalid output_time_step (negative)
-    test_dict["output_time_step"] = -1.0
-    with pytest.raises(ValueError, match="output_time_step must be a positive number"):
-        load_hercules_input_from_dict(test_dict)
-
-    # Test invalid output_time_step (less than dt)
-    test_dict["output_time_step"] = 0.5  # Less than dt=1.0
-    with pytest.raises(ValueError, match="output_time_step must be greater than or equal to dt"):
+    # Test invalid log_every_n
+    test_dict["log_every_n"] = 0
+    with pytest.raises(ValueError, match="log_every_n must be a positive integer"):
         load_hercules_input_from_dict(test_dict)
 
 

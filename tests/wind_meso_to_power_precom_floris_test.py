@@ -219,3 +219,119 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         # Clean up temporary file
         if os.path.exists(temp_wind_file):
             os.unlink(temp_wind_file)
+
+
+def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
+    """Test that time_utc reconstruction works correctly from start_time_utc metadata."""
+    # Create wind input data with time_utc columns
+    wind_data = {
+        "time": [0, 1, 2, 3],
+        "time_utc": [
+            "2023-01-01T00:00:00Z",
+            "2023-01-01T00:00:01Z",
+            "2023-01-01T00:00:02Z",
+            "2023-01-01T00:00:03Z",
+        ],
+        "wd_mean": [270.0, 275.0, 280.0, 285.0],
+        "ws_000": [8.0, 9.0, 10.0, 11.0],
+        "ws_001": [8.5, 9.5, 10.5, 11.5],
+        "ws_002": [9.0, 10.0, 11.0, 12.0],
+    }
+
+    # Create temporary file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df = pd.DataFrame(wind_data)
+        df.to_csv(f.name, index=False)
+        temp_wind_file = f.name
+
+    try:
+        # Create test h_dict with the temporary wind file
+        test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
+        test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
+        test_h_dict["starttime"] = 0.0
+        test_h_dict["endtime"] = 4.0
+        test_h_dict["dt"] = 1.0
+
+        # Initialize wind simulation
+        wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
+
+        # Verify that start_time_utc is set correctly
+        assert hasattr(wind_sim, "start_time_utc")
+        expected_start_time = pd.to_datetime("2023-01-01T00:00:00Z", utc=True)
+        # Convert numpy datetime64 to pandas Timestamp for comparison
+        actual_start_time = pd.Timestamp(wind_sim.start_time_utc)
+        # Compare datetime values (ignoring timezone for this test)
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None)
+
+        # Test that start_time_utc is added to h_dict when getting initial conditions
+        result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
+        assert "start_time_utc" in result["wind_farm"]
+        # Convert numpy datetime64 to pandas Timestamp for comparison
+        actual_start_time = pd.Timestamp(result["wind_farm"]["start_time_utc"])
+        # Compare datetime values (ignoring timezone for this test)
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None)
+
+        # Test time_utc reconstruction using utilities
+        # Create a temporary HDF5 file to test reconstruction
+        import h5py
+        from hercules.utilities import read_hercules_hdf5
+
+        with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
+            temp_h5_file = f.name
+
+        try:
+            # Create a minimal HDF5 file with the structure needed for reconstruction
+            with h5py.File(temp_h5_file, "w") as f:
+                # Create metadata group
+                metadata = f.create_group("metadata")
+                metadata.attrs["start_time_utc"] = expected_start_time.timestamp()
+
+                # Create data group with time array
+                data = f.create_group("data")
+                time_data = np.array([0.0, 1.0, 2.0, 3.0])
+                data.create_dataset("time", data=time_data)
+
+                # Create step dataset
+                step_data = np.array([0, 1, 2, 3], dtype=np.int32)
+                data.create_dataset("step", data=step_data)
+
+                # Create a minimal plant_power dataset
+                plant_power = np.array([1000.0, 1100.0, 1200.0, 1300.0])
+                data.create_dataset("plant_power", data=plant_power)
+
+                # Create plant_locally_generated_power dataset
+                plant_locally_generated_power = np.array([1000.0, 1100.0, 1200.0, 1300.0])
+                data.create_dataset(
+                    "plant_locally_generated_power", data=plant_locally_generated_power
+                )
+
+                # Create components group
+                data.create_group("components")
+
+            # Test reconstruction
+            df = read_hercules_hdf5(temp_h5_file)
+
+            # Verify that time_utc column is reconstructed
+            assert "time_utc" in df.columns
+
+            # Verify the reconstructed timestamps are correct
+            expected_timestamps = [
+                "2023-01-01 00:00:00+00:00",
+                "2023-01-01 00:00:01+00:00",
+                "2023-01-01 00:00:02+00:00",
+                "2023-01-01 00:00:03+00:00",
+            ]
+
+            for i, expected in enumerate(expected_timestamps):
+                actual = str(df["time_utc"].iloc[i])
+                assert actual == expected, f"Timestamp {i}: expected {expected}, got {actual}"
+
+        finally:
+            # Clean up temporary HDF5 file
+            if os.path.exists(temp_h5_file):
+                os.unlink(temp_h5_file)
+
+    finally:
+        # Clean up temporary wind file
+        if os.path.exists(temp_wind_file):
+            os.unlink(temp_wind_file)
