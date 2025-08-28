@@ -47,6 +47,10 @@ class Emulator:
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
 
+        # Initialize logging configuration
+        self.log_every_n = h_dict.get("log_every_n", 1)
+        self.dt_log = self.dt * self.log_every_n
+
         # Initialize HDF5 output configuration
         if "output_file" in h_dict:
             self.output_file = h_dict["output_file"]
@@ -55,12 +59,6 @@ class Emulator:
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
         else:
             self.output_file = "outputs/hercules_output.h5"
-
-        # Initialize output time configuration
-        self.output_time_step = h_dict.get("output_time_step", self.dt)  # Output downsampling
-
-        # Calculate downsampling factor
-        self.output_downsample_factor = max(1, int(self.output_time_step / self.dt))
 
         # Initialize HDF5 output system
         self.hdf5_file = None
@@ -168,16 +166,18 @@ class Emulator:
         # Store simulation info
         metadata_group.attrs["starttime"] = self.starttime
         metadata_group.attrs["endtime"] = self.endtime
-        metadata_group.attrs["dt"] = self.dt
+        metadata_group.attrs["dt_sim"] = self.dt
+        metadata_group.attrs["dt_log"] = self.dt_log
+        metadata_group.attrs["log_every_n"] = self.log_every_n
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
         # Create data group
         data_group = self.hdf5_file.create_group("data")
 
-        # Calculate total number of rows (with downsampling)
-        total_rows = self.n_steps // self.output_downsample_factor
-        if self.n_steps % self.output_downsample_factor != 0:
+        # Calculate total number of rows with logging stride
+        total_rows = self.n_steps // self.log_every_n
+        if self.n_steps % self.log_every_n != 0:
             total_rows += 1
 
         # Set compression parameters based on configuration
@@ -499,8 +499,8 @@ class Emulator:
         if not self.output_structure_determined:
             self._initialize_hdf5_file()
 
-        # Apply downsampling
-        if self.step % self.output_downsample_factor != 0:
+        # Apply  logging stride
+        if self.step % self.log_every_n != 0:
             return
 
         # Initialize buffers on first call
