@@ -76,7 +76,7 @@ class Emulator:
 
         # Buffering configuration
         # Buffer 10000 rows in memory (optimized default)
-        self.buffer_size = h_dict.get("output_buffer_size", 10000)
+        self.buffer_size = h_dict.get("output_buffer_size", 50000)
         self.data_buffers = {}  # Dictionary to hold buffered data
         self.buffer_row = 0  # Current position in buffer
 
