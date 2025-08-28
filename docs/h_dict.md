@@ -35,7 +35,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |
 | `log_file_name` | str | Wind farm log file path |
-| `log_extra_outputs` | bool | Enable extra logging outputs |
+| `logging_option` | str | Logging level: "base", "turb_subset", or "all" |
 
 ### Solar Farm (`solar_farm`)
 | `component_type` | str | "SolarPySAMPVSam" or "SolarPySAMPVWatts" |

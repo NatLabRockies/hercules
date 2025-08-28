@@ -50,6 +50,8 @@ def modify_input_file_for_precom_floris(temp_dir, input_file):
         h_dict["wind_farm"]["floris_update_time_s"] = h_dict["wind_farm"].get(
             "floris_update_time_s", 300.0
         )
+        # Add logging_option for the new logging system
+        h_dict["wind_farm"]["logging_option"] = "all"
 
     # Write the modified YAML file back
     with open(input_path, "w") as f:

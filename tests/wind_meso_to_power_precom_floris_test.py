@@ -15,6 +15,9 @@ from tests.test_inputs.h_dict import h_dict_wind
 
 # Create a base test dictionary for Wind_MesoToPowerPrecomFloris
 h_dict_wind_precom_floris = copy.deepcopy(h_dict_wind)
+# Update component type and add logging_option for precom_floris tests
+h_dict_wind_precom_floris["wind_farm"]["component_type"] = "Wind_MesoToPowerPrecomFloris"
+h_dict_wind_precom_floris["wind_farm"]["logging_option"] = "all"
 
 
 def test_wind_meso_to_power_precom_floris_initialization():

@@ -38,32 +38,14 @@ class Wind_MesoToPower(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + [
-            "turbine_powers",
-            "turbine_power_setpoints",
-            "wind_speed",
-            "wind_direction",
-            "waked_wind_speed",
-        ]
-
-        # If "log_extra_outputs" is in h_dict[self.component_name],
-        # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.component_name]:
-            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
-        else:
-            self.log_extra_outputs = False
-
-        # If log_extra_outputs is True, add the extra outputs to the log outputs
-        if self.log_extra_outputs:
-            self.log_outputs = self.log_outputs + [
-                "floris_wind_speed",
-                "floris_wind_direction",
-                "floris_ti",
-                "unwaked_velocities",
-                "waked_velocities",
-            ]
+        # Confirm that logging_option is in h_dict[self.component_name]
+        if "logging_option" not in h_dict[self.component_name]:
+            raise ValueError(f"logging_option must be in the h_dict for {self.component_name}")
+        self.logging_option = h_dict[self.component_name]["logging_option"]
+        if self.logging_option not in ["base", "turb_subset", "all"]:
+            raise ValueError(
+                f"logging_option must be one of: base, turb_subset, all for {self.component_name}"
+            )
 
         # Track the number of FLORIS calculations
         self.num_floris_calcs = 0
@@ -150,6 +132,35 @@ class Wind_MesoToPower(ComponentBase):
         self.layout_x = self.fmodel.layout_x
         self.layout_y = self.fmodel.layout_y
         self.n_turbines = self.fmodel.n_turbines
+
+        # Set the logging outputs based on the logging_option
+        # First add outputs included in every logging option
+        self.log_outputs = ["power", "wind_speed", "wind_direction", "waked_wind_speed"]
+
+        # If including subset of turbines, add the turbine indices
+        if self.logging_option == "turb_subset":
+            self.random_turbine_indices = np.random.choice(self.n_turbines, size=3, replace=False)
+            self.log_outputs = self.log_outputs + [
+                f"waked_velocities_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
+            ]
+            self.log_outputs = self.log_outputs + [
+                f"turbine_powers_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
+            ]
+            self.log_outputs = self.log_outputs + [
+                f"turbine_power_setpoints_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
+            ]
+
+        # If including all data add these data points
+        elif self.logging_option == "all":
+            self.log_outputs = self.log_outputs + [
+                "turbine_powers",
+                "turbine_power_setpoints",
+                "floris_wind_speed",
+                "floris_wind_direction",
+                "floris_ti",
+                "unwaked_velocities",
+                "waked_velocities",
+            ]
 
         # How often to update the wake deficits
         self.floris_update_steps = int(self.floris_update_time_s / self.dt)
@@ -429,7 +440,6 @@ class Wind_MesoToPower(ComponentBase):
         self.wind_speed = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
-        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["wind_direction"] = self.wind_direction
         h_dict[self.component_name]["wind_speed"] = self.wind_speed
@@ -437,15 +447,31 @@ class Wind_MesoToPower(ComponentBase):
             self.waked_velocities, dtype=hercules_float_type
         )
 
-        # If log_extra_outputs is True, add the extra outputs to the h_dict
-        h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
-        h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
-        h_dict[self.component_name]["floris_ti"] = self.floris_ti
-        h_dict[self.component_name]["floris_turbine_power_setpoints"] = (
-            self.floris_turbine_power_setpoints
-        )
-        h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
-        h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
+        # If logging_option is "turb_subset", add the turbine indices
+        if self.logging_option == "turb_subset":
+            for t_idx in self.random_turbine_indices:
+                h_dict[self.component_name][f"waked_velocities_turb_{t_idx:03d}"] = (
+                    self.waked_velocities[t_idx]
+                )
+                h_dict[self.component_name][f"turbine_powers_turb_{t_idx:03d}"] = (
+                    self.turbine_powers[t_idx]
+                )
+                h_dict[self.component_name][f"turbine_power_setpoints_turb_{t_idx:03d}"] = (
+                    turbine_power_setpoints[t_idx]
+                )
+
+        # Else if logging_option is "all", add the turbine powers
+        elif self.logging_option == "all":
+            h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+            h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
+            h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
+            h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
+            h_dict[self.component_name]["floris_ti"] = self.floris_ti
+            h_dict[self.component_name]["floris_turbine_power_setpoints"] = (
+                self.floris_turbine_power_setpoints
+            )
+            h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
+            h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
 
         return h_dict
 

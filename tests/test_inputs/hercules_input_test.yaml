@@ -21,6 +21,7 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
+  logging_option: base
 
 solar_farm: # The name of component object 1
   component_type: SolarPySAMPVWatts

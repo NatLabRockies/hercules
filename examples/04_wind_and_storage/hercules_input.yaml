@@ -24,6 +24,7 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
+  logging_option: all
 
 battery:
   component_type: BatterySimple
