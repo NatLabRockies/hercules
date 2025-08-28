@@ -141,7 +141,6 @@ def test_log_data_to_hdf5():
     expected_datasets = {
         "time",
         "step",
-        "clock_time",
         "plant_power",
         "plant_locally_generated_power",
         "solar_farm.power",
@@ -259,7 +258,6 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     expected_datasets = {
         "time",
         "step",
-        "clock_time",
         "plant_power",
         "plant_locally_generated_power",
         "wind_farm.power",

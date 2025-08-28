@@ -531,7 +531,6 @@ def read_hercules_hdf5(filename):
         data = {
             "time": f["data/time"][:],
             "step": f["data/step"][:],
-            "clock_time": f["data/clock_time"][:],
         }
 
         # Read time_utc if available
@@ -604,8 +603,7 @@ def read_hercules_hdf5_subset(filename, columns=None, time_range=None, stride=1)
         for col in columns:
             if col == "step":
                 data[col] = f["data/step"][indices]
-            elif col == "clock_time":
-                data[col] = f["data/clock_time"][indices]
+
             elif col == "time_utc":
                 if "time_utc" in f["data"]:
                     data[col] = f["data/time_utc"][indices]

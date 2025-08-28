@@ -207,13 +207,6 @@ class Emulator:
             **compression_params,
         )
 
-        self.hdf5_datasets["clock_time"] = data_group.create_dataset(
-            "clock_time",
-            shape=(total_rows,),
-            dtype=hercules_float_type,
-            **compression_params,
-        )
-
         # Create plant-level datasets
         self.hdf5_datasets["plant_power"] = data_group.create_dataset(
             "plant_power",
@@ -312,15 +305,16 @@ class Emulator:
 
         # Wrap this effort in a try block to ensure proper cleanup
         try:
-            # Record the current wall time
-            self.start_time_wall = dt.datetime.now()
+            # Record start clock time for metadata
+            self.start_clock_time = _time.time()
 
             # Run the main loop
             self.run()
 
             # Note the total elapsed time
-            self.end_time_wall = dt.datetime.now()
-            self.total_time_wall = self.end_time_wall - self.start_time_wall
+
+            self.end_clock_time = _time.time()
+            self.total_time_wall = self.end_clock_time - self.start_clock_time
 
             # Update the user on time performance
             self.logger.info("=====================================")
@@ -334,7 +328,7 @@ class Emulator:
             self.logger.info(
                 (
                     "Rate of simulation: ",
-                    f"{self.total_simulation_time / self.total_time_wall.total_seconds():.1f}",
+                    f"{self.total_simulation_time / self.total_time_wall:.1f}",
                     "x real time",
                 )
             )
@@ -449,8 +443,16 @@ class Emulator:
             if self.hdf5_file:
                 metadata_group = self.hdf5_file["metadata"]
                 metadata_group.attrs["total_rows_written"] = self.total_rows_written
-                metadata_group.attrs["finalization_time"] = _time.time()
                 metadata_group.attrs["hercules_version"] = "2.0"
+                metadata_group.attrs["start_clock_time"] = getattr(
+                    self, "start_clock_time", _time.time()
+                )
+                metadata_group.attrs["end_clock_time"] = getattr(
+                    self, "end_clock_time", _time.time()
+                )
+                metadata_group.attrs["total_time_wall"] = getattr(
+                    self, "total_time_wall", _time.time()
+                )
 
             if self.verbose:
                 file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
@@ -508,7 +510,6 @@ class Emulator:
         # Buffer basic time information
         self.data_buffers["time"][self.buffer_row] = self.h_dict["time"]
         self.data_buffers["step"][self.buffer_row] = self.h_dict["step"]
-        self.data_buffers["clock_time"][self.buffer_row] = _time.time()
 
         # Buffer plant-level outputs
         self.data_buffers["plant_power"][self.buffer_row] = self.h_dict["plant"]["power"]
