@@ -214,15 +214,6 @@ class Emulator:
             **compression_params,
         )
 
-        # Create time_utc dataset if available
-        if "time_utc" in self.h_dict:
-            self.hdf5_datasets["time_utc"] = data_group.create_dataset(
-                "time_utc",
-                shape=(total_rows,),
-                dtype=hercules_float_type,
-                **compression_params,
-            )
-
         # Create plant-level datasets
         self.hdf5_datasets["plant_power"] = data_group.create_dataset(
             "plant_power",
@@ -519,10 +510,6 @@ class Emulator:
         self.data_buffers["step"][self.buffer_row] = self.h_dict["step"]
         self.data_buffers["clock_time"][self.buffer_row] = _time.time()
 
-        # Buffer time_utc if available
-        if "time_utc" in self.data_buffers:
-            self.data_buffers["time_utc"][self.buffer_row] = self.h_dict.get("time_utc", np.nan)
-
         # Buffer plant-level outputs
         self.data_buffers["plant_power"][self.buffer_row] = self.h_dict["plant"]["power"]
         self.data_buffers["plant_locally_generated_power"][self.buffer_row] = self.h_dict["plant"][
@@ -589,8 +576,8 @@ class Emulator:
 
         # Pre-filter valid datasets to avoid redundant lookups
         valid_datasets = {
-            name: buffer_data 
-            for name, buffer_data in self.data_buffers.items() 
+            name: buffer_data
+            for name, buffer_data in self.data_buffers.items()
             if name in self.hdf5_datasets
         }
 
@@ -604,5 +591,3 @@ class Emulator:
 
         # Reset buffer
         self.buffer_row = 0
-
-
