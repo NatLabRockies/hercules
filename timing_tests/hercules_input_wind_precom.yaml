@@ -11,6 +11,7 @@ dt: 1.0
 starttime: 0.0
 endtime: 43200.0
 verbose: False
+log_every_n: 1
 
 plant:
   interconnect_limit: 250000 # kW
