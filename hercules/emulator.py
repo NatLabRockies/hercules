@@ -75,7 +75,8 @@ class Emulator:
         self.use_compression = h_dict.get("output_use_compression", True)
 
         # Buffering configuration
-        self.buffer_size = h_dict.get("output_buffer_size", 86400)  # Buffer 86400 rows in memory
+        # Buffer 10000 rows in memory (optimized default)
+        self.buffer_size = h_dict.get("output_buffer_size", 10000)
         self.data_buffers = {}  # Dictionary to hold buffered data
         self.buffer_row = 0  # Current position in buffer
 
@@ -147,6 +148,9 @@ class Emulator:
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
+
+        self.logger.info("Initializing HDF5 file...")
+
         # Create output directory if it doesn't exist
         output_dir = os.path.dirname(os.path.abspath(self.output_file))
         os.makedirs(output_dir, exist_ok=True)
@@ -178,7 +182,14 @@ class Emulator:
 
         # Set compression parameters based on configuration
         if self.use_compression:
-            compression_params = {"compression": "gzip", "compression_opts": 1}
+            # Optimized compression with chunking for better performance
+            # Ensure chunk size doesn't exceed dataset size
+            chunk_size = min(1000, self.buffer_size, total_rows)
+            compression_params = {
+                "compression": "gzip",
+                "compression_opts": 6,  # Higher compression level
+                "chunks": (chunk_size,),
+            }
         else:
             compression_params = {}
 
@@ -271,9 +282,6 @@ class Emulator:
                 )
 
         self.output_structure_determined = True
-
-        if self.verbose:
-            self.logger.info(f"Initialized HDF5 file with {len(self.hdf5_datasets)} datasets")
 
     def _save_h_dict_as_text(self):
         """
@@ -579,13 +587,22 @@ class Emulator:
         start_row = self.current_row
         end_row = start_row + self.buffer_row
 
-        # Write all buffered data at once
-        for dataset_name, buffer_data in self.data_buffers.items():
-            if dataset_name in self.hdf5_datasets:
-                self.hdf5_datasets[dataset_name][start_row:end_row] = buffer_data[: self.buffer_row]
+        # Pre-filter valid datasets to avoid redundant lookups
+        valid_datasets = {
+            name: buffer_data 
+            for name, buffer_data in self.data_buffers.items() 
+            if name in self.hdf5_datasets
+        }
+
+        # Write all buffered data at once (optimized)
+        for dataset_name, buffer_data in valid_datasets.items():
+            # Use direct slice assignment without creating intermediate views
+            self.hdf5_datasets[dataset_name][start_row:end_row] = buffer_data[: self.buffer_row]
 
         # Update current row position
         self.current_row = end_row
 
         # Reset buffer
         self.buffer_row = 0
+
+
