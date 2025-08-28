@@ -14,7 +14,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 - **Plant configuration**: `interconnect_limit`
 - **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
-- **Output configuration**: `output_format`, `output_time_step`
+
 
 ## Loading Process
 
@@ -48,6 +48,8 @@ wind_farm:
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
+  logging_option: all
+  floris_update_time_s: 30.0
 
 solar_farm:
   component_type: SolarPySAMPVWatts
@@ -75,24 +77,30 @@ battery:
 controller:
   # Controller configuration here
 
-output_file: outputs/hercules_output.csv
+output_file: outputs/hercules_output.h5
+log_every_n: 1
 ```
 
 ## Output Configuration Options
 
-New in v2.0, Hercules supports advanced output configuration options to optimize file size and write performance:
+Hercules supports several output configuration options to optimize file size and write performance:
 
-### output_format
-Controls the output file format. Options are:
-- `feather` (default): Fastest read/write, good compression, Python/R compatible
-- `parquet`: Best compression, excellent for analytics, cross-platform
-- `csv`: Most compatible, human readable, larger file size
+### log_every_n
+Controls how often simulation data is logged to the output file:
+- Default: 1 (log every simulation step)
+- Example: `log_every_n: 60` logs data every 60 simulation steps
+- This reduces output file size and improves performance for long simulations
 
-### output_time_step  
-Controls output downsampling frequency. Must be ≥ `dt`. Examples:
-- If `dt: 1.0` and `output_time_step: 5.0`, saves every 5th simulation step
-- If `dt: 0.1` and `output_time_step: 1.0`, saves every 10th simulation step
-- Default: same as `dt` (no downsampling)
+### output_file
+Specifies the output file path. Hercules automatically ensures the file has a `.h5` extension for HDF5 format.
+
+### output_use_compression
+Controls HDF5 compression (default: True). Disable for faster writes if storage space is not a concern.
+
+### output_buffer_size
+Controls the memory buffer size for writing data (default: 50000 rows). Larger buffers improve performance but use more memory.
+
+
 
 
 
@@ -104,17 +112,22 @@ dt: 1.0
 starttime: 0.0  
 endtime: 3600.0
 
-# Output every 10 seconds in compact Parquet format
-output_format: parquet
-output_time_step: 10.0
-output_file: outputs/my_simulation.parquet
+# Log every 60 seconds (1 minute) to reduce file size
+log_every_n: 60
+output_file: outputs/my_simulation.h5
+output_use_compression: true
+output_buffer_size: 10000
 
 plant:
   interconnect_limit: 5000
 
 wind_farm:
   component_type: Wind_MesoToPower
-  # ... other wind farm config
+  floris_input_file: inputs/floris_input.yaml
+  wind_input_filename: inputs/wind_input.csv
+  turbine_file_name: inputs/turbine_filter_model.yaml
+  logging_option: all
+  floris_update_time_s: 30.0
 
 controller:
 ```
@@ -123,10 +136,11 @@ controller:
 
 The `load_hercules_input()` function performs strict validation on input files to catch configuration errors early. This includes checking for:
 
-- Required keys at the top level
+- Required keys at the top level (`dt`, `starttime`, `endtime`, `plant`)
 - Valid component types and configurations
 - Numeric validation for timing and power parameters
 - File existence checks for referenced input files
-- Output configuration validation (format, time step)
+- Output configuration validation (`log_every_n` must be a positive integer)
+- Component-specific validation (e.g., wind farm `logging_option` must be "base", "turb_subset", or "all")
 
 Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging. 

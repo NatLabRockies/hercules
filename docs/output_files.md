@@ -15,8 +15,6 @@ hercules_output.h5
 ├── data/
 │   ├── time                    # Simulation time points (seconds)
 │   ├── step                    # Simulation step numbers
-│   ├── clock_time              # Wall clock time for each step
-│   ├── time_utc                # UTC timestamps (if available)
 │   ├── plant_power             # Total plant power output
 │   ├── plant_locally_generated_power  # Locally generated power
 │   ├── components/
@@ -28,7 +26,12 @@ hercules_output.h5
 │       └── ...                 # Other external signals
 └── metadata/
     ├── h_dict                  # Simulation configuration (JSON string)
-    ├── start_time_utc          # Simulation start time (UTC timestamp)
+    ├── dt_sim                  # Simulation time step (seconds)
+    ├── dt_log                  # Logging time step (seconds)
+    ├── log_every_n             # Logging stride value
+    ├── start_clock_time        # Simulation start wall clock time
+    ├── end_clock_time          # Simulation end wall clock time
+    ├── start_time_utc          # Simulation start UTC time (if any component data contains time_utc)
     └── ...                     # Other metadata attributes
 ```
 
@@ -82,4 +85,17 @@ from hercules.utilities import get_hercules_metadata
 metadata = get_hercules_metadata("outputs/hercules_output.h5")
 print(f"Simulation configuration: {metadata['h_dict']}")
 print(f"Start time: {metadata.get('start_time_utc')}")
+```
+
+### Time UTC Reconstruction
+
+If any component input data contains `time_utc` columns, the utilities can reconstruct UTC timestamps for each simulation step:
+
+```python
+from hercules.utilities import read_hercules_hdf5
+
+# Read data with reconstructed time_utc
+df = read_hercules_hdf5("outputs/hercules_output.h5")
+if "time_utc" in df.columns:
+    print(f"UTC timestamps available: {df['time_utc'].head()}")
 ```
