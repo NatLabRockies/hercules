@@ -40,7 +40,7 @@ Required parameters for Wind_MesoToPower:
 
 Required parameters for Wind_MesoToPower:
 - `logging_option`: Logging level. Options are:
-  - `"base"`: Log basic outputs (power, wind_speed_mean, wind_direction_mean, waked_wind_speed_mean)
+  - `"base"`: Log basic outputs (power, wind_speed, wind_direction, wind_speed_waked)
   - `"turb_subset"`: Base outputs plus 3 random turbines' waked_velocities, turbine_powers, and turbine_power_setpoints
   - `"all"`: All available outputs including floris_wind_speed, floris_wind_direction, floris_ti, unwaked_velocities, waked_velocities, turbine_powers, turbine_power_setpoints
 
@@ -49,7 +49,7 @@ Required parameters for Wind_MesoToPower:
 Required parameters for Wind_MesoToPowerPrecomFloris:
 - `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
 - `logging_option`: Logging level. Options are:
-  - `"base"`: Log basic outputs (power, wind_speed_mean, wind_direction_mean, waked_wind_speed_mean)
+  - `"base"`: Log basic outputs (power, wind_speed, wind_direction, wind_speed_waked)
   - `"turb_subset"`: Base outputs plus 3 random turbines' waked_velocities, turbine_powers, and turbine_power_setpoints
   - `"all"`: All available outputs including floris_wind_speed, floris_wind_direction, floris_ti, unwaked_velocities, waked_velocities, turbine_powers, turbine_power_setpoints
 
@@ -69,7 +69,7 @@ Both components provide these outputs:
 - `power`: Total wind farm power
 - `turbine_powers`: Individual turbine power outputs  
 - `turbine_power_setpoints`: Current power setpoint values
-- `wind_speed_mean`, `wind_direction_mean`: Farm-level wind conditions
+- `wind_speed`, `wind_direction`: Farm-level wind conditions
 
 ### Logging Options
 
@@ -77,8 +77,8 @@ The logging behavior depends on the `logging_option` setting:
 
 #### Base Logging (`logging_option: "base"`)
 - `power`: Total wind farm power
-- `wind_speed_mean`, `wind_direction_mean`: Farm-level wind conditions
-- `waked_wind_speed_mean`: Average waked wind speed across the farm
+- `wind_speed`, `wind_direction`: Farm-level wind conditions
+- `wind_speed_waked`: Average waked wind speed across the farm
 
 #### Turbine Subset Logging (`logging_option: "turb_subset"`)
 Includes all base outputs plus:

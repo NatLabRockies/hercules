@@ -137,9 +137,9 @@ class Wind_MesoToPower(ComponentBase):
         # First add outputs included in every logging option
         self.log_outputs = [
             "power",
-            "wind_speed_mean",
-            "wind_direction_mean",
-            "waked_wind_speed_mean",
+            "wind_speed",
+            "wind_direction",
+            "wind_speed_waked",
         ]
 
         # If including subset of turbines, add the turbine indices
@@ -313,8 +313,8 @@ class Wind_MesoToPower(ComponentBase):
         h_dict["wind_farm"]["n_turbines"] = self.n_turbines
         h_dict["wind_farm"]["capacity"] = self.capacity
         h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
-        h_dict["wind_farm"]["wind_direction_mean"] = self.wd_mat_mean[0]
-        h_dict["wind_farm"]["wind_speed_mean"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
@@ -446,9 +446,9 @@ class Wind_MesoToPower(ComponentBase):
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction
-        h_dict[self.component_name]["wind_speed_mean"] = self.wind_speed
-        h_dict[self.component_name]["waked_wind_speed_mean"] = np.mean(
+        h_dict[self.component_name]["wind_direction"] = self.wind_direction
+        h_dict[self.component_name]["wind_speed"] = self.wind_speed
+        h_dict[self.component_name]["wind_speed_waked"] = np.mean(
             self.waked_velocities, dtype=hercules_float_type
         )
 
