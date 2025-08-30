@@ -87,6 +87,34 @@ print(f"Simulation configuration: {metadata['h_dict']}")
 print(f"Start time: {metadata.get('start_time_utc')}")
 ```
 
+### Convenience Class
+
+For easier access to both data and metadata, you can use the `HerculesOutput` convenience class:
+
+```python
+from hercules import HerculesOutput
+
+# Initialize with filename
+ho = HerculesOutput("outputs/hercules_output.h5")
+
+# Access metadata with dot notation
+print(f"Simulation time step: {ho.dt_sim}")
+print(f"Logging time step: {ho.dt_log}")
+print(f"Simulation configuration: {ho.h_dict}")
+
+# Access full data
+data = ho.df
+print(data.head())
+
+# Get subset of data
+subset = ho.get_subset(
+    columns=["wind_farm.power", "solar_farm.power"],
+    time_range=(3600, 7200)
+)
+```
+
+The `HerculesOutput` class provides a convenient interface while still allowing direct access to the underlying utility functions if needed.
+
 ### Time UTC Reconstruction
 
 If any component input data contains `time_utc` columns, the utilities can reconstruct UTC timestamps for each simulation step:
