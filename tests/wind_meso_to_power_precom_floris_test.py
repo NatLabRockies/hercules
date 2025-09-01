@@ -222,7 +222,7 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
-    """Test that time_utc reconstruction works correctly from zero_time_utc metadata 
+    """Test that time_utc reconstruction works correctly from zero_time_utc metadata
     and both time_utc fields are properly set."""
     # Create wind input data with time_utc columns
     wind_data = {
@@ -367,7 +367,7 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
-    """Test that zero_time_utc and start_time_utc are correctly distinguished when 
+    """Test that zero_time_utc and start_time_utc are correctly distinguished when
     starttime != 0."""
     # Create wind input data with time_utc columns
     wind_data = {
