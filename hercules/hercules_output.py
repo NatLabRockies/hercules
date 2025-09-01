@@ -80,6 +80,12 @@ class HerculesOutput:
 
         # UTC time information
         print("UTC Time----")
+        zero_time_utc = self.metadata.get("zero_time_utc")
+        if zero_time_utc is not None:
+            zero_dt = pd.to_datetime(zero_time_utc, unit="s", utc=True)
+            print(f"   Zero Time (UTC): {zero_dt}")
+        else:
+            print("   Zero Time (UTC): Not available")
         start_time_utc = self.metadata.get("start_time_utc")
         if start_time_utc is not None:
             start_dt = pd.to_datetime(start_time_utc, unit="s", utc=True)
@@ -91,7 +97,9 @@ class HerculesOutput:
         if "time_utc" in self.df.columns:
             first_utc = self.df["time_utc"].iloc[0]
             last_utc = self.df["time_utc"].iloc[-1]
+            print(f"   Zero Time (UTC): {zero_time_utc}")
             print(f"   First Time (UTC): {first_utc}")
+            print(f"   Start Time (UTC): {start_time_utc}")
             print(f"   Last Time (UTC): {last_utc}")
 
             # Calculate elapsed calendar time
@@ -108,6 +116,8 @@ class HerculesOutput:
             else:
                 print("   Elapsed Calendar Time: Not available")
         else:
+            print("   Zero Time (UTC): Not available")
+            print("   Start Time (UTC): Not available")
             print("   First Time (UTC): Not available")
             print("   Last Time (UTC): Not available")
             print("   Elapsed Calendar Time: Not available")
