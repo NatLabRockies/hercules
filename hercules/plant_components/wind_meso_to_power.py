@@ -10,6 +10,7 @@ from hercules.utilities import (
     interpolate_df,
     load_perffile,
     load_yaml,
+    find_time_utc_value,
 )
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
@@ -105,7 +106,10 @@ class Wind_MesoToPower(ComponentBase):
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
             # Log the value of time_utc that corresponds to time == 0
-            self.start_time_utc = df_wi["time_utc"][df_wi["time"] == 0].values[0]
+            self.zero_time_utc = find_time_utc_value(df_wi, 0.0)
+
+            # Log the value of time_utc which corresponds to starttime
+            self.start_time_utc = find_time_utc_value(df_wi, self.starttime)
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -321,6 +325,8 @@ class Wind_MesoToPower(ComponentBase):
         # Log the start time UTC if available
         if hasattr(self, "start_time_utc"):
             h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+        if hasattr(self, "zero_time_utc"):
+            h_dict["wind_farm"]["zero_time_utc"] = self.zero_time_utc
 
         return h_dict
 

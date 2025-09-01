@@ -11,7 +11,7 @@ from hercules.plant_components.wind_meso_to_power import (
     Turbine1dofModel,
     TurbineFilterModelVectorized,
 )
-from hercules.utilities import hercules_float_type, interpolate_df_fast, load_yaml
+from hercules.utilities import hercules_float_type, interpolate_df_fast, load_yaml, find_time_utc_value
 from scipy.interpolate import interp1d
 from scipy.stats import circmean
 
@@ -125,8 +125,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                 f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
             )
 
-        self.logger.info("Setting time_utc...")
-
         # If time_utc is in the file, convert it to a datetime if it's not already
         if "time_utc" in df_wi.columns:
             if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
@@ -141,7 +139,10 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                     df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
             # Log the value of time_utc that corresponds to time == 0
-            self.start_time_utc = df_wi["time_utc"][df_wi["time"] == 0].values[0]
+            self.zero_time_utc = find_time_utc_value(df_wi, 0.0)
+
+            # Log the value of time_utc which corresponds to starttime
+            self.start_time_utc = find_time_utc_value(df_wi, self.starttime)
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -412,6 +413,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Log the start time UTC if available
         if hasattr(self, "start_time_utc"):
             h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+        if hasattr(self, "zero_time_utc"):
+            h_dict["wind_farm"]["zero_time_utc"] = self.zero_time_utc
 
         return h_dict
 

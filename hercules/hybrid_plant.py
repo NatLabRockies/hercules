@@ -78,17 +78,24 @@ class HybridPlant:
                 h_dict
             )
 
-        # If any components include a field "start_time_utc", confirm that all components
-        # have the same start_time_utc and add it to the h_dict at top level
-        start_time_utc = None
-        for component_name in self.component_names:
-            if "start_time_utc" in h_dict[component_name]:
-                if start_time_utc is None:
-                    start_time_utc = h_dict[component_name]["start_time_utc"]
-                elif h_dict[component_name]["start_time_utc"] != start_time_utc:
-                    raise ValueError("All components must have the same start_time_utc")
-        if start_time_utc is not None:
-            h_dict["start_time_utc"] = start_time_utc
+        # If any components include time_utc fields, confirm that all components
+        # have the same values and add them to the h_dict at top level
+        for time_field in ["zero_time_utc", "start_time_utc"]:
+            time_value = None
+            components_with_field = []
+            
+            # Find all components that have this time field
+            for component_name in self.component_names:
+                if time_field in h_dict[component_name]:
+                    components_with_field.append(component_name)
+                    if time_value is None:
+                        time_value = h_dict[component_name][time_field]
+                    elif h_dict[component_name][time_field] != time_value:
+                        raise ValueError(f"All components must have the same {time_field}")
+            
+ 
+            h_dict[time_field] = time_value
+            
 
         # Add the plant level outputs to the h_dict
         h_dict = self.compute_plant_level_outputs(h_dict)

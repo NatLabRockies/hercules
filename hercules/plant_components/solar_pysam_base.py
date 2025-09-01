@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
-from hercules.utilities import interpolate_df
+from hercules.utilities import interpolate_df, hercules_float_type, interpolate_df_fast, find_time_utc_value
 
 
 class SolarPySAMBase(ComponentBase):
@@ -111,6 +111,10 @@ class SolarPySAMBase(ComponentBase):
         # Make sure time_utc is a datatime
         df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
 
+        # Extract time_utc values for zero_time and start_time
+        self.zero_time_utc = find_time_utc_value(df_solar, 0.0)
+        self.start_time_utc = find_time_utc_value(df_solar, self.starttime)
+
         # Interpolate df_solar on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
         df_solar = interpolate_df(df_solar, time_steps_all)
@@ -161,6 +165,12 @@ class SolarPySAMBase(ComponentBase):
         h_dict["solar_farm"]["dni"] = self.dni
         h_dict["solar_farm"]["poa"] = self.poa
         h_dict["solar_farm"]["aoi"] = self.aoi
+
+        # Log the time_utc values if available
+        if hasattr(self, "start_time_utc"):
+            h_dict["solar_farm"]["start_time_utc"] = self.start_time_utc
+        if hasattr(self, "zero_time_utc"):
+            h_dict["solar_farm"]["zero_time_utc"] = self.zero_time_utc
 
         return h_dict
 
