@@ -374,6 +374,22 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     # Convert back to pandas DataFrame
     return result_pl.to_pandas()
 
+def find_time_utc_value(df, time_value, time_column="time", time_utc_column="time_utc"):
+    """Find the time_utc value.
+
+    
+
+    Args:
+        df (pd.DataFrame): DataFrame with time_column and time_utc_column.
+        time_value (float): Time value to find the time_utc value for.
+        time_column (str, optional): Name of the time column. Defaults to "time".
+        time_utc_column (str, optional): Name of the time_utc column. Defaults to "time_utc".
+
+    Returns:
+        datetime: Time_utc value.
+    """
+    return df.set_index(time_column)[time_utc_column].interpolate(method='linear').reindex([time_value]).iloc[0]
+
 
 def load_h_dict_from_text(filename):
     """Load h_dict from text file created by _save_h_dict_as_text.
