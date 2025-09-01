@@ -222,7 +222,8 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
-    """Test that time_utc reconstruction works correctly from zero_time_utc metadata and both time_utc fields are properly set."""
+    """Test that time_utc reconstruction works correctly from zero_time_utc metadata 
+    and both time_utc fields are properly set."""
     # Create wind input data with time_utc columns
     wind_data = {
         "time": [0, 1, 2, 3],
@@ -291,10 +292,12 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
 
         # Compare datetime values (ignoring timezone for this test)
         assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(tzinfo=None), (
-            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, got {actual_zero_time}"
+            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, "
+            f"got {actual_zero_time}"
         )
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
-            f"start_time_utc in metadata mismatch: expected {expected_start_time}, got {actual_start_time}"
+            f"start_time_utc in metadata mismatch: expected {expected_start_time}, "
+            f"got {actual_start_time}"
         )
 
         # Test time_utc reconstruction using utilities
@@ -364,7 +367,8 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
-    """Test that zero_time_utc and start_time_utc are correctly distinguished when starttime != 0."""
+    """Test that zero_time_utc and start_time_utc are correctly distinguished when 
+    starttime != 0."""
     # Create wind input data with time_utc columns
     wind_data = {
         "time": [0, 1, 2, 3, 4, 5],
@@ -433,10 +437,12 @@ def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
 
         # Compare datetime values (ignoring timezone for this test)
         assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(tzinfo=None), (
-            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, got {actual_zero_time}"
+            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, "
+            f"got {actual_zero_time}"
         )
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
-            f"start_time_utc in metadata mismatch: expected {expected_start_time}, got {actual_start_time}"
+            f"start_time_utc in metadata mismatch: expected {expected_start_time}, "
+            f"got {actual_start_time}"
         )
 
     finally:
