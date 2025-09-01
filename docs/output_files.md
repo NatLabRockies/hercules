@@ -32,6 +32,7 @@ hercules_output.h5
     ├── start_clock_time        # Simulation start wall clock time
     ├── end_clock_time          # Simulation end wall clock time
     ├── start_time_utc          # Simulation start UTC time (if any component data contains time_utc)
+    ├── zero_time_utc           # Simulation zero UTC time (if any component data contains time_utc)
     └── ...                     # Other metadata attributes
 ```
 
