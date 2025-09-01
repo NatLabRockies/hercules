@@ -1,10 +1,18 @@
 # Plot the outputs of the simulation
 
 import matplotlib.pyplot as plt
-from hercules.utilities import read_hercules_hdf5
+from hercules import HerculesOutput
 
-# Read the Hercules output file
-df = read_hercules_hdf5("outputs/hercules_output.h5")
+# Read the Hercules output file using HerculesOutput
+ho = HerculesOutput("outputs/hercules_output.h5")
+
+# Print metadata information
+print("Simulation Metadata:")
+ho.print_metadata()
+print()
+
+# Create a shortcut to the dataframe
+df = ho.df
 
 # Set number of turbines
 n_turbines = 3

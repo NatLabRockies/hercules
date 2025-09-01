@@ -1,13 +1,21 @@
 # Plot the outputs of the simulation for the wind and solar example
 
 import matplotlib.pyplot as plt
-from hercules.utilities import get_hercules_metadata, read_hercules_hdf5
+from hercules import HerculesOutput
 
-# Read the Hercules output file
-df = read_hercules_hdf5("outputs/hercules_output.h5")
+# Read the Hercules output file using HerculesOutput
+ho = HerculesOutput("outputs/hercules_output.h5")
 
-# Read in the meta data file
-h_dict = get_hercules_metadata("outputs/hercules_output.h5")["h_dict"]
+# Print metadata information
+print("Simulation Metadata:")
+ho.print_metadata()
+print()
+
+# Create a shortcut to the dataframe
+df = ho.df
+
+# Get the h_dict from metadata
+h_dict = ho.h_dict
 
 
 fig, ax = plt.subplots()
