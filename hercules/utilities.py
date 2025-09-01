@@ -374,10 +374,11 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     # Convert back to pandas DataFrame
     return result_pl.to_pandas()
 
+
 def find_time_utc_value(df, time_value, time_column="time", time_utc_column="time_utc"):
     """Find the time_utc value.
 
-    
+
 
     Args:
         df (pd.DataFrame): DataFrame with time_column and time_utc_column.
@@ -388,7 +389,12 @@ def find_time_utc_value(df, time_value, time_column="time", time_utc_column="tim
     Returns:
         datetime: Time_utc value.
     """
-    return df.set_index(time_column)[time_utc_column].interpolate(method='linear').reindex([time_value]).iloc[0]
+    return (
+        df.set_index(time_column)[time_utc_column]
+        .interpolate(method="linear")
+        .reindex([time_value])
+        .iloc[0]
+    )
 
 
 def load_h_dict_from_text(filename):
@@ -537,9 +543,7 @@ def read_hercules_hdf5(filename):
 
         # Reconstruct time_utc using zero_time_utc
         if "zero_time_utc" in f["metadata"].attrs:
-            zero_time_utc = pd.to_datetime(
-                f["metadata"].attrs["zero_time_utc"], unit="s", utc=True
-            )
+            zero_time_utc = pd.to_datetime(f["metadata"].attrs["zero_time_utc"], unit="s", utc=True)
             time = pd.to_timedelta(data["time"], unit="s")
             data["time_utc"] = zero_time_utc + time
 

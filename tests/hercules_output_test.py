@@ -135,7 +135,6 @@ def test_hercules_output_data_access():
         os.unlink(temp_file)
 
 
-
 def test_hercules_output_invalid_attribute():
     """Test that invalid attributes raise AttributeError."""
     with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:

@@ -83,7 +83,7 @@ class HybridPlant:
         for time_field in ["zero_time_utc", "start_time_utc"]:
             time_value = None
             components_with_field = []
-            
+
             # Find all components that have this time field
             for component_name in self.component_names:
                 if time_field in h_dict[component_name]:
@@ -92,10 +92,8 @@ class HybridPlant:
                         time_value = h_dict[component_name][time_field]
                     elif h_dict[component_name][time_field] != time_value:
                         raise ValueError(f"All components must have the same {time_field}")
-            
- 
+
             h_dict[time_field] = time_value
-            
 
         # Add the plant level outputs to the h_dict
         h_dict = self.compute_plant_level_outputs(h_dict)

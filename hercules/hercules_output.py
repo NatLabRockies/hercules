@@ -4,7 +4,6 @@ This module provides a convenient interface for reading Hercules simulation outp
 The HerculesOutput class allows easy access to both data and metadata with dot notation.
 """
 
-
 import pandas as pd
 
 from .utilities import get_hercules_metadata, read_hercules_hdf5

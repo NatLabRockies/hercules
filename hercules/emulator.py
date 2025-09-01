@@ -162,13 +162,13 @@ class Emulator:
         # Store h_dict as JSON string in attributes
         # Use a custom serializer that handles numpy types properly
         def numpy_serializer(obj):
-            if hasattr(obj, 'tolist'):  # numpy arrays
+            if hasattr(obj, "tolist"):  # numpy arrays
                 return obj.tolist()
-            elif hasattr(obj, 'item'):  # numpy scalars
+            elif hasattr(obj, "item"):  # numpy scalars
                 return obj.item()
             else:
                 return str(obj)
-        
+
         h_dict_json = json.dumps(self.h_dict, default=numpy_serializer)
         metadata_group.attrs["h_dict"] = h_dict_json
 
