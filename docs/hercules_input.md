@@ -10,7 +10,7 @@ Input files use YAML format for readability and flexibility. The `Loader` class 
 
 The input file structure mirrors the `h_dict` structure documented in the [h_dict page](h_dict.md). Key sections include:
 
-- **Top level parameters**: `dt`, `starttime`, `endtime`
+- **Top level parameters**: `dt`, `starttime`, `endtime` (see [timing](timing.md) for details)
 - **Plant configuration**: `interconnect_limit`
 - **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`

@@ -12,7 +12,7 @@ Two different solar simulators are available, each implementing a different PySA
 
 Both models require an input weather file:
 1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include: 
-    - timestamp
+    - timestamp (see [timing](timing.md) for time format requirements)
     - direct normal irradiance (DNI)
     - diffuse horizontal irradiance (DHI)
     - global horizontal irradiance (GHI)

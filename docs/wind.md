@@ -28,7 +28,7 @@ Important: This model is not appropriate when turbines are partially derated bel
 
 ### Common Required Parameters
 
-Required parameters for both components in [h_dict](h_dict.md):
+Required parameters for both components in [h_dict](h_dict.md) (see [timing](timing.md) for time-related parameters):
 - `floris_input_file`: FLORIS farm configuration
 - `wind_input_filename`: Wind resource data file
 - `turbine_file_name`: Turbine model configuration

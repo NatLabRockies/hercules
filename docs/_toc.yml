@@ -14,6 +14,7 @@ parts:
     chapters:
     - file: key_concepts
     - file: units
+    - file: timing
     - file: h_dict
     - file: hybrid_plant
     - file: emulator
