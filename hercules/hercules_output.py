@@ -60,6 +60,7 @@ class HerculesOutput:
         else:
             time_str = "Not available"
 
+        print(f"  Total Simulation Time (seconds): {total_simulation_time_s}")
         print(f"   Total Simulation Time: {time_str}")
         print(f"   Time Step: {self.metadata.get('dt_log', 'Not available')} seconds")
         print(f"   Num Steps: {len(self.df)}")
@@ -81,14 +82,14 @@ class HerculesOutput:
         print("UTC Time----")
         zero_time_utc = self.metadata.get("zero_time_utc")
         if zero_time_utc is not None:
-            zero_dt = pd.to_datetime(zero_time_utc, unit="s", utc=True)
-            print(f"   Zero Time (UTC): {zero_dt}")
+            zero_time_utc = pd.to_datetime(zero_time_utc, unit="s", utc=True)
+            print(f"   Zero Time (UTC): {zero_time_utc}")
         else:
             print("   Zero Time (UTC): Not available")
         start_time_utc = self.metadata.get("start_time_utc")
         if start_time_utc is not None:
-            start_dt = pd.to_datetime(start_time_utc, unit="s", utc=True)
-            print(f"   Start Time (UTC): {start_dt}")
+            start_time_utc = pd.to_datetime(start_time_utc, unit="s", utc=True)
+            print(f"   Start Time (UTC): {start_time_utc}")
         else:
             print("   Start Time (UTC): Not available")
 
@@ -96,9 +97,7 @@ class HerculesOutput:
         if "time_utc" in self.df.columns:
             first_utc = self.df["time_utc"].iloc[0]
             last_utc = self.df["time_utc"].iloc[-1]
-            print(f"   Zero Time (UTC): {zero_time_utc}")
             print(f"   First Time (UTC): {first_utc}")
-            print(f"   Start Time (UTC): {start_time_utc}")
             print(f"   Last Time (UTC): {last_utc}")
 
             # Calculate elapsed calendar time
