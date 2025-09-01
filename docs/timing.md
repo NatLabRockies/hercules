@@ -43,7 +43,6 @@ time_utc:          |           |               |
 Key Points:
 • time=0 corresponds to zero_time_utc
 • starttime corresponds to start_time_utc  
-• endtime corresponds to end_time_utc
 • time_utc can be calculated as: zero_time_utc + timedelta(seconds=time)
 ```
 
