@@ -25,3 +25,25 @@ When both wind and solar inputs contain `time_utc` columns, the `HybridPlant` cl
 ## Logging
 
 To save space, `time_utc` is not logged. However, `time`, `zero_time_utc`, and `start_time_utc` are logged, allowing `time_utc` to be reconstructed during [post-processing](output_files.md).
+
+## Diagram
+
+```
+Timeline Visualization:
+
+time (seconds):    0 -------- starttime -------- endtime
+                   |           |               |
+                   |           |               |
+time_utc:          |           |               |
+                   |           |               |
+                   v           v               v
+                   zero_time_utc start_time_utc end_time_utc
+                   (datetime)   (datetime)     (datetime)
+
+Key Points:
+• time=0 corresponds to zero_time_utc
+• starttime corresponds to start_time_utc  
+• endtime corresponds to end_time_utc
+• time_utc can be calculated as: zero_time_utc + timedelta(seconds=time)
+```
+
