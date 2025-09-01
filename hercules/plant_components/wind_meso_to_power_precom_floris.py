@@ -11,7 +11,12 @@ from hercules.plant_components.wind_meso_to_power import (
     Turbine1dofModel,
     TurbineFilterModelVectorized,
 )
-from hercules.utilities import hercules_float_type, interpolate_df_fast, load_yaml, find_time_utc_value
+from hercules.utilities import (
+    find_time_utc_value,
+    hercules_float_type,
+    interpolate_df_fast,
+    load_yaml,
+)
 from scipy.interpolate import interp1d
 from scipy.stats import circmean
 

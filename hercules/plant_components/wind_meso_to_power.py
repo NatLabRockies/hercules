@@ -6,11 +6,11 @@ import pandas as pd
 from floris import FlorisModel
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
+    find_time_utc_value,
     hercules_float_type,
     interpolate_df,
     load_perffile,
     load_yaml,
-    find_time_utc_value,
 )
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
