@@ -535,17 +535,13 @@ def read_hercules_hdf5(filename):
             "step": f["data/step"][:],
         }
 
-        # Read time_utc if available
-        if "time_utc" in f["data"]:
-            data["time_utc"] = f["data/time_utc"][:]
-
-        # Reconstruct time_utc if start_time_utc available
-        if "start_time_utc" in f["metadata"].attrs and "time_utc" not in data:
-            start_time_utc = pd.to_datetime(
-                f["metadata"].attrs["start_time_utc"], unit="s", utc=True
+        # Reconstruct time_utc using zero_time_utc
+        if "zero_time_utc" in f["metadata"].attrs:
+            zero_time_utc = pd.to_datetime(
+                f["metadata"].attrs["zero_time_utc"], unit="s", utc=True
             )
             time = pd.to_timedelta(data["time"], unit="s")
-            data["time_utc"] = start_time_utc + time
+            data["time_utc"] = zero_time_utc + time
 
         # Read plant data
         data["plant.power"] = f["data/plant_power"][:]
@@ -564,68 +560,68 @@ def read_hercules_hdf5(filename):
     return pd.DataFrame(data)
 
 
-def read_hercules_hdf5_subset(filename, columns=None, time_range=None, stride=1):
-    """Read subset of Hercules HDF5 output file data.
+# def read_hercules_hdf5_subset(filename, columns=None, time_range=None, stride=1):
+#     """Read subset of Hercules HDF5 output file data.
 
-    Returns only specified columns and time range, reducing memory usage for large datasets.
-    Optionally applies stride to read every Nth data point for further downsampling.
+#     Returns only specified columns and time range, reducing memory usage for large datasets.
+#     Optionally applies stride to read every Nth data point for further downsampling.
 
-    Args:
-        filename (str): Path to Hercules HDF5 output file.
-        columns (list, optional): Column names to include. If None, includes only time column.
-        time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
-            times.
-        stride (int, optional): Read every Nth data point. Defaults to 1 (read all points).
+#     Args:
+#         filename (str): Path to Hercules HDF5 output file.
+#         columns (list, optional): Column names to include. If None, includes only time column.
+#         time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
+#             times.
+#         stride (int, optional): Read every Nth data point. Defaults to 1 (read all points).
 
-    Returns:
-        pd.DataFrame: Subset of simulation data.
-    """
-    with h5py.File(filename, "r") as f:
-        # Get time indices for subset
-        time_data = f["data/time"][:]
-        start_idx = 0
-        end_idx = len(time_data)
+#     Returns:
+#         pd.DataFrame: Subset of simulation data.
+#     """
+#     with h5py.File(filename, "r") as f:
+#         # Get time indices for subset
+#         time_data = f["data/time"][:]
+#         start_idx = 0
+#         end_idx = len(time_data)
 
-        if time_range is not None:
-            start_time, end_time = time_range
-            start_idx = np.searchsorted(time_data, start_time, side="left")
-            end_idx = np.searchsorted(time_data, end_time, side="right")
+#         if time_range is not None:
+#             start_time, end_time = time_range
+#             start_idx = np.searchsorted(time_data, start_time, side="left")
+#             end_idx = np.searchsorted(time_data, end_time, side="right")
 
-        # Apply stride to indices
-        indices = np.arange(start_idx, end_idx, stride)
+#         # Apply stride to indices
+#         indices = np.arange(start_idx, end_idx, stride)
 
-        # Always include time data
-        data = {"time": time_data[indices]}
+#         # Always include time data
+#         data = {"time": time_data[indices]}
 
-        # If no columns specified, return only time
-        if columns is None:
-            return pd.DataFrame(data)
+#         # If no columns specified, return only time
+#         if columns is None:
+#             return pd.DataFrame(data)
 
-        # Read requested columns
-        for col in columns:
-            if col == "step":
-                data[col] = f["data/step"][indices]
+#         # Read requested columns
+#         for col in columns:
+#             if col == "step":
+#                 data[col] = f["data/step"][indices]
 
-            elif col == "time_utc":
-                if "time_utc" in f["data"]:
-                    data[col] = f["data/time_utc"][indices]
-                elif "start_time_utc" in f["metadata"].attrs:
-                    # Reconstruct time_utc from start_time_utc
-                    start_time_utc = pd.to_datetime(
-                        f["metadata"].attrs["start_time_utc"], unit="s", utc=True
-                    )
-                    time_subset = pd.to_timedelta(data["time"], unit="s")
-                    data[col] = start_time_utc + time_subset
-            elif col == "plant.power":
-                data[col] = f["data/plant_power"][indices]
-            elif col == "plant.locally_generated_power":
-                data[col] = f["data/plant_locally_generated_power"][indices]
-            elif col in f["data/components"]:
-                data[col] = f["data/components"][col][indices]
-            elif col in f["data/external_signals"]:
-                data[col] = f["data/external_signals"][col][indices]
+#             elif col == "time_utc":
+#                 if "time_utc" in f["data"]:
+#                     data[col] = f["data/time_utc"][indices]
+#                 elif "start_time_utc" in f["metadata"].attrs:
+#                     # Reconstruct time_utc from start_time_utc
+#                     start_time_utc = pd.to_datetime(
+#                         f["metadata"].attrs["start_time_utc"], unit="s", utc=True
+#                     )
+#                     time_subset = pd.to_timedelta(data["time"], unit="s")
+#                     data[col] = start_time_utc + time_subset
+#             elif col == "plant.power":
+#                 data[col] = f["data/plant_power"][indices]
+#             elif col == "plant.locally_generated_power":
+#                 data[col] = f["data/plant_locally_generated_power"][indices]
+#             elif col in f["data/components"]:
+#                 data[col] = f["data/components"][col][indices]
+#             elif col in f["data/external_signals"]:
+#                 data[col] = f["data/external_signals"][col][indices]
 
-    return pd.DataFrame(data)
+#     return pd.DataFrame(data)
 
 
 def get_hercules_metadata(filename):
