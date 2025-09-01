@@ -47,6 +47,8 @@ class Emulator:
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
 
+
+
         # Initialize logging configuration
         self.log_every_n = h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
@@ -109,6 +111,10 @@ class Emulator:
 
         # Add plant component metadata to the h_dict
         self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
+
+        # Save zero time and start time following add meta data
+        self.zero_time_utc = h_dict.get("zero_time_utc", None)
+        self.start_time_utc = h_dict.get("start_time_utc", None)
 
         # Read in any external data
         self.external_data_all = {}
@@ -180,6 +186,20 @@ class Emulator:
         metadata_group.attrs["log_every_n"] = self.log_every_n
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
+
+        # Store zero and start time UTC information if not None
+        if self.zero_time_utc is not None:
+            # Convert pandas Timestamp to Unix timestamp (seconds since epoch) for HDF5 compatibility
+            if hasattr(self.zero_time_utc, 'timestamp'):
+                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc.timestamp()
+            else:
+                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc
+        if self.start_time_utc is not None:
+            # Convert pandas Timestamp to Unix timestamp (seconds since epoch) for HDF5 compatibility
+            if hasattr(self.start_time_utc, 'timestamp'):
+                metadata_group.attrs["start_time_utc"] = self.start_time_utc.timestamp()
+            else:
+                metadata_group.attrs["start_time_utc"] = self.start_time_utc
 
         # Create data group
         data_group = self.hdf5_file.create_group("data")
