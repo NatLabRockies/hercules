@@ -13,6 +13,7 @@ from scipy import stats
 
 # ## Parameters
 
+show_plots = False
 
 dt = 1.0  # [s]
 N = 60 * 60 * 24 * 2  # 2 Days
@@ -153,5 +154,5 @@ for i in range(fmodel.n_turbines):
 # Save to feather
 df.to_feather("wind_input_large.ftr")
 
-
-plt.show()
+if show_plots:
+    plt.show()

@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from floris import FlorisModel
 
+show_plots = False
+
 # ## Parameters
 dt = 1.0  # Sampling interval [s]
 N = 1000  # Number of time steps
@@ -96,4 +98,5 @@ df = pd.DataFrame(
 fig.suptitle("Turbine wind speeds and directions")
 df.to_feather("wind_input_small.ftr")
 
-plt.show()
+if show_plots:
+    plt.show()
