@@ -148,9 +148,9 @@ def test_log_data_to_hdf5():
 
     actual_datasets = set(emulator.hdf5_datasets.keys())
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:
@@ -270,9 +270,9 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
     # Verify that all expected datasets are present
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:

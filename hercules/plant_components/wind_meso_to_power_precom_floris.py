@@ -472,6 +472,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
         h_dict[self.component_name]["wind_direction"] = self.wind_direction
         h_dict[self.component_name]["wind_speed"] = self.wind_speed
         h_dict[self.component_name]["wind_speed_waked"] = np.mean(
@@ -493,8 +495,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         # Else if logging_option is "all", add the turbine powers
         elif self.logging_option == "all":
-            h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-            h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
             h_dict[self.component_name]["floris_wind_speed"] = self.wind_speed
             h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction
             h_dict[self.component_name]["floris_ti"] = self.ti_mat_mean[step]
