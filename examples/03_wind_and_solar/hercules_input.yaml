@@ -9,12 +9,12 @@ description: Wind and solar
 
 dt: 1.0
 starttime: 0.0
-endtime: 950.0
+endtime: 28800.0
 verbose: False
 
 
 plant:
-  interconnect_limit: 2000 # kW
+  interconnect_limit: 45000 # kW
 
 
 wind_farm: # The name of the Wind_MesoToPower wind farm
@@ -32,12 +32,12 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 3000
+  target_system_capacity: 30000
   target_dc_ac_ratio: 1.33
 
   initial_conditions:
 
-    power: 3000 # kW
+    power: 30000 # kW
     dni: 1000
     poa: 1000
 
