@@ -9,7 +9,7 @@ description: Wind Only Realistic Inflow
 
 dt: 1.0
 starttime: 0.0
-endtime: 86400 # 1 Day
+endtime: 172800 # 2 Days
 verbose: False
 
 plant:
@@ -18,9 +18,9 @@ plant:
 wind_farm:
   
   component_type: Wind_MesoToPower
-  floris_input_file: inputs/floris_input.yaml
-  wind_input_filename: inputs/wind_input.p
-  turbine_file_name: inputs/turbine_filter_model.yaml
+  floris_input_file: ../inputs/floris_input_large.yaml
+  wind_input_filename: ../inputs/wind_input_large.ftr
+  turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
   logging_option: all
   floris_update_time_s: 300.0 # Update wakes every 5 minutes

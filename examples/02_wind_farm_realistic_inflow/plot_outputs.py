@@ -15,7 +15,7 @@ print()
 df = ho.df
 
 # Limit to the first 4 hours
-df = df.iloc[: 3600 * 4]
+# df = df.iloc[: 3600 * 4]
 
 # Set number of turbines
 turbines_to_plot = [0, 8]
@@ -39,14 +39,14 @@ fig, axarr = plt.subplots(2, 1, sharex=True)
 ax = axarr[0]
 for t_idx in turbines_to_plot:
     ax.plot(
-        df["time"],
+        df["time_utc"],
         df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in turbines_to_plot:
     ax.plot(
-        df["time"],
+        df["time_utc"],
         df[f"wind_farm.waked_velocities.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
@@ -71,14 +71,14 @@ ax.set_ylabel("Wind Speed [m/s]")
 ax = axarr[1]
 for t_idx in turbines_to_plot:
     ax.plot(
-        df["time"],
+        df["time_utc"],
         df[f"wind_farm.turbine_powers.{t_idx:03}"],
         label=f"Turbine {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in turbines_to_plot:
     ax.plot(
-        df["time"],
+        df["time_utc"],
         df[f"wind_farm.turbine_power_setpoints.{t_idx:03}"],
         label=f"Power Setpoint {t_idx}",
         linestyle="--",
