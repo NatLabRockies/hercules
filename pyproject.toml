@@ -35,6 +35,7 @@ dependencies = [
 "rainflow~=3.2",
 "tqdm~=4.66",
 "polars~=1.0",
+"pyarrow",
 "h5py~=3.10",
 ]
 
