@@ -1,4 +1,3 @@
-
 # # Generate wind history for a larger farm and covering 1 week of simulated time
 
 
@@ -12,18 +11,17 @@ import pandas as pd
 from floris import FlorisModel
 from scipy import stats
 
-
 # ## Parameters
 
 
 dt = 1.0  # [s]
 N = 60 * 60 * 24 * 2  # 2 Days
-N = N + 3600 # Pad by 1 hour
+N = N + 3600  # Pad by 1 hour
 
 
 # Weibull parameters for wind speed distribution
-shape_parameter = 2.0  
-scale_parameter = 8.0  
+shape_parameter = 2.0
+scale_parameter = 8.0
 
 
 # Read in the FLORIS model
@@ -62,23 +60,21 @@ walk = np.cumsum(steps)
 walk_uniform = stats.norm.cdf(walk, np.mean(walk), np.std(walk))
 
 # Step 3: Transform uniform to Weibull using inverse CDF
-ws_u_inf = scale_parameter * (-np.log(1 - walk_uniform))**(1/shape_parameter)
+ws_u_inf = scale_parameter * (-np.log(1 - walk_uniform)) ** (1 / shape_parameter)
 
 # Step 4: Iterative smoothing to reduce abrupt changes while preserving distribution
 for _ in range(n_iterations):
     # Apply light smoothing
-    wind_smooth = np.convolve(ws_u_inf, [0.25, 0.5, 0.25], mode='same')
-    
+    wind_smooth = np.convolve(ws_u_inf, [0.25, 0.5, 0.25], mode="same")
+
     # Re-rank to preserve exact Weibull distribution
     sorted_indices = np.argsort(wind_smooth)
     target_values = np.sort(ws_u_inf)  # Original Weibull values
     ws_u_inf[sorted_indices] = target_values
-    
+
 
 # Use constant wind direction
 wd_inf = 270.0 * np.ones(N)
-
-
 
 
 # ## Generate the histories
@@ -100,21 +96,20 @@ fig.suptitle("Ambient wind speed and direction")
 # Set turbine 0 history equal to original
 ws_turbines = np.zeros((N, fmodel.n_turbines))
 
-ws_turbines[:,0] = ws_u_inf
+ws_turbines[:, 0] = ws_u_inf
 
 
 # For the remaining turbines
 # a) Add random noise
 # b) Time shift by the delay amount
 for i in range(1, fmodel.n_turbines):
-    ws_turbines[:,i] = ws_u_inf + 0.15 * np.random.randn(N)
-    ws_turbines[:,i] = np.roll(ws_turbines[:,i], delay_array[i])
+    ws_turbines[:, i] = ws_u_inf + 0.15 * np.random.randn(N)
+    ws_turbines[:, i] = np.roll(ws_turbines[:, i], delay_array[i])
 
 # Drop 1 hour from ws_turbines and wd_inf to remove effect of roll from beginning
-drop_index = 60 * 60 
-ws_turbines_drop = ws_turbines[drop_index:,:]
+drop_index = 60 * 60
+ws_turbines_drop = ws_turbines[drop_index:, :]
 wd_inf_drop = wd_inf[drop_index:]
-
 
 
 # ## Set up time_utc such that the data starts from 2024-06-24 16:59:08+00:00
@@ -126,8 +121,12 @@ time_utc = pd.date_range(start="2024/6/24 16:59:08", periods=len(wd_inf_drop), f
 
 # Plot the first half day of wind speeds for the first 5 turbines
 fig, axarr = plt.subplots(2, 1, sharex=True)
-t_idx = range(60 * 60 * 48)  # First day 
-for i, color, label in zip(range(5), ["k", "r", "b", "g", "y"], ["Turbine 0", "Turbine 1", "Turbine 2", "Turbine 3", "Turbine 4"]):
+t_idx = range(60 * 60 * 48)  # First day
+for i, color, label in zip(
+    range(5),
+    ["k", "r", "b", "g", "y"],
+    ["Turbine 0", "Turbine 1", "Turbine 2", "Turbine 3", "Turbine 4"],
+):
     axarr[0].plot(time_utc[t_idx], ws_turbines_drop[t_idx, i], color=color, label=label, alpha=0.7)
 axarr[0].set_ylabel("Wind speed [m/s]")
 axarr[0].legend()
@@ -149,10 +148,9 @@ df = pd.DataFrame(
 )
 
 for i in range(fmodel.n_turbines):
-    df[f"ws_{i:03d}"] = ws_turbines_drop[:,i]
+    df[f"ws_{i:03d}"] = ws_turbines_drop[:, i]
 
 # Save to feather
-
 df.to_feather("wind_input_large.ftr")
 
 

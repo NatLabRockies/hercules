@@ -9,6 +9,7 @@ import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
+from hercules.utilities_examples import ensure_example_inputs_exist
 
 
 def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file):
@@ -31,6 +32,62 @@ def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_f
     # Copy the notebook file if it exists
     if os.path.exists(f"{example_dir}/{notebook_file}"):
         shutil.copy2(f"{example_dir}/{notebook_file}", f"{temp_dir}/{notebook_file}")
+
+
+def update_input_file_paths(temp_dir, input_file):
+    """Update the hercules input file to use absolute paths to centralized inputs.
+
+    Args:
+        temp_dir (str): Path to the temporary directory.
+        input_file (str): Name of the input file.
+    """
+    import yaml
+
+    input_file_path = f"{temp_dir}/{input_file}"
+
+    # Get absolute path to centralized inputs directory
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    centralized_inputs_dir = os.path.join(repo_root, "examples", "inputs")
+
+    # Read the input file
+    with open(input_file_path, "r") as f:
+        h_dict = yaml.safe_load(f)
+
+    # Update paths in wind_farm section
+    if "wind_farm" in h_dict:
+        if "floris_input_file" in h_dict["wind_farm"]:
+            # Convert relative path to absolute path
+            filename = os.path.basename(h_dict["wind_farm"]["floris_input_file"])
+            h_dict["wind_farm"]["floris_input_file"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+        if "wind_input_filename" in h_dict["wind_farm"]:
+            # Convert relative path to absolute path
+            filename = os.path.basename(h_dict["wind_farm"]["wind_input_filename"])
+            h_dict["wind_farm"]["wind_input_filename"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+        if "turbine_file_name" in h_dict["wind_farm"]:
+            # Convert relative path to absolute path
+            filename = os.path.basename(h_dict["wind_farm"]["turbine_file_name"])
+            h_dict["wind_farm"]["turbine_file_name"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+    # Update paths in solar_farm section
+    if "solar_farm" in h_dict:
+        if "solar_input_filename" in h_dict["solar_farm"]:
+            # Convert relative path to absolute path
+            filename = os.path.basename(h_dict["solar_farm"]["solar_input_filename"])
+            h_dict["solar_farm"]["solar_input_filename"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+    # Write the updated input file
+    with open(input_file_path, "w") as f:
+        yaml.dump(h_dict, f, default_flow_style=False)
 
 
 def generate_input_data(temp_dir, notebook_file):
@@ -246,13 +303,19 @@ def run_example_regression_test(
         plot_script_file (str, optional): Name of the plot script file.
             Defaults to "plot_outputs.py".
     """
+    # Ensure centralized example inputs exist
+    ensure_example_inputs_exist()
+
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy the example files to the temp directory
         copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file)
 
-        # Generate input data if needed
-        generate_input_data(temp_dir, notebook_file)
+        # Update input file paths to use centralized inputs
+        update_input_file_paths(temp_dir, input_file)
+
+        # Generate input data if needed (skip for centralized input system)
+        # generate_input_data(temp_dir, notebook_file)
 
         # Create outputs directory
         os.makedirs(f"{temp_dir}/{outputs_dir}", exist_ok=True)

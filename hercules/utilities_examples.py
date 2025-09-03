@@ -23,8 +23,8 @@ def generate_example_inputs():
         subprocess.CalledProcessError: If any script returns a non-zero exit code.
     """
 
-    repo_root = Path(__file__).resolve().parent
-    inputs_dir = repo_root / "inputs"
+    repo_root = Path(__file__).resolve().parent.parent
+    inputs_dir = repo_root / "examples" / "inputs"
 
     scripts = [
         inputs_dir / "00_generate_wind_history_small.py",
@@ -49,8 +49,8 @@ def ensure_example_inputs_exist():
     `generate_example_inputs`.
     """
 
-    repo_root = Path(__file__).resolve().parent
-    inputs_dir = repo_root / "inputs"
+    repo_root = Path(__file__).resolve().parent.parent
+    inputs_dir = repo_root / "examples" / "inputs"
 
     expected_files = [
         inputs_dir / "wind_input_small.ftr",

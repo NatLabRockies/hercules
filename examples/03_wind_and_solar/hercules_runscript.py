@@ -6,11 +6,15 @@ import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
+from hercules.utilities_examples import ensure_example_inputs_exist
 
 # If the output folder exists, delete it
 if os.path.exists("outputs"):
     shutil.rmtree("outputs")
 os.makedirs("outputs")
+
+# Ensure example inputs exist
+ensure_example_inputs_exist()
 
 # Get the logger
 logger = setup_logging()

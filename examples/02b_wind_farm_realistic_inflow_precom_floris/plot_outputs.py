@@ -17,8 +17,6 @@ df = ho.df
 # Limit to the first 4 hours
 df = df.iloc[: 3600 * 4]
 
-print(df["wind_farm.floris_wind_direction"].head())
-
 # Set number of turbines
 turbines_to_plot = [0, 8]
 

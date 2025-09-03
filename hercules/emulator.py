@@ -47,8 +47,6 @@ class Emulator:
         self.starttime = h_dict["starttime"]
         self.endtime = h_dict["endtime"]
 
-
-
         # Initialize logging configuration
         self.log_every_n = h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
@@ -153,8 +151,6 @@ class Emulator:
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
 
-        self.logger.info("Initializing HDF5 file...")
-
         # Create output directory if it doesn't exist
         output_dir = os.path.dirname(os.path.abspath(self.output_file))
         os.makedirs(output_dir, exist_ok=True)
@@ -189,14 +185,14 @@ class Emulator:
 
         # Store zero and start time UTC information if not None
         if self.zero_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp (seconds since epoch) for HDF5 compatibility
-            if hasattr(self.zero_time_utc, 'timestamp'):
+            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+            if hasattr(self.zero_time_utc, "timestamp"):
                 metadata_group.attrs["zero_time_utc"] = self.zero_time_utc.timestamp()
             else:
                 metadata_group.attrs["zero_time_utc"] = self.zero_time_utc
         if self.start_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp (seconds since epoch) for HDF5 compatibility
-            if hasattr(self.start_time_utc, 'timestamp'):
+            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+            if hasattr(self.start_time_utc, "timestamp"):
                 metadata_group.attrs["start_time_utc"] = self.start_time_utc.timestamp()
             else:
                 metadata_group.attrs["start_time_utc"] = self.start_time_utc
