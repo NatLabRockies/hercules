@@ -88,10 +88,26 @@ class HybridPlant:
             for component_name in self.component_names:
                 if time_field in h_dict[component_name]:
                     components_with_field.append(component_name)
+                    current_time = h_dict[component_name][time_field]
+
                     if time_value is None:
-                        time_value = h_dict[component_name][time_field]
-                    elif h_dict[component_name][time_field] != time_value:
-                        raise ValueError(f"All components must have the same {time_field}")
+                        time_value = current_time
+                    else:
+                        # Normalize both times for comparison
+                        # Convert timezone-naive to UTC if needed, keep timezone-aware as is
+                        normalized_time_value = (
+                            time_value.replace(tzinfo=None)
+                            if hasattr(time_value, "tzinfo") and time_value.tzinfo is not None
+                            else time_value
+                        )
+                        normalized_current_time = (
+                            current_time.replace(tzinfo=None)
+                            if hasattr(current_time, "tzinfo") and current_time.tzinfo is not None
+                            else current_time
+                        )
+
+                        if normalized_current_time != normalized_time_value:
+                            raise ValueError(f"All components must have the same {time_field}")
 
             h_dict[time_field] = time_value
 
