@@ -70,12 +70,12 @@ class ControllerLimitSolar:
         # Get the total wind farm power
         wind_farm_power = h_dict["wind_farm"]["power"]
 
-        # Charge or discharge the battery, reversing every 60 seconds
+        # Charge or discharge the battery, reversing every other hour
         # With hybrid plant sign convention: Positive = discharge, Negative = charge
-        if h_dict["time"] % 120 < 60:
-            h_dict["battery"]["power_setpoint"] = 2000  # Discharge the battery
+        if h_dict["time"] % 3600 < 1800:
+            h_dict["battery"]["power_setpoint"] = 10000  # Discharge the battery
         else:
-            h_dict["battery"]["power_setpoint"] = -2000  # Charge the battery
+            h_dict["battery"]["power_setpoint"] = -10000  # Charge the battery
 
         # Get the limit for battery power
         # Battery power + wind power must be less than the interconnect limit
