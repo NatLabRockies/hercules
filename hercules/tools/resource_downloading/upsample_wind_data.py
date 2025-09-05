@@ -271,9 +271,10 @@ def upsample_wtk_data(
     wtk_nsrdb_downloader module. Spatial interpolation is achieved using 2D Clough-Tocher
     interpolation. Upsampling is accomplished by simple Nyquist upsampling to create a smooth
     signal. Lastly, for the wind speeds, stochastic, uncorrelated turbulence generated using the
-    Kaimal spectrum is added. This function currently assumes the Wind Toolkit time series have an
-    even number of samples. If they have an off number of dsamples, the last sample will be
-    discarded.
+    Kaimal spectrum is added. The turbulence intensity is assigned as a function of wind speed
+    based on the IEC normal turbulence model. This function currently assumes the Wind Toolkit time
+    series have an even number of samples. If they have an off number of samples, the last sample
+    will be discarded.
 
     Parameters:
     -----------
@@ -382,7 +383,6 @@ def upsample_wtk_data(
         df_wtk_wd = df_wtk_wd.iloc[:-1]
 
     # Ensure order of points in wind dataframe columns matches order in coordinate dataframe
-
     wtk_point_names = list(df_wtk_coords["index"].values.astype(str))
     df_wtk_ws = df_wtk_ws[["time_index"] + wtk_point_names]
     df_wtk_wd = df_wtk_wd[["time_index"] + wtk_point_names]
