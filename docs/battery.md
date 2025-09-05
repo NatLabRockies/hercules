@@ -1,51 +1,101 @@
 # Battery
 
-There are two battery models currently implemented in Hercules: `SimpleBattery` and `LIB`. Both interact with Hercules through a simple wrapper class: `Battery`.
+There are two battery models currently implemented in Hercules: `BatterySimple` and `BatteryLithiumIon`. 
+
+## Sign Conventions
+
+It is important to note that within the battery modules, the convention that positive power is charging the  
+battery is followed for consistency with battery standards.  However, at the level of the `HybridPlant`
+this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
+for consistency with other components.  This inversions applies to power_setpoint and also occurs within
+`HybridPlant`.
 
 ### Parameters
 
 Battery parameters are defined in the hercules input yaml file used to initialize `emulator`.
 
-- `py_sim_type`: `"SimpleBattery"` or `"LIB"`
-- `energy_capacity`: [kWh]
-- `charge_rate`: [kW]
-- `max_SOC`: between 0 and 1
-- `min_SOC`: between 0 and 1
-- `allow_grid_power_consumption`: True or False (defaults to True)
+#### Required Parameters
+- `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`
+- `energy_capacity`: Energy capacity in kWh
+- `charge_rate`: Maximum charge rate in kW
+- `discharge_rate`: Maximum discharge rate in kW
+- `max_SOC`: Maximum state of charge (between 0 and 1)
+- `min_SOC`: Minimum state of charge (between 0 and 1)
 - `initial_conditions`
-  - `SOC`: between `min_SOC` and `max_SOC`
+  - `SOC`: Initial state of charge (between `min_SOC` and `max_SOC`)
+
+#### Optional Parameters
+- `allow_grid_power_consumption`: True or False (defaults to False)
+- `roundtrip_efficiency`: Roundtrip efficiency (0-1, applies to BatterySimple only)
+- `self_discharge_time_constant`: Self-discharge time constant in seconds (BatterySimple only)
+- `track_usage`: Enable usage tracking for degradation modeling (BatterySimple only)
+- `usage_calc_interval`: Interval for usage calculations in seconds (BatterySimple only)
+- `usage_lifetime`: Battery lifetime in years for time-based degradation (BatterySimple only)
+- `usage_cycles`: Number of cycles until replacement for cycle-based degradation (BatterySimple only)
 
 
 Once initialized, the battery is only interacted with using the `step` method.
 
 ### Inputs
-Inputs are passed to `step()` as a dict named `inputs`, which must have the following fields:
+Inputs are passed to `step()` as a dict named `h_dict`, which must have the following fields:
 
-```
-{py_sims:{inputs:{battery_signal: ____,
-                 locally_generated_power: ____
-                 }}}
+```python
+h_dict = {
+    "battery": {
+        "power_setpoint": 1000  # Requested battery power in kW (positive=discharge, negative=charge)
+    },
+    "plant": {
+        "locally_generated_power": 5000  # Available power for charging in kW
+    }
+}
 ```
 
 ### Outputs
-Outputs are returned as a dict containing the following values
-- `power` The charging/discharging power of the battery
-- `reject` The amount of charging/discharging requested of the battery that it could not fulfill. Can be positive or negative.
-- `soc` The battery state of charge
+Outputs are returned as a dict containing the following values:
+- `power`: Actual battery power in kW 
+- `reject`: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)
+- `soc`: Battery state of charge (0-1)
+
+#### Additional Outputs (BatterySimple only when track_usage=True)
+- `usage_in_time`: Time-based usage percentage
+- `usage_in_cycles`: Cycle-based usage percentage  
+- `total_cycles`: Total equivalent cycles completed
 
 
-## `SimpleBattery`
+## `BatterySimple`
 
-`SimpleBattery` is defined by $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$. Both $E$ and $P$ are constrained by upper and lower limits.
+`BatterySimple` is a basic energy storage model with the following features:
+
+- **Energy Integration**: $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$
+- **Efficiency Losses**: Separate charge and discharge efficiencies (from roundtrip efficiency)
+- **Self-Discharge**: Exponential energy loss with configurable time constant
+- **Usage Tracking**: Optional rainflow cycle counting for degradation modeling
+- **Constraints**: Both energy and power are constrained by upper and lower limits:
 
 $\underline{E} \leq E \leq \overline{E}$
 
 $\underline{P} \leq P \leq \overline{P}$
 
+The model uses a state-space representation to handle self-discharge and efficiency losses in a unified framework.
 
-## `LIB`
 
-`LIB` models a lithium ion battery based on the lithium ion cell model presented in [1.]. The main difference between `LIB` and `SimpleBattery` is that `LIB` includes diffusion transients and losses both of which are modeled as an equivalent circuit model following the approach in [1.].
+## `BatteryLithiumIon`
+
+`BatteryLithiumIon` models a detailed lithium-ion battery using an equivalent circuit model based on [1]. Key features include:
+
+- **Equivalent Circuit Model**: RC branch representing diffusion transients
+- **State-Dependent Parameters**: Open circuit voltage, resistance, and capacitance vary with SOC, SOH, and temperature
+- **Cell-Level Modeling**: Individual cell behavior scaled to battery pack
+- **Voltage-Current Relationship**: Iterative power control accounting for voltage variations
+- **Physical Constraints**: Energy, power, and current limits at cell and pack level
+
+**Battery Specifications:**
+- Cathode Material: LiFePO4
+- Anode Material: Graphite
+- Nominal Cell Voltage: 3.3V
+- Cell Capacity: 15.756 Ah
+
+The main difference from `BatterySimple` is the inclusion of voltage dynamics, diffusion transients, and state-dependent equivalent circuit parameters that provide higher fidelity modeling of lithium-ion battery behavior.
 
 
 

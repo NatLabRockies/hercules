@@ -1,156 +1,136 @@
-import ast
 import datetime as dt
+import json
 import os
 import sys
+import time as _time
 from pathlib import Path
 
+import h5py
 import numpy as np
 import pandas as pd
-from SEAS.federate_agent import FederateAgent
+from tqdm import tqdm
+
+from hercules.utilities import hercules_float_type
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
 
 Path("outputs").mkdir(parents=True, exist_ok=True)
 
-class Emulator(FederateAgent):
-    def __init__(self, controller, py_sims, input_dict):
+
+class Emulator:
+    def __init__(self, controller, hybrid_plant, h_dict, logger):
+        """
+        Initializes the emulator.
+
+        Args:
+            controller (object): The controller object responsible for managing the simulation.
+            hybrid_plant (object): An object containing hybrid plant components.
+            h_dict (dict): A dictionary contains parameters and values for the simulation.
+            logger (object): A logger instance for logging messages during the simulation.
+
+        """
+
         # Make sure output folder exists
         Path("outputs").mkdir(parents=True, exist_ok=True)
 
+        # Use the provided logger
+        self.logger = logger
+
         # Save the input dict to main dict
-        self.main_dict = input_dict
+        self.h_dict = h_dict
 
-        # Initialize the flattend main_dict
-        self.main_dict_flat = {}
+        # Initialize the flattened h_dict
+        self.h_dict_flat = {}
 
-        # Initialize the output file
-        if "output_file" in input_dict:
-            self.output_file = input_dict["output_file"]
+        # Save time step, start time and end time first
+        self.dt = h_dict["dt"]
+        self.starttime = h_dict["starttime"]
+        self.endtime = h_dict["endtime"]
+
+        # Initialize logging configuration
+        self.log_every_n = h_dict.get("log_every_n", 1)
+        self.dt_log = self.dt * self.log_every_n
+
+        # Initialize HDF5 output configuration
+        if "output_file" in h_dict:
+            self.output_file = h_dict["output_file"]
+            # Ensure .h5 extension
+            if not self.output_file.endswith(".h5"):
+                self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
         else:
-            self.output_file = "outputs/hercules_output.csv"
+            self.output_file = "outputs/hercules_output.h5"
 
-        # Save time step
-        self.dt = input_dict["dt"]
+        # Initialize HDF5 output system
+        self.hdf5_file = None
+        self.hdf5_datasets = {}
+        self.output_structure_determined = False
+        self.output_written = False
+        self.current_row = 0
+        self.total_rows_written = 0
+
+        # HDF5 configuration
+        # Enable/disable compression
+        self.use_compression = h_dict.get("output_use_compression", True)
+
+        # Buffering configuration
+        # Buffer 10000 rows in memory (optimized default)
+        self.buffer_size = h_dict.get("output_buffer_size", 50000)
+        self.data_buffers = {}  # Dictionary to hold buffered data
+        self.buffer_row = 0  # Current position in buffer
+
+        # Get verbose flag from h_dict
+        self.verbose = h_dict.get("verbose", False)
+        self.total_simulation_time = self.endtime - self.starttime  # In seconds
+        self.total_simulation_days = self.total_simulation_time / 86400
+        self.time = self.starttime
+
+        # Initialize the step
+        self.step = 0
+        self.n_steps = int(self.total_simulation_time / self.dt)
+
+        # How often to update the user on current emulator time
+        # In simulated time
+        if "time_log_interval" in h_dict:
+            self.time_log_interval = h_dict["time_log_interval"]
+        else:
+            self.time_log_interval = 600  # seconds
+        self.step_log_interval = self.time_log_interval / self.dt
+
+        # Round to step_log_interval to be an integer greater than 0
+        self.step_log_interval = np.max([1, np.round(self.step_log_interval)])
+
+        # Calculate progress bar update interval (independent of verbose logging)
+        # Update every 1% of completion or every 100 steps, whichever is more frequent
+        self.progress_update_interval = min(max(1, self.n_steps // 100), 100)
 
         # Initialize components
         self.controller = controller
-        self.py_sims = py_sims
+        self.hybrid_plant = hybrid_plant
 
-        # Update the input dict components
-        self.main_dict["py_sims"] = self.py_sims.get_py_sim_dict()
+        # Add plant component metadata to the h_dict
+        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
 
-        # Initialize time # TODO - does this belong in 'inital conditions' instead?
-        if self.main_dict["py_sims"]:
-            self.main_dict["py_sims"]["inputs"]["sim_time_s"] = 0.0
-            self.main_dict["py_sims"]["inputs"]["plant_outputs"] = {}
-            self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
-
-        # Initialize plant and grid variables
-        # balance_plant is a boolean variable that determines whether the plant will balance power
-        if "plant_limit_kW" in input_dict.keys():
-            self.plant_limit_kW = input_dict["plant_limit_kW"]
-        else:
-            self.plant_limit_kW = np.inf
-        self.main_dict["plant_limit_kW"] = self.plant_limit_kW
-        self.main_dict["plant_limit_overage"] = 0.0
-        
-        # HELICS dicts
-        self.hercules_comms_dict = input_dict["hercules_comms"]
-        self.hercules_helics_dict = self.hercules_comms_dict["helics"]
-        self.helics_config_dict = self.hercules_comms_dict["helics"]["config"]
+        # Save zero time and start time following add meta data
+        self.zero_time_utc = h_dict.get("zero_time_utc", None)
+        self.start_time_utc = h_dict.get("start_time_utc", None)
 
         # Read in any external data
         self.external_data_all = {}
-        if "external_data_file" in input_dict:
-            self._read_external_data_file(input_dict["external_data_file"])
-            self.external_signals = {}
-            self.main_dict["external_signals"] = {}
-
-        # Write the time step into helics config dict
-        self.helics_config_dict["helics"]["deltat"] = self.dt
-
-        # Initialize the Federate class for HELICS communitation
-        super(Emulator, self).__init__(
-            name=self.helics_config_dict["name"],
-            starttime=self.helics_config_dict["starttime"],
-            endtime=self.helics_config_dict["stoptime"],
-            config_dict=self.helics_config_dict,
-        )
-
-        # TODO: Store other things
-        self.use_dash_frontend = self.helics_config_dict["use_dash_frontend"]
-        # self.KAFKA = self.helics_config_dict["KAFKA"]
-
-        # # TODO Copied direct from control_center.py but not actually ready yet
-        # if self.KAFKA:
-        #     from dav_kafka_python.configuration import Configuration
-        #     from dav_kafka_python.producer import PythonProducer
-        #     # Kafka topic :
-        #     self.topic = self.helics_config_dict["KAFKA_TOPIC"]
-        #     print("KAFKA topic", self.topic)
-        #     config = Configuration(env_path='./.env')
-        #     self.python_producer = PythonProducer(config)
-        #     self.python_producer.connect()
-
-        # AMR wind files
-        # Grab py sim details
-        self.amr_wind_dict = self.hercules_comms_dict["amr_wind"]
-
-        self.n_amr_wind = len(self.amr_wind_dict)
-        self.amr_wind_names = list(self.amr_wind_dict.keys())
-
-        # Save information about amr_wind simulations
-        for amr_wind_name in self.amr_wind_names:
-            self.amr_wind_dict[amr_wind_name].update(
-                self.read_amr_wind_input(self.amr_wind_dict[amr_wind_name]["amr_wind_input_file"])
-            )
-
-        # TODO For now, need to assume for simplicity there is one and only
-        # one AMR_Wind simulation
-        self.num_turbines = self.amr_wind_dict[self.amr_wind_names[0]]["num_turbines"]
-        self.rotor_diameter = self.amr_wind_dict[self.amr_wind_names[0]]["rotor_diameter"]
-        self.turbine_locations = self.amr_wind_dict[self.amr_wind_names[0]]["turbine_locations"]
-        self.turbine_labels = self.amr_wind_dict[self.amr_wind_names[0]]["turbine_labels"]
-
-        # TODO In fugure could cover multiple farms
-        # Initialize the turbine power array
-        self.turbine_power_array = np.zeros(self.num_turbines)
-        self.amr_wind_dict[self.amr_wind_names[0]]["turbine_powers"] = np.zeros(self.num_turbines)
-        self.amr_wind_dict[self.amr_wind_names[0]]["turbine_wind_directions"] = [
-            0.0
-        ] * self.num_turbines
-        # Write to hercules_comms so that controller can access
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]["turbine_powers"] = [
-            0.0
-        ] * self.num_turbines
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "turbine_wind_directions"
-        ] = [0.0] * self.num_turbines
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]["wind_direction"] = 0
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "sim_time_s_amr_wind"
-        ] = 0
-
-        self.wind_speed = 0
-        self.wind_direction = 0
-
-        # TODO Could set up logging here
-
-        # TODO Set interface comms to either dash or kenny's front end
-
-        # TODO Set comms to non-helics based things like http polling
-
-        # TODO not positive if this is the right place but I think it is
-        # Hold here and wait for AMR Wind to respond
-        # Note we're passing a few intiial wind speed and direction things
-        # but we can come back to all that
-
-        # FORMER CODE
-        # self.logger.info("... waiting for initial connection from AMRWind")
-        # list(self.pub.values())[0].publish(str("[-1,-1,-1]"))
-        # self.logger.info(" #### Entering main loop #### ")
+        if "external_data_file" in h_dict:
+            self._read_external_data_file(h_dict["external_data_file"])
+            self.h_dict["external_signals"] = {}
 
     def _read_external_data_file(self, filename):
+        """
+        Read and interpolate external data from a CSV file.
+
+        This method reads external data from the specified CSV file and interpolates it
+        according to the simulation time steps. The external data must include a 'time' column.
+        The interpolated data is stored in self.external_data_all.
+        Args:
+            filename (str): Path to the CSV file containing external data.
+        """
+
         # Read in the external data file
         df_ext = pd.read_csv(filename)
         if "time" not in df_ext.columns:
@@ -159,397 +139,481 @@ class Emulator(FederateAgent):
         # Interpolate the external data according to time.
         # Goes to 1 time step past stoptime specified in the input file.
         times = np.arange(
-            self.helics_config_dict["starttime"],
-            self.helics_config_dict["stoptime"]+(2*self.dt),
-            self.dt
+            self.starttime,
+            self.endtime + (2 * self.dt),
+            self.dt,
         )
         self.external_data_all["time"] = times
         for c in df_ext.columns:
             if c != "time":
                 self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
 
-    def run(self):
-        # TODO In future code that doesnt insist on AMRWInd can make this optional
-        print("... waiting for initial connection from AMRWind")
-        # Send initial connection signal to AMRWind
-        # publish on topic: control
-        self.receive_amrwind_data()
-        self.send_via_helics("control", str("[-1,-1,-1]"))
-        print(" #### Entering main loop #### ")
-        self.sync_time_helics(self.absolute_helics_time + self.deltat)
-        # Initialize the first iteration flag
-        self.first_iteration = True
+    def _initialize_hdf5_file(self):
+        """Initialize HDF5 file with metadata and data structure."""
 
-        # Run simulation till  endtime
-        # while self.absolute_helics_time < self.endtime:
-        while self.absolute_helics_time < (self.endtime - self.starttime + 1):
-            print(self.absolute_helics_time)
-            # Loop till we reach simulation startime.
-            # if self.absolute_helics_time < self.starttime:
-            #     continue
-            # Get any external data
-            # print('self.external_data_all = ',self.external_data_all)
-            for k in self.external_data_all:
-                self.main_dict["external_signals"][k] = self.external_data_all[k][
-                    self.external_data_all["time"] == self.absolute_helics_time
-                ][0]
+        # Create output directory if it doesn't exist
+        output_dir = os.path.dirname(os.path.abspath(self.output_file))
+        os.makedirs(output_dir, exist_ok=True)
 
-            # Update controller and py sims
-            # TODO: Should 'time' in the main dict be AMR-wind time or
-            # helics time? Why aren't they the same?
-            self.main_dict["time"] = self.absolute_helics_time
-            self.main_dict = self.controller.step(self.main_dict)
-            if self.main_dict["py_sims"]:
-                self.py_sims.step(self.main_dict)
-                self.main_dict["py_sims"] = self.py_sims.get_py_sim_dict()
+        # Open HDF5 file
+        self.hdf5_file = h5py.File(self.output_file, "w")
 
-            # Send inputs (initiates the AMRWind step)
-            self.send_data_to_amrwind()
+        # Create metadata group
+        metadata_group = self.hdf5_file.create_group("metadata")
 
-            # Update time to next time step (TODO: check logging for pysims?)
-            self.sync_time_helics(self.absolute_helics_time + self.deltat)
-
-            # Receive outputs back (for next time step)
-            self.receive_amrwind_data()
-
-            # Calculate plant outputs if there are pysims
-            if self.main_dict["py_sims"]:
-                self.calculate_plant_outputs()
-            
-            # Log the current state
-            self.log_main_dict()
-            
-            # If this is first iteration print the input dict
-            # And turn off the first iteration flag
-            if self.first_iteration:
-                print(self.main_dict)
-                self.save_main_dict_as_text()
-                self.first_iteration = False
-
-    def receive_amrwind_data(self):
-        # Subscribe to helics messages:
-        incoming_messages = self.helics_connector.get_all_waiting_messages()
-        if incoming_messages != {}:
-            subscription_value = self.process_subscription_messages(incoming_messages)
-            # print("What did we receive ", subscription_value)
-        else:
-            print("Emulator: Did not receive subscription from AMRWind, setting everyhthing to 0.")
-            subscription_value = (
-                [0, 0, 0]
-                + [0 for t in range(self.num_turbines)]
-                + [0 for t in range(self.num_turbines)]
-            )
-
-        # TODO Parse returns from AMRWind
-        (
-            sim_time_s_amr_wind,
-            wind_speed_amr_wind,
-            wind_direction_amr_wind,
-        ) = subscription_value[:3]
-        turbine_power_array = subscription_value[3 : 3 + self.num_turbines]
-        turbine_wd_array = subscription_value[3 + self.num_turbines :]
-        self.wind_speed = wind_speed_amr_wind
-        self.wind_direction = wind_direction_amr_wind
-        wind_farm_power = sum(turbine_power_array)
-
-        # Assign Py_sim outputs
-        if self.main_dict["py_sims"]:
-            self.main_dict["py_sims"]["inputs"]["locally_generated_power"] += wind_farm_power
-            # print("sim_time_s_amr_wind = ", sim_time_s_amr_wind)
-            self.main_dict["py_sims"]["inputs"]["sim_time_s"] = sim_time_s_amr_wind
-            # print('self.main_dict[''py_sims''][''inputs''][''sim_time_s''] = ',
-            #           self.main_dict['py_sims']['inputs']['sim_time_s'])
-
-        ## TODO add other parameters that need to be logged to csv here.
-        # Write turbine power and turbine wind direction to csv logfile.
-        aa = [str(xx) for xx in turbine_power_array]
-        xyz = ",".join(aa)
-        bb = [str(xx) for xx in turbine_wd_array]
-        zyx = ",".join(bb)
-        with open(f"{LOGFILE}.csv", "a") as filex:
-            filex.write(
-                str(self.absolute_helics_time)
-                + ","
-                + str(sim_time_s_amr_wind)
-                + ","
-                + str(wind_speed_amr_wind)
-                + ","
-                + str(wind_direction_amr_wind)
-                + ","
-                + xyz
-                + ","
-                + zyx
-                + os.linesep
-            )
-
-        # TODO F-Strings
-        print("=======================================")
-        print("AMRWindTime:", sim_time_s_amr_wind)
-        print("AMRWindSpeed:", wind_speed_amr_wind)
-        print("AMRWindDirection:", wind_direction_amr_wind)
-        print("AMRWindTurbinePowers:", turbine_power_array)
-        print("AMRWindTurbineWD:", turbine_wd_array)
-        print("=======================================")
-
-        # Store turbine powers back to the dict
-        # TODO hard-coded for now assuming only one AMR-WIND
-        self.amr_wind_dict[self.amr_wind_names[0]]["turbine_powers"] = turbine_power_array
-        self.amr_wind_dict[self.amr_wind_names[0]]["wind_farm_power"] = wind_farm_power
-        self.amr_wind_dict[self.amr_wind_names[0]]["turbine_wind_directions"] = turbine_wd_array
-        self.turbine_power_array = turbine_power_array
-        self.amr_wind_dict[self.amr_wind_names[0]]["sim_time_s_amr_wind"] = sim_time_s_amr_wind
-        # TODO: write these to the hercules_comms object, too?
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "turbine_powers"
-        ] = turbine_power_array
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "turbine_wind_directions"
-        ] = turbine_wd_array
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "wind_direction"
-        ] = wind_direction_amr_wind
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "wind_speed"
-        ] = wind_speed_amr_wind
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "wind_farm_power"
-        ] = wind_farm_power
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "power_kW"
-        ] = wind_farm_power
-
-        return None
-    
-    def calculate_plant_outputs(self):
-
-        # Zero out outputs for this step
-        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] = 0.0
-
-        # Pull electrical outputs from py_sims
-        self.py_sims.calculate_plant_outputs(self.main_dict)
-
-        # Add wind farm power outpu
-        self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] += \
-        self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-            "power_kW"
-        ]
-
-        if self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
-            < self.plant_limit_kW:
-            self.main_dict["plant_limit_overage"] = 0.0
-        else:
-            plant_difference = self.main_dict["py_sims"]["inputs"]["plant_outputs"]["electricity"] \
-                - self.plant_limit_kW
-            self.main_dict["plant_limit_overage"] = plant_difference
-
-    def recursive_flatten_main_dict(self, nested_dict, prefix=""):
-        # Recursively flatten the input dict
-        for k, v in nested_dict.items():
-            if isinstance(v, dict):
-                self.recursive_flatten_main_dict(v, prefix + k + ".")
+        # Store h_dict as JSON string in attributes
+        # Use a custom serializer that handles numpy types properly
+        def numpy_serializer(obj):
+            if hasattr(obj, "tolist"):  # numpy arrays
+                return obj.tolist()
+            elif hasattr(obj, "item"):  # numpy scalars
+                return obj.item()
             else:
-                # If v is a list or np.array, enter each element seperately
-                if isinstance(v, (list, np.ndarray)):
-                    for i, vi in enumerate(v):
-                        if isinstance(vi, (int, float)):
-                            self.main_dict_flat[prefix + k + ".%03d" % i] = vi
+                return str(obj)
 
-                # If v is a string, int, or float, enter it directly
-                if isinstance(v, (int, np.integer, float)):
-                    self.main_dict_flat[prefix + k] = v
+        h_dict_json = json.dumps(self.h_dict, default=numpy_serializer)
+        metadata_group.attrs["h_dict"] = h_dict_json
 
-    def log_main_dict(self):
-        # Update the flattened input dict
-        self.recursive_flatten_main_dict(self.main_dict)
+        # Store simulation info
+        metadata_group.attrs["starttime"] = self.starttime
+        metadata_group.attrs["endtime"] = self.endtime
+        metadata_group.attrs["dt_sim"] = self.dt
+        metadata_group.attrs["dt_log"] = self.dt_log
+        metadata_group.attrs["log_every_n"] = self.log_every_n
+        metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
+        metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
-        # Add the current time
-        self.main_dict_flat["clock_time"] = dt.datetime.now()
+        # Store zero and start time UTC information if not None
+        if self.zero_time_utc is not None:
+            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+            if hasattr(self.zero_time_utc, "timestamp"):
+                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc.timestamp()
+            else:
+                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc
+        if self.start_time_utc is not None:
+            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+            if hasattr(self.start_time_utc, "timestamp"):
+                metadata_group.attrs["start_time_utc"] = self.start_time_utc.timestamp()
+            else:
+                metadata_group.attrs["start_time_utc"] = self.start_time_utc
 
-        # The keys and values as two lists
-        keys = list(self.main_dict_flat.keys())
-        values = list(self.main_dict_flat.values())
+        # Create data group
+        data_group = self.hdf5_file.create_group("data")
 
-        # If this is first iteration, write the keys as csv header
-        if self.first_iteration:
-            with open(self.output_file, "w") as filex:
-                filex.write(",".join(keys) + os.linesep)
+        # Calculate total number of rows with logging stride
+        total_rows = self.n_steps // self.log_every_n
+        if self.n_steps % self.log_every_n != 0:
+            total_rows += 1
 
-        # Load the csv header and check if it matches the current keys
-        with open(self.output_file, "r") as filex:
-            header = filex.readline().strip().split(",")
-            if header != keys:
-                print(
-                    "WARNING: Input dict keys have changed since first iteration.\
-                        Not writing to csv file."
+        # Set compression parameters based on configuration
+        if self.use_compression:
+            # Optimized compression with chunking for better performance
+            # Ensure chunk size doesn't exceed dataset size
+            chunk_size = min(1000, self.buffer_size, total_rows)
+            compression_params = {
+                "compression": "gzip",
+                "compression_opts": 6,  # Higher compression level
+                "chunks": (chunk_size,),
+            }
+        else:
+            compression_params = {}
+
+        self.hdf5_datasets["time"] = data_group.create_dataset(
+            "time",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            **compression_params,
+        )
+
+        self.hdf5_datasets["step"] = data_group.create_dataset(
+            "step",
+            shape=(total_rows,),
+            dtype=np.int32,
+            **compression_params,
+        )
+
+        # Create plant-level datasets
+        self.hdf5_datasets["plant_power"] = data_group.create_dataset(
+            "plant_power",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            **compression_params,
+        )
+
+        self.hdf5_datasets["plant_locally_generated_power"] = data_group.create_dataset(
+            "plant_locally_generated_power",
+            shape=(total_rows,),
+            dtype=hercules_float_type,
+            **compression_params,
+        )
+
+        # Create component datasets
+        components_group = data_group.create_group("components")
+        for component_name in self.hybrid_plant.component_names:
+            component_obj = self.hybrid_plant.component_objects[component_name]
+            log_outputs = getattr(component_obj, "log_outputs", ["power"])
+
+            for output_name in log_outputs:
+                if output_name in self.h_dict[component_name]:
+                    output_value = self.h_dict[component_name][output_name]
+
+                    if isinstance(output_value, (list, np.ndarray)):
+                        # Handle arrays by creating individual datasets
+                        arr = np.asarray(output_value)
+                        for i in range(len(arr)):
+                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
+                            self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                                dataset_name,
+                                shape=(total_rows,),
+                                dtype=hercules_float_type,
+                                **compression_params,
+                            )
+                    else:
+                        # Handle scalar values
+                        dataset_name = f"{component_name}.{output_name}"
+                        self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                            dataset_name,
+                            shape=(total_rows,),
+                            dtype=hercules_float_type,
+                            **compression_params,
+                        )
+
+        # Create external signals datasets
+        if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
+            external_signals_group = data_group.create_group("external_signals")
+            for signal_name in self.h_dict["external_signals"].keys():
+                dataset_name = f"external_signals.{signal_name}"
+                self.hdf5_datasets[dataset_name] = external_signals_group.create_dataset(
+                    dataset_name,
+                    shape=(total_rows,),
+                    dtype=hercules_float_type,
+                    **compression_params,
                 )
-                return
 
-        # Append the values to the csv file
-        with open(self.output_file, "a") as filex:
-            filex.write(",".join([str(v) for v in values]) + os.linesep)
+        self.output_structure_determined = True
 
-    def save_main_dict_as_text(self):
-        # Echo the dictionary to a seperate file in case it is helpful
+    def _save_h_dict_as_text(self):
+        """
+        Save the main dictionary to a text file.
+
+        This method redirects stdout to a file, prints the main dictionary, and then
+        restores stdout to its original state. The dictionary is saved to
+        'outputs/h_dict.echo' to help with log interpretation.
+        """
+
+        # Echo the dictionary to a separate file in case it is helpful
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        with open("outputs/main_dict.echo", "w") as f_i:
+        with open("outputs/h_dict.echo", "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
-            print(self.main_dict)
+            print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
 
-    def parse_input_yaml(self, filename):
-        pass
+    def enter_execution(self, function_targets=[], function_arguments=[[]]):
+        """
+        Execute the main simulation loop and handle timing and logging.
 
-    def process_subscription_messages(self, msg):
-        # process data from HELICS subscription
-        print(
-            f"{self.name}, {self.absolute_helics_time} subscribed to message {msg}",
-            flush=True,
-        )
+        This method initiates the simulation execution, runs the main loop, and handles
+        all associated timing calculations, logging, and file operations. It ensures proper
+        cleanup of resources even if exceptions occur during simulation.
+
+        Args:
+            function_targets (list, optional): List of functions to execute during simulation.
+                Defaults to empty list.
+            function_arguments (list of lists, optional): List of argument lists to pass to each
+                corresponding function in function_targets.
+                Defaults to a list containing an empty list.
+        """
+
+        # No need to open output file upfront with fast logging
+
+        # Wrap this effort in a try block to ensure proper cleanup
         try:
-            return list(ast.literal_eval(str(msg["status"]["message"])))
-        except Exception as e:
-            print(f"Subscription error:  {e} , returning 0s ", flush=True)
-            return (
-                [0, 0, 0]
-                + [0 for t in range(self.num_turbines)]
-                + [0 for t in range(self.num_turbines)]
+            # Record start clock time for metadata
+            self.start_clock_time = _time.time()
+
+            # Run the main loop
+            self.run()
+
+            # Note the total elapsed time
+
+            self.end_clock_time = _time.time()
+            self.total_time_wall = self.end_clock_time - self.start_clock_time
+
+            # Update the user on time performance
+            self.logger.info("=====================================")
+            self.logger.info(
+                (
+                    "Total simulated time: ",
+                    f"{self.total_simulation_time} seconds ({self.total_simulation_days} days)",
+                )
             )
+            self.logger.info(f"Total wall time: {self.total_time_wall}")
+            self.logger.info(
+                (
+                    "Rate of simulation: ",
+                    f"{self.total_simulation_time / self.total_time_wall:.1f}",
+                    "x real time",
+                )
+            )
+            self.logger.info("=====================================")
 
-    def send_data_to_amrwind(self):
-        self.process_periodic_publication()
+        except Exception as e:
+            # Log the error
+            self.logger.error(f"Error during execution: {str(e)}", exc_info=True)
+            # Re-raise the exception after cleanup
+            raise
 
-    def process_periodic_publication(self):
-        # Periodically publish data to the surrogate
+        finally:
+            # Ensure output data is written to file
+            self.logger.info("Finalizing HDF5 output file")
+            self._finalize_hdf5_file()
 
-        # Hard coded to single wind farm for the moment
-        if (
-            "turbine_yaw_angles"
-            in self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]
-        ):
-            yaw_angles = self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-                "turbine_yaw_angles"
-            ]
-        else:  # set yaw_angles based on self.wind_direction
-            yaw_angles = [self.wind_direction] * self.num_turbines
+    def run(self):
+        """Run the main emulation loop until the end time is reached.
 
-        if (
-            "turbine_power_setpoints"
-            in self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]]
-        ):
-            power_setpoints = self.main_dict["hercules_comms"]["amr_wind"][self.amr_wind_names[0]][
-                "turbine_power_setpoints"
-            ]
-        else:  # pass no power setpoints
-            power_setpoints = [] * self.num_turbines
+        Executes the simulation step by step, updating controller and Python
+        simulators, logging state, and handling external data interpolation.
+        Logs progress at specified intervals and saves initial state on first iteration.
+        """
+        self.logger.info(" #### Entering main loop #### ")
 
-        # Send timing and yaw information to AMRWind via helics
-        # publish on topic: control
-        tmp = np.array(
-            [self.absolute_helics_time, self.wind_speed, self.wind_direction]
-            + yaw_angles
-            + power_setpoints
-        ).tolist()
+        first_iteration = True
 
-        self.send_via_helics("control", str(tmp))
+        # Create progress bar
+        progress_bar = tqdm(
+            total=self.n_steps,
+            desc="Simulation Progress",
+            unit="steps",
+            ncols=100,
+            leave=True,
+            mininterval=5.0,  # Update at most once every 5 seconds
+            maxinterval=30.0,  # Update at least every 30 seconds
+        )
 
-    def process_endpoint_event(self, msg):
-        pass
+        # Cache frequently accessed attributes and methods locally for speed
+        controller_step = self.controller.step
+        plant_step = self.hybrid_plant.step
+        log_current_state = self._log_data_to_hdf5
+        external_data_all = self.external_data_all
+        h_dict = self.h_dict
 
-    def process_periodic_endpoint(self):
-        pass
+        # Set current time and run simulation through steps
+        self.time = self.starttime
+        last_progress_update = 0
+        for self.step in range(self.n_steps):
+            # Log the current time
+            if self.verbose:
+                if (self.step % self.step_log_interval == 0) or first_iteration:
+                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
+                    self.logger.info(f"Step: {self.step} of {self.n_steps}")
+                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
 
-    def read_amr_wind_input(self, amr_wind_input):
-        # TODO this function is ugly and uncommented
-        # print("How many times does this get called ", amr_wind_input)
+            # Update progress bar independently of verbose logging, more frequently
+            if (self.step % self.progress_update_interval == 0) or first_iteration:
+                steps_to_update = self.step - last_progress_update
+                if steps_to_update > 0:
+                    progress_bar.update(steps_to_update)
+                    last_progress_update = self.step
 
-        # TODO Initialize to empty in case doesn't run
-        # Probably want a file not found error instead
-        return_dict = {}
+            # Fast external data lookup by step index (avoids per-step array equality checks)
+            if external_data_all:
+                for k in external_data_all:
+                    if k == "time":
+                        continue
+                    h_dict["external_signals"][k] = external_data_all[k][self.step]
 
-        with open(amr_wind_input) as fp:
-            Lines = fp.readlines()
+            # Update controller and py sims
+            h_dict["time"] = self.time
+            h_dict["step"] = self.step
+            h_dict = controller_step(h_dict)
+            h_dict = plant_step(h_dict)
+            self.h_dict = h_dict
 
-            # Find the actuators
-            for line in Lines:
-                if "Actuator.labels" in line:
-                    turbine_labels = line.split()[2:]
-                    num_turbines = len(turbine_labels)
-            for line in Lines:
-                if "Actuator.type" in line:
-                    actuator_type = line.split()[-1]
+            # Log the current state
+            log_current_state()
 
-            self.num_turbines = num_turbines
-            print("Number of turbines in amrwind: ", num_turbines)
+            # If this is first iteration log the input dict
+            # And turn off the first iteration flag
+            if first_iteration:
+                # self.logger.info(self.h_dict)
+                self._save_h_dict_as_text()
+                first_iteration = False
 
-            aa = [f"power_{i}" for i in range(num_turbines)]
-            xyz = ",".join(aa)
-            bb = [f"turbine_wd_direction_{i}" for i in range(num_turbines)]
-            zyx = ",".join(bb)
-            with open(f"{LOGFILE}.csv", "a") as filex:
-                filex.write(
-                    "helics_time"
-                    + ","
-                    + "AMRwind_time"
-                    + ","
-                    + "AMRWind_speed"
-                    + ","
-                    + "AMRWind_direction"
-                    + ","
-                    + xyz
-                    + ","
-                    + zyx
-                    + os.linesep
+            # Update the time
+            self.time = self.time + self.dt
+
+        # Update progress bar to final step and close
+        final_steps_to_update = self.n_steps - last_progress_update
+        if final_steps_to_update > 0:
+            progress_bar.update(final_steps_to_update)
+        progress_bar.close()
+
+    def _finalize_hdf5_file(self):
+        """Finalize HDF5 file with proper compression and metadata."""
+        if self.output_written or self.hdf5_file is None:
+            return
+
+        try:
+            # Flush any remaining buffered data
+            if hasattr(self, "data_buffers") and self.data_buffers and self.buffer_row > 0:
+                self._flush_buffer_to_hdf5()
+
+            # Flush any remaining data
+            if self.hdf5_file:
+                self.hdf5_file.flush()
+
+            # Add final metadata
+            if self.hdf5_file:
+                metadata_group = self.hdf5_file["metadata"]
+                metadata_group.attrs["total_rows_written"] = self.total_rows_written
+                metadata_group.attrs["hercules_version"] = "2.0"
+                metadata_group.attrs["start_clock_time"] = getattr(
+                    self, "start_clock_time", _time.time()
+                )
+                metadata_group.attrs["end_clock_time"] = getattr(
+                    self, "end_clock_time", _time.time()
+                )
+                metadata_group.attrs["total_time_wall"] = getattr(
+                    self, "total_time_wall", _time.time()
                 )
 
-            # Find the diameter
-            for line in Lines:
-                if "Actuator.%s.rotor_diameter" % actuator_type in line:
-                    D = float(line.split()[-1])
-
-            # Get the turbine locations
-            turbine_locations = []
-            for label in turbine_labels:
-                for line in Lines:
-                    if "Actuator.%s.base_position" % label in line:
-                        locations = tuple([float(f) for f in line.split()[-3:-1]])
-                        turbine_locations.append(locations)
-
-            return_dict = {
-                "num_turbines": num_turbines,
-                "turbine_labels": turbine_labels,
-                "rotor_diameter": D,
-                "turbine_locations": turbine_locations,
-            }
-
-            print(return_dict)
-
-            # Write header for logfile:
-            aa = [f"power_{i}" for i in range(self.num_turbines)]
-            xyz = ",".join(aa)
-            bb = [f"turbine_wd_direction_{i}" for i in range(self.num_turbines)]
-            zyx = ",".join(bb)
-            with open(f"{LOGFILE}.csv", "a") as filex:
-                filex.write(
-                    "helics_time"
-                    + ","
-                    + "AMRwind_time"
-                    + ","
-                    + "AMRWind_speed"
-                    + ","
-                    + "AMRWind_direction"
-                    + ","
-                    + xyz
-                    + ","
-                    + zyx
-                    + os.linesep
+            if self.verbose:
+                file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                self.logger.info(
+                    f"Finalized HDF5 file: {self.output_file} "
+                    f"({file_size:.2f} MB, {self.total_rows_written} rows)"
                 )
 
-        return return_dict
-    
+        except Exception as e:
+            self.logger.error(f"Error finalizing HDF5 file: {e}")
+            raise
+        finally:
+            # Close HDF5 file
+            if self.hdf5_file:
+                self.hdf5_file.close()
+                self.hdf5_file = None
 
+        self.output_written = True
 
+    def __del__(self):
+        """Cleanup method to properly close output files when object is destroyed."""
+        try:
+            # Only attempt cleanup if Python is not shutting down
+            import sys
 
+            if sys.meta_path is not None:
+                self._finalize_hdf5_file()
+        except (ImportError, AttributeError):
+            # Ignore errors during Python shutdown
+            pass
 
+    def close(self):
+        """Explicitly close all resources and cleanup."""
+        self._finalize_hdf5_file()
 
+    def _log_data_to_hdf5(self):
+        """
+        Logs the  state of the main dict to memory buffers and writes to HDF5 periodically.
+
+        This method buffers data in memory and only writes to disk when the buffer is full,
+        significantly improving performance by reducing disk I/O frequency.
+        """
+        # Initialize HDF5 file on first call
+        if not self.output_structure_determined:
+            self._initialize_hdf5_file()
+
+        # Apply  logging stride
+        if self.step % self.log_every_n != 0:
+            return
+
+        # Initialize buffers on first call
+        if not self.data_buffers:
+            self._initialize_data_buffers()
+
+        # Buffer basic time information
+        self.data_buffers["time"][self.buffer_row] = self.h_dict["time"]
+        self.data_buffers["step"][self.buffer_row] = self.h_dict["step"]
+
+        # Buffer plant-level outputs
+        self.data_buffers["plant_power"][self.buffer_row] = self.h_dict["plant"]["power"]
+        self.data_buffers["plant_locally_generated_power"][self.buffer_row] = self.h_dict["plant"][
+            "locally_generated_power"
+        ]
+
+        # Buffer component outputs
+        for component_name in self.hybrid_plant.component_names:
+            component_obj = self.hybrid_plant.component_objects[component_name]
+            log_outputs = getattr(component_obj, "log_outputs", ["power"])
+
+            for output_name in log_outputs:
+                if output_name in self.h_dict[component_name]:
+                    output_value = self.h_dict[component_name][output_name]
+
+                    if isinstance(output_value, (list, np.ndarray)):
+                        # Handle arrays by buffering to individual datasets
+                        arr = np.asarray(output_value)
+                        for i in range(len(arr)):
+                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
+                            if dataset_name in self.data_buffers:
+                                self.data_buffers[dataset_name][self.buffer_row] = arr[i]
+                    else:
+                        # Handle scalar values
+                        dataset_name = f"{component_name}.{output_name}"
+                        if dataset_name in self.data_buffers:
+                            self.data_buffers[dataset_name][self.buffer_row] = output_value
+
+        # Buffer external signals
+        if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
+            for signal_name, signal_value in self.h_dict["external_signals"].items():
+                dataset_name = f"external_signals.{signal_name}"
+                if dataset_name in self.data_buffers:
+                    self.data_buffers[dataset_name][self.buffer_row] = signal_value
+
+        # Increment buffer row counter
+        self.buffer_row += 1
+        self.total_rows_written += 1
+
+        # Write buffer to disk when full
+        if self.buffer_row >= self.buffer_size:
+            self._flush_buffer_to_hdf5()
+
+    def _initialize_data_buffers(self):
+        """Initialize memory buffers for all datasets."""
+        for dataset_name in self.hdf5_datasets.keys():
+            if dataset_name == "step":
+                # Integer buffer for step
+                self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.int32)
+            else:
+                # Float buffer for everything else
+                self.data_buffers[dataset_name] = np.zeros(
+                    self.buffer_size, dtype=hercules_float_type
+                )
+
+    def _flush_buffer_to_hdf5(self):
+        """Write buffered data to HDF5 datasets and reset buffer."""
+        if self.buffer_row == 0:
+            return  # Nothing to flush
+
+        # Calculate the range to write
+        start_row = self.current_row
+        end_row = start_row + self.buffer_row
+
+        # Pre-filter valid datasets to avoid redundant lookups
+        valid_datasets = {
+            name: buffer_data
+            for name, buffer_data in self.data_buffers.items()
+            if name in self.hdf5_datasets
+        }
+
+        # Write all buffered data at once (optimized)
+        for dataset_name, buffer_data in valid_datasets.items():
+            # Use direct slice assignment without creating intermediate views
+            self.hdf5_datasets[dataset_name][start_row:end_row] = buffer_data[: self.buffer_row]
+
+        # Update current row position
+        self.current_row = end_row
+
+        # Reset buffer
+        self.buffer_row = 0

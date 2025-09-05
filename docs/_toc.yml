@@ -2,31 +2,39 @@
 # Learn more at https://jupyterbook.org/customize/toc.html
 
 format: jb-book
-root: intro
+root: index
 parts:
   - caption: Installation
     chapters:
-    - file: install_instructions
-    - file: install_local
-    - file: install_on_kestrel
-    - file: install_spack
-  - caption: Usage
+    - file: install
+  - caption: Running Hercules
     chapters:
-    - file: order_of_op
-  - caption: Technologies
+    - file: running_hercules
+  - caption: Key Concepts
+    chapters:
+    - file: key_concepts
+    - file: units
+    - file: timing
+    - file: h_dict
+    - file: hybrid_plant
+    - file: emulator
+    - file: output_files
+  - caption: Inputs
+    chapters:
+    - file: hercules_input
+  - caption: Examples
+    chapters:
+    - file: examples_overview
+  - caption: HybridPlant
     chapters:
     - file: wind
     - file: battery
     - file: solar_pv
-  - caption: Examples
+  - caption: Usage
     chapters:
-    - file: examples_overview
-    - file: examples/05_floris_standin_and_electrolyzer
-    - file: examples/06_amr_wind_standin_and_battery
-    - file: examples/07_floris_standin_and_solar_pysam
-    - file: examples/08_floris_standin_only
-    - file: examples/09_heterogeneous_wind
-    - file: examples/14_energy_storage_control_and_wind
+    - file: order_of_op
+
+
 
 
 

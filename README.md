@@ -12,8 +12,8 @@ Hercules is primarily developed with the support of the U.S. Department of Energ
 
 # Documentation
 
-For detailed instructions see the [online documentation](https://nrel.github.io/hercules/intro.html)
+For detailed instructions see the [online documentation](https://nrel.github.io/hercules/index.html)
 
 # Installation
 
-For installation instructions see: [installation instructions](https://nrel.github.io/hercules/install_instructions.html)
+For installation instructions see: [installation instructions](https://nrel.github.io/hercules/install.html)

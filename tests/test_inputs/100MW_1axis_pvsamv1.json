@@ -236,7 +236,7 @@
 	"subarray1_mod_orient": 0,
 	"subarray1_nmodx": 7,
 	"subarray1_nmody": 2,
-	"subarray1_backtrack": 0,
+	"subarray1_backtrack": 1,
 	"module_model": 1,
 	"module_aspect_ratio": 1.4904397705544932,
 	"spe_area": 0.74073999999999995,

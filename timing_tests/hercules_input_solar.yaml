@@ -1,0 +1,32 @@
+# Input YAML for hercules
+
+# Name
+name: example_00
+
+###
+# Describe this emulator setup
+description: Solar Farm Only
+
+dt: 1.0
+starttime: 0.0
+endtime: 43200.0
+verbose: False
+
+plant:
+  interconnect_limit: 250000 # kW
+
+solar_farm:
+  component_type: SolarPySAMPVWatts
+  solar_input_filename: inputs/solar_input.p
+  lat: 39.7442
+  lon: -105.1778
+  elev: 1829
+  target_system_capacity: 100000
+  target_dc_ac_ratio: 1.33
+
+  initial_conditions:
+    power: 100000 # kW
+    dni: 1000
+    poa: 1000
+
+controller: 

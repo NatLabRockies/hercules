@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hercules"
-version = "1.3"
+version = "2.0"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -30,8 +30,13 @@ dependencies = [
 "pandas~=2.0",
 "floris~=4.3",
 "nrel-pysam~=6.0",
+"jupyter",
 "netCDF4",
 "rainflow~=3.2",
+"tqdm~=4.66",
+"polars~=1.0",
+"pyarrow",
+"h5py~=3.10",
 ]
 
 [project.optional-dependencies]
@@ -70,7 +75,6 @@ src = ["hercules", "tests"]
 line-length = 100
 target-version = "py310"
 extend-include = ["*.ipynb"]
-lint.ignore-init-module-imports = true
 
 # See https://github.com/charliermarsh/ruff#supported-rules
 # for rules included and matching to prefix.

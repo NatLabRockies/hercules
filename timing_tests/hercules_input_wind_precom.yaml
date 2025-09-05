@@ -1,0 +1,37 @@
+# Input YAML for hercules
+
+# Name
+name: example_00
+
+###
+# Describe this emulator setup
+description: Wind Farm Only
+
+dt: 1.0
+starttime: 0.0
+endtime: 43200.0
+verbose: False
+log_every_n: 1
+
+plant:
+  interconnect_limit: 250000 # kW
+
+wind_farm:
+  
+  component_type: Wind_MesoToPowerPrecomFloris
+  floris_input_file: inputs/floris_input.yaml
+  wind_input_filename: inputs/wind_input.p
+  turbine_file_name: inputs/turbine_filter_model.yaml
+  log_file_name: outputs/log_wind_sim.log
+  logging_option: base
+  floris_update_time_s: 300.0 # FLORIS updates every 5 minutes
+
+
+controller:
+
+
+
+
+
+
+
