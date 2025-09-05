@@ -37,6 +37,9 @@ dependencies = [
 "polars~=1.0",
 "pyarrow",
 "h5py~=3.10",
+"NREL-rex",
+"utm",
+"cartopy"
 ]
 
 [project.optional-dependencies]
