@@ -25,7 +25,7 @@ bibtex_bibfiles:
 repository:
   url: https://github.com/NREL/hercules
   path_to_book: docs
-  branch: develop
+  branch: v2
 
 # Add GitHub buttons to your book
 # See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
