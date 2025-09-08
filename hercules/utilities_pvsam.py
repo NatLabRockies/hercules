@@ -99,7 +99,6 @@ def find_inverter_count(
 def size_electrical_parameters(
     model,
     target_system_capacity: float,
-    target_dc_ac_ratio: float,
     vdcmax_inverter: Optional[float] = None,
     n_inputs_inverter: Optional[float] = None,
     n_inputs_combiner: Optional[float] = None,
@@ -112,7 +111,6 @@ def size_electrical_parameters(
     Args:
         model: PySAM.Pvsamv1 model.
         target_system_capacity (float): Target system capacity, kW.
-        target_dc_ac_ratio (float): Target DC-to-AC ratio.
         vdcmax_inverter (float, optional): Inverter maximum DC voltage, V. Defaults to None.
         n_inputs_inverter (float, optional): Number of DC inputs per inverter. Defaults to None.
         n_inputs_combiner (float, optional): Number of DC inputs per combiner box. Defaults to None.
@@ -121,6 +119,9 @@ def size_electrical_parameters(
         tuple: Number of strings, number of combiner boxes, number of inverters, calculated
             system capacity, kW.
     """
+
+    # Force target DC/AC ratio to 1.0
+    target_dc_ac_ratio = 1.0
 
     module_model = model.value("module_model")
     module_power = 0
