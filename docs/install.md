@@ -57,11 +57,11 @@ pip install -e .[develop,docs]
 
 ## Setting branch
 
-Can optionally switch to the develop or v2 branch.
+Can optionally switch to the v2 branch for the latest stable version.
 
 ```bash
 git fetch --all
-git switch develop
+git switch v2
 ```
 
 ## Wind Hybrid Open Controller (WHOC)
@@ -90,7 +90,7 @@ cd ..
 git clone git@github.com:NREL/electrolyzer.git
 cd electrolyzer
 git fetch --all
-git switch develop
+git switch main
 ```
 
 
