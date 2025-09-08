@@ -40,7 +40,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
                 "SystemDesign": {
                     "array_type": 3.0,  # single axis backtracking
                     "azimuth": 180.0,
-                    "dc_ac_ratio": h_dict[self.component_name]["target_dc_ac_ratio"],
+                    "dc_ac_ratio": 1.0,  # Force to 1.0
                     "gcr": 0.29999999999999999,
                     "inv_eff": 96,
                     "losses": 14.075660688264469,
