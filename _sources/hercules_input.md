@@ -58,7 +58,6 @@ solar_farm:
   lon: -105.1778
   elev: 1829
   target_system_capacity: 10000
-  target_dc_ac_ratio: 1.33
   initial_conditions:
     power: 2000  # kW
     dni: 1000
