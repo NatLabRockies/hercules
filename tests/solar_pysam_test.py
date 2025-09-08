@@ -68,7 +68,7 @@ def test_step(SPS: SolarPySAMPVSam):
     )
 
     # test the calculated power output
-    assert_almost_equal(SPS.power, 14523.542232511712, decimal=8)
+    assert_almost_equal(SPS.power, 14451.891, decimal=8)
 
     # test the irradiance input
     assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=8)

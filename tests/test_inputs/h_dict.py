@@ -17,7 +17,6 @@ solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
     "target_system_capacity": 100.0,
-    "target_dc_ac_ratio": 1.2,
     "lat": 39.742,
     "lon": -105.179,
     "elev": 1828.8,
@@ -32,7 +31,6 @@ solar_farm_pvsam = {
     "lon": -105.1778,
     "elev": 1829,
     "target_system_capacity": 100002.58266599999,
-    "target_dc_ac_ratio": 1.33,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 
@@ -43,7 +41,6 @@ solar_farm_pvwatts = {
     "lon": -105.1778,
     "elev": 1829,
     "target_system_capacity": 100002.58266599999,
-    "target_dc_ac_ratio": 1.33,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 
