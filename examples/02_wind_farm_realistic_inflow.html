@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="./" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Solar PV &#8212; HERCULES</title>
+    <title>Example 02: Wind Farm Realistic Inflow &#8212; HERCULES</title>
   
   
   
@@ -18,41 +18,41 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -61,7 +61,7 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -70,11 +70,9 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'solar_pv';</script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Order of Operations" href="order_of_op.html" />
-    <link rel="prev" title="Battery" href="battery.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/02_wind_farm_realistic_inflow';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -106,7 +104,7 @@
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
-      action="search.html"
+      action="../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -137,6 +135,8 @@
       
       
       
+        
+      
       <div class="bd-sidebar-primary bd-sidebar">
         
 
@@ -155,7 +155,7 @@
     
   
 
-<a class="navbar-brand logo" href="index.html">
+<a class="navbar-brand logo" href="../index.html">
   
   
   
@@ -166,8 +166,8 @@
       
     
     
-    <img src="_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
-    <script>document.write(`<img src="_static/herc.png" class="logo__image only-dark" alt="HERCULES - Home"/>`);</script>
+    <img src="../_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
+    <script>document.write(`<img src="../_static/herc.png" class="logo__image only-dark" alt="HERCULES - Home"/>`);</script>
   
   
 </a></div>
@@ -187,47 +187,47 @@
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
-                <a class="reference internal" href="index.html">
+                <a class="reference internal" href="../index.html">
                     Hercules
                 </a>
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation instructions</a></li>
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../running_hercules.html">Running Hercules</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../emulator.html">Emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hercules_input.html">Hercules Input Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples_overview.html">Examples Overview</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Solar PV</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solar_pv.html">Solar PV</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../order_of_op.html">Order of Operations</a></li>
 </ul>
 
     </div>
@@ -299,7 +299,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/solar_pv.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/examples/02_wind_farm_realistic_inflow.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -316,7 +316,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fsolar_pv.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/02_wind_farm_realistic_inflow.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -346,7 +346,7 @@
       
       
       
-      <li><a href="_sources/solar_pv.md" target="_blank"
+      <li><a href="../_sources/examples/02_wind_farm_realistic_inflow.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -430,7 +430,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Solar PV</h1>
+    <h1>Example 02: Wind Farm Realistic Inflow</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -440,9 +440,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -454,52 +455,29 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="solar-pv">
-<h1>Solar PV<a class="headerlink" href="#solar-pv" title="Link to this heading">#</a></h1>
-<p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Renewable Energy Laboratory’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
-<p>Two different solar simulators are available, each implementing a different PySAM model:</p>
-<ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">Detailed Photovoltaic model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvsamv1.html"><code class="docutils literal notranslate"><span class="pre">Pvsamv1</span></code></a>, which calculates PV electrical output using separate module and inverter models. This model is more accurate, but more time-intensive. Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> in the input dictionary (.yaml file).</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output without detailed degradation or loss modeling. This model is less accurate, but less time-intensive, which makes it a good fit for longer duration simulations (of approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> in the input dictionary (.yaml file).</p></li>
-</ol>
-<section id="inputs">
-<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
-<p>Both models require an input weather file:</p>
-<ol class="arabic simple">
-<li><p>A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:</p>
-<ul class="simple">
-<li><p>timestamp (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements)</p></li>
-<li><p>direct normal irradiance (DNI)</p></li>
-<li><p>diffuse horizontal irradiance (DHI)</p></li>
-<li><p>global horizontal irradiance (GHI)</p></li>
-<li><p>wind speed</p></li>
-<li><p>air temperature (dry bulb temperature)</p></li>
-</ul>
-</li>
-</ol>
-<p>The <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model also requires an input system info file:</p>
-<ol class="arabic simple" start="2">
-<li><p>A JSON file that specifies the PV plant system design (e.g. 100MW_1axis_pvsamv1.json).</p></li>
-</ol>
-<p>The system location (latitude, longitude, and elevation) is specified in the input <code class="docutils literal notranslate"><span class="pre">yaml</span></code> file.</p>
-<p>The example folder <code class="docutils literal notranslate"><span class="pre">03_wind_and_solar</span></code> specifies:</p>
-<ul class="simple">
-<li><p>use of the <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model with <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">&quot;SolarPySAMPVWatts&quot;</span></code></p></li>
-<li><p>weather conditions on May 10, 2018 measured at NREL’s Flatirons Campus</p></li>
-<li><p>latitude, longitude, and elevation of Golden, CO</p></li>
-<li><p>system design information for a 100 MW single-axis PV tracking system (with backtracking)
-The system capacity and AC/DC ratio inputs can be changed in the <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file.</p></li>
-</ul>
-<p>For examples using the detailed <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model, see the test files in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="example-02-wind-farm-realistic-inflow">
+<h1>Example 02: Wind Farm Realistic Inflow<a class="headerlink" href="#example-02-wind-farm-realistic-inflow" title="Link to this heading">#</a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
+<p>In this case uses a large set of synthetic wind data.</p>
+</section>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
+<p>No manual setup is required. The example automatically generates the necessary input files (large-scale wind data, FLORIS configuration, and turbine model) in the centralized <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder when first run.</p>
+</section>
+<section id="running">
+<h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
+<p>To run the example, execute the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
+</pre></div>
+</div>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>Both solar modules output the AC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">log_extra_outputs</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the input .yaml file, the solar modules also output plane-of-array irradiance (<code class="docutils literal notranslate"><span class="pre">poa</span></code>) in W/m^2, direct normal irradiance (<code class="docutils literal notranslate"><span class="pre">dni</span></code>) in W/m^2, and the angle of incidence (<code class="docutils literal notranslate"><span class="pre">aoi</span></code>) in degrees.</p>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
-<p>PySAM. National Renewable Energy Laboratory. Golden, CO. <a class="github reference external" href="https://github.com/nrel/pysam">nrel/pysam</a></p>
+<p>To plot the outputs run the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -516,7 +494,7 @@ The system capacity and AC/DC ratio inputs can be changed in the <code class="do
         },
         kernelOptions: {
             name: "python3",
-            path: "./."
+            path: "./examples"
         },
         predefinedOutput: true
     }
@@ -533,24 +511,6 @@ The system capacity and AC/DC ratio inputs can be changed in the <code class="do
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="battery.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Battery</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="order_of_op.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Order of Operations</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -567,9 +527,10 @@ The system capacity and AC/DC ratio inputs can be changed in the <code class="do
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 
@@ -618,8 +579,8 @@ By National Renewable Energy Laboratory
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

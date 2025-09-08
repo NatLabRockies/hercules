@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Order of operations &#8212; HERCULES</title>
+    <title>Order of Operations &#8212; HERCULES</title>
   
   
   
@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
@@ -70,13 +70,10 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'order_of_op';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Battery" href="battery.html" />
-    <link rel="prev" title="Spack installation of AMR Wind code" href="install_spack.html" />
+    <link rel="prev" title="Solar PV" href="solar_pv.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -157,7 +154,7 @@
     
   
 
-<a class="navbar-brand logo" href="intro.html">
+<a class="navbar-brand logo" href="index.html">
   
   
   
@@ -189,38 +186,47 @@
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
-                <a class="reference internal" href="intro.html">
+                <a class="reference internal" href="index.html">
                     Hercules
                 </a>
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install_instructions.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install_local.html">Local installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="install_on_kestrel.html">Installation on Kestrel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install_spack.html">Spack installation of AMR Wind code</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Order of operations</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technologies</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/05_floris_standin_and_electrolyzer.html">Example 05: FLORIS Standin and Electrolyzer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/06_amr_wind_standin_and_battery.html">Example 06: AMR Wind Standin and Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/07_floris_standin_and_solar_pysam.html">Example 07: FLORIS Standin and Solar PySAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/08_floris_standin_only.html">Example 08: FLORIS Standin Only</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/09_heterogeneous_wind.html">Example 09: Heterogeneous Wind</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/14_energy_storage_control_and_wind.html">Example 14: Floris Wind Simulator with Energy Storage Usage</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Order of Operations</a></li>
 </ul>
 
     </div>
@@ -292,7 +298,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/order_of_op.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/order_of_op.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -423,7 +429,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Order of operations</h1>
+    <h1>Order of Operations</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -434,7 +440,8 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialization">Initialization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-run-for-k-0-1-2-3-dots">Main run: for <span class="math notranslate nohighlight">\(k = 0, 1, 2, 3, \dots\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-simulation-loop">Main Simulation Loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-execution-order">Component Execution Order</a></li>
 </ul>
             </nav>
         </div>
@@ -446,28 +453,40 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <ul class="simple">
-<li><p>Saving the order of operations discussion from original readme*</p></li>
-</ul>
-<section class="tex2jax_ignore mathjax_ignore" id="order-of-operations">
-<h1>Order of operations<a class="headerlink" href="#order-of-operations" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="order-of-operations">
+<h1>Order of Operations<a class="headerlink" href="#order-of-operations" title="Link to this heading">#</a></h1>
 <section id="initialization">
 <h2>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Instantiate the py_sim modules, which sets the intial conditions</p></li>
-<li><p>Run get_outputs, which sets the initial outputs</p></li>
-<li><p>Establish the helics connection to AMRwind (?)</p></li>
+<li><p>Load configuration from YAML input file into <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
+<li><p>Initialize controller</p></li>
+<li><p>Initialize hybrid plant components based on <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> configuration</p></li>
+<li><p>Initialize emulator with controller, hybrid plant, and configuration</p></li>
+<li><p>Add plant component metadata to <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
+<li><p>Load external data files if specified</p></li>
 </ol>
 </section>
-<section id="main-run-for-k-0-1-2-3-dots">
-<h2>Main run: for <span class="math notranslate nohighlight">\(k = 0, 1, 2, 3, \dots\)</span><a class="headerlink" href="#main-run-for-k-0-1-2-3-dots" title="Link to this heading">#</a></h2>
+<section id="main-simulation-loop">
+<h2>Main Simulation Loop<a class="headerlink" href="#main-simulation-loop" title="Link to this heading">#</a></h2>
+<p>For each time step:</p>
 <ol class="arabic simple">
-<li><p>Compute control actions in controller, [i.e. <span class="math notranslate nohighlight">\(u_k = h(y_k, d_k)\)</span>]</p></li>
-<li><p>Record all signals for time step <span class="math notranslate nohighlight">\(k\)</span>.</p></li>
-<li><p>Update state in py_sim [<span class="math notranslate nohighlight">\(x_{k+1} = f(x_k, u_k, d_k)\)</span>] and output in py_sim [<span class="math notranslate nohighlight">\(y_{k+1} = g(x_{k+1})\)</span>]</p></li>
-<li><p>Update state and output in helics/AMRwind, possibly using components from py_sim (TODO: what ordering should be used there?)
-[<span class="math notranslate nohighlight">\(x_{k+1} = f(x_k, u_k, d_k)\)</span>, <span class="math notranslate nohighlight">\(y_{k+1} = g(x_{k+1})\)</span>]</p></li>
+<li><p><strong>Update external signals</strong> from interpolated data (if external data file provided)</p></li>
+<li><p><strong>Execute controller step</strong> - compute control actions based on current state</p></li>
+<li><p><strong>Execute hybrid plant step</strong> - update all component states and compute outputs</p></li>
+<li><p><strong>Compute plant-level outputs</strong> - aggregate individual component results</p></li>
+<li><p><strong>Log current state</strong> to output file</p></li>
+<li><p><strong>Advance simulation time</strong> and repeat until end time reached</p></li>
 </ol>
+</section>
+<section id="component-execution-order">
+<h2>Component Execution Order<a class="headerlink" href="#component-execution-order" title="Link to this heading">#</a></h2>
+<p>Within each hybrid plant step:</p>
+<ul class="simple">
+<li><p>All components execute their <code class="docutils literal notranslate"><span class="pre">step()</span></code> method in parallel</p></li>
+<li><p>Each component updates its internal state and outputs</p></li>
+<li><p>Plant-level power is computed as sum of all component powers</p></li>
+<li><p>Locally generated power is computed as sum of generator component powers (excluding storage/electrolyzer)</p></li>
+</ul>
 </section>
 </section>
 
@@ -502,22 +521,13 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="install_spack.html"
+       href="solar_pv.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Spack installation of AMR Wind code</p>
+        <p class="prev-next-title">Solar PV</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="battery.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Battery</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -536,7 +546,8 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialization">Initialization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-run-for-k-0-1-2-3-dots">Main run: for <span class="math notranslate nohighlight">\(k = 0, 1, 2, 3, \dots\)</span></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-simulation-loop">Main Simulation Loop</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-execution-order">Component Execution Order</a></li>
 </ul>
   </nav></div>
 

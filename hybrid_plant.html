@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Battery &#8212; HERCULES</title>
+    <title>Hybrid Plant Components &#8212; HERCULES</title>
   
   
   
@@ -70,13 +70,11 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'battery';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'hybrid_plant';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Solar PV" href="solar_pv.html" />
-    <link rel="prev" title="Wind Farm Components" href="wind.html" />
+    <link rel="next" title="Emulator" href="emulator.html" />
+    <link rel="prev" title="H_Dict Structure" href="h_dict.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -204,12 +202,12 @@
 <li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hybrid Plant Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -222,9 +220,9 @@
 <li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
@@ -301,7 +299,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/battery.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/hybrid_plant.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -318,7 +316,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fbattery.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fhybrid_plant.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -348,7 +346,7 @@
       
       
       
-      <li><a href="_sources/battery.md" target="_blank"
+      <li><a href="_sources/hybrid_plant.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -432,7 +430,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Battery</h1>
+    <h1>Hybrid Plant Components</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -442,24 +440,8 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sign-conventions">Sign Conventions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-parameters">Optional Parameters</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterylithiumion"><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
 </ul>
             </nav>
         </div>
@@ -471,119 +453,50 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="battery">
-<h1>Battery<a class="headerlink" href="#battery" title="Link to this heading">#</a></h1>
-<p>There are two battery models currently implemented in Hercules: <code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> and <code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code>.</p>
-<section id="sign-conventions">
-<h2>Sign Conventions<a class="headerlink" href="#sign-conventions" title="Link to this heading">#</a></h2>
-<p>It is important to note that within the battery modules, the convention that positive power is charging the<br />
-battery is followed for consistency with battery standards.  However, at the level of the <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>
-this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
-for consistency with other components.  This inversions applies to power_setpoint and also occurs within
-<code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>.</p>
-<section id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
-<p>Battery parameters are defined in the hercules input yaml file used to initialize <code class="docutils literal notranslate"><span class="pre">emulator</span></code>.</p>
-<section id="required-parameters">
-<h4>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">component_type</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;BatterySimple&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;BatteryLithiumIon&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">energy_capacity</span></code>: Energy capacity in kWh</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">charge_rate</span></code>: Maximum charge rate in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">discharge_rate</span></code>: Maximum discharge rate in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_SOC</span></code>: Maximum state of charge (between 0 and 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_SOC</span></code>: Minimum state of charge (between 0 and 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code></p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOC</span></code>: Initial state of charge (between <code class="docutils literal notranslate"><span class="pre">min_SOC</span></code> and <code class="docutils literal notranslate"><span class="pre">max_SOC</span></code>)</p></li>
-</ul>
-</li>
-</ul>
+  <section class="tex2jax_ignore mathjax_ignore" id="hybrid-plant-components">
+<h1>Hybrid Plant Components<a class="headerlink" href="#hybrid-plant-components" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> class manages all plant components in Hercules. It handles initialization, execution, and coordination of individual components while computing plant-level outputs.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>HybridPlant automatically detects and initializes components based on the <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict structure</span></a>. Each component is configured through its respective section in the h_dict (e.g., <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>).</p>
 </section>
-<section id="optional-parameters">
-<h4>Optional Parameters<a class="headerlink" href="#optional-parameters" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">allow_grid_power_consumption</span></code>: True or False (defaults to False)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">roundtrip_efficiency</span></code>: Roundtrip efficiency (0-1, applies to BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">self_discharge_time_constant</span></code>: Self-discharge time constant in seconds (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">track_usage</span></code>: Enable usage tracking for degradation modeling (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_calc_interval</span></code>: Interval for usage calculations in seconds (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_lifetime</span></code>: Battery lifetime in years for time-based degradation (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_cycles</span></code>: Number of cycles until replacement for cycle-based degradation (BatterySimple only)</p></li>
-</ul>
-<p>Once initialized, the battery is only interacted with using the <code class="docutils literal notranslate"><span class="pre">step</span></code> method.</p>
-</section>
-</section>
-<section id="inputs">
-<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
-<p>Inputs are passed to <code class="docutils literal notranslate"><span class="pre">step()</span></code> as a dict named <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>, which must have the following fields:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;battery&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;power_setpoint&quot;</span><span class="p">:</span> <span class="mi">1000</span>  <span class="c1"># Requested battery power in kW (positive=discharge, negative=charge)</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;plant&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;locally_generated_power&quot;</span><span class="p">:</span> <span class="mi">5000</span>  <span class="c1"># Available power for charging in kW</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
+<section id="available-components">
+<h2>Available Components<a class="headerlink" href="#available-components" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Component Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wind_farm</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Wind_MesoToPower</span></code></p></td>
+<td><p>FLORIS-based wind farm simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">solar_farm</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code></p></td>
+<td><p>PySAM-based detailed solar simulation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">solar_farm</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></p></td>
+<td><p>PySAM-based simplified solar simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></p></td>
+<td><p>Basic battery storage model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></p></td>
+<td><p>Detailed lithium-ion battery model</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code></p></td>
+<td><p>Hydrogen production system</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-</section>
-<section id="outputs">
-<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
-<p>Outputs are returned as a dict containing the following values:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual battery power in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reject</span></code>: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">soc</span></code>: Battery state of charge (0-1)</p></li>
-</ul>
-<section id="additional-outputs-batterysimple-only-when-track-usage-true">
-<h4>Additional Outputs (BatterySimple only when track_usage=True)<a class="headerlink" href="#additional-outputs-batterysimple-only-when-track-usage-true" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_in_time</span></code>: Time-based usage percentage</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_in_cycles</span></code>: Cycle-based usage percentage</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">total_cycles</span></code>: Total equivalent cycles completed</p></li>
-</ul>
-</section>
-</section>
-</section>
-<section id="batterysimple">
-<h2><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code><a class="headerlink" href="#batterysimple" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> is a basic energy storage model with the following features:</p>
-<ul class="simple">
-<li><p><strong>Energy Integration</strong>: <span class="math notranslate nohighlight">\(E_t = \sum_{k=0}^t P_k \Delta t\)</span>, where <span class="math notranslate nohighlight">\(E_t\)</span> is the energy stored and <span class="math notranslate nohighlight">\(P_t\)</span> is the charging/discharging power at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
-<li><p><strong>Efficiency Losses</strong>: Separate charge and discharge efficiencies (from roundtrip efficiency)</p></li>
-<li><p><strong>Self-Discharge</strong>: Exponential energy loss with configurable time constant</p></li>
-<li><p><strong>Usage Tracking</strong>: Optional rainflow cycle counting for degradation modeling</p></li>
-<li><p><strong>Constraints</strong>: Both energy and power are constrained by upper and lower limits:</p></li>
-</ul>
-<p><span class="math notranslate nohighlight">\(\underline{E} \leq E \leq \overline{E}\)</span></p>
-<p><span class="math notranslate nohighlight">\(\underline{P} \leq P \leq \overline{P}\)</span></p>
-<p>The model uses a state-space representation to handle self-discharge and efficiency losses in a unified framework.</p>
-</section>
-<section id="batterylithiumion">
-<h2><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code><a class="headerlink" href="#batterylithiumion" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code> models a detailed lithium-ion battery using an equivalent circuit model based on [1]. Key features include:</p>
-<ul class="simple">
-<li><p><strong>Equivalent Circuit Model</strong>: RC branch representing diffusion transients</p></li>
-<li><p><strong>State-Dependent Parameters</strong>: Open circuit voltage, resistance, and capacitance vary with SOC, SOH, and temperature</p></li>
-<li><p><strong>Cell-Level Modeling</strong>: Individual cell behavior scaled to battery pack</p></li>
-<li><p><strong>Voltage-Current Relationship</strong>: Iterative power control accounting for voltage variations</p></li>
-<li><p><strong>Physical Constraints</strong>: Energy, power, and current limits at cell and pack level</p></li>
-</ul>
-<p><strong>Battery Specifications:</strong></p>
-<ul class="simple">
-<li><p>Cathode Material: LiFePO4</p></li>
-<li><p>Anode Material: Graphite</p></li>
-<li><p>Nominal Cell Voltage: 3.3V</p></li>
-<li><p>Cell Capacity: 15.756 Ah</p></li>
-</ul>
-<p>The main difference from <code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> is the inclusion of voltage dynamics, diffusion transients, and state-dependent equivalent circuit parameters that provide higher fidelity modeling of lithium-ion battery behavior.</p>
-<section id="references">
-<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p>M.-K. Tran et al., “A comprehensive equivalent circuit model for lithium-ion batteries, incorporating the effects of state of health, state of charge, and temperature on model parameters,” Journal of Energy Storage, vol. 43, p. 103252, Nov. 2021, doi: 10.1016/j.est.2021.103252.</p></li>
-</ol>
-</section>
 </section>
 </section>
 
@@ -618,20 +531,20 @@ for consistency with other components.  This inversions applies to power_setpoin
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="wind.html"
+       href="h_dict.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Wind Farm Components</p>
+        <p class="prev-next-title">H_Dict Structure</p>
       </div>
     </a>
     <a class="right-next"
-       href="solar_pv.html"
+       href="emulator.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Solar PV</p>
+        <p class="prev-next-title">Emulator</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -651,24 +564,8 @@ for consistency with other components.  This inversions applies to power_setpoin
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sign-conventions">Sign Conventions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-parameters">Optional Parameters</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterylithiumion"><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
 </ul>
   </nav></div>
 

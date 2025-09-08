@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples_overview';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example 05: FLORIS Standin and Electrolyzer" href="examples/05_floris_standin_and_electrolyzer.html" />
-    <link rel="prev" title="Solar PV" href="solar_pv.html" />
+    <link rel="next" title="Wind Farm Components" href="wind.html" />
+    <link rel="prev" title="Hercules Input Files" href="hercules_input.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -155,7 +155,7 @@
     
   
 
-<a class="navbar-brand logo" href="intro.html">
+<a class="navbar-brand logo" href="index.html">
   
   
   
@@ -187,38 +187,47 @@
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
-                <a class="reference internal" href="intro.html">
+                <a class="reference internal" href="index.html">
                     Hercules
                 </a>
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install_instructions.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install_local.html">Local installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
 
-
-<li class="toctree-l1"><a class="reference internal" href="install_on_kestrel.html">Installation on Kestrel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install_spack.html">Spack installation of AMR Wind code</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Technologies</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Examples Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/05_floris_standin_and_electrolyzer.html">Example 05: FLORIS Standin and Electrolyzer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/06_amr_wind_standin_and_battery.html">Example 06: AMR Wind Standin and Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/07_floris_standin_and_solar_pysam.html">Example 07: FLORIS Standin and Solar PySAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/08_floris_standin_only.html">Example 08: FLORIS Standin Only</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/09_heterogeneous_wind.html">Example 09: Heterogeneous Wind</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/14_energy_storage_control_and_wind.html">Example 14: Floris Wind Simulator with Energy Storage Usage</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 
     </div>
@@ -290,7 +299,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/examples_overview.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/v2/docs/examples_overview.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -408,7 +417,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -424,6 +435,16 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-examples">Available Examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-data-management">Input Data Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-examples">Running Examples</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,7 +456,45 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="examples-overview">
 <h1>Examples Overview<a class="headerlink" href="#examples-overview" title="Link to this heading">#</a></h1>
-<p>Hercules includes several examples to demonstrate usage for a number of key configurations.</p>
+<p>Hercules includes several example cases that demonstrate different simulation configurations and capabilities. All examples use a centralized input system where data files are automatically generated and stored in the <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder.</p>
+<section id="available-examples">
+<h2>Available Examples<a class="headerlink" href="#available-examples" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="examples/00_wind_farm_only.html"><span class="doc std std-doc">00: Wind Farm Only</span></a> - Simple wind farm simulation with generated wind data</p></li>
+<li><p><a class="reference internal" href="examples/01_wind_farm_dof1_model.html"><span class="doc std std-doc">01: Wind Farm DOF1 Model</span></a> - 1-DOF long-duration wind simulation</p></li>
+<li><p><a class="reference internal" href="examples/02_wind_farm_realistic_inflow.html"><span class="doc std std-doc">02: Wind Farm Realistic Inflow</span></a> - Large-scale wind farm with longer running wind data</p></li>
+<li><p><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html"><span class="doc std std-doc">02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</span></a> - Optimized version using precomputed wake deficits</p></li>
+<li><p><a class="reference internal" href="examples/03_wind_and_solar.html"><span class="doc std std-doc">03: Wind and Solar</span></a> - Hybrid wind and solar plant with interconnect limits</p></li>
+<li><p><a class="reference internal" href="examples/04_wind_and_storage.html"><span class="doc std std-doc">04: Wind and Storage</span></a> - Wind farm with battery storage system</p></li>
+</ul>
+</section>
+<section id="input-data-management">
+<h2>Input Data Management<a class="headerlink" href="#input-data-management" title="Link to this heading">#</a></h2>
+<p>All examples use centralized input files located in <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code>:</p>
+<ul class="simple">
+<li><p>Wind data files (<code class="docutils literal notranslate"><span class="pre">.ftr</span></code> format)</p></li>
+<li><p>Solar data files (<code class="docutils literal notranslate"><span class="pre">.ftr</span></code> format)</p></li>
+<li><p>FLORIS configuration files (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></li>
+<li><p>Turbine model files (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></li>
+<li><p>PV system configuration files (<code class="docutils literal notranslate"><span class="pre">.json</span></code>)</p></li>
+</ul>
+<p>Input files are automatically generated when first running any example using the <code class="docutils literal notranslate"><span class="pre">ensure_example_inputs_exist()</span></code> function.</p>
+</section>
+<section id="running-examples">
+<h2>Running Examples<a class="headerlink" href="#running-examples" title="Link to this heading">#</a></h2>
+<p>Each example includes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hercules_input.yaml</span></code>: Configuration file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hercules_runscript.py</span></code>: Main execution script</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_outputs.py</span></code>: Output visualization script</p></li>
+</ul>
+<p>To run any example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>examples/XX_example_name/
+python<span class="w"> </span>hercules_runscript.py
+</pre></div>
+</div>
+<p>No manual setup is required - all necessary input files will be automatically generated on first run.</p>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -469,20 +528,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="solar_pv.html"
+       href="hercules_input.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Solar PV</p>
+        <p class="prev-next-title">Hercules Input Files</p>
       </div>
     </a>
     <a class="right-next"
-       href="examples/05_floris_standin_and_electrolyzer.html"
+       href="wind.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Example 05: FLORIS Standin and Electrolyzer</p>
+        <p class="prev-next-title">Wind Farm Components</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -492,6 +551,23 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-examples">Available Examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-data-management">Input Data Management</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-examples">Running Examples</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
