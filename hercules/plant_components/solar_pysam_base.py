@@ -53,9 +53,8 @@ class SolarPySAMBase(ComponentBase):
         # Save the system capacity
         self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
 
-        # Save the target dc/ac ratio
-        self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
-
+        # Save the target dc/ac ratio (Force to 1.0)
+        self.target_dc_ac_ratio = 1.0
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
         self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
