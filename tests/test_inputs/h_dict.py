@@ -20,6 +20,8 @@ solar_farm_pysam = {
     "lat": 39.742,
     "lon": -105.179,
     "elev": 1828.8,
+    "inv_eff": 99.5,
+    "losses": 0,
     "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
 }
 
@@ -41,6 +43,8 @@ solar_farm_pvwatts = {
     "lon": -105.1778,
     "elev": 1829,
     "target_system_capacity": 100002.58266599999,
+    "inv_eff": 99.5,
+    "losses": 0,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 

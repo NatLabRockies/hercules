@@ -35,15 +35,15 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
+
         sys_design = {
             "ModelParams": {
                 "SystemDesign": {
                     "array_type": 3.0,  # single axis backtracking
                     "azimuth": 180.0,
                     "dc_ac_ratio": 1.0,  # Force to 1.0
-                    "gcr": 0.29999999999999999,
-                    "inv_eff": 96,
-                    "losses": 14.075660688264469,
+                    "inv_eff": h_dict[self.component_name]["inv_eff"],
+                    "losses": h_dict[self.component_name]["losses"],
                     "module_type": 2.0,
                     "system_capacity": h_dict[self.component_name]["target_system_capacity"],
                     "tilt": 0.0,

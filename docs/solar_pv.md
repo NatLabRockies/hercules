@@ -6,7 +6,11 @@ Two different solar simulators are available, each implementing a different PySA
 
 1. **`SolarPySAMPVSam`** - Uses the [Detailed Photovoltaic model](https://sam.nrel.gov/photovoltaic.html) in [`Pvsamv1`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvsamv1.html), which calculates PV electrical output using separate module and inverter models. This model is more accurate, but more time-intensive. Set `component_type` = `SolarPySAMPVSam` in the input dictionary (.yaml file).
 
-2. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output without detailed degradation or loss modeling. This model is less accurate, but less time-intensive, which makes it a good fit for longer duration simulations (of approximately 1 year). Set `component_type` = `SolarPySAMPVWatts` in the input dictionary (.yaml file).
+2. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set `component_type` = `SolarPySAMPVWatts` in the input dictionary (.yaml file).
+
+### DC-to-AC Ratio
+
+Both solar models force the `dc_ac_ratio` to 1.0, ensuring that excess DC solar generation is not hidden from Hercules. This allows the full DC capacity to be available for other plant components (such as battery charging) and provides transparent power flow modeling.
 
 ### Inputs
 
@@ -25,12 +29,23 @@ The `SolarPySAMPVSam` model also requires an input system info file:
 
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
+### Efficiency and Loss Parameters
+
+For the `SolarPySAMPVWatts` model, you must specify the following parameters in the input file:
+
+- **`inv_eff`** - Inverter efficiency as a percentage (0-99.5). Default recommended value: `99.5` (maximum allowed by PVWatts)
+- **`losses`** - System losses as a percentage (0-100). Default recommended value: `0` (no losses)
+
+These parameters allow you to configure the efficiency characteristics of your solar system while maintaining the `dc_ac_ratio` at 1.0.
+
 The example folder `03_wind_and_solar` specifies:
 - use of the `SolarPySAMPVWatts` model with `component_type: "SolarPySAMPVWatts"`
 - weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
 - latitude, longitude, and elevation of Golden, CO
 - system design information for a 100 MW single-axis PV tracking system (with backtracking)
-The system capacity and AC/DC ratio inputs can be changed in the `.yaml` file.
+- inverter efficiency of 99.5% and system losses of 0%
+
+The system capacity can be changed in the `.yaml` file, but the DC/AC ratio is fixed at 1.0.
 
 For examples using the detailed `SolarPySAMPVSam` model, see the test files in the `tests/` directory.
 
