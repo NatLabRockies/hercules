@@ -121,9 +121,8 @@ class SolarPySAMPVSam(SolarPySAMBase):
 
         # Apply dynamic sizing for the full simulation
         target_system_capacity = self.target_system_capacity
-        target_ratio = self.target_dc_ac_ratio
         n_strings, n_combiners, n_inverters, calc_sys_capacity = size_electrical_parameters(
-            self.system_model, target_system_capacity, target_ratio
+            self.system_model, target_system_capacity
         )
 
         # Execute the model once for all time steps
