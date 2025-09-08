@@ -3,7 +3,7 @@ name: deploy-pages
 on:
   push:
     branches:
-    - develop
+    - v2
     paths:
     - docs/**
 
