@@ -39,17 +39,14 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `logging_option` | str | Logging level: "base", "turb_subset", or "all" |
 
 ### Solar Farm (`solar_farm`)
-| `component_type` | str | "SolarPySAMPVSam" or "SolarPySAMPVWatts" |
-| **For SolarPySAMPVSam:** |
-| `system_info_file_name` | str | System info file (JSON) |
+| `component_type` | str | "SolarPySAMPVWatts" |
 | **For SolarPySAMPVWatts:** |
-| `pysam_model` | str | "pvsam" or "pvwatts" |
+| `pysam_model` | str | "pvwatts" |
 | `solar_input_filename` | str | Solar data file path |
-| `target_system_capacity` | float | System capacity in kW |
+| `system_capacity` | float | System capacity in kW |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
-| `system_info_file_name` | str | System info file (pvsam only) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
 ### Battery (`battery`)

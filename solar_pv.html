@@ -440,10 +440,9 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dc-to-ac-ratio">DC-to-AC Ratio</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
@@ -459,15 +458,10 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="solar-pv">
 <h1>Solar PV<a class="headerlink" href="#solar-pv" title="Link to this heading">#</a></h1>
 <p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Renewable Energy Laboratory’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
-<p>Two different solar simulators are available, each implementing a different PySAM model:</p>
+<p>Presently only one solar simulator is available</p>
 <ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">Detailed Photovoltaic model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvsamv1.html"><code class="docutils literal notranslate"><span class="pre">Pvsamv1</span></code></a>, which calculates PV electrical output using separate module and inverter models. This model is more accurate, but more time-intensive. Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> in the input dictionary (.yaml file).</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> in the input dictionary (.yaml file).</p></li>
 </ol>
-<section id="dc-to-ac-ratio">
-<h2>DC-to-AC Ratio<a class="headerlink" href="#dc-to-ac-ratio" title="Link to this heading">#</a></h2>
-<p>Both solar models force the <code class="docutils literal notranslate"><span class="pre">dc_ac_ratio</span></code> to 1.0, ensuring that excess DC solar generation is not hidden from Hercules. This allows the full DC capacity to be available for other plant components (such as battery charging) and provides transparent power flow modeling.</p>
-</section>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
 <p>Both models require an input weather file:</p>
@@ -483,15 +477,16 @@ document.write(`
 </ul>
 </li>
 </ol>
-<p>The <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model also requires an input system info file:</p>
-<ol class="arabic simple" start="2">
-<li><p>A JSON file that specifies the PV plant system design (e.g. 100MW_1axis_pvsamv1.json).</p></li>
-</ol>
 <p>The system location (latitude, longitude, and elevation) is specified in the input <code class="docutils literal notranslate"><span class="pre">yaml</span></code> file.</p>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The solar module output is the DC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.  Using DC power makes the parameters <code class="docutils literal notranslate"><span class="pre">inv_eff</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_to_ac_ratio</span></code> irrelavent.  Hercules simplifies the solar by module by assuming the <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> specified in the input file corresponds to the maximum output power of the solar array whenever it is delivered to the <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> module (either AC or DC).</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">log_extra_outputs</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the input .yaml file, the solar modules also output plane-of-array irradiance (<code class="docutils literal notranslate"><span class="pre">poa</span></code>) in W/m^2, direct normal irradiance (<code class="docutils literal notranslate"><span class="pre">dni</span></code>) in W/m^2, and the angle of incidence (<code class="docutils literal notranslate"><span class="pre">aoi</span></code>) in degrees.</p>
 </section>
 <section id="efficiency-and-loss-parameters">
 <h2>Efficiency and Loss Parameters<a class="headerlink" href="#efficiency-and-loss-parameters" title="Link to this heading">#</a></h2>
-<p>For the <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model, you must specify the following parameters in the input file:</p>
+<p>ALthough the pysam model <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model, technically includes efficiency terms:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">inv_eff</span></code></strong> - Inverter efficiency as a percentage (0-99.5). Default recommended value: <code class="docutils literal notranslate"><span class="pre">99.5</span></code> (maximum allowed by PVWatts). This parameter determines how much of the DC power generated by the PV panels is converted to AC power.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">losses</span></code></strong> - System losses as a percentage (0-100). Default recommended value: <code class="docutils literal notranslate"><span class="pre">0</span></code> (no losses). This parameter affects the DC power generated by the PV panels, before any conversion to AC by the inverter.</p></li>
@@ -506,11 +501,6 @@ document.write(`
 </ul>
 <p>The system capacity can be changed in the <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file, but the DC/AC ratio is fixed at 1.0.</p>
 <p>For examples using the detailed <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model, see the test files in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory.</p>
-</section>
-<section id="outputs">
-<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>Both solar modules output the AC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">log_extra_outputs</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the input .yaml file, the solar modules also output plane-of-array irradiance (<code class="docutils literal notranslate"><span class="pre">poa</span></code>) in W/m^2, direct normal irradiance (<code class="docutils literal notranslate"><span class="pre">dni</span></code>) in W/m^2, and the angle of incidence (<code class="docutils literal notranslate"><span class="pre">aoi</span></code>) in degrees.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
@@ -582,10 +572,9 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dc-to-ac-ratio">DC-to-AC Ratio</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
