@@ -21,7 +21,7 @@ solar_farm:
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 100000
+  system_capacity: 100000
   inv_eff: 99.5
   losses: 0
 

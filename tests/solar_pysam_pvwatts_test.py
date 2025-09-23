@@ -29,7 +29,7 @@ def test_init():
     assert SPS.dt == test_h_dict["dt"]
     assert (
         SPS.model_params["SystemDesign"]["system_capacity"]
-        == test_h_dict["solar_farm"]["target_system_capacity"]
+        == test_h_dict["solar_farm"]["system_capacity"]
     )
     assert SPS.power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
     assert SPS.dc_power == test_h_dict["solar_farm"]["initial_conditions"]["power"]

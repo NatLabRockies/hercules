@@ -14,6 +14,8 @@ class SolarPySAMBase(ComponentBase):
 
     This class provides common functionality for both PVSam and PVWatts models,
     including weather data processing, solar resource assignment, and control logic.
+
+    Note PVSam is no longer supported in Hercules.
     """
 
     def __init__(self, h_dict):
@@ -51,10 +53,11 @@ class SolarPySAMBase(ComponentBase):
         self._load_solar_data(h_dict)
 
         # Save the system capacity
-        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
+        self.system_capacity = h_dict[self.component_name]["system_capacity"]
 
         # Save the target dc/ac ratio (Force to 1.0)
         self.target_dc_ac_ratio = 1.0
+
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
         self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
@@ -161,7 +164,7 @@ class SolarPySAMBase(ComponentBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
         # This is a bit of a hack but need this to exist
-        h_dict["solar_farm"]["capacity"] = self.target_system_capacity
+        h_dict["solar_farm"]["capacity"] = self.system_capacity
         h_dict["solar_farm"]["power"] = self.power
         h_dict["solar_farm"]["dc_power"] = self.dc_power
         h_dict["solar_farm"]["dni"] = self.dni

@@ -45,7 +45,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
                     "inv_eff": h_dict[self.component_name]["inv_eff"],
                     "losses": h_dict[self.component_name]["losses"],
                     "module_type": 2.0,
-                    "system_capacity": h_dict[self.component_name]["target_system_capacity"],
+                    "system_capacity": h_dict[self.component_name]["system_capacity"],
                     "tilt": 0.0,
                 },
             },

@@ -148,7 +148,7 @@ class HerculesOutput:
         # Solar farm information
         if "solar_farm" in h_dict:
             solar_config = h_dict["solar_farm"]
-            pv_capacity = solar_config.get("target_system_capacity", 0)
+            pv_capacity = solar_config.get("system_capacity", 0)
             if pv_capacity > 0:
                 print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
             else:

@@ -32,7 +32,7 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 30000
+  system_capacity: 30000
   inv_eff: 99.5
   losses: 0
 
