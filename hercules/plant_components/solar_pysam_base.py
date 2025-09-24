@@ -52,8 +52,8 @@ class SolarPySAMBase(ComponentBase):
         # Load and process solar data
         self._load_solar_data(h_dict)
 
-        # Save the nameplate DC capacity (in kW - maximum possible DC output)
-        self.nameplate_dc_capacity = h_dict[self.component_name]["nameplate_dc_capacity"]
+        # Save the system capacity (in kW - PVWatts DC system capacity)
+        self.system_capacity = h_dict[self.component_name]["system_capacity"]
 
         # Save the target dc/ac ratio (Force to 1.0)
         self.target_dc_ac_ratio = 1.0
@@ -164,7 +164,7 @@ class SolarPySAMBase(ComponentBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
         # This is a bit of a hack but need this to exist
-        h_dict["solar_farm"]["capacity"] = self.nameplate_dc_capacity
+        h_dict["solar_farm"]["capacity"] = self.system_capacity
         h_dict["solar_farm"]["power"] = self.power
         h_dict["solar_farm"]["dc_power"] = self.dc_power
         h_dict["solar_farm"]["dni"] = self.dni

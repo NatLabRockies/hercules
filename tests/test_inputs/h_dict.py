@@ -16,7 +16,7 @@ wind_farm = {
 solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
-    "nameplate_dc_capacity": 100.0,  # kW
+    "system_capacity": 100.0,  # kW
     "lat": 39.742,
     "lon": -105.179,
     "elev": 1828.8,
@@ -30,7 +30,7 @@ solar_farm_pvwatts = {
     "lat": 39.7442,
     "lon": -105.1778,
     "elev": 1829,
-    "nameplate_dc_capacity": 100000.0,  # kW (100 MW)
+    "system_capacity": 100000.0,  # kW (100 MW)
     "losses": 0,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }

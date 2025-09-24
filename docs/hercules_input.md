@@ -57,7 +57,7 @@ solar_farm:
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  nameplate_dc_capacity: 10000  # kW (10 MW)
+  system_capacity: 10000  # kW (10 MW)
   initial_conditions:
     power: 2000  # kW
     dni: 1000

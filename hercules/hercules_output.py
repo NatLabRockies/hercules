@@ -148,18 +148,12 @@ class HerculesOutput:
         # Solar farm information
         if "solar_farm" in h_dict:
             solar_config = h_dict["solar_farm"]
-            if "system_capacity" in solar_config:
-                raise ValueError(
-                    "The 'system_capacity' field is no longer allowed in the "
-                    "solar_farm configuration. "
-                    "Please specify 'nameplate_dc_capacity' instead (in kW)."
-                )
-            if "nameplate_dc_capacity" not in solar_config:
+            if "system_capacity" not in solar_config:
                 raise KeyError(
-                    "Missing required field 'nameplate_dc_capacity' in solar_farm configuration. "
-                    "Please specify the DC nameplate capacity of the solar farm in kW."
+                    "Missing required field 'system_capacity' in solar_farm configuration. "
+                    "Please specify the DC system capacity of the solar farm in kW."
                 )
-            pv_capacity = solar_config["nameplate_dc_capacity"]
+            pv_capacity = solar_config["system_capacity"]
             print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
 
         # Battery information
