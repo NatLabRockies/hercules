@@ -44,6 +44,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `pysam_model` | str | "pvwatts" |
 | `solar_input_filename` | str | Solar data file path |
 | `system_capacity` | float | DC system capacity in kW as defined by PVWatts - under Standard Test Conditions|
+| `tilt` | float | Array tilt angle in degrees (required) |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
