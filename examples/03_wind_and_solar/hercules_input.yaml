@@ -32,8 +32,7 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  system_capacity: 30000
-  inv_eff: 99.5
+  nameplate_dc_capacity: 30000  # kW (30 MW)
   losses: 0
 
   initial_conditions:

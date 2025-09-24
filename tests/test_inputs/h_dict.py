@@ -16,11 +16,10 @@ wind_farm = {
 solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
-    "system_capacity": 100.0,
+    "nameplate_dc_capacity": 100.0,  # kW
     "lat": 39.742,
     "lon": -105.179,
     "elev": 1828.8,
-    "inv_eff": 99.5,
     "losses": 0,
     "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
 }
@@ -31,8 +30,7 @@ solar_farm_pvwatts = {
     "lat": 39.7442,
     "lon": -105.1778,
     "elev": 1829,
-    "system_capacity": 100002.58266599999,
-    "inv_eff": 99.5,
+    "nameplate_dc_capacity": 100000.0,  # kW (100 MW)
     "losses": 0,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
@@ -171,6 +169,8 @@ h_dict_solar_pvwatts = {
     "plant": plant,
     "solar_farm": solar_farm_pvwatts,
 }
+
+# Note: h_dict_solar_pvwatts_max was removed - tests should create their own precise conditions
 
 # h_dict with battery only
 h_dict_battery = {

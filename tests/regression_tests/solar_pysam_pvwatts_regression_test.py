@@ -3,7 +3,6 @@
 import os
 
 import numpy as np
-import pytest
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 
 PRINT_VALUES = True
@@ -85,8 +84,7 @@ def get_solar_params():
             "lat": 39.7442,
             "lon": -105.1778,
             "elev": 1829,
-            "system_capacity": 100002.58266599999,
-            "inv_eff": 99.5,
+            "nameplate_dc_capacity": 100000.0,  # kW (100 MW)
             "losses": 0,
             "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
             "verbose": False,
@@ -96,17 +94,10 @@ def get_solar_params():
     return solar_dict
 
 
-def create_solar_pysam():
+def test_SolarPySAM_regression_control():
     solar_dict = get_solar_params()
-    return SolarPySAMPVWatts(solar_dict)
+    SPS = SolarPySAMPVWatts(solar_dict)
 
-
-@pytest.fixture
-def SPS():
-    return create_solar_pysam()
-
-
-def test_SolarPySAM_regression_control(SPS: SolarPySAMPVWatts):
     power_setpoint = 13800.0  # Slightly below most of the base outputs.
 
     times_test = np.arange(0, 5, SPS.dt)
