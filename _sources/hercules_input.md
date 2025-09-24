@@ -58,6 +58,7 @@ solar_farm:
   lon: -105.1778
   elev: 1829
   system_capacity: 10000  # kW (10 MW)
+  tilt: 0  # degrees
   initial_conditions:
     power: 2000  # kW
     dni: 1000

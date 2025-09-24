@@ -25,7 +25,15 @@ The system location (latitude, longitude, and elevation) is specified in the inp
 
 ### Outputs
 
-The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelevant.  The `system_capacity` parameter represents the DC system capacity, and under Standard Test Conditions.
+The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelevant.  The `system_capacity` parameter represents the DC system capacity under Standard Test Conditions.
+
+The PVWatts model is configured with the following hardcoded parameters for utility-scale installations:
+- **Module type**: Standard crystalline silicon (module_type = 0)
+- **Array type**: Single-axis tracking with backtracking (array_type = 3)
+- **Azimuth**: 180° (due south)
+- **DC/AC ratio**: 1.0
+
+The array tilt angle must be specified in the input configuration file.
 
 When `log_extra_outputs` is set to `True` in the input .yaml file, the solar modules also output plane-of-array irradiance (`poa`) in W/m^2, direct normal irradiance (`dni`) in W/m^2, and the angle of incidence (`aoi`) in degrees.
 
