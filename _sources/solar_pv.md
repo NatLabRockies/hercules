@@ -25,7 +25,7 @@ The system location (latitude, longitude, and elevation) is specified in the inp
 
 ### Outputs
 
-The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelavent.  Hercules simplifies the solar by module by assuming the `system_capacity` specified in the input file corresponds to the maximum output power of the solar array whenever it is delivered to the `HybridPlant` module (either AC or DC).
+The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelevant.  Hercules simplifies the solar module by ensuring that the `nameplate_dc_capacity` specified in the input file corresponds exactly to the maximum DC output power of the solar array under ideal solar conditions.
 
 When `log_extra_outputs` is set to `True` in the input .yaml file, the solar modules also output plane-of-array irradiance (`poa`) in W/m^2, direct normal irradiance (`dni`) in W/m^2, and the angle of incidence (`aoi`) in degrees.
 

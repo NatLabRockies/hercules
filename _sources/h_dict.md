@@ -43,7 +43,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **For SolarPySAMPVWatts:** |
 | `pysam_model` | str | "pvwatts" |
 | `solar_input_filename` | str | Solar data file path |
-| `system_capacity` | float | System capacity in kW |
+| `nameplate_dc_capacity` | float | Nameplate DC capacity in kW - represents the exact maximum DC power output under ideal solar conditions |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
