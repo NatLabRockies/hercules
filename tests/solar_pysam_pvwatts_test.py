@@ -59,8 +59,8 @@ def test_step():
 
     SPS.step(step_inputs)
 
-    # test the calculated power output
-    assert_almost_equal(SPS.power, 17023.056367634756, decimal=8)
+    # test the calculated power output (0° tilt)
+    assert_almost_equal(SPS.power, 17092.157367793126, decimal=8)
 
     # test the irradiance input
     assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=8)
@@ -70,12 +70,16 @@ def test_control():
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
     SPS = SolarPySAMPVWatts(test_h_dict)
 
-    power_setpoint = 10000
+    # Test curtailment - set power setpoint above uncurtailed power,
+    # should get uncurtailed power
+    power_setpoint = 100000  # Above uncurtailed power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
-    assert_almost_equal(SPS.power, power_setpoint, decimal=8)
+    uncurtailed_power = SPS.power_uncurtailed[0]
+    assert_almost_equal(SPS.power, uncurtailed_power, decimal=8)  # uncurtailed power
 
-    power_setpoint = 100
+    # Test curtailment - set power below uncurtailed power, should get setpoint
+    power_setpoint = 100  # Below uncurtailed power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)

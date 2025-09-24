@@ -33,6 +33,7 @@ solar_farm: # The name of component object 1
   lon: -105.1778
   elev: 1829
   system_capacity: 30000  # kW (30 MW)
+  tilt: 0  # degrees
   losses: 0
 
   initial_conditions:

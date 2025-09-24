@@ -51,9 +51,9 @@ class SolarPySAMPVWatts(SolarPySAMBase):
                     "azimuth": 180.0,
                     "dc_ac_ratio": 1.0,  # Force to 1.0
                     "losses": h_dict[self.component_name]["losses"],
-                    "module_type": 2.0,
+                    "module_type": 0.0,  # standard crystalline silicon (hardcoded)
                     "system_capacity": system_capacity,
-                    "tilt": 0.0,
+                    "tilt": h_dict[self.component_name]["tilt"],
                 },
             },
         }

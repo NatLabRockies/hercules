@@ -22,8 +22,8 @@ EXAMPLE_DESCRIPTION = "Wind and Solar"
 # Test configuration
 NUM_TIME_STEPS = 5
 EXPECTED_FINAL_WIND_POWER = 14322  # Updated for 9 turbines with large config
-EXPECTED_FINAL_SOLAR_POWER = 21065  # Expected final solar farm power output (kW)
-EXPECTED_FINAL_PLANT_POWER = 35387  # Wind + Solar (14322 + 21065)
+EXPECTED_FINAL_SOLAR_POWER = 20912  # Expected final solar farm power output (kW)
+EXPECTED_FINAL_PLANT_POWER = 35234  # Wind + Solar (14322 + 20912)
 
 # File names
 INPUT_FILE = "hercules_input.yaml"
