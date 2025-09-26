@@ -1,11 +1,17 @@
 """
-WTK and NSRDB Data Downloader
+WTK, NSRDB, and Open-Meteo Data Downloader
 
-This script provides functions to download wind and solar data from NREL's
-Wind Toolkit (WTK) and National Solar Radiation Database (NSRDB) using the rex package.
+This script provides functions to download weather data from multiple sources:
+- NREL's Wind Toolkit (WTK) for high-resolution wind data
+- NREL's National Solar Radiation Database (NSRDB) for solar irradiance data  
+- Open-Meteo API for historical weather data with global coverage
+
+All three data sources provide consistent output formats (feather files) for easy integration
+into renewable energy modeling workflows.
 
 Author: Andrew Kumler
 Date: June 2025
+Updated: September 2025 (Added Open-Meteo support)
 """
 
 import h5pyd
@@ -20,6 +26,12 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scipy.interpolate import griddata
+import openmeteo_requests
+import requests_cache
+from retry_requests import retry
+import ssl
+import requests
+import warnings
 
 
 def download_nsrdb_data(
@@ -342,6 +354,231 @@ def download_wtk_data(
     return data_dict
 
 
+def download_openmeteo_data(
+    target_lat: float,
+    target_lon: float,
+    year: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    variables: List[str] = ['wind_speed_80m', 'temperature_2m', 'shortwave_radiation_instant'],
+    coord_delta: float = 0.1,
+    output_dir: str = './data',
+    filename_prefix: str = 'openmeteo',
+    plot_data: bool = False,
+    plot_type: str = 'timeseries'
+) -> dict:
+    """
+    Download Open-Meteo weather data for a specified location and time period.
+    
+    Parameters:
+    -----------
+    target_lat : float
+        Target latitude coordinate
+    target_lon : float
+        Target longitude coordinate
+    year : Optional[int]
+        Year of data to download (if using full year approach)
+    start_date : Optional[str]
+        Start date in format 'YYYY-MM-DD' (if using date range approach)
+    end_date : Optional[str]
+        End date in format 'YYYY-MM-DD' (if using date range approach)
+    variables : List[str]
+        List of variables to download. Available options include:
+        - wind_speed_80m: Wind speed at 80m height (m/s)
+        - temperature_2m: Temperature at 2m height (°C)
+        - shortwave_radiation_instant: Shortwave radiation (W/m²)
+        - diffuse_radiation_instant: Diffuse radiation (W/m²)
+        - direct_normal_irradiance_instant: Direct normal irradiance (W/m²)
+    coord_delta : float
+        Not used for Open-Meteo (single point data), kept for consistency
+    output_dir : str
+        Directory to save output files
+    filename_prefix : str
+        Prefix for output filenames
+    plot_data : bool
+        Whether to create plots of the data (default: False)
+    plot_type : str
+        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+        
+    Returns:
+    --------
+    dict
+        Dictionary containing DataFrames for each variable and coordinates
+        
+    Notes:
+    ------
+    Either 'year' OR both 'start_date' and 'end_date' must be provided.
+    Open-Meteo provides point data (not gridded), so coord_delta is ignored.
+    Available historical data typically spans from 1940 to present.
+    """
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Validate input parameters
+    if year is not None and (start_date is not None or end_date is not None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date', not both approaches.")
+    
+    if year is None and (start_date is None or end_date is None):
+        raise ValueError("Please provide either 'year' OR both 'start_date' and 'end_date'.")
+    
+    # Determine the approach and set up time info
+    if year is not None:
+        start_date = f"{year}-01-01"
+        end_date = f"{year}-12-31"
+        time_suffix = str(year)
+        time_description = f"year {year}"
+    else:
+        start_dt = pd.to_datetime(start_date)
+        end_dt = pd.to_datetime(end_date)
+        
+        if start_dt > end_dt:
+            raise ValueError("start_date must be before end_date")
+        
+        time_suffix = f"{start_date}_to_{end_date}".replace('-', '')
+        time_description = f"period {start_date} to {end_date}"
+    
+    print(f"Downloading Open-Meteo data for {time_description}")
+    print(f"Target coordinates: ({target_lat}, {target_lon})")
+    print(f"Variables: {variables}")
+    print(f"Note: Open-Meteo provides point data (coord_delta ignored)")
+    
+    # Map variable names to Open-Meteo API parameters
+    variable_mapping = {
+        'wind_speed_80m': 'wind_speed_80m',
+        'temperature_2m': 'temperature_2m',
+        'shortwave_radiation_instant': 'shortwave_radiation_instant',
+        'diffuse_radiation_instant': 'diffuse_radiation_instant', 
+        'direct_normal_irradiance_instant': 'direct_normal_irradiance_instant',
+        'ghi': 'shortwave_radiation_instant',  # Alias for solar users
+        'dni': 'direct_normal_irradiance_instant',  # Alias for solar users
+        'dhi': 'diffuse_radiation_instant',  # Alias for solar users
+        'windspeed_80m': 'wind_speed_80m',  # Alias for wind users
+    }
+    
+    # Validate variables and map them
+    mapped_variables = []
+    for var in variables:
+        if var in variable_mapping:
+            mapped_variables.append(variable_mapping[var])
+        else:
+            print(f"Warning: Variable '{var}' not available in Open-Meteo. Skipping.")
+    
+    if not mapped_variables:
+        raise ValueError("No valid variables found for Open-Meteo download.")
+    
+    t0 = time.time()
+    
+    try:
+        # Setup the Open-Meteo API client with cache and retry on error
+        cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+        retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+        openmeteo = openmeteo_requests.Client(session=retry_session)
+        
+        # Setup API parameters
+        url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": target_lat,
+            "longitude": target_lon,
+            "start_date": start_date,
+            "end_date": end_date,
+            "minutely_15": mapped_variables,
+            "wind_speed_unit": "ms",
+        }
+        
+        # Try to make the API request with SSL verification first, then fallback to no verification
+        try:
+            responses = openmeteo.weather_api(url, params=params)
+            print("API request successful with SSL verification.")
+        except Exception as e:
+            print(f"SSL verification failed: {str(e)[:100]}...")
+            print("Trying with SSL verification disabled...")
+            
+            # Suppress SSL warnings since we're intentionally disabling verification
+            warnings.filterwarnings('ignore', message='Unverified HTTPS request')
+            
+            # Create a new session with SSL verification disabled
+            cache_session_no_ssl = requests_cache.CachedSession('.cache', expire_after=3600)
+            cache_session_no_ssl.verify = False
+            retry_session_no_ssl = retry(cache_session_no_ssl, retries=5, backoff_factor=0.2)
+            openmeteo_no_ssl = openmeteo_requests.Client(session=retry_session_no_ssl)
+            
+            responses = openmeteo_no_ssl.weather_api(url, params=params)
+            print("API request successful with SSL verification disabled.")
+        
+        # Process the response
+        response = responses[0]
+        print(f"Coordinates retrieved: {response.Latitude()}°N {response.Longitude()}°E")
+        print(f"Elevation: {response.Elevation()} m asl")
+        
+        # Process minutely_15 data
+        minutely_15 = response.Minutely15()
+        
+        # Create the date range
+        date_range = pd.date_range(
+            start=pd.to_datetime(minutely_15.Time(), unit="s", utc=True),
+            end=pd.to_datetime(minutely_15.TimeEnd(), unit="s", utc=True),
+            freq=pd.Timedelta(seconds=minutely_15.Interval()),
+            inclusive="left"
+        )
+        
+        # Create data dictionary in the same format as WTK/NSRDB
+        data_dict = {}
+        
+        # Create coordinates DataFrame (single point, but match the format)
+        # Use a synthetic GID (grid ID) to match WTK/NSRDB format
+        gid = 0
+        df_coords = pd.DataFrame([[response.Latitude(), response.Longitude()]], 
+                               index=[gid], columns=["lat", "lon"])
+        data_dict['coordinates'] = df_coords
+        
+        # Process each requested variable
+        for i, var in enumerate(mapped_variables):
+            var_data = minutely_15.Variables(i).ValuesAsNumpy()
+            
+            # Create DataFrame with same structure as WTK/NSRDB (datetime index, gid columns)
+            df_var = pd.DataFrame(var_data, index=date_range, columns=[gid])
+            
+            # Use original variable name (not mapped name) for consistency
+            original_var_name = None
+            for orig, mapped in variable_mapping.items():
+                if mapped == var and orig in variables:
+                    original_var_name = orig
+                    break
+            
+            var_name = original_var_name if original_var_name else var
+            data_dict[var_name] = df_var
+            
+            # Save to feather format
+            output_file = os.path.join(output_dir, f"{filename_prefix}_{var_name}_{time_suffix}.feather")
+            df_var.reset_index().to_feather(output_file)
+            print(f"Saved {var_name} data to {output_file}")
+        
+        # Save coordinates
+        coords_file = os.path.join(output_dir, f"{filename_prefix}_coords_{time_suffix}.feather")
+        data_dict['coordinates'].reset_index().to_feather(coords_file)
+        print(f"Saved coordinates to {coords_file}")
+            
+    except Exception as e:
+        print(f"Error downloading Open-Meteo data: {e}")
+        return {}
+    
+    total_time = (time.time() - t0) / 60
+    decimal_part = math.modf(total_time)[0] * 60
+    print(f"Open-Meteo download completed in {int(np.floor(total_time))}:{int(np.round(decimal_part, 0)):02d} minutes")
+    
+    # Create plots if requested
+    if plot_data and data_dict and 'coordinates' in data_dict:
+        coordinates_array = data_dict['coordinates'][['lat', 'lon']].values
+        if plot_type == 'timeseries':
+            plot_timeseries(data_dict, variables, coordinates_array, f"{filename_prefix} Open-Meteo Data")
+        elif plot_type == 'map':
+            print("Note: Map plots not meaningful for single-point Open-Meteo data. Showing timeseries instead.")
+            plot_timeseries(data_dict, variables, coordinates_array, f"{filename_prefix} Open-Meteo Data")
+    
+    return data_dict
+
+
 def plot_timeseries(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
     """
     Create time-series plots for the downloaded data.
@@ -485,7 +722,14 @@ def get_variable_label(variable: str) -> str:
         'winddirection_100m': 'Wind Direction at 100m (°)',
         'turbulent_kinetic_energy_100m': 'TKE at 100m (m²/s²)',
         'temperature_100m': 'Temperature at 100m (°C)',
-        'pressure_100m': 'Pressure at 100m (Pa)'
+        'pressure_100m': 'Pressure at 100m (Pa)',
+        # Open-Meteo variables
+        'wind_speed_80m': 'Wind Speed at 80m (m/s)',
+        'windspeed_80m': 'Wind Speed at 80m (m/s)',
+        'temperature_2m': 'Temperature at 2m (°C)',
+        'shortwave_radiation_instant': 'Shortwave Radiation (W/m²)',
+        'diffuse_radiation_instant': 'Diffuse Radiation (W/m²)',
+        'direct_normal_irradiance_instant': 'Direct Normal Irradiance (W/m²)'
     }
     return labels.get(variable, variable.replace('_', ' ').title())
 
@@ -500,7 +744,14 @@ def get_variable_colormap(variable: str) -> str:
         'winddirection_100m': 'hsv',
         'turbulent_kinetic_energy_100m': 'cividis',
         'temperature_100m': 'RdYlBu_r',
-        'pressure_100m': 'coolwarm'
+        'pressure_100m': 'coolwarm',
+        # Open-Meteo variables
+        'wind_speed_80m': 'viridis',
+        'windspeed_80m': 'viridis',
+        'temperature_2m': 'RdYlBu_r',
+        'shortwave_radiation_instant': 'plasma',
+        'diffuse_radiation_instant': 'plasma',
+        'direct_normal_irradiance_instant': 'plasma'
     }
     return colormaps.get(variable, 'viridis')
 
@@ -590,6 +841,40 @@ def main():
         plot_type='timeseries'
     )
     
+    # Download Open-Meteo data
+    print("\n" + "="*50)
+    print("DOWNLOADING OPEN-METEO DATA")
+    print("="*50)
+    
+    # Example 1: Download specific date range with wind and solar variables
+    openmeteo_data = download_openmeteo_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        start_date='2020-06-01',
+        end_date='2020-06-03',  # Short period for testing
+        variables=['wind_speed_80m', 'temperature_2m', 'shortwave_radiation_instant', 'diffuse_radiation_instant'],
+        output_dir=data_dir,
+        filename_prefix='openmeteo_test',
+        plot_data=True,
+        plot_type='timeseries'
+    )
+    
+    # Example 2: Download full year with aliases compatible with existing WTK/NSRDB users
+    print("\n" + "="*50)
+    print("DOWNLOADING OPEN-METEO DATA - FULL YEAR WITH ALIASES")
+    print("="*50)
+    
+    openmeteo_data_year = download_openmeteo_data(
+        target_lat=target_lat,
+        target_lon=target_lon,
+        year=2021,  # Use a different year to avoid conflicts
+        variables=['ghi', 'dni', 'dhi', 'windspeed_80m'],  # Using aliases
+        output_dir=data_dir,
+        filename_prefix='openmeteo_year',
+        plot_data=True,
+        plot_type='timeseries'
+    )
+    
     print("\nDownload completed!")
     
     # Print summary information
@@ -604,6 +889,12 @@ def main():
         for var in ['windspeed_100m', 'winddirection_100m', 'turbulent_kinetic_energy_100m']:
             if var in wtk_data:
                 print(f"  {var}: {wtk_data[var].shape}")
+    
+    if openmeteo_data:
+        print(f"\nOpen-Meteo data shape examples:")
+        for var in ['wind_speed_80m', 'temperature_2m', 'shortwave_radiation_instant', 'diffuse_radiation_instant']:
+            if var in openmeteo_data:
+                print(f"  {var}: {openmeteo_data[var].shape}")
 
 
 if __name__ == "__main__":
