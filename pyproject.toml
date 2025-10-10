@@ -39,7 +39,10 @@ dependencies = [
 "h5py~=3.10",
 "NREL-rex",
 "utm",
-"cartopy"
+"cartopy",
+"openmeteo_requests",
+"requests_cache",
+"retry_requests"
 ]
 
 [project.optional-dependencies]
