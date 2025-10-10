@@ -16,24 +16,13 @@ wind_farm = {
 solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
     "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
-    "target_system_capacity": 100.0,
-    "target_dc_ac_ratio": 1.2,
+    "system_capacity": 100.0,  # kW
+    "tilt": 0,  # degrees
     "lat": 39.742,
     "lon": -105.179,
     "elev": 1828.8,
+    "losses": 0,
     "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
-}
-
-solar_farm_pvsam = {
-    "component_type": "SolarPySAMPVSam",
-    "solar_input_filename": "tests/test_inputs/solar_pysam_data.csv",
-    "system_info_file_name": "tests/test_inputs/100MW_1axis_pvsamv1.json",
-    "lat": 39.7442,
-    "lon": -105.1778,
-    "elev": 1829,
-    "target_system_capacity": 100002.58266599999,
-    "target_dc_ac_ratio": 1.33,
-    "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 
 solar_farm_pvwatts = {
@@ -42,8 +31,9 @@ solar_farm_pvwatts = {
     "lat": 39.7442,
     "lon": -105.1778,
     "elev": 1829,
-    "target_system_capacity": 100002.58266599999,
-    "target_dc_ac_ratio": 1.33,
+    "system_capacity": 100000.0,  # kW (100 MW)
+    "tilt": 0,  # degrees
+    "losses": 0,
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 
@@ -170,18 +160,6 @@ h_dict_solar_pysam = {
     "solar_farm": solar_farm_pysam,
 }
 
-# h_dict with solar_farm_pvsam only (for original test compatibility)
-h_dict_solar_pvsam = {
-    "dt": 0.5,
-    "starttime": 0.0,
-    "endtime": 0.5,
-    "verbose": False,
-    "step": 0,
-    "time": 0.0,
-    "plant": plant,
-    "solar_farm": solar_farm_pvsam,
-}
-
 # h_dict with solar_farm_pvwatts only
 h_dict_solar_pvwatts = {
     "dt": 0.5,
@@ -193,6 +171,8 @@ h_dict_solar_pvwatts = {
     "plant": plant,
     "solar_farm": solar_farm_pvwatts,
 }
+
+# Note: h_dict_solar_pvwatts_max was removed - tests should create their own precise conditions
 
 # h_dict with battery only
 h_dict_battery = {

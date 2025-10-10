@@ -21,12 +21,14 @@ solar_farm:
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 100000
-  target_dc_ac_ratio: 1.33
+  system_capacity: 100000  # kW (100 MW)
+  tilt: 0  # degrees
+  losses: 0
+
 
   initial_conditions:
     power: 100000 # kW
     dni: 1000
     poa: 1000
 
-controller: 
+controller:

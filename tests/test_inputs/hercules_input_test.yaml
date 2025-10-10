@@ -30,7 +30,6 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_dc_ac_ratio: 1.33
 
   initial_conditions:
 
@@ -40,7 +39,3 @@ solar_farm: # The name of component object 1
 
 
 controller:
-
-
-
-

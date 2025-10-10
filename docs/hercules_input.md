@@ -57,8 +57,8 @@ solar_farm:
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 10000
-  target_dc_ac_ratio: 1.33
+  system_capacity: 10000  # kW (10 MW)
+  tilt: 0  # degrees
   initial_conditions:
     power: 2000  # kW
     dni: 1000
@@ -109,7 +109,7 @@ Controls the memory buffer size for writing data (default: 50000 rows). Larger b
 ```yaml
 # Advanced output configuration example
 dt: 1.0
-starttime: 0.0  
+starttime: 0.0
 endtime: 3600.0
 
 # Log every 60 seconds (1 minute) to reduce file size
@@ -143,4 +143,4 @@ The `load_hercules_input()` function performs strict validation on input files t
 - Output configuration validation (`log_every_n` must be a positive integer)
 - Component-specific validation (e.g., wind farm `logging_option` must be "base", "turb_subset", or "all")
 
-Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging. 
+Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging.

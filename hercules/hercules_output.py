@@ -148,11 +148,13 @@ class HerculesOutput:
         # Solar farm information
         if "solar_farm" in h_dict:
             solar_config = h_dict["solar_farm"]
-            pv_capacity = solar_config.get("target_system_capacity", 0)
-            if pv_capacity > 0:
-                print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
-            else:
-                print("   Solar Farm: Capacity not specified")
+            if "system_capacity" not in solar_config:
+                raise KeyError(
+                    "Missing required field 'system_capacity' in solar_farm configuration. "
+                    "Please specify the DC system capacity of the solar farm in kW."
+                )
+            pv_capacity = solar_config["system_capacity"]
+            print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
 
         # Battery information
         if "battery" in h_dict:

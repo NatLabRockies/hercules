@@ -28,12 +28,12 @@ jobs:
       run: |
         mkdir -vp docs/examples
 
-        cp -v example_case_folders/05_floris_standin_and_electrolyzer/README.md docs/examples/05_floris_standin_and_electrolyzer.md
-        cp -v example_case_folders/06_amr_wind_standin_and_battery/README.md docs/examples/06_amr_wind_standin_and_battery.md
-        cp -v example_case_folders/07_floris_standin_and_solar_pysam/README.md docs/examples/07_floris_standin_and_solar_pysam.md
-        cp -v example_case_folders/08_floris_standin_only/README.md docs/examples/08_floris_standin_only.md
-        cp -v example_case_folders/09_heterogeneous_wind/README.md docs/examples/09_heterogeneous_wind.md
-        cp -v example_case_folders/14_energy_storage_control_and_wind/README.md docs/examples/14_energy_storage_control_and_wind.md
+        cp -v examples/00_wind_farm_only/README.md docs/examples/00_wind_farm_only.md
+        cp -v examples/01_wind_farm_dof1_model/README.md docs/examples/01_wind_farm_dof1_model.md
+        cp -v examples/02_wind_farm_realistic_inflow/README.md docs/examples/02_wind_farm_realistic_inflow.md
+        cp -v examples/02b_wind_farm_realistic_inflow_precom_floris/README.md docs/examples/02b_wind_farm_realistic_inflow_precom_floris.md
+        cp -v examples/03_wind_and_solar/README.md docs/examples/03_wind_and_solar.md
+        cp -v examples/04_wind_and_storage/README.md docs/examples/04_wind_and_storage.md
         ls -l docs/examples
 
     # Build the book
