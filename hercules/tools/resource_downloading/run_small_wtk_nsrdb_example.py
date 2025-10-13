@@ -5,7 +5,7 @@ Small example using the real WTK/NSRDB downloader with minimal data
 import os
 import sys
 
-from wtk_nsrdb_downloader import download_nsrdb_data, download_wtk_data
+from wind_solar_resource_downloader import download_nsrdb_data, download_wtk_data
 
 sys.path.append(".")
 

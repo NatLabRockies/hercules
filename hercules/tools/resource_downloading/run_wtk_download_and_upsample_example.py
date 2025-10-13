@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import utm
 from hercules.tools.resource_downloading.upsample_wind_data import upsample_wtk_data
-from hercules.tools.resource_downloading.wtk_nsrdb_downloader import download_wtk_data
+from hercules.tools.resource_downloading.wind_solar_resource_downloader import download_wtk_data
 from matplotlib import pyplot as plt
 
 sys.path.append(".")

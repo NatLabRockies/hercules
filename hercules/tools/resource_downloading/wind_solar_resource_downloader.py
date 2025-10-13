@@ -380,7 +380,14 @@ def download_openmeteo_data(
     year: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    variables: List[str] = ["wind_speed_80m", "temperature_2m", "shortwave_radiation_instant"],
+    variables: List[str] = [
+        "wind_speed_80m",
+        "wind_direction_80m",
+        "temperature_2m",
+        "shortwave_radiation_instant",
+        "diffuse_radiation_instant",
+        "direct_normal_irradiance_instant",
+    ],
     coord_delta: float = 0.1,
     output_dir: str = "./data",
     filename_prefix: str = "openmeteo",
@@ -405,6 +412,7 @@ def download_openmeteo_data(
     variables : List[str]
         List of variables to download. Available options include:
         - wind_speed_80m: Wind speed at 80m height (m/s)
+        - wind_direction_80m: Wind direction at 80m height (°)
         - temperature_2m: Temperature at 2m height (°C)
         - shortwave_radiation_instant: Shortwave radiation (W/m²)
         - diffuse_radiation_instant: Diffuse radiation (W/m²)
@@ -468,6 +476,7 @@ def download_openmeteo_data(
     # Map variable names to Open-Meteo API parameters
     variable_mapping = {
         "wind_speed_80m": "wind_speed_80m",
+        "wind_direction_80m": "wind_direction_80m",
         "temperature_2m": "temperature_2m",
         "shortwave_radiation_instant": "shortwave_radiation_instant",
         "diffuse_radiation_instant": "diffuse_radiation_instant",
@@ -476,6 +485,7 @@ def download_openmeteo_data(
         "dni": "direct_normal_irradiance_instant",  # Alias for solar users
         "dhi": "diffuse_radiation_instant",  # Alias for solar users
         "windspeed_80m": "wind_speed_80m",  # Alias for wind users
+        "winddirection_80m": "wind_direction_80m",  # Alias for wind users
     }
 
     # Validate variables and map them
