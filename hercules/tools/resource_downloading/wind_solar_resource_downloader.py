@@ -375,8 +375,8 @@ def download_wtk_data(
 
 
 def download_openmeteo_data(
-    target_lat: float,
-    target_lon: float,
+    target_lat: float | List[float],
+    target_lon: float | List[float],
     year: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -393,16 +393,21 @@ def download_openmeteo_data(
     filename_prefix: str = "openmeteo",
     plot_data: bool = False,
     plot_type: str = "timeseries",
+    remove_duplicate_coords=True,
 ) -> dict:
     """
-    Download Open-Meteo weather data for a specified location and time period.
+    Download Open-Meteo weather data for a specified location or locations and time period. Data
+    are retrieved from the nearest weather grid cell to the requested locations.The grid cell
+    resolution varies with latitude, but at ~35 degrees latitude, the grid cell resolution is
+    approximately 0.027 degrees latitude (~2.4 km in the N-S direction) and 0.0333 degrees
+    longitude (~3.7km in the E-W direction).
 
     Parameters:
     -----------
-    target_lat : float
-        Target latitude coordinate
-    target_lon : float
-        Target longitude coordinate
+    target_lat : float | List[float]
+        Target latitude coordinate or list of latitude coordinates
+    target_lon : float | List[float]
+        Target longitude coordinate  or list of longitude coordinates
     year : Optional[int]
         Year of data to download (if using full year approach)
     start_date : Optional[str]
@@ -418,7 +423,7 @@ def download_openmeteo_data(
         - diffuse_radiation_instant: Diffuse radiation (W/m²)
         - direct_normal_irradiance_instant: Direct normal irradiance (W/m²)
     coord_delta : float
-        Not used for Open-Meteo (single point data), kept for consistency
+        Not used for Open-Meteo (points specified individually), kept for consistency
     output_dir : str
         Directory to save output files
     filename_prefix : str
@@ -427,6 +432,8 @@ def download_openmeteo_data(
         Whether to create plots of the data (default: False)
     plot_type : str
         Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+    remove_duplicate_coords : Optional[bool]
+        Whether to remove data from duplicate coordinates (default: False)
 
     Returns:
     --------
@@ -538,40 +545,13 @@ def download_openmeteo_data(
             responses = openmeteo_no_ssl.weather_api(url, params=params)
             print("API request successful with SSL verification disabled.")
 
-        # Process the response
-        response = responses[0]
-        print(f"Coordinates retrieved: {response.Latitude()}°N {response.Longitude()}°E")
-        print(f"Elevation: {response.Elevation()} m asl")
-
-        # Process minutely_15 data
-        minutely_15 = response.Minutely15()
-
-        # Create the date range
-        date_range = pd.date_range(
-            start=pd.to_datetime(minutely_15.Time(), unit="s", utc=True),
-            end=pd.to_datetime(minutely_15.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=minutely_15.Interval()),
-            inclusive="left",
-        )
-
-        # Create data dictionary in the same format as WTK/NSRDB
+        # Create data dictionary in the same format as WTK/NSRDB and initialize dataframes
         data_dict = {}
+        data_dict["coordinates"] = pd.DataFrame()
 
-        # Create coordinates DataFrame (single point, but match the format)
-        # Use a synthetic GID (grid ID) to match WTK/NSRDB format
-        gid = 0
-        df_coords = pd.DataFrame(
-            [[response.Latitude(), response.Longitude()]], index=[gid], columns=["lat", "lon"]
-        )
-        data_dict["coordinates"] = df_coords
-
-        # Process each requested variable
-        for i, var in enumerate(mapped_variables):
-            var_data = minutely_15.Variables(i).ValuesAsNumpy()
-
-            # Create DataFrame with same structure as WTK/NSRDB (datetime index, gid columns)
-            df_var = pd.DataFrame(var_data, index=date_range, columns=[gid])
-
+        # Initialize for each variable
+        original_var_names = []
+        for var in mapped_variables:
             # Use original variable name (not mapped name) for consistency
             original_var_name = None
             for orig, mapped in variable_mapping.items():
@@ -580,13 +560,65 @@ def download_openmeteo_data(
                     break
 
             var_name = original_var_name if original_var_name else var
-            data_dict[var_name] = df_var
+            data_dict[var_name] = pd.DataFrame()
 
-            # Save to feather format
+            original_var_names.append(var_name)
+
+        # Process the responses for each lat/lon
+        for gid, response in enumerate(responses):
+            print(f"Coordinates retrieved: {response.Latitude()}°N {response.Longitude()}°E")
+            print(f"Elevation: {response.Elevation()} m asl")
+
+            # Process minutely_15 data
+            minutely_15 = response.Minutely15()
+
+            # Create the date range
+            date_range = pd.date_range(
+                start=pd.to_datetime(minutely_15.Time(), unit="s", utc=True),
+                end=pd.to_datetime(minutely_15.TimeEnd(), unit="s", utc=True),
+                freq=pd.Timedelta(seconds=minutely_15.Interval()),
+                inclusive="left",
+            )
+
+            # Create coordinates DataFrame (single point, but match the format)
+            # Use a synthetic GID (grid ID) to match WTK/NSRDB format
+            # TODO: delete duplicate points if there are any?
+            df_coords = pd.DataFrame(
+                [[response.Latitude(), response.Longitude()]], index=[gid], columns=["lat", "lon"]
+            )
+            data_dict["coordinates"] = pd.concat([data_dict["coordinates"], df_coords], axis=0)
+
+            # Process each requested variable
+            for i, var_name in enumerate(original_var_names):
+                var_data = minutely_15.Variables(i).ValuesAsNumpy()
+
+                # Create DataFrame with same structure as WTK/NSRDB (datetime index, gid columns)
+                df_var = pd.DataFrame(var_data, index=date_range, columns=[gid])
+                df_var.index.name = "time_index"
+
+                data_dict[var_name] = pd.concat([data_dict[var_name], df_var], axis=1)
+
+        # Check for duplicates, remove if any exist, and rename locations indices consecutively
+        if remove_duplicate_coords & (len(data_dict["coordinates"]) > 1):
+            duplicate_mask = data_dict["coordinates"].duplicated(
+                subset=["lat", "lon"], keep="first"
+            )
+            data_dict["coordinates"] = data_dict["coordinates"][~duplicate_mask]
+
+            for var_name in original_var_names:
+                data_dict[var_name] = data_dict[var_name][
+                    [c for c in data_dict["coordinates"].index]
+                ]
+                data_dict[var_name].columns = range(len(data_dict["coordinates"]))
+
+            data_dict["coordinates"] = data_dict["coordinates"].reset_index(drop=True)
+
+        # Save variables to feather format
+        for var_name in original_var_names:
             output_file = os.path.join(
                 output_dir, f"{filename_prefix}_{var_name}_{time_suffix}.feather"
             )
-            df_var.reset_index().to_feather(output_file)
+            data_dict[var_name].reset_index().to_feather(output_file)
             print(f"Saved {var_name} data to {output_file}")
 
         # Save coordinates
@@ -613,11 +645,7 @@ def download_openmeteo_data(
                 data_dict, variables, coordinates_array, f"{filename_prefix} Open-Meteo Data"
             )
         elif plot_type == "map":
-            print(
-                "Note: Map plots not meaningful for single-point Open-Meteo data. "
-                "Showing timeseries instead."
-            )
-            plot_timeseries(
+            plot_spatial_map(
                 data_dict, variables, coordinates_array, f"{filename_prefix} Open-Meteo Data"
             )
 
