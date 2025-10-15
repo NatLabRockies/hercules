@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from hercules.utilities import (
+    find_time_utc_value,
     interpolate_df,
     interpolate_df_fast,
     load_h_dict_from_text,
@@ -396,6 +397,67 @@ def test_interpolate_df_functions_identical_simple():
 
     # Verify results are identical
     pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
+
+
+# ==================== find_time_utc_value TESTS ====================
+
+
+def test_find_time_utc_interpolates_midpoint():
+    """Interpolates UTC between two points at the midpoint time."""
+    df = pd.DataFrame(
+        {
+            "time": [0.0, 10.0],
+            "time_utc": pd.to_datetime(
+                [
+                    "2023-01-01 00:00:00+00:00",
+                    "2023-01-01 00:00:10+00:00",
+                ],
+                utc=True,
+            ),
+        }
+    )
+
+    mid = find_time_utc_value(df, 5.0)
+    assert mid == pd.Timestamp("2023-01-01 00:00:05", tz="UTC")
+
+
+def test_find_time_utc_extrapolates_before_range():
+    """Extrapolates UTC for a time before the first sample."""
+    df = pd.DataFrame(
+        {
+            "time": [0.0, 10.0],
+            "time_utc": pd.to_datetime(
+                [
+                    "2023-01-01 00:00:00+00:00",
+                    "2023-01-01 00:00:10+00:00",
+                ],
+                utc=True,
+            ),
+        }
+    )
+
+    # 1 second per unit time -> time=-5 yields -5 seconds from start
+    t = find_time_utc_value(df, -5.0)
+    assert t == pd.Timestamp("2022-12-31 23:59:55", tz="UTC")
+
+
+def test_find_time_utc_extrapolates_after_range():
+    """Extrapolates UTC for a time after the last sample."""
+    df = pd.DataFrame(
+        {
+            "time": [0.0, 10.0],
+            "time_utc": pd.to_datetime(
+                [
+                    "2023-01-01 00:00:00+00:00",
+                    "2023-01-01 00:00:10+00:00",
+                ],
+                utc=True,
+            ),
+        }
+    )
+
+    t = find_time_utc_value(df, 15.0)
+    assert t == pd.Timestamp("2023-01-01 00:00:15", tz="UTC")
 
 
 def test_interpolate_df_functions_identical_with_datetime():
