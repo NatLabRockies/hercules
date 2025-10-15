@@ -1,6 +1,6 @@
 """
 This module contains functions for generating wind time series at turbine locations by
-a) spatially interpolating wind data at grid locations from the WTK-LED dataset and
+a) spatially interpolating wind data at grid locations and
 b) temporally upsampling the time series and adding turbulence.
 """
 
@@ -15,28 +15,27 @@ from scipy.interpolate import CloughTocher2DInterpolator
 from shapely.geometry import MultiPoint
 
 
-def _spatially_interpolate_wtk_data(
-    x_locs_wtk: np.ndarray,
-    y_locs_wtk: np.ndarray,
-    wtk_values: np.ndarray,
+def _spatially_interpolate_wind_data(
+    x_locs_orig: np.ndarray,
+    y_locs_orig: np.ndarray,
+    wind_values: np.ndarray,
     x_locs_interp: np.ndarray,
     y_locs_interp: np.ndarray,
 ) -> np.ndarray:
     """
-    This function spatially interpolates Wind Toolkit data provided as a time series of values at
-    each WTK location. Spatial interpolation at the desired locations is achieved using 2D
-    Clough-Tocher interpolation.
+    This function spatially interpolates wind data provided as a time series of values at each grid
+    location. Spatial interpolation at the desired locations is achieved using 2D Clough-Tocher
+    interpolation.
 
     Parameters:
     -----------
-    x_locs_wtk : np.ndarray
-        x locations of points at which Wind Toolkit data are provided (meters).
-    y_locs_wtk : np.ndarray
-        y locations of points at which Wind Toolkit data are provided (meters).
-    wtk_values : np.ndarray
-        An N x M array of Wind Toolkit variable values to spatially interpolate, where N is the
-        number of time steps and M is the number of locations at which Wind Toolkit data are
-        provided.
+    x_locs_orig : np.ndarray
+        x locations of points at which wind data are provided (meters).
+    y_locs_orig : np.ndarray
+        y locations of points at which wind data are provided (meters).
+    wind_values : np.ndarray
+        An N x M array of wind variable values to spatially interpolate, where N is the number of
+        time steps and M is the number of locations at which wind data are provided.
     x_locs_interp : np.ndarray
         x locations of points at which to generate spatially interpolated wind time series
         (meters).
@@ -47,24 +46,23 @@ def _spatially_interpolate_wtk_data(
     Returns:
     --------
     np.ndarray
-        An P x N array of spatially interpolated Wind Toolkit variable values, where P is the
-        number of locations at which the Wind Toolkit data are interpolated and N is the number
-        of time steps.
+        An P x N array of spatially interpolated wind variable values, where P is the number of
+        locations at which the wind data are interpolated and N is the number of time steps.
     """
 
-    N = len(wtk_values)
+    N = len(wind_values)
 
-    wtk_interp_values = np.zeros((len(x_locs_interp), N))
+    wind_interp_values = np.zeros((len(x_locs_interp), N))
 
-    points = list(zip(x_locs_wtk, y_locs_wtk))
+    points = list(zip(x_locs_orig, y_locs_orig))
 
     # Interpolate for each time index
     for i in range(N):
-        interp = CloughTocher2DInterpolator(points, wtk_values[i, :])
+        interp = CloughTocher2DInterpolator(points, wind_values[i, :])
 
-        wtk_interp_values[:, i] = interp(x_locs_interp, y_locs_interp)
+        wind_interp_values[:, i] = interp(x_locs_interp, y_locs_interp)
 
-    return wtk_interp_values
+    return wind_interp_values
 
 
 def _upsample_Nyquist(
@@ -248,10 +246,10 @@ def _get_iec_turbulence_std(
     return ws_std
 
 
-def upsample_wtk_data(
-    wtk_ws_data_filepath: str | Path,
-    wtk_wd_data_filepath: str | Path,
-    wtk_coords_filepath: str | Path,
+def upsample_wind_data(
+    ws_data_filepath: str | Path,
+    wd_data_filepath: str | Path,
+    coords_filepath: str | Path,
     upsampled_data_dir: str | Path,
     upsampled_data_filename: str,
     x_locs_upsample: np.ndarray,
@@ -267,23 +265,23 @@ def upsample_wtk_data(
 ) -> dict:
     """
     This function spatially interpolates and temporally upsamples wind speed and direction data
-    from Wind Toolkit files generated using the function download_wtk_data from the
-    wtk_nsrdb_downloader module. Spatial interpolation is achieved using 2D Clough-Tocher
-    interpolation. Upsampling is accomplished by simple Nyquist upsampling to create a smooth
-    signal. Lastly, for the wind speeds, stochastic, uncorrelated turbulence generated using the
-    Kaimal spectrum is added. The turbulence intensity is assigned as a function of wind speed
-    based on the IEC normal turbulence model. This function currently assumes the Wind Toolkit time
-    series have an even number of samples. If they have an off number of samples, the last sample
-    will be discarded.
+    from wind files generated using wind data downloading functions in the
+    wind_solar_resource_downloader module (e.g., for the Wind Toolkit or Open-Meteo datasets).
+    Spatial interpolation is achieved using 2D Clough-Tocher interpolation. Upsampling is
+    accomplished by simple Nyquist upsampling to create a smooth signal. Lastly, for the wind
+    speeds, stochastic, uncorrelated turbulence generated using the Kaimal spectrum is added. The
+    turbulence intensity is assigned as a function of wind speed based on the IEC normal turbulence
+    model. This function currently assumes the wind time series have an even number of samples. If
+    they have an off number of samples, the last sample will be discarded.
 
     Parameters:
     -----------
-    wtk_ws_data_filepath : str | Path
-        File path to the WTK wind speed file.
-    wtk_wd_data_filepath : str | Path
-        File path to the WTK wind direction file.
-    wtk_coords_filepath : str | Path
-        File path to the WTK coordinates file.
+    ws_data_filepath : str | Path
+        File path to the wind speed file.
+    wd_data_filepath : str | Path
+        File path to the wind direction file.
+    coords_filepath : str | Path
+        File path to the coordinates file.
     upsampled_data_dir : str | Path
         Directory to save upsampled data files.
     upsampled_data_filename : str
@@ -294,18 +292,16 @@ def upsample_wtk_data(
         y locations of points at which to generate upsampled wind time series (meters).
     origin_lat : Optional[float | None]
         Latitude to use for the origin for defining the y locations of the upsample wind locations
-        (degrees). If None, the mean latitude from the WTK coordinates will be used. Defaults to
-        None.
+        (degrees). If None, the mean latitude from the coordinates will be used. Defaults to None.
     origin_lon : Optional[float | None]
         Longitude to use for the origin for defining the x locations of the upsample wind locations
-        (degrees). If None, the mean longitude from the WTK coordinates will be used. Defaults to
-        None.
+        (degrees). If None, the mean longitude from the coordinates will be used. Defaults to None.
     timestep_upsample : Optional[int]
         Time step of upsampled wind time series (seconds). Defaults to 1 second.
     turbulence_Uhub : Optional[float | None]
         Mean hub-height wind speed to use for the Kaimal turbulence spectrum (m/s). If None, the
-        mean wind speed from the spatially interpolated upsample locations from the WTK file will
-        be used. Defaults to None.
+        mean wind speed from the spatially interpolated upsample locations from the wind speed file
+        will be used. Defaults to None.
     turbulence_L : Optional[float]
         The turbulence length scale to use for the Kaimal turbulence spectrum (m). Defaults to
         340.2 m, the value specified in the IEC standard.
@@ -327,27 +323,27 @@ def upsample_wtk_data(
 
     Notes:
     ------
-    The provided Wind Toolkit time series should have an even number of samples (this simplifies
-    the FFT operations). If the time series have an odd number of samples, the last sample will be
+    The provided wind time series should have an even number of samples (this simplifies the FFT
+    operations). If the time series have an odd number of samples, the last sample will be
     discarded.
     """
 
     # Create output directory if it doesn't exist
     os.makedirs(upsampled_data_dir, exist_ok=True)
 
-    # Load WTK files
-    df_wtk_ws = pd.read_feather(wtk_ws_data_filepath)
-    df_wtk_wd = pd.read_feather(wtk_wd_data_filepath)
-    df_wtk_coords = pd.read_feather(wtk_coords_filepath)
+    # Load wind files
+    df_ws = pd.read_feather(ws_data_filepath)
+    df_wd = pd.read_feather(wd_data_filepath)
+    df_coords = pd.read_feather(coords_filepath)
 
     # Get mean lat and lon if needed
     if (origin_lat is None) | (origin_lon is None):
-        origin_lat = df_wtk_coords["lat"].mean()
-        origin_lon = df_wtk_coords["lon"].mean()
+        origin_lat = df_coords["lat"].mean()
+        origin_lon = df_coords["lon"].mean()
 
-    # Convert WTK coordinates to easting and northing values and center on origin
-    x_locs_wtk, y_locs_wtk, zone_number, zone_letter = utm.from_latlon(
-        df_wtk_coords["lat"].values, df_wtk_coords["lon"].values
+    # Convert coordinates to easting and northing values and center on origin
+    x_locs_orig, y_locs_orig, zone_number, zone_letter = utm.from_latlon(
+        df_coords["lat"].values, df_coords["lon"].values
     )
 
     origin_x, origin_y, origin_zone_number, origin_zone_letter = utm.from_latlon(
@@ -356,76 +352,75 @@ def upsample_wtk_data(
 
     if (zone_number != origin_zone_number) | (zone_letter != origin_zone_letter):
         raise ValueError(
-            "The provided origin coordinates are in a different UTM zone than the WTK data."
+            "The provided origin coordinates are in a different UTM zone than the provided wind "
+            "data."
         )
 
-    x_locs_wtk -= origin_x
-    y_locs_wtk -= origin_y
+    x_locs_orig -= origin_x
+    y_locs_orig -= origin_y
 
-    # Check if upsample locations are within the WTK boundaries
-    multi_point_wtk = MultiPoint(list(zip(x_locs_wtk, y_locs_wtk)))
-    polygon_wtk = multi_point_wtk.convex_hull
+    # Check if upsample locations are within the provided wind data boundaries
+    multi_point_orig = MultiPoint(list(zip(x_locs_orig, y_locs_orig)))
+    polygon_orig = multi_point_orig.convex_hull
 
     N_locs_upsample = len(x_locs_upsample)
     multi_point_upsample = MultiPoint(list(zip(x_locs_upsample, y_locs_upsample)))
 
-    if not multi_point_upsample.within(polygon_wtk):
+    if not multi_point_upsample.within(polygon_orig):
         raise ValueError(
             "At least one of the provided upsampled locations is outside of the boundary of the "
-            "WTK locations."
+            "provided wind data locations."
         )
 
-    # If an odd number of samples in WTK data, remove last sample
-    if (len(df_wtk_ws) % 2) == 1:
-        df_wtk_ws = df_wtk_ws.iloc[:-1]
+    # If an odd number of samples in provided wind data, remove last sample
+    if (len(df_ws) % 2) == 1:
+        df_ws = df_ws.iloc[:-1]
 
-    if (len(df_wtk_wd) % 2) == 1:
-        df_wtk_wd = df_wtk_wd.iloc[:-1]
+    if (len(df_wd) % 2) == 1:
+        df_wd = df_wd.iloc[:-1]
 
     # Ensure order of points in wind dataframe columns matches order in coordinate dataframe
-    wtk_point_names = list(df_wtk_coords["index"].values.astype(str))
-    df_wtk_ws = df_wtk_ws[["time_index"] + wtk_point_names]
-    df_wtk_wd = df_wtk_wd[["time_index"] + wtk_point_names]
+    point_names = list(df_coords["index"].values.astype(str))
+    df_ws = df_ws[["time_index"] + point_names]
+    df_wd = df_wd[["time_index"] + point_names]
 
-    # get time step of Wind Toolkit data and check if it is an integer multiple of upsampled time
+    # get time step of provided wind data and check if it is an integer multiple of upsampled time
     # step
-    timestep_wtk = int(
-        (df_wtk_ws.iloc[1]["time_index"] - df_wtk_ws.iloc[0]["time_index"]).total_seconds()
-    )
+    timestep_orig = int((df_ws.iloc[1]["time_index"] - df_ws.iloc[0]["time_index"]).total_seconds())
 
-    if (timestep_wtk / timestep_upsample % 1) != 0.0:
+    if (timestep_orig / timestep_upsample % 1) != 0.0:
         raise ValueError(
-            "The time step of the WTK data must be an integer multiple of the upsampled time"
-            "series time step."
+            "The time step of the provided wind data must be an integer multiple of the upsampled "
+            "time series time step."
         )
 
     # Spatially interpolate wind speeds and cosine and sine components of directions at desired
     # upsampled locations
-    ws_interp = _spatially_interpolate_wtk_data(
-        x_locs_wtk, y_locs_wtk, df_wtk_ws[wtk_point_names].values, x_locs_upsample, y_locs_upsample
+    ws_interp = _spatially_interpolate_wind_data(
+        x_locs_orig, y_locs_orig, df_ws[point_names].values, x_locs_upsample, y_locs_upsample
     )
 
-    wd_cos_interp = _spatially_interpolate_wtk_data(
-        x_locs_wtk,
-        y_locs_wtk,
-        np.cos(np.radians(df_wtk_wd[wtk_point_names].values)),
+    wd_cos_interp = _spatially_interpolate_wind_data(
+        x_locs_orig,
+        y_locs_orig,
+        np.cos(np.radians(df_wd[point_names].values)),
         x_locs_upsample,
         y_locs_upsample,
     )
 
-    wd_sin_interp = _spatially_interpolate_wtk_data(
-        x_locs_wtk,
-        y_locs_wtk,
-        np.sin(np.radians(df_wtk_wd[wtk_point_names].values)),
+    wd_sin_interp = _spatially_interpolate_wind_data(
+        x_locs_orig,
+        y_locs_orig,
+        np.sin(np.radians(df_wd[point_names].values)),
         x_locs_upsample,
         y_locs_upsample,
     )
 
     # Upsample spatially interpolated wind speeds and direction components using frequencies up to
     # Nyquist frequency to create smooth signals
-    ws_interp_upsample = _upsample_Nyquist(ws_interp, timestep_wtk, timestep_upsample)
-    wd_cos_interp_upsample = _upsample_Nyquist(wd_cos_interp, timestep_wtk, timestep_upsample)
-    wd_sin_interp_upsample = _upsample_Nyquist(wd_sin_interp, timestep_wtk, timestep_upsample)
+    ws_interp_upsample = _upsample_Nyquist(ws_interp, timestep_orig, timestep_upsample)
+    wd_cos_interp_upsample = _upsample_Nyquist(wd_cos_interp, timestep_orig, timestep_upsample)
+    wd_sin_interp_upsample = _upsample_Nyquist(wd_sin_interp, timestep_orig, timestep_upsample)
 
     # Convert wind direction components to direction
     wd_interp_upsample = (
@@ -457,7 +452,7 @@ def upsample_wtk_data(
     ws_std = _get_iec_turbulence_std(ws_interp_upsample, TI_ws_ref, TI_ref)
     ws_prime_mat *= ws_std
 
-    # Combine upsampled interpolated WTK wind speeds and turbulence
+    # Combine upsampled interpolated wind speeds and turbulence
     ws_interp_upsample += ws_prime_mat
 
     # Create dataframe with wind speed and direction variables
@@ -477,8 +472,8 @@ def upsample_wtk_data(
 
     df_upsample["time"] = np.arange(0.0, N_samples_upsample * timestep_upsample, timestep_upsample)
     df_upsample["time_utc"] = pd.date_range(
-        df_wtk_ws["time_index"][0],
-        df_wtk_ws.iloc[-1]["time_index"] + pd.Timedelta(seconds=timestep_wtk - timestep_upsample),
+        df_ws["time_index"][0],
+        df_ws.iloc[-1]["time_index"] + pd.Timedelta(seconds=timestep_orig - timestep_upsample),
         freq=f"{timestep_upsample}s",
     )
 

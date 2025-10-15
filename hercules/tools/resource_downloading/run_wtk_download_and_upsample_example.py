@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import utm
-from hercules.tools.resource_downloading.upsample_wind_data import upsample_wtk_data
+from hercules.tools.resource_downloading.upsample_wind_data import upsample_wind_data
 from hercules.tools.resource_downloading.wind_solar_resource_downloader import download_wtk_data
 from matplotlib import pyplot as plt
 
@@ -71,10 +71,10 @@ def run_small_example():
         #
         # Turbulence intensity is assigned as a function of wind speed based on the IEC normal
         # turbulence model such that a desired TI is achieved at a reference wind speed
-        df_upsample = upsample_wtk_data(
-            wtk_ws_data_filepath=wtk_ws_data_filepath,
-            wtk_wd_data_filepath=wtk_wd_data_filepath,
-            wtk_coords_filepath=wtk_coords_filepath,
+        df_upsample = upsample_wind_data(
+            ws_data_filepath=wtk_ws_data_filepath,
+            wd_data_filepath=wtk_wd_data_filepath,
+            coords_filepath=wtk_coords_filepath,
             upsampled_data_dir=data_dir,
             upsampled_data_filename="wtk_small_example_upsample_6turbines.ftr",
             x_locs_upsample=x_turbine_locs,
