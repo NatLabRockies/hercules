@@ -19,7 +19,7 @@ def run_small_example():
     year = 2020
 
     # Create data directory
-    data_dir = "data/small_example"
+    data_dir = "data/small_wtk_nsrdb_example"
     os.makedirs(data_dir, exist_ok=True)
 
     print("=" * 60)

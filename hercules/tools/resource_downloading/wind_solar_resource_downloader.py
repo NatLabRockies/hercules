@@ -397,7 +397,7 @@ def download_openmeteo_data(
 ) -> dict:
     """
     Download Open-Meteo weather data for a specified location or locations and time period. Data
-    are retrieved from the nearest weather grid cell to the requested locations.The grid cell
+    are retrieved from the nearest weather grid cell to the requested locations. The grid cell
     resolution varies with latitude, but at ~35 degrees latitude, the grid cell resolution is
     approximately 0.027 degrees latitude (~2.4 km in the N-S direction) and 0.0333 degrees
     longitude (~3.7km in the E-W direction).
