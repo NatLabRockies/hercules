@@ -6,8 +6,10 @@ import os
 import sys
 
 import numpy as np
+from hercules.tools.resource_downloading.wind_solar_resource_downloader import (
+    download_openmeteo_data,
+)
 from matplotlib import pyplot as plt
-from wind_solar_resource_downloader import download_openmeteo_data
 
 sys.path.append(".")
 
@@ -98,9 +100,9 @@ def run_small_example():
 
             # Plot requested and actual coordinates
             print(
-                "Note that the actual coordinates corresponding to the Open-Meteo data grid differ "
-                "from the requested coordinates. Open-Meteo data is obtained at the nearest "
-                "weather grid points to the requested coordinates."
+                "\nNote that the actual coordinates corresponding to the Open-Meteo data grid "
+                "differ from the requested coordinates. Open-Meteo data is obtained at the "
+                "nearest weather grid points to the requested coordinates."
             )
 
             plt.figure()

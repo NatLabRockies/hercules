@@ -71,6 +71,9 @@ def run_small_example():
         #
         # Turbulence intensity is assigned as a function of wind speed based on the IEC normal
         # turbulence model such that a desired TI is achieved at a reference wind speed
+
+        print("\nUpsampling raw WTK data...")
+
         df_upsample = upsample_wind_data(
             ws_data_filepath=wtk_ws_data_filepath,
             wd_data_filepath=wtk_wd_data_filepath,
