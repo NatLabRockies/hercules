@@ -376,25 +376,50 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
 
 
 def find_time_utc_value(df, time_value, time_column="time", time_utc_column="time_utc"):
-    """Find the time_utc value.
+    """Return UTC timestamp at a given time value via linear interpolation or extrapolation.
 
-
+    This function maps a numeric simulation time to a UTC timestamp by linearly
+    interpolating between rows in ``df``. If ``time_value`` lies outside the
+    range of ``time_column``, linear extrapolation is performed.
 
     Args:
-        df (pd.DataFrame): DataFrame with time_column and time_utc_column.
-        time_value (float): Time value to find the time_utc value for.
-        time_column (str, optional): Name of the time column. Defaults to "time".
-        time_utc_column (str, optional): Name of the time_utc column. Defaults to "time_utc".
+        df (pd.DataFrame): Input DataFrame containing time and UTC columns.
+        time_value (float): Time at which to compute the UTC value.
+        time_column (str, optional): Name of the numeric time column. Defaults to "time".
+        time_utc_column (str, optional): Name of the UTC datetime column. Defaults to "time_utc".
 
     Returns:
-        datetime: Time_utc value.
+        pd.Timestamp: UTC-aware timestamp corresponding to ``time_value``.
     """
-    return (
-        df.set_index(time_column)[time_utc_column]
-        .interpolate(method="linear")
-        .reindex([time_value])
-        .iloc[0]
+    if time_column not in df.columns or time_utc_column not in df.columns:
+        raise ValueError(f"DataFrame must contain '{time_column}' and '{time_utc_column}' columns")
+
+    # Drop rows with missing values in either column, then sort by time
+    df_valid = (
+        df[[time_column, time_utc_column]]
+        .dropna(subset=[time_column, time_utc_column])
+        .sort_values(time_column)
     )
+
+    if len(df_valid) < 2:
+        raise ValueError("At least two valid rows are required for interpolation/extrapolation")
+
+    # Extract arrays for interpolation. Convert datetimes to seconds since epoch (UTC)
+    time_values = df_valid[time_column].to_numpy()
+    utc_ns = df_valid[time_utc_column].astype("int64").to_numpy()  # nanoseconds since epoch
+    utc_seconds = utc_ns.astype(np.float64) / 1e9
+
+    # Linear interpolation/extrapolation
+    f = interp1d(
+        time_values,
+        utc_seconds,
+        kind="linear",
+        bounds_error=False,
+        fill_value="extrapolate",
+        assume_sorted=True,
+    )
+    sec = float(f(time_value))
+    return pd.to_datetime(sec, unit="s", utc=True)
 
 
 def load_h_dict_from_text(filename):
