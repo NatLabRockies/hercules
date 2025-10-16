@@ -48,6 +48,16 @@ def download_nsrdb_data(
     """
     Download NSRDB solar irradiance data for a specified location and time period.
 
+    This function requires an NREL API key, which can be obtained by visiting
+    https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
+    file at ~/.hscfg containing the following:
+
+        hs_endpoint = https://developer.nrel.gov/api/hsds
+
+        hs_api_key = YOUR_API_KEY_GOES_HERE
+
+    More information can be found at: https://github.com/NREL/hsds-examples.
+
     Parameters:
     -----------
     target_lat : float
@@ -220,6 +230,16 @@ def download_wtk_data(
 ) -> dict:
     """
     Download WTK wind data for a specified location and time period.
+
+    This function requires an NREL API key, which can be obtained by visiting
+    https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
+    file at ~/.hscfg containing the following:
+
+        hs_endpoint = https://developer.nrel.gov/api/hsds
+
+        hs_api_key = YOUR_API_KEY_GOES_HERE
+
+    More information can be found at: https://github.com/NREL/hsds-examples.
 
     Parameters:
     -----------

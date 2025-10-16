@@ -1,5 +1,15 @@
 """
-Small example using the real WTK/NSRDB downloader with minimal data
+Small example using the real WTK/NSRDB downloader with minimal data.
+
+Note that this example uses the download_nsrdb_data function, which requires an NREL API key that
+can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you
+must make a configuration file at ~/.hscfg containing the following:
+
+    hs_endpoint = https://developer.nrel.gov/api/hsds
+
+    hs_api_key = YOUR_API_KEY_GOES_HERE
+
+More information can be found at: https://github.com/NREL/hsds-examples.
 """
 
 import os

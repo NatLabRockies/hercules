@@ -1,6 +1,16 @@
 """
 Example using the real WTK downloader to download and and spatially and temporally upsample wind
-speed and direction data
+speed and direction data.
+
+Note that this example uses the download_wtk_data function, which requires an NREL API key that
+can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you
+must make a configuration file at ~/.hscfg containing the following:
+
+    hs_endpoint = https://developer.nrel.gov/api/hsds
+
+    hs_api_key = YOUR_API_KEY_GOES_HERE
+
+More information can be found at: https://github.com/NREL/hsds-examples.
 """
 
 import os
