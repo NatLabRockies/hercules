@@ -43,6 +43,7 @@ def run_small_example():
             target_lon=target_lon,
             year=year,
             variables=["ghi"],  # Just one variable
+            nsrdb_dataset_path="/nrel/nsrdb/conus",  # Demonstrating using a non-default dataset
             coord_delta=0.05,  # Small area
             output_dir=data_dir,
             filename_prefix="nsrdb_small_example",

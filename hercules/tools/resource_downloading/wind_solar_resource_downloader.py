@@ -39,6 +39,8 @@ def download_nsrdb_data(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     variables: List[str] = ["ghi", "dni", "dhi"],
+    nsrdb_dataset_path="/nrel/nsrdb/GOES/conus/v4.0.0",
+    nsrdb_filename_prefix="nsrdb_conus",
     coord_delta: float = 0.1,
     output_dir: str = "./data",
     filename_prefix: str = "nsrdb",
@@ -72,6 +74,15 @@ def download_nsrdb_data(
         End date in format 'YYYY-MM-DD' (if using date range approach)
     variables : List[str]
         List of variables to download (default: ['ghi', 'dni', 'dhi'])
+    nsrdb_dataset_path : str
+        Path name of NSRDB dataset. Available datasets are described at
+        https://developer.nrel.gov/docs/solar/nsrdb/ and path names can be found at
+        https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb. Defaults to the GOES Conus v4.0.0
+        dataset: "/nrel/nsrdb/GOES/conus/v4.0.0".
+    nsrdb_filename_prefix : str
+        File name prefix for the NSRDB HDF5 files in the format {nsrdb_filename_prefix}_{year}.h5.
+        Information about file names can be found here:
+        https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb. Defaults to "nsrdb_conus".
     coord_delta : float
         Coordinate delta for bounding box (default: 0.1 degrees)
     output_dir : str
@@ -147,7 +158,7 @@ def download_nsrdb_data(
         # Process each year in the range
         for file_year in file_years:
             print(f"\nProcessing year {file_year}...")
-            fp = f"/nrel/nsrdb/conus/nsrdb_conus_{file_year}.h5"
+            fp = f"{nsrdb_dataset_path}/{nsrdb_filename_prefix}_{file_year}.h5"
 
             with ResourceX(fp) as res:
                 # Download each variable for this year
