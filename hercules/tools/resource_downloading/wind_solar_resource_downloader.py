@@ -861,6 +861,8 @@ def get_variable_label(variable: str) -> str:
         # Open-Meteo variables
         "wind_speed_80m": "Wind Speed at 80m (m/s)",
         "windspeed_80m": "Wind Speed at 80m (m/s)",
+        "wind_direction_80m": "Wind Direction at 80m (m/s)",
+        "winddirection_80m": "Wind Direction at 80m (m/s)",
         "temperature_2m": "Temperature at 2m (°C)",
         "shortwave_radiation_instant": "Shortwave Radiation (W/m²)",
         "diffuse_radiation_instant": "Diffuse Radiation (W/m²)",
@@ -883,165 +885,11 @@ def get_variable_colormap(variable: str) -> str:
         # Open-Meteo variables
         "wind_speed_80m": "viridis",
         "windspeed_80m": "viridis",
+        "wind_direction_80m": "hsv",
+        "winddirection_80m": "hsv",
         "temperature_2m": "RdYlBu_r",
         "shortwave_radiation_instant": "plasma",
         "diffuse_radiation_instant": "plasma",
         "direct_normal_irradiance_instant": "plasma",
     }
     return colormaps.get(variable, "viridis")
-
-
-# TODO: Move the parts below to an example
-def main():
-    """
-    Example usage of the download functions.
-    """
-
-    # ARM Southern Great Plains coordinates from your notebook
-    target_lat = 36.607322
-    target_lon = -97.487643
-    year = 2020
-
-    # Create data directory
-    data_dir = "/Users/akumler/Documents/p2n_hybrids/scripts/output"
-
-    # Download NSRDB data
-    print("=" * 50)
-    print("DOWNLOADING NSRDB DATA")
-    print("=" * 50)
-
-    # Example 1: Download full year (original functionality)
-    nsrdb_data = download_nsrdb_data(
-        target_lat=target_lat,
-        target_lon=target_lon,
-        year=year,
-        variables=["ghi", "dni", "dhi"],
-        coord_delta=0.1,
-        output_dir=data_dir,
-        filename_prefix="nsrdb_ARM-SPG",
-        plot_data=True,
-        plot_type="timeseries",  # Try 'map' for spatial plots
-    )
-
-    # Example 2: Download specific date range (new functionality)
-    # print("\n" + "=" * 50)
-    # print("DOWNLOADING NSRDB DATA - DATE RANGE EXAMPLE")
-    # print("=" * 50)
-
-    # nsrdb_data_range = download_nsrdb_data(
-    #     target_lat=target_lat,
-    #     target_lon=target_lon,
-    #     start_date="2020-06-01",
-    #     end_date="2020-08-31",
-    #     variables=["ghi"],
-    #     coord_delta=0.1,
-    #     output_dir=data_dir,
-    #     filename_prefix="nsrdb_summer",
-    #     plot_data=True,
-    #     plot_type="timeseries",
-    # )
-
-    # Download WTK data
-    print("\n" + "=" * 50)
-    print("DOWNLOADING WTK DATA")
-    print("=" * 50)
-
-    # Example 1: Download full year (original functionality)
-    wtk_data = download_wtk_data(
-        target_lat=target_lat,
-        target_lon=target_lon,
-        year=year,
-        variables=["windspeed_100m", "winddirection_100m", "turbulent_kinetic_energy_100m"],
-        coord_delta=0.106,
-        output_dir=data_dir,
-        filename_prefix="wtk_ARM-SPG",
-        plot_data=True,
-        plot_type="map",  # Try 'timeseries' for time-series plots
-    )
-
-    # Example 2: Download specific date range for wind data (new functionality)
-    # print("\n" + "=" * 50)
-    # print("DOWNLOADING WTK DATA - DATE RANGE EXAMPLE")
-    # print("=" * 50)
-
-    # wtk_data_range = download_wtk_data(
-    #     target_lat=target_lat,
-    #     target_lon=target_lon,
-    #     start_date="2020-03-01",
-    #     end_date="2020-05-31",
-    #     variables=["windspeed_100m"],
-    #     coord_delta=0.106,
-    #     output_dir=data_dir,
-    #     filename_prefix="wtk_spring",
-    #     plot_data=True,
-    #     plot_type="timeseries",
-    # )
-
-    # Download Open-Meteo data
-    print("\n" + "=" * 50)
-    print("DOWNLOADING OPEN-METEO DATA")
-    print("=" * 50)
-
-    # Example 1: Download specific date range with wind and solar variables
-    openmeteo_data = download_openmeteo_data(
-        target_lat=target_lat,
-        target_lon=target_lon,
-        start_date="2020-06-01",
-        end_date="2020-06-03",  # Short period for testing
-        variables=[
-            "wind_speed_80m",
-            "temperature_2m",
-            "shortwave_radiation_instant",
-            "diffuse_radiation_instant",
-        ],
-        output_dir=data_dir,
-        filename_prefix="openmeteo_test",
-        plot_data=True,
-        plot_type="timeseries",
-    )
-
-    # Example 2: Download full year with aliases compatible with existing WTK/NSRDB users
-    # print("\n" + "=" * 50)
-    # print("DOWNLOADING OPEN-METEO DATA - FULL YEAR WITH ALIASES")
-    # print("=" * 50)
-
-    # openmeteo_data_year = download_openmeteo_data(
-    #     target_lat=target_lat,
-    #     target_lon=target_lon,
-    #     year=2021,  # Use a different year to avoid conflicts
-    #     variables=["ghi", "dni", "dhi", "windspeed_80m"],  # Using aliases
-    #     output_dir=data_dir,
-    #     filename_prefix="openmeteo_year",
-    #     plot_data=True,
-    #     plot_type="timeseries",
-    # )
-
-    print("\nDownload completed!")
-
-    # Print summary information
-    if nsrdb_data:
-        print("\nNSRDB data shape examples:")
-        for var in ["ghi", "dni", "dhi"]:
-            if var in nsrdb_data:
-                print(f"  {var}: {nsrdb_data[var].shape}")
-
-    if wtk_data:
-        print("\nWTK data shape examples:")
-        for var in ["windspeed_100m", "winddirection_100m", "turbulent_kinetic_energy_100m"]:
-            if var in wtk_data:
-                print(f"  {var}: {wtk_data[var].shape}")
-
-    if openmeteo_data:
-        print("\nOpen-Meteo data shape examples:")
-        for var in [
-            "wind_speed_80m",
-            "temperature_2m",
-            "shortwave_radiation_instant",
-            "diffuse_radiation_instant",
-        ]:
-            if var in openmeteo_data:
-                print(f"  {var}: {openmeteo_data[var].shape}")
-
-
-if __name__ == "__main__":
-    main()
