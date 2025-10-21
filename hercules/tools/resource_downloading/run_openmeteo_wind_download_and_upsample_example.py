@@ -94,7 +94,6 @@ def run_small_example():
             plt.ylabel("Latitude")
             plt.title("Wind Data Coordinates")
             plt.legend()
-            plt.show()
 
         # Spatially and temporally upsample the Open-Meteo wind speed and direction data at wind
         # turbine locations in a 2 x 3 array wind farm
