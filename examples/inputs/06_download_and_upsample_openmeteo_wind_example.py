@@ -10,8 +10,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import utm
-from hercules.tools.resource_downloading.upsample_wind_data import upsample_wind_data
-from hercules.tools.resource_downloading.wind_solar_resource_downloader import (
+from hercules.resource.upsample_wind_data import upsample_wind_data
+from hercules.resource.wind_solar_resource_downloader import (
     download_openmeteo_data,
 )
 from matplotlib import pyplot as plt
