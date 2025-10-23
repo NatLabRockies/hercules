@@ -200,9 +200,13 @@ def download_nsrdb_data(
         data_dict["coordinates"].reset_index().to_feather(coords_file)
         print(f"Saved coordinates to {coords_file}")
 
+    except OSError as e:
+        print(f"Error downloading NSRDB data: {e}")
+        print("This could be caused by an invalid API key, NSRDB dataset path, or date range.")
+        raise
     except Exception as e:
         print(f"Error downloading NSRDB data: {e}")
-        return {}
+        raise
 
     total_time = (time.time() - t0) / 60
     decimal_part = math.modf(total_time)[0] * 60
@@ -383,9 +387,13 @@ def download_wtk_data(
         data_dict["coordinates"].reset_index().to_feather(coords_file)
         print(f"Saved coordinates to {coords_file}")
 
+    except OSError as e:
+        print(f"Error downloading WTK data: {e}")
+        print("This could be caused by an invalid API key or date range.")
+        raise
     except Exception as e:
         print(f"Error downloading WTK data: {e}")
-        return {}
+        raise
 
     total_time = (time.time() - t0) / 60
     decimal_part = math.modf(total_time)[0] * 60
@@ -613,7 +621,6 @@ def download_openmeteo_data(
 
             # Create coordinates DataFrame (single point, but match the format)
             # Use a synthetic GID (grid ID) to match WTK/NSRDB format
-            # TODO: delete duplicate points if there are any?
             df_coords = pd.DataFrame(
                 [[response.Latitude(), response.Longitude()]], index=[gid], columns=["lat", "lon"]
             )
@@ -659,7 +666,7 @@ def download_openmeteo_data(
 
     except Exception as e:
         print(f"Error downloading Open-Meteo data: {e}")
-        return {}
+        raise
 
     total_time = (time.time() - t0) / 60
     decimal_part = math.modf(total_time)[0] * 60

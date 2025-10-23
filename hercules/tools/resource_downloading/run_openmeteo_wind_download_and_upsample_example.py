@@ -95,106 +95,104 @@ def run_small_example():
             plt.title("Wind Data Coordinates")
             plt.legend()
 
-        # Spatially and temporally upsample the Open-Meteo wind speed and direction data at wind
-        # turbine locations in a 2 x 3 array wind farm
-        x_turbine_locs = np.array([-2500.0, 0.0, 2500.0, -2500.0, 0.0, 2500.0])
-        y_turbine_locs = np.array([-1500.0, -1500.0, -1500.0, 1500.0, 1500.0, 1500.0])
-
-        openmeteo_ws_data_filepath = (
-            Path(data_dir) / f"openmeteo_small_example_windspeed_80m_{year}.feather"
-        )
-        openmeteo_wd_data_filepath = (
-            Path(data_dir) / f"openmeteo_small_example_winddirection_80m_{year}.feather"
-        )
-        openmeteo_coords_filepath = (
-            Path(data_dir) / f"openmeteo_small_example_coords_{year}.feather"
-        )
-
-        # Using downloaded Open-Meteo wind files, spatially interpolate wind speeds and directions
-        # and at 6 turbine locations and upsample wind speeds by adding stochastic turbulence. The
-        # combined upsampled dataframe will be saved in the same directory as the Open-Meteo files.
-        #
-        # The arguments turbulence_Uhub and turbulence_L are parameters used in the Kaimal
-        # turbulence spectrum model
-        #
-        # Turbulence intensity is assigned as a function of wind speed based on the IEC normal
-        # turbulence model such that a desired TI is achieved at a reference wind speed
-
-        print("\nUpsampling raw Open-Meteo data...")
-
-        df_upsample = upsample_wind_data(
-            ws_data_filepath=openmeteo_ws_data_filepath,
-            wd_data_filepath=openmeteo_wd_data_filepath,
-            coords_filepath=openmeteo_coords_filepath,
-            upsampled_data_dir=data_dir,
-            upsampled_data_filename="openmeteo_small_example_upsample_6turbines.ftr",
-            x_locs_upsample=x_turbine_locs,
-            y_locs_upsample=y_turbine_locs,
-            origin_lat=None,  # None sets the y origin to the mean latitude in the Open-Meteo files
-            origin_lon=None,  # None sets the x origin to the mean longitude in the Open-Meteo files
-            timestep_upsample=1,  # Upsample from 15-minute Open-Meteo resolution to 1-second res.
-            turbulence_Uhub=None,  # None sets turbulence_Uhub to the mean Open-Meteo wind speed
-            turbulence_L=340.2,  # Default turbulence length scale defined in the IEC standard
-            TI_ref=0.1,  # The desired TI corresponding to the reference wind speed TI_ws_ref
-            TI_ws_ref=8.0,
-            save_individual_wds=True,  # True saved wind directions for each upsampled location
-        )
-
-        # Load raw Open-Meteo wind speeds and locations
-        df_openmeteo_ws = pd.read_feather(openmeteo_ws_data_filepath)
-        df_openmeteo_coords = pd.read_feather(openmeteo_coords_filepath)
-
-        # Convert Open-Meteo coordinates to easting and northing locations
-        x_locs_openmeteo, y_locs_openmeteo, zone_number, zone_letter = utm.from_latlon(
-            df_openmeteo_coords["lat"].values, df_openmeteo_coords["lon"].values
-        )
-
-        origin_lat = df_openmeteo_coords["lat"].mean()
-        origin_lon = df_openmeteo_coords["lon"].mean()
-        origin_x, origin_y, origin_zone_number, origin_zone_letter = utm.from_latlon(
-            origin_lat, origin_lon
-        )
-
-        x_locs_openmeteo -= origin_x
-        y_locs_openmeteo -= origin_y
-
-        # Plot Open-Meteo grid points and upsampled turbine locations
-        plt.figure()
-        plt.scatter(x_locs_openmeteo, y_locs_openmeteo, label="Open-Meteo points")
-        plt.scatter(x_turbine_locs, y_turbine_locs, color="r", label="Upsampled locations")
-        for i in range(len(x_turbine_locs)):
-            plt.text(x_turbine_locs[i] - 200.0, y_turbine_locs[i] + 175.0, i)
-        plt.grid()
-        plt.xlabel("Easting (m)")
-        plt.ylabel("Northing (m)")
-        plt.legend()
-        plt.axis("equal")
-
-        # Compare the upsampled wind speed at the first turbine location to the original
-        # Open-Meteo wind speed at the nearest grid point for a single day (k can be 0 to 364)
-        k = 1
-        plt.figure(figsize=(9, 5))
-        plt.plot(
-            df_upsample["time_utc"][k * 60 * 60 * 24 : (k + 1) * 60 * 60 * 24],
-            df_upsample["ws_000"][k * 60 * 60 * 24 : (k + 1) * 60 * 60 * 24],
-            label="Upsampled wind speed at location 0",
-        )
-        plt.plot(
-            df_openmeteo_ws["time_index"][k * 4 * 24 : (k + 1) * 4 * 24],
-            df_openmeteo_ws["9"][k * 4 * 24 : (k + 1) * 4 * 24],
-            label="Open-Meteo wind speed at nearest grid point",
-        )
-        plt.grid()
-        plt.ylabel("Wind Speed (m/s)")
-        plt.legend()
-
-        plt.show()
-
-        return True
-
     except Exception as e:
         print(f"✗ Open-Meteo download failed: {e}")
         return False
+
+    # Spatially and temporally upsample the Open-Meteo wind speed and direction data at wind
+    # turbine locations in a 2 x 3 array wind farm
+    x_turbine_locs = np.array([-2500.0, 0.0, 2500.0, -2500.0, 0.0, 2500.0])
+    y_turbine_locs = np.array([-1500.0, -1500.0, -1500.0, 1500.0, 1500.0, 1500.0])
+
+    openmeteo_ws_data_filepath = (
+        Path(data_dir) / f"openmeteo_small_example_windspeed_80m_{year}.feather"
+    )
+    openmeteo_wd_data_filepath = (
+        Path(data_dir) / f"openmeteo_small_example_winddirection_80m_{year}.feather"
+    )
+    openmeteo_coords_filepath = Path(data_dir) / f"openmeteo_small_example_coords_{year}.feather"
+
+    # Using downloaded Open-Meteo wind files, spatially interpolate wind speeds and directions
+    # and at 6 turbine locations and upsample wind speeds by adding stochastic turbulence. The
+    # combined upsampled dataframe will be saved in the same directory as the Open-Meteo files.
+    #
+    # The arguments turbulence_Uhub and turbulence_L are parameters used in the Kaimal
+    # turbulence spectrum model
+    #
+    # Turbulence intensity is assigned as a function of wind speed based on the IEC normal
+    # turbulence model such that a desired TI is achieved at a reference wind speed
+
+    print("\nUpsampling raw Open-Meteo data...")
+
+    df_upsample = upsample_wind_data(
+        ws_data_filepath=openmeteo_ws_data_filepath,
+        wd_data_filepath=openmeteo_wd_data_filepath,
+        coords_filepath=openmeteo_coords_filepath,
+        upsampled_data_dir=data_dir,
+        upsampled_data_filename="openmeteo_small_example_upsample_6turbines.ftr",
+        x_locs_upsample=x_turbine_locs,
+        y_locs_upsample=y_turbine_locs,
+        origin_lat=None,  # None sets the y origin to the mean latitude in the Open-Meteo files
+        origin_lon=None,  # None sets the x origin to the mean longitude in the Open-Meteo files
+        timestep_upsample=1,  # Upsample from 15-minute Open-Meteo resolution to 1-second res.
+        turbulence_Uhub=None,  # None sets turbulence_Uhub to the mean Open-Meteo wind speed
+        turbulence_L=340.2,  # Default turbulence length scale defined in the IEC standard
+        TI_ref=0.1,  # The desired TI corresponding to the reference wind speed TI_ws_ref
+        TI_ws_ref=8.0,
+        save_individual_wds=True,  # True saved wind directions for each upsampled location
+    )
+
+    # Load raw Open-Meteo wind speeds and locations
+    df_openmeteo_ws = pd.read_feather(openmeteo_ws_data_filepath)
+    df_openmeteo_coords = pd.read_feather(openmeteo_coords_filepath)
+
+    # Convert Open-Meteo coordinates to easting and northing locations
+    x_locs_openmeteo, y_locs_openmeteo, zone_number, zone_letter = utm.from_latlon(
+        df_openmeteo_coords["lat"].values, df_openmeteo_coords["lon"].values
+    )
+
+    origin_lat = df_openmeteo_coords["lat"].mean()
+    origin_lon = df_openmeteo_coords["lon"].mean()
+    origin_x, origin_y, origin_zone_number, origin_zone_letter = utm.from_latlon(
+        origin_lat, origin_lon
+    )
+
+    x_locs_openmeteo -= origin_x
+    y_locs_openmeteo -= origin_y
+
+    # Plot Open-Meteo grid points and upsampled turbine locations
+    plt.figure()
+    plt.scatter(x_locs_openmeteo, y_locs_openmeteo, label="Open-Meteo points")
+    plt.scatter(x_turbine_locs, y_turbine_locs, color="r", label="Upsampled locations")
+    for i in range(len(x_turbine_locs)):
+        plt.text(x_turbine_locs[i] - 200.0, y_turbine_locs[i] + 175.0, i)
+    plt.grid()
+    plt.xlabel("Easting (m)")
+    plt.ylabel("Northing (m)")
+    plt.legend()
+    plt.axis("equal")
+
+    # Compare the upsampled wind speed at the first turbine location to the original
+    # Open-Meteo wind speed at the nearest grid point for a single day (k can be 0 to 364)
+    k = 1
+    plt.figure(figsize=(9, 5))
+    plt.plot(
+        df_upsample["time_utc"][k * 60 * 60 * 24 : (k + 1) * 60 * 60 * 24],
+        df_upsample["ws_000"][k * 60 * 60 * 24 : (k + 1) * 60 * 60 * 24],
+        label="Upsampled wind speed at location 0",
+    )
+    plt.plot(
+        df_openmeteo_ws["time_index"][k * 4 * 24 : (k + 1) * 4 * 24],
+        df_openmeteo_ws["9"][k * 4 * 24 : (k + 1) * 4 * 24],
+        label="Open-Meteo wind speed at nearest grid point",
+    )
+    plt.grid()
+    plt.ylabel("Wind Speed (m/s)")
+    plt.legend()
+
+    plt.show()
+
+    return True
 
 
 if __name__ == "__main__":
