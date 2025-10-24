@@ -103,6 +103,10 @@ def download_nsrdb_data(
     ------
     Either 'year' OR both 'start_date' and 'end_date' must be provided.
     Date range approach allows for more flexible time periods than full year.
+
+    Plots are not automatically shown when calling this function. If plot_data is set to True,
+    users will need to call matplotlib.pyplot.show() after the function has executed to display the
+    figure.
     """
 
     # Create output directory if it doesn't exist
@@ -290,6 +294,10 @@ def download_wtk_data(
     ------
     Either 'year' OR both 'start_date' and 'end_date' must be provided.
     Date range approach allows for more flexible time periods than full year.
+
+    Plots are not automatically shown when calling this function. If plot_data is set to True,
+    users will need to call matplotlib.pyplot.show() after the function has executed to display the
+    figure.
     """
 
     # Create output directory if it doesn't exist
@@ -484,6 +492,10 @@ def download_openmeteo_data(
     Either 'year' OR both 'start_date' and 'end_date' must be provided.
     Open-Meteo provides point data (not gridded), so coord_delta is ignored.
     Available historical data typically spans from 1940 to present.
+
+    Plots are not automatically shown when calling this function. If plot_data is set to True,
+    users will need to call matplotlib.pyplot.show() after the function has executed to display the
+    figure.
     """
 
     # Create output directory if it doesn't exist
@@ -730,7 +742,6 @@ def plot_timeseries(data_dict: dict, variables: List[str], coordinates: np.ndarr
     axes[-1].set_xlabel("Time")
     plt.suptitle(f"{title} - Time Series", fontsize=14, fontweight="bold")
     plt.tight_layout()
-    plt.show()
 
 
 def plot_spatial_map(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
@@ -851,7 +862,6 @@ def plot_spatial_map(data_dict: dict, variables: List[str], coordinates: np.ndar
 
     plt.suptitle(f"{title} - Spatial Distribution (Time-Averaged)", fontsize=14, fontweight="bold")
     plt.tight_layout()
-    plt.show()
 
 
 def get_variable_label(variable: str) -> str:

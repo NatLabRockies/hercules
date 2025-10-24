@@ -19,6 +19,7 @@ from hercules.resource.wind_solar_resource_downloader import (
     download_nsrdb_data,
     download_wtk_data,
 )
+from matplotlib import pyplot as plt
 
 sys.path.append(".")
 
@@ -112,3 +113,5 @@ if __name__ == "__main__":
         print("\nYou can now use the full script for larger datasets!")
     else:
         print("\n✗ Example failed. Check error messages above.")
+
+    plt.show()

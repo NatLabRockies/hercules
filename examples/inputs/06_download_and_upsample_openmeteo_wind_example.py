@@ -190,8 +190,6 @@ def run_small_example():
     plt.ylabel("Wind Speed (m/s)")
     plt.legend()
 
-    plt.show()
-
     return True
 
 
@@ -216,3 +214,5 @@ if __name__ == "__main__":
         print("\nYou can now use the full script for larger datasets!")
     else:
         print("\n✗ Example failed. Check error messages above.")
+
+    plt.show()
