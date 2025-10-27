@@ -340,7 +340,6 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
         # Test time_utc reconstruction using utilities
         # Create a temporary HDF5 file to test reconstruction
         import h5py
-
         from hercules.utilities import read_hercules_hdf5
 
         with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
