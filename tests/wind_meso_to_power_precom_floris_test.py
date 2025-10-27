@@ -10,6 +10,7 @@ import pytest
 from hercules.plant_components.wind_meso_to_power_precom_floris import (
     Wind_MesoToPowerPrecomFloris,
 )
+from hercules.utilities import hercules_float_type
 
 from tests.test_inputs.h_dict import h_dict_wind
 
@@ -52,10 +53,15 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
     # Test that, since individual speed are specified, ws_mean is ignored
     # Note that h_dict_wind_precom_floris specifies an end time of 10.
     wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
-    assert (wind_sim.ws_mat[:, 0] == df_input["ws_000"].to_numpy(dtype=np.float32)[:10]).all()
+    assert (
+        wind_sim.ws_mat[:, 0]
+        == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
+    ).all()
     assert np.allclose(
         wind_sim.ws_mat_mean,
-        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(dtype=np.float32)[:10]
+        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(
+            dtype=hercules_float_type
+        )[:10]
     )
 
     # Drop individual speeds and test that ws_mean is used instead
