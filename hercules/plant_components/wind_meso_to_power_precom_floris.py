@@ -360,9 +360,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # First add outputs included in every logging option
         self.log_outputs = [
             "power",
-            "wind_speed",
-            "wind_direction",
-            "wind_speed_waked",
+            "wind_speed_mean_unwaked",
+            "wind_speed_mean_waked",
         ]
 
         # If including subset of turbines, add the turbine indices
@@ -383,9 +382,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             self.log_outputs = self.log_outputs + [
                 "turbine_powers",
                 "turbine_power_setpoints",
-                "wind_speed_mean",
-                "floris_wind_direction",
-                "floris_ti",
                 "wind_speeds_unwaked",
                 "wind_speeds_waked",
             ]
@@ -499,8 +495,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             h_dict[self.component_name]["wind_speed_mean_waked"] = np.mean(
                 self.wind_speeds_waked, dtype=hercules_float_type
             )
-            h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction_mean
-            h_dict[self.component_name]["floris_ti"] = self.ti_mat_mean[step]
             h_dict[self.component_name]["wind_speeds_unwaked"] = self.wind_speeds_unwaked
             h_dict[self.component_name]["wind_speeds_waked"] = self.wind_speeds_waked
 

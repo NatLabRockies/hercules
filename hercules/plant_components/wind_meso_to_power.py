@@ -475,15 +475,8 @@ class Wind_MesoToPower(ComponentBase):
 
         # Else if logging_option is "all", add the turbine powers
         elif self.logging_option == "all":
-            h_dict[self.component_name]["wind_speed_mean_unwaked"] = self.wind_speed_mean_unwaked
-            h_dict[self.component_name]["wind_speed_mean_waked"] = np.mean(
-                self.wind_speeds_waked, dtype=hercules_float_type
-            )
-            h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
-            h_dict[self.component_name]["floris_ti"] = self.floris_ti
-            h_dict[self.component_name]["floris_turbine_power_setpoints"] = (
-                self.floris_turbine_power_setpoints
-            )
+
+
             h_dict[self.component_name]["wind_speeds_unwaked"] = self.wind_speeds_unwaked
             h_dict[self.component_name]["wind_speeds_waked"] = self.wind_speeds_waked
 
