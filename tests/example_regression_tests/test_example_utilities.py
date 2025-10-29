@@ -216,7 +216,13 @@ def verify_outputs(
         turbine_power_cols = [
             col for col in df.columns if col.startswith("wind_farm.turbine_powers.")
         ]
-        assert len(turbine_power_cols) > 0, "Should have turbine power columns"
+        # Only check turbine power columns if they were logged by the example
+        # Some examples configure log_channels to only include aggregate power
+        if len(turbine_power_cols) > 0:
+            # Ensure values are non-negative and finite when present
+            for col in turbine_power_cols:
+                assert all(df[col] >= 0), f"{col} should be non-negative"
+                assert all(np.isfinite(df[col])), f"{col} should be finite"
 
         # Test that the final wind power has not changed much
         np.testing.assert_allclose(
