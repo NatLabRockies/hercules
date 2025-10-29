@@ -181,7 +181,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
-        self.wind_speed_mean = self.ws_mat_mean[0]
+        self.wind_speed_mean_unwaked = self.ws_mat_mean[0]
 
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
@@ -432,7 +432,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
-        h_dict[self.component_name]["wind_speed_mean_unwaked"] = self.wind_speed_mean
+        h_dict[self.component_name]["wind_speed_mean_unwaked"] = self.wind_speed_mean_unwaked
         h_dict[self.component_name]["wind_speed_mean_waked"] = np.mean(
             self.wind_speeds_waked, dtype=hercules_float_type
         )
