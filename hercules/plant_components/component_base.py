@@ -30,8 +30,18 @@ class ComponentBase:
 
         self.logger = self._setup_logging(self.log_file_name)
 
-        # Initialize the outputs to log
-        self.log_outputs = ["power"]
+        # Parse log_channels from the h_dict
+        if "log_channels" in h_dict[component_name]:
+            log_channels_str = h_dict[component_name]["log_channels"]
+            # Split by comma and strip whitespace from each channel
+            self.log_channels = [channel.strip() for channel in log_channels_str.split(",")]
+
+            # If power is not in the list, add it
+            if "power" not in self.log_channels:
+                self.log_channels.append("power")
+        else:
+            # Default to just power if not specified
+            self.log_channels = ["power"]
 
         # Save the time information
         self.dt = h_dict["dt"]

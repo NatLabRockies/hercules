@@ -30,25 +30,6 @@ class SolarPySAMBase(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs
-
-        # If "log_extra_outputs" is in h_dict[self.component_name],
-        # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.component_name]:
-            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
-        else:
-            self.log_extra_outputs = False
-
-        # If log_extra_outputs is True, add the extra outputs to the log outputs
-        if self.log_extra_outputs:
-            self.log_outputs = self.log_outputs + [
-                "dni",
-                "poa",
-                "aoi",
-            ]
-
         # Load and process solar data
         self._load_solar_data(h_dict)
 
