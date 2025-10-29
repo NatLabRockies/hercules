@@ -273,7 +273,10 @@ class Emulator:
                             )
                         else:
                             raise ValueError(
-                                f"Index {index} is out of range for {channel_name} in {component_name}"
+                                (
+                                    f"Index {index} is out of range for {channel_name} "
+                                    f"in {component_name}"
+                                )
                             )
                     else:
                         raise ValueError(
