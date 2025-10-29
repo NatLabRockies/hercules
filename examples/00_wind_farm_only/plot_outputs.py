@@ -43,12 +43,21 @@ for t_idx in range(3):
         )
 
 # Plot the FLORIS wind speed if available
-if "wind_farm.wind_speed_mean" in df.columns:
+if "wind_farm.wind_speed_mean_unwaked" in df.columns:
     ax.plot(
         df["time"],
-        df["wind_farm.wind_speed_mean"],
-        label="FLORIS",
+        df["wind_farm.wind_speed_mean_unwaked"],
+        label="Mean Unwaked Wind Speed",
         color="black",
+        lw=2,
+    )
+
+if "wind_farm.wind_speed_mean_waked" in df.columns:
+    ax.plot(
+        df["time"],
+        df["wind_farm.wind_speed_mean_waked"],
+        label="Mean Waked Wind Speed",
+        color="red",
         lw=2,
     )
 
