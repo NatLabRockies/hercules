@@ -56,8 +56,8 @@ for t_idx in turbines_to_plot:
 # Plot the FLORIS wind speed
 ax.plot(
     df["time"],
-    df["wind_farm.wind_speed_mean"],
-    label="FLORIS",
+    df["wind_farm.wind_speed_mean_unwaked"],
+    label="Mean Unwaked Wind Speed",
     color="black",
     lw=2,
 )
