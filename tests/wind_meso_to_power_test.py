@@ -205,16 +205,16 @@ def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
     assert "n_turbines" in result["wind_farm"]
     assert "capacity" in result["wind_farm"]
     assert "rated_turbine_power" in result["wind_farm"]
-    assert "wind_direction" in result["wind_farm"]
-    assert "wind_speed" in result["wind_farm"]
+    assert "wind_direction_mean" in result["wind_farm"]
+    assert "wind_speed_mean_unwaked" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
     assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
     assert result["wind_farm"]["capacity"] == wind_sim.capacity
     assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
-    assert result["wind_farm"]["wind_direction"] == wind_sim.wd_mat_mean[0]
-    assert result["wind_farm"]["wind_speed"] == wind_sim.ws_mat_mean[0]
+    assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
+    assert result["wind_farm"]["wind_speed_mean_unwaked"] == wind_sim.ws_mat_mean[0]
 
     # Verify turbine_powers is a numpy array with correct length
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
