@@ -254,7 +254,7 @@ class Emulator:
             log_channels = getattr(component_obj, "log_channels", ["power"])
 
             for output_name in log_channels:
-                # First check if output_name ends in with a 3-digit number after a period
+                # First check if output_name ends with a 3-digit number after a period
                 if len(output_name) >= 4 and output_name[-4] == "." and output_name[-3:].isdigit():
                     # In this case, we want a single index from within an array output
                     # For example, wind_farm.turbine_powers.000
@@ -270,6 +270,10 @@ class Emulator:
                                 shape=(total_rows,),
                                 dtype=hercules_float_type,
                                 **compression_params,
+                            )
+                        else:
+                            raise ValueError(
+                                f"Index {index} is out of range for {channel_name} in {component_name}"
                             )
                     else:
                         raise ValueError(
