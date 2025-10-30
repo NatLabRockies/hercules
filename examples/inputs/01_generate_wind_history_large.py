@@ -142,7 +142,6 @@ fig.suptitle("Turbine wind speeds and directions")
 
 df = pd.DataFrame(
     {
-        "time": np.arange(len(wd_inf_drop)) * dt,
         "time_utc": time_utc,
         "wd_mean": wd_inf_drop,
     }
@@ -153,6 +152,9 @@ for i in range(fmodel.n_turbines):
 
 # Save to feather
 df.to_feather("wind_input_large.ftr")
+
+print(f"First time (UTC): {df['time_utc'].iloc[0]}")
+print(f"Last time (UTC): {df['time_utc'].iloc[-1]}")
 
 if show_plots:
     plt.show()

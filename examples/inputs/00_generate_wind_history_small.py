@@ -86,7 +86,6 @@ axarr[1].set_xlabel("Time step")
 # Note: For simplicity, set mean wind direction equal to turbine 0 direction
 df = pd.DataFrame(
     {
-        "time": np.arange(N) * dt,
         "time_utc": pd.date_range(start="1/1/2020", periods=N, freq="1s"),
         "wd_mean": wd_0,
         "ws_000": ws_0,
@@ -97,6 +96,9 @@ df = pd.DataFrame(
 
 fig.suptitle("Turbine wind speeds and directions")
 df.to_feather("wind_input_small.ftr")
+
+print(f"First time (UTC): {df['time_utc'].iloc[0]}")
+print(f"Last time (UTC): {df['time_utc'].iloc[-1]}")
 
 if show_plots:
     plt.show()
