@@ -12,7 +12,6 @@ from hercules.plant_components.wind_meso_to_power import (
     TurbineFilterModelVectorized,
 )
 from hercules.utilities import (
-    find_time_utc_value,
     hercules_float_type,
     interpolate_df_fast,
     load_yaml,
@@ -116,38 +115,59 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         self.logger.info("Checking wind input file...")
 
-        # Make sure the df_wi contains a column called "time"
-        if "time" not in df_wi.columns:
-            raise ValueError("Wind input file must contain a column called 'time'")
+        # Make sure the df_wi contains a column called "time_utc"
+        if "time_utc" not in df_wi.columns:
+            raise ValueError("Wind input file must contain a column called 'time_utc'")
 
-        # Make sure that both starttime and endtime are in the df_wi
-        if not (df_wi["time"].min() <= self.starttime <= df_wi["time"].max()):
+        # Convert time_utc to datetime if it's not already
+        if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
+            # Strip whitespace from time_utc values to handle CSV formatting issues
+            df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
+            try:
+                df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], format="ISO8601", utc=True)
+            except (ValueError, TypeError):
+                # If ISO8601 format fails, try parsing without specifying format
+                df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
+
+        # Ensure time_utc is timezone-aware (UTC)
+        if not pd.api.types.is_datetime64tz_dtype(df_wi["time_utc"]):
+            df_wi["time_utc"] = df_wi["time_utc"].dt.tz_localize("UTC")
+
+        # Get starttime_utc and endtime_utc from h_dict
+        starttime_utc = h_dict["starttime_utc"]
+        endtime_utc = h_dict["endtime_utc"]
+
+        # Ensure starttime_utc is timezone-aware (UTC)
+        if not isinstance(starttime_utc, pd.Timestamp):
+            starttime_utc = pd.to_datetime(starttime_utc, utc=True)
+        elif starttime_utc.tz is None:
+            starttime_utc = starttime_utc.tz_localize("UTC")
+
+        # Ensure endtime_utc is timezone-aware (UTC)
+        if not isinstance(endtime_utc, pd.Timestamp):
+            endtime_utc = pd.to_datetime(endtime_utc, utc=True)
+        elif endtime_utc.tz is None:
+            endtime_utc = endtime_utc.tz_localize("UTC")
+
+        # Generate time column internally: time = 0 corresponds to starttime_utc
+        df_wi["time"] = (df_wi["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Validate that starttime_utc and endtime_utc are within the time_utc range
+        if df_wi["time_utc"].min() > starttime_utc:
+            min_time = df_wi["time_utc"].min()
             raise ValueError(
-                f"Start time {self.starttime} is not in the range of the wind input file"
+                f"Start time UTC {starttime_utc} is before the earliest time "
+                f"in the wind input file ({min_time})"
             )
-        if not (df_wi["time"].min() <= self.endtime - self.dt <= df_wi["time"].max()):
+        if df_wi["time_utc"].max() < endtime_utc:
+            max_time = df_wi["time_utc"].max()
             raise ValueError(
-                f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
+                f"End time UTC {endtime_utc} is after the latest time "
+                f"in the wind input file ({max_time})"
             )
 
-        # If time_utc is in the file, convert it to a datetime if it's not already
-        if "time_utc" in df_wi.columns:
-            if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
-                # Strip whitespace from time_utc values to handle CSV formatting issues
-                df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
-                try:
-                    df_wi["time_utc"] = pd.to_datetime(
-                        df_wi["time_utc"], format="ISO8601", utc=True
-                    )
-                except (ValueError, TypeError):
-                    # If ISO8601 format fails, try parsing without specifying format
-                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
-
-            # Log the value of time_utc that corresponds to time == 0
-            self.zero_time_utc = find_time_utc_value(df_wi, 0.0)
-
-            # Log the value of time_utc which corresponds to starttime
-            self.start_time_utc = find_time_utc_value(df_wi, self.starttime)
+        # Set starttime_utc (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        self.starttime_utc = starttime_utc
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -422,10 +442,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
         # Log the start time UTC if available
-        if hasattr(self, "start_time_utc"):
-            h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
-        if hasattr(self, "zero_time_utc"):
-            h_dict["wind_farm"]["zero_time_utc"] = self.zero_time_utc
+        if hasattr(self, "starttime_utc"):
+            h_dict["wind_farm"]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 

@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
-    find_time_utc_value,
     interpolate_df,
 )
 
@@ -95,30 +94,53 @@ class SolarPySAMBase(ComponentBase):
         else:
             raise ValueError(f"Unsupported file format for solar input: {solar_input_filename}")
 
-        # Make sure the df_solar contains a column called "time"
-        if "time" not in df_solar.columns:
-            raise ValueError("Solar input file must contain a column called 'time'")
-
-        # Make sure that both starttime and endtime are in the df_solar
-        if not (df_solar["time"].min() <= self.starttime <= df_solar["time"].max()):
-            raise ValueError(
-                f"Start time {self.starttime} is not in the range of the solar input file"
-            )
-        if not (df_solar["time"].min() <= self.endtime <= df_solar["time"].max() + self.dt):
-            raise ValueError(
-                f"End time {self.endtime - self.dt} is not in the range of the solar input file"
-            )
-
-        # Solar data must contain time_utc since pysam requires time
+        # Make sure the df_solar contains a column called "time_utc"
         if "time_utc" not in df_solar.columns:
             raise ValueError("Solar input file must contain a column called 'time_utc'")
 
-        # Make sure time_utc is a datatime
-        df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
+        # Make sure time_utc is a datetime
+        if not pd.api.types.is_datetime64_any_dtype(df_solar["time_utc"]):
+            df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
 
-        # Extract time_utc values for zero_time and start_time
-        self.zero_time_utc = find_time_utc_value(df_solar, 0.0)
-        self.start_time_utc = find_time_utc_value(df_solar, self.starttime)
+        # Ensure time_utc is timezone-aware (UTC)
+        if not pd.api.types.is_datetime64tz_dtype(df_solar["time_utc"]):
+            df_solar["time_utc"] = df_solar["time_utc"].dt.tz_localize("UTC")
+
+        # Get starttime_utc and endtime_utc from h_dict
+        starttime_utc = h_dict["starttime_utc"]
+        endtime_utc = h_dict["endtime_utc"]
+
+        # Ensure starttime_utc is timezone-aware (UTC)
+        if not isinstance(starttime_utc, pd.Timestamp):
+            starttime_utc = pd.to_datetime(starttime_utc, utc=True)
+        elif starttime_utc.tz is None:
+            starttime_utc = starttime_utc.tz_localize("UTC")
+
+        # Ensure endtime_utc is timezone-aware (UTC)
+        if not isinstance(endtime_utc, pd.Timestamp):
+            endtime_utc = pd.to_datetime(endtime_utc, utc=True)
+        elif endtime_utc.tz is None:
+            endtime_utc = endtime_utc.tz_localize("UTC")
+
+        # Generate time column internally: time = 0 corresponds to starttime_utc
+        df_solar["time"] = (df_solar["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Validate that starttime_utc and endtime_utc are within the time_utc range
+        if df_solar["time_utc"].min() > starttime_utc:
+            min_time = df_solar["time_utc"].min()
+            raise ValueError(
+                f"Start time UTC {starttime_utc} is before the earliest time "
+                f"in the solar input file ({min_time})"
+            )
+        if df_solar["time_utc"].max() < endtime_utc:
+            max_time = df_solar["time_utc"].max()
+            raise ValueError(
+                f"End time UTC {endtime_utc} is after the latest time "
+                f"in the solar input file ({max_time})"
+            )
+
+        # Set starttime_utc (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        self.starttime_utc = starttime_utc
 
         # Interpolate df_solar on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
@@ -171,11 +193,9 @@ class SolarPySAMBase(ComponentBase):
         h_dict["solar_farm"]["poa"] = self.poa
         h_dict["solar_farm"]["aoi"] = self.aoi
 
-        # Log the time_utc values if available
-        if hasattr(self, "start_time_utc"):
-            h_dict["solar_farm"]["start_time_utc"] = self.start_time_utc
-        if hasattr(self, "zero_time_utc"):
-            h_dict["solar_farm"]["zero_time_utc"] = self.zero_time_utc
+        # Log the start time UTC if available
+        if hasattr(self, "starttime_utc"):
+            h_dict["solar_farm"]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 
