@@ -72,7 +72,7 @@ def create_example_hdf5_file(filename: str):
         f["metadata"].attrs["log_every_n"] = 300
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567890.0 + 21600
-        f["metadata"].attrs["start_time_utc"] = 1234567890.0  # Unix timestamp for UTC time
+        f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
         f["metadata"].attrs["zero_time_utc"] = 1234567890.0
 
         # Add h_dict as JSON string
