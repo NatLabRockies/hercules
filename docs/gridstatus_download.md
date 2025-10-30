@@ -32,7 +32,7 @@ This script uses [uvx](https://docs.astral.sh/uv/guides/tools/) to run in an iso
    - `filter_column` and `filter_value`: These are used to select the node of interest
 3. Run the script with uvx:
    ```bash
-   uvx --with gridstatusio python grid_status_download.py
+   uvx --with gridstatusio --with pyarrow python grid_status_download.py
    ```
 
 ## Parameters

@@ -7,7 +7,7 @@
 # 1. Copy this script into the folder where you want to download the data
 # 2. Update the PARAMETERS section with your desired dataset, start date, end date, and filter
 # 3. Run the script with an ephemeral environment via uvx like
-#    uvx --with gridstatusio python grid_status_download.py
+#    uvx --with gridstatusio --with pyarrow python grid_status_download.py
 
 from gridstatusio import GridStatusClient
 
