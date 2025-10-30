@@ -11,9 +11,10 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         market (REAL_TIME_5_MIN or DAY_AHEAD_HOURLY)
         lmp (price of the market for that five-minute interval)
 
-    Input dataframes are currently expect to be in five-minute intervals. Assumes that the
-    dataframe begins at 00:00 UTC on the first day (e.g. yyyy-mm-dd 00:00:00+00:00)
-    TODO: Is that ok? how should UTC offset be handled?
+    The RT dataframe is assumed to have five-minute time resolution, while the DA dataframe
+    is assumed to have hourly time resolution.
+    Assumes that both dataframe begins at 00:00 UTC on the first day
+    (e.g. yyyy-mm-dd 00:00:00+00:00) TODO: Is that ok? how should UTC offset be handled?
 
     Returns a dataframe with the RT LMP and DA LMP at five-minute intervals, along with
     the DA LMP for each hour in separate columns. For use as external data in Hercules.
@@ -32,6 +33,10 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     if df_real_time_lmp["market"].unique() != ["REAL_TIME_5_MIN"]:
         raise ValueError("df_real_time_lmp must only contain REAL_TIME_5_MIN market data.")
     
+    # TODO: Add checks that dataframes cover the same time period, have no missing data, etc.
+
+
+    
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
         columns={"interval_start_utc": "time_utc", "lmp": "DA_LMP"}
@@ -40,7 +45,7 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         columns={"interval_start_utc": "time_utc", "lmp": "RT_LMP"}
     )
     # Merge on time_utc
-    df = pd.merge(df_da, df_rt, on="time_utc")
+    df = pd.merge(df_da, df_rt, on="time_utc", how="outer").fillna(method="ffill")
     df["time_utc"] = pd.to_datetime(df["time_utc"])
 
     # Create an hourly version for the DA LMP (drop all periods that aren't on an hour)
