@@ -19,8 +19,8 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     the DA LMP for each hour in separate columns. For use as external data in Hercules.
 
     Args:
-        df_day_ahead_lmp (pd.DataFrame): DataFrame with columns 'time_utc', 'lmp_da'
-        df_real_time_lmp (pd.DataFrame): DataFrame with columns 'time', 'lmp_rt'
+        df_day_ahead_lmp (pd.DataFrame): DataFrame with day ahead data
+        df_real_time_lmp (pd.DataFrame): DataFrame with real time data
 
     Returns:
         pd.DataFrame: DataFrame with columns

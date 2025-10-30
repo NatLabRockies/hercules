@@ -42,12 +42,8 @@ for column in df.columns:
     print(f"{column}: {df[column].iloc[0]}")
 
 # Remove columns not used by hercules if in dataframe
-columns_to_drop = ["interval_end_utc","market","location","location_type","pnode"]
-columns_to_drop = [column for column in columns_to_drop if column in df.columns]
-df = df.drop(columns=columns_to_drop)
-
-# Rename interval_start_utc to time_utc
-df = df.rename(columns={"interval_start_utc": "time_utc"})
+columns_to_drop = ["interval_end_utc","location","location_type","pnode"]
+df = df.drop(columns=columns_to_drop, errors="ignore")
 
 # Show the dataframe head
 print("DataFrame head:")
