@@ -181,7 +181,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
-        self.wind_speed_mean_unwaked = self.ws_mat_mean[0]
+        self.wind_speed_mean_background = self.ws_mat_mean[0]
 
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
@@ -292,20 +292,20 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             # Use deficits from this evaluation time for the whole block
             deficits_all[start_idx : end_idx + 1, :] = floris_wake_deficits_eval[block_idx, :]
 
-        # Compute all the waked wind speeds from unwaked minus deficits
-        self.wind_speeds_waked_all = self.ws_mat - deficits_all
+        # Compute all the withwakes wind speeds from background minus deficits
+        self.wind_speeds_withwakes_all = self.ws_mat - deficits_all
 
         # Initialize the turbine powers to nan
         self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
-        # Get the initial unwaked wind speeds
-        self.wind_speeds_unwaked = self.ws_mat[0, :]
+        # Get the initial background wind speeds
+        self.wind_speeds_background = self.ws_mat[0, :]
 
-        # Compute initial waked wind speeds
-        self.wind_speeds_waked = self.wind_speeds_waked_all[0, :]
+        # Compute initial withwakes wind speeds
+        self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[0, :]
 
         # Get the initial FLORIS wake deficits
-        self.floris_wake_deficits = self.wind_speeds_unwaked - self.wind_speeds_waked
+        self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
         # Get the turbine information
         self.turbine_dict = load_yaml(self.turbine_file_name)
@@ -315,13 +315,13 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         if self.turbine_model_type == "filter_model":
             # Use vectorized implementation for improved performance
             self.turbine_array = TurbineFilterModelVectorized(
-                self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_waked
+                self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes
             )
             self.use_vectorized_turbines = True
         elif self.turbine_model_type == "dof1_model":
             self.turbine_array = [
                 Turbine1dofModel(
-                    self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_waked[t_idx]
+                    self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes[t_idx]
                 )
                 for t_idx in range(self.n_turbines)
             ]
@@ -368,7 +368,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["capacity"] = self.capacity
         h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
         h_dict["wind_farm"]["wind_direction_mean"] = self.wd_mat_mean[0]
-        h_dict["wind_farm"]["wind_speed_mean_unwaked"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
@@ -404,40 +404,40 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
 
         # Update all the wind speeds
-        self.wind_speeds_unwaked = self.ws_mat[step, :]
-        self.wind_speeds_waked = self.wind_speeds_waked_all[step, :]
-        self.floris_wake_deficits = self.wind_speeds_unwaked - self.wind_speeds_waked
+        self.wind_speeds_background = self.ws_mat[step, :]
+        self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[step, :]
+        self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
         # Update the turbine powers
         if self.use_vectorized_turbines:
             # Vectorized calculation for all turbines at once
             self.turbine_powers = self.turbine_array.step(
-                self.wind_speeds_waked,
+                self.wind_speeds_withwakes,
                 turbine_power_setpoints,
             )
         else:
             # Original loop-based calculation
             for t_idx in range(self.n_turbines):
                 self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
-                    self.wind_speeds_waked[t_idx],
+                    self.wind_speeds_withwakes[t_idx],
                     power_setpoint=turbine_power_setpoints[t_idx],
                 )
 
         # Update instantaneous wind direction and wind speed
         self.wind_direction_mean = self.wd_mat_mean[step]
-        self.wind_speed_mean_unwaked = self.ws_mat_mean[step]
+        self.wind_speed_mean_background = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
-        h_dict[self.component_name]["wind_speed_mean_unwaked"] = self.wind_speed_mean_unwaked
-        h_dict[self.component_name]["wind_speed_mean_waked"] = np.mean(
-            self.wind_speeds_waked, dtype=hercules_float_type
+        h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
+        h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
+            self.wind_speeds_withwakes, dtype=hercules_float_type
         )
-        h_dict[self.component_name]["wind_speeds_waked"] = self.wind_speeds_waked
-        h_dict[self.component_name]["wind_speeds_unwaked"] = self.wind_speeds_unwaked
+        h_dict[self.component_name]["wind_speeds_withwakes"] = self.wind_speeds_withwakes
+        h_dict[self.component_name]["wind_speeds_background"] = self.wind_speeds_background
 
         return h_dict
 

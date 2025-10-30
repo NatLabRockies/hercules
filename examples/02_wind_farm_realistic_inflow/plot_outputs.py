@@ -40,14 +40,14 @@ ax = axarr[0]
 for t_idx in turbines_to_plot:
     ax.plot(
         df["time_utc"],
-        df[f"wind_farm.wind_speeds_unwaked.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_background.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in turbines_to_plot:
     ax.plot(
         df["time_utc"],
-        df[f"wind_farm.wind_speeds_waked.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
         color=colors[t_idx],

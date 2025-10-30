@@ -115,7 +115,7 @@ def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data()
     assert "capacity" in result["wind_farm"]
     assert "rated_turbine_power" in result["wind_farm"]
     assert "wind_direction_mean" in result["wind_farm"]
-    assert "wind_speed_mean_unwaked" in result["wind_farm"]
+    assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
@@ -123,7 +123,7 @@ def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data()
     assert result["wind_farm"]["capacity"] == wind_sim.capacity
     assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
     assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
-    assert result["wind_farm"]["wind_speed_mean_unwaked"] == wind_sim.ws_mat_mean[0]
+    assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 
     # Verify turbine_powers is a numpy array with correct length
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
@@ -142,12 +142,12 @@ def test_wind_meso_to_power_precom_floris_precomputed_wake_deficits():
     wind_sim = Wind_MesoToPowerPrecomFloris(h_dict_wind_precom_floris)
 
     # Verify that precomputed wake wind speeds exist
-    assert hasattr(wind_sim, "wind_speeds_waked_all")
-    assert isinstance(wind_sim.wind_speeds_waked_all, np.ndarray)
+    assert hasattr(wind_sim, "wind_speeds_withwakes_all")
+    assert isinstance(wind_sim.wind_speeds_withwakes_all, np.ndarray)
 
     # Check shape: should be (n_time_steps, n_turbines)
     expected_shape = (wind_sim.n_steps, wind_sim.n_turbines)
-    assert wind_sim.wind_speeds_waked_all.shape == expected_shape
+    assert wind_sim.wind_speeds_withwakes_all.shape == expected_shape
 
     # Verify that initial wake deficits are calculated
     assert hasattr(wind_sim, "floris_wake_deficits")
@@ -187,8 +187,8 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
 
         # Store initial wind speeds
-        initial_unwaked = wind_sim.wind_speeds_unwaked.copy()
-        initial_waked = wind_sim.wind_speeds_waked.copy()
+        initial_background = wind_sim.wind_speeds_background.copy()
+        initial_withwakes = wind_sim.wind_speeds_withwakes.copy()
 
         # Run a step
         step_h_dict = {"step": 1}
@@ -200,18 +200,18 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
 
         # Verify that wind speeds have been updated
         assert not np.array_equal(
-            wind_sim.wind_speeds_unwaked, initial_unwaked
-        ), "Unwaked wind speeds should have been updated"
+            wind_sim.wind_speeds_background, initial_background
+        ), "Background wind speeds should have been updated"
         assert not np.array_equal(
-            wind_sim.wind_speeds_waked, initial_waked
-        ), "Waked wind speeds should have been updated"
+            wind_sim.wind_speeds_withwakes, initial_withwakes
+        ), "Withwakes wind speeds should have been updated"
 
         # Verify the wind speeds match the expected values from the input data
-        expected_unwaked = np.array([9.0, 9.5, 10.0])  # ws values for step 1
-        np.testing.assert_array_equal(wind_sim.wind_speeds_unwaked, expected_unwaked)
+        expected_background = np.array([9.0, 9.5, 10.0])  # ws values for step 1
+        np.testing.assert_array_equal(wind_sim.wind_speeds_background, expected_background)
 
         # Verify that wake deficits are recalculated
-        expected_wake_deficits = wind_sim.wind_speeds_unwaked - wind_sim.wind_speeds_waked
+        expected_wake_deficits = wind_sim.wind_speeds_background - wind_sim.wind_speeds_withwakes
         np.testing.assert_array_equal(wind_sim.floris_wake_deficits, expected_wake_deficits)
 
     finally:

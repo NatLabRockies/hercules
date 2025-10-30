@@ -48,7 +48,7 @@ wind_farm:
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean
+  log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean
   floris_update_time_s: 30.0
 
 solar_farm:
@@ -128,7 +128,7 @@ wind_farm:
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
-  log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean
+  log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean
   floris_update_time_s: 30.0
 
 controller:

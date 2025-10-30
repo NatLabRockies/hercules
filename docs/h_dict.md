@@ -36,7 +36,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |
 | `log_file_name` | str | Wind farm log file path |
-| `log_channels` | str | Comma-separated list of channels to log (e.g., "power, wind_speed_mean_unwaked, turbine_powers") |
+| `log_channels` | str | Comma-separated list of channels to log (e.g., "power, wind_speed_mean_background, turbine_powers") |
 | `floris_update_time_s` | float | How often to update FLORIS wake calculations in seconds |
 
 ### Solar Farm (`solar_farm`)

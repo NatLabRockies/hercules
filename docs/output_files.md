@@ -19,8 +19,8 @@ hercules_output.h5
 │   ├── plant_locally_generated_power  # Locally generated power
 │   ├── components/
 │   │   ├── wind_farm.power                   # Wind farm power output
-│   │   ├── wind_farm.wind_speed_mean_unwaked # Farm-average unwaked wind speed
-│   │   ├── wind_farm.wind_speed_mean_waked   # Farm-average waked wind speed
+│   │   ├── wind_farm.wind_speed_mean_background # Farm-average background wind speed
+│   │   ├── wind_farm.wind_speed_mean_withwakes   # Farm-average with-wakes wind speed
 │   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
 │   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
 │   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
@@ -68,7 +68,7 @@ from hercules.utilities import read_hercules_hdf5_subset
 # Read specific columns
 df_subset = read_hercules_hdf5_subset(
     "outputs/hercules_output.h5",
-    columns=["wind_farm.power", "wind_farm.wind_speed_mean_unwaked", "solar_farm.power"]
+    columns=["wind_farm.power", "wind_farm.wind_speed_mean_background", "solar_farm.power"]
 )
 
 # Read specific time range (seconds)

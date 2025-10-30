@@ -9,7 +9,8 @@ wind_farm = {
     "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",
     "log_file_name": "outputs/wind_farm.log",
     "log_channels": (
-        "power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean, turbine_powers"
+        "power, wind_speed_mean_background, wind_speed_mean_withwakes, "
+        "wind_direction_mean, turbine_powers"
     ),
     "floris_update_time_s": 30.0,  # Required parameter for FLORIS updates
 }

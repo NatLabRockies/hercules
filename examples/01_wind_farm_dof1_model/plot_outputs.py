@@ -27,14 +27,14 @@ ax = axarr[0]
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.wind_speeds_unwaked.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_background.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.wind_speeds_waked.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
         color=colors[t_idx],

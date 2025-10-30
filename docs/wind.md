@@ -61,11 +61,11 @@ Both components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
 - `turbine_power_setpoints`: Current power setpoint values (array, kW)
-- `wind_speed_mean_unwaked`: Farm-average unwaked wind speed (m/s)
-- `wind_speed_mean_waked`: Farm-average waked wind speed (m/s)
+- `wind_speed_mean_background`: Farm-average background wind speed (m/s)
+- `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
-- `wind_speeds_unwaked`: Per-turbine unwaked wind speeds (array, m/s)
-- `wind_speeds_waked`: Per-turbine waked wind speeds (array, m/s)
+- `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
+- `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
 ## Logging Configuration
 
@@ -75,15 +75,15 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Scalar Channels:**
 - `power`: Total wind farm power output (kW)
-- `wind_speed_mean_unwaked`: Farm-average unwaked wind speed (m/s)
-- `wind_speed_mean_waked`: Farm-average waked wind speed (m/s)  
+- `wind_speed_mean_background`: Farm-average background wind speed (m/s)
+- `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)  
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 
 **Array Channels:**
 - `turbine_powers`: Power output for all turbines (creates datasets like `wind_farm.turbine_powers.000`, `wind_farm.turbine_powers.001`, etc.)
 - `turbine_power_setpoints`: Power setpoints for all turbines
-- `wind_speeds_unwaked`: Unwaked wind speeds for all turbines
-- `wind_speeds_waked`: Waked wind speeds for all turbines
+- `wind_speeds_background`: Background wind speeds for all turbines
+- `wind_speeds_withwakes`: With-wakes wind speeds for all turbines
 
 ### Selective Array Element Logging
 
@@ -91,23 +91,23 @@ For large wind farms, logging all turbine data can significantly increase file s
 
 ```yaml
 # Log only turbines 0, 5, and 10
-log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean, turbine_powers.000, turbine_powers.005, turbine_powers.010
+log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers.000, turbine_powers.005, turbine_powers.010
 ```
 
 ### Example Configurations
 
 **Minimal Logging:**
 ```yaml
-log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean
+log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean
 ```
 
 **Detailed Logging (all turbines):**
 ```yaml
-log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean, turbine_powers, wind_speeds_waked
+log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers, wind_speeds_withwakes
 ```
 
 **Selected Turbine Logging:**
 ```yaml
 # Log first 3 turbines only
-log_channels: power, wind_speed_mean_unwaked, wind_speed_mean_waked, wind_direction_mean, turbine_powers.000, turbine_powers.001, turbine_powers.002
+log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers.000, turbine_powers.001, turbine_powers.002
 ```
