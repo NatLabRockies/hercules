@@ -45,7 +45,7 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         columns={"interval_start_utc": "time_utc", "lmp": "RT_LMP"}
     )
     # Merge on time_utc
-    df = pd.merge(df_da, df_rt, on="time_utc", how="outer").fillna(method="ffill")
+    df = pd.merge(df_da, df_rt, on="time_utc", how="outer").ffill()
     df["time_utc"] = pd.to_datetime(df["time_utc"])
 
     # Create an hourly version for the DA LMP (drop all periods that aren't on an hour)
@@ -70,7 +70,7 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     df_hourly["time_utc"] = pd.to_datetime(df_hourly["date"], utc=True)
     df_hourly = df_hourly.drop(columns=["date"])
 
-    df = pd.merge(df, df_hourly, on="time_utc", how="outer").fillna(method="ffill")
+    df = pd.merge(df, df_hourly, on="time_utc", how="outer").ffill()
 
     # Add "end" rows
     df_2 = df.copy(deep=True)
