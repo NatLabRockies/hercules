@@ -187,10 +187,15 @@ class Wind_MesoToPower(ComponentBase):
 
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speeds
-
-        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
-            dtype=hercules_float_type
-        )
+        if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
+            self.ws_mat = np.tile(
+                df_wi["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
+                (1, self.n_turbines),
+            )
+        else:
+            self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
