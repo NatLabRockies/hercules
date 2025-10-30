@@ -8,8 +8,8 @@ name: example_01
 description: Wind Farm Only - 1 DOF Model
 
 dt: 1.0
-starttime: 0.0
-endtime: 950.0
+starttime_utc: "2020-01-01T00:00:00Z" # Midnight Jan 1, 2020 UTC (Zulu time)
+endtime_utc: "2020-01-01T00:15:50Z" # 15 minutes 50 seconds later
 verbose: False
 
 plant:

@@ -8,8 +8,8 @@ name: example_03
 description: Wind and solar
 
 dt: 1.0
-starttime: 0.0
-endtime: 28800.0
+starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
+endtime_utc: "2024-06-24T17:07:08Z" # 8 minutes later
 verbose: False
 
 

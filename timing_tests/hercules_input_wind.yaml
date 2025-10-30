@@ -8,8 +8,8 @@ name: example_00
 description: Wind Farm Only
 
 dt: 1.0
-starttime: 0.0
-endtime: 43200.0
+starttime_utc: "2020-03-01T05:00:00Z" # Mar 1, 2020 05:00 UTC (Zulu time)
+endtime_utc: "2020-03-01T17:00:00Z" # 12 hours later (17:00 UTC)
 verbose: False
 
 plant:

@@ -8,8 +8,8 @@ name: test_input
 description: Test input file
 
 dt: 1.0
-starttime: 0.0
-endtime: 30.0
+starttime_utc: "2020-03-01T05:00:00Z" # Mar 1, 2020 05:00:00 UTC (Zulu time)
+endtime_utc: "2020-03-01T05:00:30Z" # 30 seconds later
 verbose: False
 
 plant:
