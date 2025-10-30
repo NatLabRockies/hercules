@@ -317,9 +317,8 @@ def upsample_wind_data(
 
     Returns:
     --------
-    dict
-        Dictionary containing DataFrames for the wind speeds and wind directions at each upsampled
-        location.
+    pd.DataFrame
+        DataFrame containing the wind speeds and wind directions at each upsampled location.
 
     Notes:
     ------

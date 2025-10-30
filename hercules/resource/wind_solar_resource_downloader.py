@@ -480,7 +480,7 @@ def download_openmeteo_data(
     plot_type : str
         Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
     remove_duplicate_coords : Optional[bool]
-        Whether to remove data from duplicate coordinates (default: False)
+        Whether to remove data from duplicate coordinates (default: True)
 
     Returns:
     --------
