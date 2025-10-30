@@ -32,9 +32,18 @@ class ComponentBase:
 
         # Parse log_channels from the h_dict
         if "log_channels" in h_dict[component_name]:
-            log_channels_str = h_dict[component_name]["log_channels"]
-            # Split by comma and strip whitespace from each channel
-            self.log_channels = [channel.strip() for channel in log_channels_str.split(",")]
+            log_channels_input = h_dict[component_name]["log_channels"]
+            # Require list format
+            if isinstance(log_channels_input, list):
+                self.log_channels = log_channels_input
+            else:
+                raise TypeError(
+                    f"log_channels must be a list, got {type(log_channels_input)}. "
+                    f"Use YAML list format:\n"
+                    f"  log_channels:\n"
+                    f"    - power\n"
+                    f"    - channel_name"
+                )
 
             # If power is not in the list, add it
             if "power" not in self.log_channels:

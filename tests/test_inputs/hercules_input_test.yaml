@@ -21,7 +21,12 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
   floris_update_time_s: 30.0
 
 solar_farm: # The name of component object 1
@@ -31,7 +36,11 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  log_channels: power, dni, poa, aoi
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
 
   initial_conditions:
 

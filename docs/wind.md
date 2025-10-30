@@ -37,13 +37,13 @@ Required parameters for both components in [h_dict](h_dict.md) (see [timing](tim
 
 Required parameters for Wind_MesoToPower:
 - `floris_update_time_s`: How often to update FLORIS (the last `floris_update_time_s` seconds are averaged as input)
-- `log_channels`: Comma-separated list of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
 ### Wind_MesoToPowerPrecomFloris Specific Parameters
 
 Required parameters for Wind_MesoToPowerPrecomFloris:
 - `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
-- `log_channels`: Comma-separated list of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
 ## Turbine Models
 
@@ -69,7 +69,7 @@ Both components provide these outputs in the h_dict at each simulation step:
 
 ## Logging Configuration
 
-The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a comma-separated string of channel names. The `power` channel is always logged, even if not explicitly specified.
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
 
 ### Available Channels
 
@@ -91,23 +91,47 @@ For large wind farms, logging all turbine data can significantly increase file s
 
 ```yaml
 # Log only turbines 0, 5, and 10
-log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers.000, turbine_powers.005, turbine_powers.010
+log_channels:
+  - power
+  - wind_speed_mean_background
+  - wind_speed_mean_withwakes
+  - wind_direction_mean
+  - turbine_powers.000
+  - turbine_powers.005
+  - turbine_powers.010
 ```
 
 ### Example Configurations
 
 **Minimal Logging:**
 ```yaml
-log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean
+log_channels:
+  - power
+  - wind_speed_mean_background
+  - wind_speed_mean_withwakes
+  - wind_direction_mean
 ```
 
 **Detailed Logging (all turbines):**
 ```yaml
-log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers, wind_speeds_withwakes
+log_channels:
+  - power
+  - wind_speed_mean_background
+  - wind_speed_mean_withwakes
+  - wind_direction_mean
+  - turbine_powers
+  - wind_speeds_withwakes
 ```
 
 **Selected Turbine Logging:**
 ```yaml
 # Log first 3 turbines only
-log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers.000, turbine_powers.001, turbine_powers.002
+log_channels:
+  - power
+  - wind_speed_mean_background
+  - wind_speed_mean_withwakes
+  - wind_direction_mean
+  - turbine_powers.000
+  - turbine_powers.001
+  - turbine_powers.002
 ```

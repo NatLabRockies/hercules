@@ -484,7 +484,7 @@ def test_log_selective_array_element():
     test_h_dict = copy.deepcopy(h_dict_wind)
 
     # Modify log_channels to only include turbine_powers.001 (not the full array)
-    test_h_dict["wind_farm"]["log_channels"] = "power, turbine_powers.001"
+    test_h_dict["wind_farm"]["log_channels"] = ["power", "turbine_powers.001"]
 
     # Set up logger for testing
     logger = setup_logging(console_output=False)

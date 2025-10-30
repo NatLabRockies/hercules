@@ -23,7 +23,8 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   wind_input_filename: ../inputs/wind_input_large.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  log_channels: power
+  log_channels:
+    - power
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
 
 solar_farm: # The name of component object 1
@@ -35,7 +36,8 @@ solar_farm: # The name of component object 1
   system_capacity: 30000  # kW (30 MW)
   tilt: 0  # degrees
   losses: 0
-  log_channels: power
+  log_channels:
+    - power
 
   initial_conditions:
 

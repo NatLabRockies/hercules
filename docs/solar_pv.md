@@ -37,7 +37,7 @@ The array tilt angle must be specified in the input configuration file.
 
 ### Logging Configuration
 
-The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a comma-separated string of channel names. The `power` channel is always logged, even if not explicitly specified.
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
 
 **Available Channels:**
 - `power`: DC power output in kW (always logged)
@@ -50,7 +50,11 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 solar_farm:
   component_type: SolarPySAMPVWatts
   solar_input_filename: inputs/solar_input.csv
-  log_channels: power, dni, poa, aoi
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
   # ... other parameters
 ```
 

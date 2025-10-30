@@ -8,10 +8,13 @@ wind_farm = {
     "wind_input_filename": "tests/test_inputs/wind_input.csv",
     "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",
     "log_file_name": "outputs/wind_farm.log",
-    "log_channels": (
-        "power, wind_speed_mean_background, wind_speed_mean_withwakes, "
-        "wind_direction_mean, turbine_powers"
-    ),
+    "log_channels": [
+        "power",
+        "wind_speed_mean_background",
+        "wind_speed_mean_withwakes",
+        "wind_direction_mean",
+        "turbine_powers",
+    ],
     "floris_update_time_s": 30.0,  # Required parameter for FLORIS updates
 }
 
@@ -25,7 +28,7 @@ solar_farm_pysam = {
     "lon": -105.179,
     "elev": 1828.8,
     "losses": 0,
-    "log_channels": "power, dni, poa, aoi",
+    "log_channels": ["power", "dni", "poa", "aoi"],
     "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
 }
 
@@ -38,7 +41,7 @@ solar_farm_pvwatts = {
     "system_capacity": 100000.0,  # kW (100 MW)
     "tilt": 0,  # degrees
     "losses": 0,
-    "log_channels": "power, dni, poa, aoi",
+    "log_channels": ["power", "dni", "poa", "aoi"],
     "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
 }
 
@@ -49,7 +52,7 @@ battery = {
     "discharge_rate": 50.0,
     "max_SOC": 0.9,
     "min_SOC": 0.1,
-    "log_channels": "power, soc, power_setpoint",
+    "log_channels": ["power", "soc", "power_setpoint"],
     "initial_conditions": {"SOC": 0.5},
 }
 
@@ -61,7 +64,7 @@ simple_battery = {
     "discharge_rate": 2000,  # discharge rate in kW (2 MW)
     "max_SOC": 0.9,  # upper boundary on battery SOC
     "min_SOC": 0.1,  # lower boundary on battery SOC
-    "log_channels": "power, soc, power_setpoint",
+    "log_channels": ["power", "soc", "power_setpoint"],
     "initial_conditions": {"SOC": 0.102},
 }
 
@@ -73,7 +76,7 @@ lib_battery = {
     "discharge_rate": 2000,  # discharge rate in kW (2 MW)
     "max_SOC": 0.9,  # upper boundary on battery SOC
     "min_SOC": 0.1,  # lower boundary on battery SOC
-    "log_channels": "power, soc, power_setpoint",
+    "log_channels": ["power", "soc", "power_setpoint"],
     "initial_conditions": {"SOC": 0.102},
 }
 
@@ -81,7 +84,7 @@ electrolyzer = {
     # 'component_type': 'ElectrolyzerPlant',  # Removed for Supervisor compatibility
     "initialize": True,
     "initial_power_kW": 3000,
-    "log_channels": "power",
+    "log_channels": ["power"],
     "supervisor": {
         "n_stacks": 10,
     },

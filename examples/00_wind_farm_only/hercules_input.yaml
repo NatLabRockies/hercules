@@ -22,7 +22,14 @@ wind_farm:
   wind_input_filename: ../inputs/wind_input_small.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  log_channels: power, wind_speed_mean_background, wind_speed_mean_withwakes, wind_direction_mean, turbine_powers, wind_speeds_withwakes, wind_speeds_background
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
   floris_update_time_s: 30.0 # Update wakes every 30 seconds
 
 

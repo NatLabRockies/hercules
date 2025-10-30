@@ -32,7 +32,7 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 - `usage_calc_interval`: Interval for usage calculations in seconds (BatterySimple only)
 - `usage_lifetime`: Battery lifetime in years for time-based degradation (BatterySimple only)
 - `usage_cycles`: Number of cycles until replacement for cycle-based degradation (BatterySimple only)
-- `log_channels`: Comma-separated list of output channels to log (see [Logging Configuration](#logging-configuration) below)
+- `log_channels`: List of output channels to log (see [Logging Configuration](#logging-configuration) below)
 
 
 Once initialized, the battery is only interacted with using the `step` method.
@@ -65,7 +65,7 @@ Outputs are returned as a dict containing the following values:
 
 ### Logging Configuration
 
-The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a comma-separated string of channel names. The `power` channel is always logged, even if not explicitly specified.
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
 
 **Available Channels:**
 - `power`: Actual battery power output in kW (always logged)
@@ -81,7 +81,10 @@ battery:
   discharge_rate: 50.0  # kW
   max_SOC: 0.9
   min_SOC: 0.1
-  log_channels: power, soc, power_setpoint
+  log_channels:
+    - power
+    - soc
+    - power_setpoint
   initial_conditions:
     SOC: 0.5
 ```
