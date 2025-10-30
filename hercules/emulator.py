@@ -44,8 +44,12 @@ class Emulator:
 
         # Save time step, start time and end time first
         self.dt = h_dict["dt"]
-        self.starttime = h_dict["starttime"]
-        self.endtime = h_dict["endtime"]
+        self.starttime = h_dict["starttime"]  # Always 0, computed from UTC
+        self.endtime = h_dict["endtime"]  # Duration in seconds, computed from UTC
+
+        # Save UTC timestamps
+        self.starttime_utc = h_dict["starttime_utc"]
+        self.endtime_utc = h_dict["endtime_utc"]
 
         # Initialize logging configuration
         self.log_every_n = h_dict.get("log_every_n", 1)
@@ -110,9 +114,9 @@ class Emulator:
         # Add plant component metadata to the h_dict
         self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
 
-        # Save zero time and start time following add meta data
-        self.zero_time_utc = h_dict.get("zero_time_utc", None)
-        self.start_time_utc = h_dict.get("start_time_utc", None)
+        # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        # starttime_utc is required and should already be set, but ensure it's still present
+        self.starttime_utc = h_dict["starttime_utc"]
 
         # Read in any external data
         self.external_data_all = {}
@@ -183,19 +187,12 @@ class Emulator:
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
-        # Store zero and start time UTC information if not None
-        if self.zero_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
-            if hasattr(self.zero_time_utc, "timestamp"):
-                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc.timestamp()
-            else:
-                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc
-        if self.start_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
-            if hasattr(self.start_time_utc, "timestamp"):
-                metadata_group.attrs["start_time_utc"] = self.start_time_utc.timestamp()
-            else:
-                metadata_group.attrs["start_time_utc"] = self.start_time_utc
+        # Store start time UTC information (required)
+        # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+        if hasattr(self.starttime_utc, "timestamp"):
+            metadata_group.attrs["starttime_utc"] = self.starttime_utc.timestamp()
+        else:
+            metadata_group.attrs["starttime_utc"] = self.starttime_utc
 
         # Create data group
         data_group = self.hdf5_file.create_group("data")
