@@ -38,14 +38,15 @@ def test_wind_meso_to_power_precom_floris_initialization():
         == h_dict_wind_precom_floris["wind_farm"]["floris_update_time_s"]
     )
 
+
 def test_wind_meso_to_power_precom_floris_ws_mean():
     """Test that invalid component_type raises ValueError."""
 
     current_dir = os.path.dirname(__file__)
 
-    df_input = pd.read_csv(current_dir+"/test_inputs/wind_input.csv")
+    df_input = pd.read_csv(current_dir + "/test_inputs/wind_input.csv")
     df_input["ws_mean"] = 10.0
-    df_input.to_csv(current_dir+"/test_inputs/wind_input_temp.csv")
+    df_input.to_csv(current_dir + "/test_inputs/wind_input_temp.csv")
 
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
     test_h_dict["wind_farm"]["wind_input_filename"] = "tests/test_inputs/wind_input_temp.csv"
@@ -54,26 +55,26 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
     # Note that h_dict_wind_precom_floris specifies an end time of 10.
     wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
     assert (
-        wind_sim.ws_mat[:, 0]
-        == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
+        wind_sim.ws_mat[:, 0] == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
     ).all()
     assert np.allclose(
         wind_sim.ws_mat_mean,
-        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(
-            dtype=hercules_float_type
-        )[:10]
+        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(dtype=hercules_float_type)[
+            :10
+        ],
     )
 
     # Drop individual speeds and test that ws_mean is used instead
     df_input = df_input.drop(columns=["ws_000", "ws_001", "ws_002"])
-    df_input.to_csv(current_dir+"/test_inputs/wind_input_temp.csv")
+    df_input.to_csv(current_dir + "/test_inputs/wind_input_temp.csv")
 
     wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
     assert (wind_sim.ws_mat_mean == 10.0).all()
     assert (wind_sim.ws_mat[:, :] == 10.0).all()
 
     # Delete temp file
-    os.remove(current_dir+"/test_inputs/wind_input_temp.csv")
+    os.remove(current_dir + "/test_inputs/wind_input_temp.csv")
+
 
 def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
     """Test that missing floris_update_time_s raises ValueError."""
@@ -200,11 +201,18 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
     """Test that velocities are updated correctly from precomputed arrays during simulation."""
     # Create a temporary wind input file with varying conditions
     wind_data = {
-        "time": [0, 1, 2, 3],
-        "wd_mean": [270.0, 275.0, 280.0, 285.0],  # Varying wind direction
-        "ws_000": [8.0, 9.0, 10.0, 11.0],  # Varying wind speed turbine 0
-        "ws_001": [8.5, 9.5, 10.5, 11.5],  # Varying wind speed turbine 1
-        "ws_002": [9.0, 10.0, 11.0, 12.0],  # Varying wind speed turbine 2
+        "time": [0, 1, 2, 3, 4],
+        "time_utc": [
+            "2018-05-10 12:31:00",
+            "2018-05-10 12:31:01",
+            "2018-05-10 12:31:02",
+            "2018-05-10 12:31:03",
+            "2018-05-10 12:31:04",
+        ],
+        "wd_mean": [270.0, 275.0, 280.0, 285.0, 290.0],  # Varying wind direction
+        "ws_000": [8.0, 9.0, 10.0, 11.0, 12.0],  # Varying wind speed turbine 0
+        "ws_001": [8.5, 9.5, 10.5, 11.5, 12.5],  # Varying wind speed turbine 1
+        "ws_002": [9.0, 10.0, 11.0, 12.0, 13.0],  # Varying wind speed turbine 2
     }
 
     # Create temporary file
@@ -219,6 +227,8 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
         test_h_dict["starttime"] = 0.0
         test_h_dict["endtime"] = 4.0
+        test_h_dict["starttime_utc"] = "2018-05-10 12:31:00"
+        test_h_dict["endtime_utc"] = "2018-05-10 12:31:04"
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
@@ -259,21 +269,22 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
-    """Test that time_utc reconstruction works correctly from zero_time_utc metadata
+    """Test that time_utc reconstruction works correctly from starttime_utc metadata
     and both time_utc fields are properly set."""
     # Create wind input data with time_utc columns
     wind_data = {
-        "time": [0, 1, 2, 3],
+        "time": [0, 1, 2, 3, 4],
         "time_utc": [
             "2023-01-01T00:00:00Z",
             "2023-01-01T00:00:01Z",
             "2023-01-01T00:00:02Z",
             "2023-01-01T00:00:03Z",
+            "2023-01-01T00:00:04Z",
         ],
-        "wd_mean": [270.0, 275.0, 280.0, 285.0],
-        "ws_000": [8.0, 9.0, 10.0, 11.0],
-        "ws_001": [8.5, 9.5, 10.5, 11.5],
-        "ws_002": [9.0, 10.0, 11.0, 12.0],
+        "wd_mean": [270.0, 275.0, 280.0, 285.0, 290.0],
+        "ws_000": [8.0, 9.0, 10.0, 11.0, 12.0],
+        "ws_001": [8.5, 9.5, 10.5, 11.5, 12.5],
+        "ws_002": [9.0, 10.0, 11.0, 12.0, 13.0],
     }
 
     # Create temporary file
@@ -288,52 +299,40 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
         test_h_dict["starttime"] = 0.0
         test_h_dict["endtime"] = 4.0
+        test_h_dict["starttime_utc"] = "2023-01-01T00:00:00Z"
+        test_h_dict["endtime_utc"] = "2023-01-01T00:00:04Z"
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
         wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
 
-        # Verify that both zero_time_utc and start_time_utc are set correctly
-        assert hasattr(wind_sim, "zero_time_utc"), "zero_time_utc should be set"
-        assert hasattr(wind_sim, "start_time_utc"), "start_time_utc should be set"
+        # Verify that starttime_utc is set correctly
+        assert hasattr(wind_sim, "starttime_utc"), "starttime_utc should be set"
 
-        expected_zero_time = pd.to_datetime("2023-01-01T00:00:00Z", utc=True)
         expected_start_time = pd.to_datetime(
             "2023-01-01T00:00:00Z", utc=True
         )  # starttime=0, so same as zero_time
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
-        actual_zero_time = pd.Timestamp(wind_sim.zero_time_utc)
-        actual_start_time = pd.Timestamp(wind_sim.start_time_utc)
+        actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(
-            tzinfo=None
-        ), f"zero_time_utc mismatch: expected {expected_zero_time}, got {actual_zero_time}"
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
             tzinfo=None
-        ), f"start_time_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
 
-        # Test that both time_utc fields are added to h_dict when getting initial conditions
+        # Test that starttime_utc is added to h_dict when getting initial conditions
         result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
         assert (
-            "zero_time_utc" in result["wind_farm"]
-        ), "zero_time_utc should be in wind_farm metadata"
-        assert (
-            "start_time_utc" in result["wind_farm"]
-        ), "start_time_utc should be in wind_farm metadata"
+            "starttime_utc" in result["wind_farm"]
+        ), "starttime_utc should be in wind_farm metadata"
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
-        actual_zero_time = pd.Timestamp(result["wind_farm"]["zero_time_utc"])
-        actual_start_time = pd.Timestamp(result["wind_farm"]["start_time_utc"])
+        actual_start_time = pd.Timestamp(result["wind_farm"]["starttime_utc"])
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(tzinfo=None), (
-            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, "
-            f"got {actual_zero_time}"
-        )
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
-            f"start_time_utc in metadata mismatch: expected {expected_start_time}, "
+            f"starttime_utc in metadata mismatch: expected {expected_start_time}, "
             f"got {actual_start_time}"
         )
 
@@ -350,7 +349,8 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
             with h5py.File(temp_h5_file, "w") as f:
                 # Create metadata group
                 metadata = f.create_group("metadata")
-                metadata.attrs["zero_time_utc"] = expected_start_time.timestamp()
+                # Write starttime_utc in seconds since epoch (UTC)
+                metadata.attrs["starttime_utc"] = expected_start_time.timestamp()
 
                 # Create data group with time array
                 data = f.create_group("data")
@@ -404,8 +404,7 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
 
 
 def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
-    """Test that zero_time_utc and start_time_utc are correctly distinguished when
-    starttime != 0."""
+    """Test that starttime_utc is correctly set when using a different start time."""
     # Create wind input data with time_utc columns
     wind_data = {
         "time": [0, 1, 2, 3, 4, 5],
@@ -431,54 +430,44 @@ def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
 
     try:
         # Create test h_dict with the temporary wind file
+        # In the new design, time=0 corresponds to starttime_utc
+        # So if we want to start at 2023-01-01T00:00:02Z, we set that as starttime_utc
         test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
-        test_h_dict["starttime"] = 2.0  # Start at time=2, not time=0
-        test_h_dict["endtime"] = 6.0
+        test_h_dict["starttime"] = 0.0  # Always starts at 0
+        test_h_dict["endtime"] = 3.0  # 4 steps (0, 1, 2, 3)
+        test_h_dict["starttime_utc"] = "2023-01-01T00:00:02Z"  # Start at 2 seconds into the data
+        test_h_dict["endtime_utc"] = "2023-01-01T00:00:05Z"  # End at 5 seconds
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
         wind_sim = Wind_MesoToPowerPrecomFloris(test_h_dict)
 
-        # Verify that both zero_time_utc and start_time_utc are set correctly
-        assert hasattr(wind_sim, "zero_time_utc"), "zero_time_utc should be set"
-        assert hasattr(wind_sim, "start_time_utc"), "start_time_utc should be set"
+        # Verify that starttime_utc is set correctly
+        assert hasattr(wind_sim, "starttime_utc"), "starttime_utc should be set"
 
-        expected_zero_time = pd.to_datetime("2023-01-01T00:00:00Z", utc=True)  # time=0
-        expected_start_time = pd.to_datetime("2023-01-01T00:00:02Z", utc=True)  # time=2 (starttime)
+        expected_start_time = pd.to_datetime("2023-01-01T00:00:02Z", utc=True)
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
-        actual_zero_time = pd.Timestamp(wind_sim.zero_time_utc)
-        actual_start_time = pd.Timestamp(wind_sim.start_time_utc)
+        actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(
-            tzinfo=None
-        ), f"zero_time_utc mismatch: expected {expected_zero_time}, got {actual_zero_time}"
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
             tzinfo=None
-        ), f"start_time_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
 
-        # Test that both time_utc fields are added to h_dict when getting initial conditions
+        # Test that starttime_utc is added to h_dict when getting initial conditions
         result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
         assert (
-            "zero_time_utc" in result["wind_farm"]
-        ), "zero_time_utc should be in wind_farm metadata"
-        assert (
-            "start_time_utc" in result["wind_farm"]
-        ), "start_time_utc should be in wind_farm metadata"
+            "starttime_utc" in result["wind_farm"]
+        ), "starttime_utc should be in wind_farm metadata"
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
-        actual_zero_time = pd.Timestamp(result["wind_farm"]["zero_time_utc"])
-        actual_start_time = pd.Timestamp(result["wind_farm"]["start_time_utc"])
+        actual_start_time = pd.Timestamp(result["wind_farm"]["starttime_utc"])
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_zero_time.replace(tzinfo=None) == expected_zero_time.replace(tzinfo=None), (
-            f"zero_time_utc in metadata mismatch: expected {expected_zero_time}, "
-            f"got {actual_zero_time}"
-        )
         assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
-            f"start_time_utc in metadata mismatch: expected {expected_start_time}, "
+            f"starttime_utc in metadata mismatch: expected {expected_start_time}, "
             f"got {actual_start_time}"
         )
 

@@ -173,7 +173,12 @@ def test_load_hercules_input_invalid_plant_structure():
     Creates a config with plant as string instead of dict
     and verifies the function raises appropriate error.
     """
-    invalid_config = {"dt": 1.0, "starttime": 0.0, "endtime": 30.0, "plant": "not_a_dict"}
+    invalid_config = {
+        "dt": 1.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
+        "plant": "not_a_dict",
+    }
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         import yaml
@@ -196,8 +201,8 @@ def test_load_hercules_input_invalid_component_type():
     """
     invalid_config = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 30.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
         "plant": {"interconnect_limit": 30000.0},
         "wind_farm": {"component_type": "InvalidType"},
     }
@@ -223,8 +228,8 @@ def test_load_hercules_input_verbose_default():
     """
     config_without_verbose = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 30.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
         "plant": {"interconnect_limit": 30000.0},
     }
 
@@ -334,8 +339,8 @@ def test_output_configuration_validation():
 
     base_h_dict = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 10.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:10",
         "plant": {"interconnect_limit": 5000},
         "solar_farm": {"component_type": "SolarPySAMPVWatts"},
     }
@@ -598,7 +603,13 @@ def test_read_hercules_hdf5_external_signals():
         with h5py.File(temp_file, "w") as f:
             # Create basic data structure
             f.create_group("data")
-            f.create_group("metadata")
+            metadata = f.create_group("metadata")
+
+            # Add starttime_utc metadata (required)
+            import pandas as pd
+
+            starttime_utc = pd.to_datetime("2018-05-10 12:31:00", utc=True)
+            metadata.attrs["starttime_utc"] = starttime_utc.timestamp()
 
             # Add basic time data
             f["data/time"] = np.array([0, 1, 2])

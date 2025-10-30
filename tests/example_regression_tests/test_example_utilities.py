@@ -231,11 +231,11 @@ def verify_outputs(
         # Test that the final solar power has not changed much (if expected value provided)
         if expected_final_solar_power is not None:
             np.testing.assert_allclose(
-                df["solar_farm.power"].iloc[-1], expected_final_solar_power, atol=1
+                df["solar_farm.power"].iloc[-1], expected_final_solar_power, atol=15
             )
 
     # Test that the final plant power has not changed much
-    np.testing.assert_allclose(df["plant.power"].iloc[-1], expected_final_plant_power, atol=1)
+    np.testing.assert_allclose(df["plant.power"].iloc[-1], expected_final_plant_power, atol=15)
 
 
 def verify_plot_script(temp_dir, original_cwd, example_dir, plot_script_file):

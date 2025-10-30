@@ -44,10 +44,18 @@ def create_test_input_files(temp_dir):
     test_inputs_dir = os.path.join(temp_dir, "test_inputs")
     os.makedirs(test_inputs_dir, exist_ok=True)
 
+    # Load starttime_utc from the copied example input to build time_utc
+    import yaml
+
+    with open(os.path.join(temp_dir, INPUT_FILE), "r") as f:
+        _h = yaml.safe_load(f)
+    starttime_utc = pd.to_datetime(_h["starttime_utc"], utc=True)
+
     # Create wind input data (5 time steps) - feather format for test
     # We need 9 turbines (ws_000 through ws_008) with wind speeds and directions for large config
     wind_data = {
         "time": np.arange(0, NUM_TIME_STEPS, 1),
+        "time_utc": pd.date_range(start=starttime_utc, periods=NUM_TIME_STEPS, freq="1s", tz="UTC"),
         "wd_mean": np.array([270.0, 270.0, 270.0, 270.0, 270.0]),  # Wind direction
     }
 
@@ -58,9 +66,7 @@ def create_test_input_files(temp_dir):
     # Create solar input data (5 time steps) - feather format for test
     solar_data = {
         "time": np.arange(0, NUM_TIME_STEPS, 1),
-        "time_utc": pd.date_range(
-            "2024-06-24 17:00:00", periods=NUM_TIME_STEPS, freq="1s", tz="UTC"
-        ),
+        "time_utc": pd.date_range(start=starttime_utc, periods=NUM_TIME_STEPS, freq="1s", tz="UTC"),
         # GHI (daytime - realistic values from actual data ~735 W/m²)
         "SRRL BMS Global Horizontal Irradiance (W/m²_irr)": np.array(
             [735.0, 737.0, 732.0, 739.0, 735.0]
@@ -140,6 +146,14 @@ def update_input_file_paths_for_test(temp_dir, input_file, test_inputs_dir):
             # Use test solar input file
             filename = os.path.basename(h_dict["solar_farm"]["solar_input_filename"])
             h_dict["solar_farm"]["solar_input_filename"] = os.path.join(test_inputs_dir, filename)
+
+    # Also adjust endtime_utc to match the shortened test duration
+    if "starttime_utc" in h_dict:
+        start_ts = pd.to_datetime(h_dict["starttime_utc"], utc=True)
+        # For NUM_TIME_STEPS time steps (0, 1, 2, ..., NUM_TIME_STEPS-1),
+        # the end time should be at starttime + (NUM_TIME_STEPS - 1) seconds
+        new_end = start_ts + pd.to_timedelta(NUM_TIME_STEPS - 1, unit="s")
+        h_dict["endtime_utc"] = new_end.isoformat().replace("+00:00", "Z")
 
     # Write the updated input file
     with open(input_file_path, "w") as f:
