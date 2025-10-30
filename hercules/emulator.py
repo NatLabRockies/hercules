@@ -144,9 +144,9 @@ class Emulator:
             self.dt,
         )
         self.external_data_all["time"] = times
-        for c in df_ext.columns:
-            if c != "time":
-                self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
+        skip_columns = ["time", "time_utc"]
+        for c in set(df_ext.columns) - set(skip_columns):
+            self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
