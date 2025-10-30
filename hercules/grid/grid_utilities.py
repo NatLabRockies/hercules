@@ -32,11 +32,9 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         raise ValueError("df_day_ahead_lmp must only contain DAY_AHEAD_HOURLY market data.")
     if df_real_time_lmp["market"].unique() != ["REAL_TIME_5_MIN"]:
         raise ValueError("df_real_time_lmp must only contain REAL_TIME_5_MIN market data.")
-    
+
     # TODO: Add checks that dataframes cover the same time period, have no missing data, etc.
 
-
-    
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
         columns={"interval_start_utc": "time_utc", "lmp": "DA_LMP"}
@@ -59,7 +57,7 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         values="DA_LMP",
         index="date",
         columns="hour",
-        aggfunc="first"  # Use first value if multiple entries per hour
+        aggfunc="first",  # Use first value if multiple entries per hour
     )
     df_hourly = df_hourly.reindex(columns=list(range(24)))
     df_hourly = df_hourly.rename(columns={h: "DA_LMP_{:02d}".format(h) for h in df_hourly.columns})
@@ -74,11 +72,10 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
 
     # Add "end" rows
     df_2 = df.copy(deep=True)
-    df_2["time_utc"] = df_2["time_utc"] + pd.Timedelta(seconds=5*60-1)
+    df_2["time_utc"] = df_2["time_utc"] + pd.Timedelta(seconds=5 * 60 - 1)
     df = pd.merge(df, df_2, how="outer").sort_values("time_utc").reset_index(drop=True)
 
     # Add time column in seconds from the first timestamp
     df["time"] = (df["time_utc"] - df["time_utc"].iloc[0]).dt.total_seconds()
 
     return df
-

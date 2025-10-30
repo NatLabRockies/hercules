@@ -13,7 +13,7 @@ from gridstatusio import GridStatusClient
 
 # PARAMETERS
 QUERY_LIMIT = 20_000
-dataset = "spp_lmp_real_time_5_min" 
+dataset = "spp_lmp_real_time_5_min"
 start = "2024-01-01"
 end = "2025-01-01"
 filter_column = "location"
@@ -42,7 +42,7 @@ for column in df.columns:
     print(f"{column}: {df[column].iloc[0]}")
 
 # Remove columns not used by hercules if in dataframe
-columns_to_drop = ["interval_end_utc","location","location_type","pnode"]
+columns_to_drop = ["interval_end_utc", "location", "location_type", "pnode"]
 df = df.drop(columns=columns_to_drop, errors="ignore")
 
 # Show the dataframe head

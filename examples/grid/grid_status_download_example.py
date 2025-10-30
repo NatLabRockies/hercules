@@ -15,7 +15,6 @@ filter_value = "OKGE.FRONTIER"
 
 
 for dataset in ["spp_lmp_real_time_5_min", "spp_lmp_day_ahead_hourly"]:
-
     # Initialize Grid Status client
     client = GridStatusClient()
 
@@ -38,7 +37,7 @@ for dataset in ["spp_lmp_real_time_5_min", "spp_lmp_day_ahead_hourly"]:
         print(f"{column}: {df[column].iloc[0]}")
 
     # Remove columns not used by hercules if in dataframe
-    columns_to_drop = ["interval_end_utc","location","location_type","pnode"]
+    columns_to_drop = ["interval_end_utc", "location", "location_type", "pnode"]
     df = df.drop(columns=columns_to_drop, errors="ignore")
 
     # Show the dataframe head
