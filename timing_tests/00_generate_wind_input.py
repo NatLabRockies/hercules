@@ -44,9 +44,6 @@ def generate_wind_input(
     start_time = datetime(2020, 3, 1, 5, 0, 0)
     time_utc = [start_time + timedelta(minutes=int(t)) for t in time_minutes]
 
-    # Get time in seconds
-    time_seconds = time_minutes * 60
-
     # Generate base wind speed and direction using deterministic random walks
     ws_base = np.full(num_time_steps, base_wind_speed)
     wd_base = np.full(num_time_steps, base_wind_direction)
@@ -83,7 +80,6 @@ def generate_wind_input(
 
     # Create the output dictionary
     wind_data = {
-        "time": time_seconds,
         "time_utc": time_utc,
         "wd_mean": wd_base,
     }

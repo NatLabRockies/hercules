@@ -38,8 +38,12 @@ def plot_wind_solar_data(
     # Create figure with subplots
     fig, axarr = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
 
+    # Calculate time from time_utc
+    time = (wind_data["time_utc"] - wind_data["time_utc"].iloc[0]).dt.total_seconds()
+    wind_data["time"] = time
+
     # Convert time to hours for better x-axis labels
-    time_hours = wind_data["time"] / 60.0 / 60.0
+    time_hours = time / 60.0 / 60.0
 
     # Plot 1: Wind speeds for selected turbines
     print(f"Plotting wind speeds for {num_wind_turbines_to_plot} turbines...")
