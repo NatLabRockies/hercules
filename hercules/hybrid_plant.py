@@ -77,40 +77,6 @@ class HybridPlant:
                 h_dict
             )
 
-        # Confirm that all components with starttime_utc have the same value
-        # and add it to the h_dict at top level
-        starttime_utc_value = None
-
-        for component_name in self.component_names:
-            if "starttime_utc" in h_dict[component_name]:
-                current_time = h_dict[component_name]["starttime_utc"]
-
-                if starttime_utc_value is None:
-                    starttime_utc_value = current_time
-                else:
-                    # Normalize both times for comparison
-                    # Convert timezone-naive to UTC if needed, keep timezone-aware as is
-                    normalized_starttime_utc_value = (
-                        starttime_utc_value.replace(tzinfo=None)
-                        if hasattr(starttime_utc_value, "tzinfo")
-                        and starttime_utc_value.tzinfo is not None
-                        else starttime_utc_value
-                    )
-                    normalized_current_time = (
-                        current_time.replace(tzinfo=None)
-                        if hasattr(current_time, "tzinfo") and current_time.tzinfo is not None
-                        else current_time
-                    )
-
-                    if normalized_current_time != normalized_starttime_utc_value:
-                        raise ValueError("All components must have the same starttime_utc")
-
-        # If no component has starttime_utc, use starttime_utc from h_dict
-        if starttime_utc_value is None:
-            starttime_utc_value = h_dict.get("starttime_utc")
-
-        h_dict["starttime_utc"] = starttime_utc_value
-
         # Add the plant level outputs to the h_dict
         h_dict = self.compute_plant_level_outputs(h_dict)
 

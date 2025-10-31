@@ -4,15 +4,17 @@
 # AFTER it has been processed by load_hercules_input().
 #
 # They contain BOTH:
-#   - starttime_utc/endtime_utc: Input format (UTC datetime strings)
+#   - starttime_utc/endtime_utc: pd.Timestamp objects (as created by load_hercules_input)
 #   - starttime/endtime: Computed values (numeric, in seconds from t=0)
 #
-# Real YAML input files should ONLY contain starttime_utc and endtime_utc.
-# The load_hercules_input() function computes starttime (always 0.0) and
-# endtime (duration in seconds) automatically.
+# Real YAML input files should ONLY contain starttime_utc and endtime_utc as strings.
+# The load_hercules_input() function converts them to pd.Timestamp objects and
+# computes starttime (always 0.0) and endtime (duration in seconds) automatically.
 #
 # These test fixtures bypass load_hercules_input() for efficiency, so they
 # need to have both sets of values pre-populated.
+
+import pandas as pd
 
 plant = {"interconnect_limit": 30000.0}
 
@@ -134,8 +136,8 @@ h_dict = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 30.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:30",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:30", utc=True),
     "plant": plant,
     "verbose": False,
 }
@@ -146,8 +148,8 @@ h_dict_wind = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:10",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
     "verbose": False,
     "step": 2,
     "time": 2.0,
@@ -161,8 +163,8 @@ h_dict_solar = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 6.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:06",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:06", utc=True),
     "verbose": False,
     "step": 2,
     "time": 2.0,
@@ -175,8 +177,8 @@ h_dict_solar_pysam = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 6.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:06",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:06", utc=True),
     "verbose": False,
     "step": 2,
     "time": 2.0,
@@ -189,8 +191,8 @@ h_dict_solar_pvwatts = {
     "dt": 0.5,
     "starttime": 0.0,
     "endtime": 0.5,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:00.500000",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:00.500000", utc=True),
     "verbose": False,
     "step": 0,
     "time": 0.0,
@@ -205,8 +207,8 @@ h_dict_battery = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:10",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
     "verbose": False,
     "step": 2,
     "time": 2.0,
@@ -219,8 +221,8 @@ h_dict_wind_solar_battery = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 6.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:06",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:06", utc=True),
     "verbose": False,
     "step": 2,
     "time": 2.0,
@@ -234,8 +236,8 @@ h_dict_simple_battery = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:10",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
     "verbose": False,
     "step": 0,
     "time": 0.0,
@@ -247,8 +249,8 @@ h_dict_lib_battery = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:10",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
     "verbose": False,
     "step": 0,
     "time": 0.0,
@@ -260,8 +262,8 @@ h_dict_electrolyzer = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
-    "starttime_utc": "2018-05-10 12:31:00",
-    "endtime_utc": "2018-05-10 12:31:10",
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
     "verbose": False,
     "step": 0,
     "time": 0.0,
