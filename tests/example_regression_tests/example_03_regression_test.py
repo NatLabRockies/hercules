@@ -5,7 +5,7 @@ import tempfile
 
 import numpy as np
 import pandas as pd
-from hercules.utilities_examples import ensure_example_inputs_exist
+from hercules.utilities_examples import generate_example_inputs
 from test_example_utilities import (
     copy_example_files,
     run_simulation,
@@ -201,7 +201,7 @@ def test_example_03_limited_time_regression():
     and verifies that the final outputs are reasonable and consistent.
     """
     # Ensure centralized example inputs exist
-    ensure_example_inputs_exist()
+    generate_example_inputs()
 
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:

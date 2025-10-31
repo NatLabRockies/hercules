@@ -9,7 +9,7 @@ import numpy as np
 from hercules.emulator import Emulator
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import load_hercules_input, setup_logging
-from hercules.utilities_examples import ensure_example_inputs_exist
+from hercules.utilities_examples import generate_example_inputs
 
 
 def copy_example_files(example_dir, temp_dir, input_file, inputs_dir, notebook_file):
@@ -310,7 +310,7 @@ def run_example_regression_test(
             Defaults to "plot_outputs.py".
     """
     # Ensure centralized example inputs exist
-    ensure_example_inputs_exist()
+    generate_example_inputs()
 
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:
