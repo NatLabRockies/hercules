@@ -48,6 +48,58 @@ Examples:
 
 When loading input files, Hercules validates that datetime strings don't contain timezone offsets and will raise a clear error if a non-UTC timezone is detected.
 
+### Converting Local Time to UTC
+
+If you only know your local time and need to convert it to UTC (accounting for daylight saving time), Hercules provides a utility function to help:
+
+```python
+from hercules.utilities import local_time_to_utc
+
+# Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)
+utc_time_jan = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+# Returns: "2025-01-01T07:00:00Z"
+
+# Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST in effect)
+utc_time_july = local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+# Returns: "2025-07-01T06:00:00Z"
+```
+
+**Note:** The `tz` parameter is **required**. You must specify your timezone using IANA timezone names.
+
+**Available Timezone Names:**
+
+Common timezone names:
+- **US**: `"America/New_York"`, `"America/Chicago"`, `"America/Denver"`, `"America/Los_Angeles"`
+- **Europe**: `"Europe/London"`, `"Europe/Paris"`, `"Europe/Berlin"`, `"Europe/Madrid"`
+- **Asia**: `"Asia/Tokyo"`, `"Asia/Shanghai"`, `"Asia/Dubai"`, `"Asia/Kolkata"`
+- **Pacific**: `"Pacific/Auckland"`, `"Pacific/Honolulu"`, `"Pacific/Sydney"`
+
+**Complete list of timezones:**
+
+For a complete list of all available IANA timezone names, see:
+- [Wikipedia: List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+- Or in Python:
+```python
+import zoneinfo
+print(sorted(zoneinfo.available_timezones()))
+```
+
+The function automatically handles daylight saving time conversions based on the date you provide.
+
+**Example usage in your input YAML:**
+
+```python
+from hercules.utilities import local_time_to_utc
+
+# If you want midnight local time (Mountain Time) on Jan 1, 2025
+start_utc = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+end_utc = local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+
+# Use these values in your YAML:
+# starttime_utc: "2025-01-01T07:00:00Z"
+# endtime_utc: "2025-07-01T06:00:00Z"
+```
+
 ## Computed Time Values
 
 When Hercules loads your input file, it automatically computes:

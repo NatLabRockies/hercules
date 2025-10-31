@@ -10,6 +10,7 @@ from hercules.utilities import (
     interpolate_df_fast,
     load_h_dict_from_text,
     load_hercules_input,
+    local_time_to_utc,
 )
 
 
@@ -704,6 +705,77 @@ def test_read_hercules_hdf5_external_signals():
 
     finally:
         os.unlink(temp_file)
+
+
+def test_local_time_to_utc_with_timezone():
+    """Test local_time_to_utc with explicit timezone.
+
+    Tests conversion of local time to UTC with daylight saving time handling.
+    """
+    # Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)
+    result_jan = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result_jan == "2025-01-01T07:00:00Z"
+
+    # Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST)
+    result_july = local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+    assert result_july == "2025-07-01T06:00:00Z"
+
+    # Test with different timezone (Eastern Time)
+    # Midnight Jan 1, 2025 in Eastern Time (EST, UTC-5, no DST)
+    result_eastern_jan = local_time_to_utc("2025-01-01T00:00:00", tz="America/New_York")
+    assert result_eastern_jan == "2025-01-01T05:00:00Z"
+
+    # Midnight July 1, 2025 in Eastern Time (EDT, UTC-4, DST)
+    result_eastern_july = local_time_to_utc("2025-07-01T00:00:00", tz="America/New_York")
+    assert result_eastern_july == "2025-07-01T04:00:00Z"
+
+
+def test_local_time_to_utc_with_pandas_timestamp():
+    """Test local_time_to_utc with pandas Timestamp input."""
+    dt = pd.Timestamp("2025-01-01T00:00:00")
+    result = local_time_to_utc(dt, tz="America/Denver")
+    assert result == "2025-01-01T07:00:00Z"
+
+
+def test_local_time_to_utc_with_different_formats():
+    """Test local_time_to_utc with different datetime string formats."""
+    # ISO format with T
+    result1 = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result1 == "2025-01-01T07:00:00Z"
+
+    # ISO format with space
+    result2 = local_time_to_utc("2025-01-01 00:00:00", tz="America/Denver")
+    assert result2 == "2025-01-01T07:00:00Z"
+
+    # Date only (defaults to midnight)
+    result3 = local_time_to_utc("2025-01-01", tz="America/Denver")
+    assert result3 == "2025-01-01T07:00:00Z"
+
+
+def test_local_time_to_utc_invalid_timezone():
+    """Test local_time_to_utc with invalid timezone raises error."""
+    with pytest.raises(ValueError, match="Invalid timezone"):
+        local_time_to_utc("2025-01-01T00:00:00", tz="Invalid/Timezone")
+
+
+def test_local_time_to_utc_invalid_datetime():
+    """Test local_time_to_utc with invalid datetime string raises error."""
+    with pytest.raises(ValueError, match="Cannot parse local_time"):
+        local_time_to_utc("invalid-datetime", tz="America/Denver")
+
+
+def test_local_time_to_utc_missing_timezone():
+    """Test local_time_to_utc with missing timezone parameter raises error."""
+    with pytest.raises(ValueError, match="Timezone parameter 'tz' is required"):
+        local_time_to_utc("2025-01-01T00:00:00", tz=None)
+
+
+def test_local_time_to_utc_returns_z_suffix():
+    """Test that local_time_to_utc returns string with Z suffix."""
+    result = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result.endswith("Z")
+    assert "T" in result
+    assert len(result) == 20  # Format: YYYY-MM-DDTHH:MM:SSZ
 
 
 # def test_read_hercules_hdf5_subset():

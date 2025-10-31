@@ -156,6 +156,83 @@ def _validate_utc_datetime_string(dt_str, field_name):
         )
 
 
+def local_time_to_utc(local_time, tz):
+    """Convert local time to UTC time string in ISO 8601 format with Z suffix.
+
+    This utility helps users who only know their local time convert it to UTC,
+    accounting for daylight saving time automatically. Useful for users less
+    familiar with timezones who need to provide UTC timestamps for Hercules
+    input files.
+
+    Args:
+        local_time (str or pd.Timestamp): Local datetime string or pandas Timestamp.
+            Accepts formats like "2025-01-01T00:00:00" or "2025-07-01 00:00:00".
+        tz (str): Timezone string using IANA timezone names (e.g., "America/Denver",
+            "America/New_York", "Europe/London", "Asia/Tokyo"). Required parameter.
+
+    Returns:
+        str: UTC datetime string in ISO 8601 format with Z suffix (e.g.,
+            "2025-01-01T07:00:00Z").
+
+    Examples:
+        >>> # Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)
+        >>> local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+        '2025-01-01T07:00:00Z'
+        >>> # Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST in effect)
+        >>> local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+        '2025-07-01T06:00:00Z'
+        >>> # Eastern Time example
+        >>> local_time_to_utc("2025-01-01T00:00:00", tz="America/New_York")
+        '2025-01-01T05:00:00Z'
+
+    Raises:
+        ValueError: If local_time cannot be parsed or tz is invalid or missing.
+
+    Note:
+        Common timezone names:
+        - US: "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"
+        - Europe: "Europe/London", "Europe/Paris", "Europe/Berlin"
+        - Asia: "Asia/Tokyo", "Asia/Shanghai", "Asia/Dubai"
+        - Pacific: "Pacific/Auckland", "Pacific/Honolulu"
+
+        For a complete list of all available IANA timezone names, see:
+        - https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        - Or in Python: `import zoneinfo; zoneinfo.available_timezones()`
+    """
+    if tz is None:
+        raise ValueError(
+            "Timezone parameter 'tz' is required. "
+            "Use IANA timezone names like 'America/Denver' or 'Europe/London'. "
+            "See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for valid names."
+        )
+
+    # Parse local_time to pandas Timestamp (naive)
+    try:
+        dt = pd.to_datetime(local_time)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Cannot parse local_time '{local_time}': {e}")
+
+    # Localize naive datetime to the specified timezone
+    try:
+        dt_localized = dt.tz_localize(tz)
+    except Exception as e:
+        raise ValueError(
+            f"Invalid timezone '{tz}': {e}. "
+            "Use IANA timezone names like 'America/Denver' or 'Europe/London'. "
+            "See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for valid names, "
+            "or in Python: `import zoneinfo; zoneinfo.available_timezones()`"
+        )
+
+    # Convert to UTC
+    dt_utc = dt_localized.tz_convert("UTC")
+
+    # Format as ISO 8601 with Z suffix
+    # Remove timezone info and add Z manually to match Hercules format
+    utc_str = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    return utc_str
+
+
 def load_hercules_input(filename):
     """Load and validate Hercules input file.
 
