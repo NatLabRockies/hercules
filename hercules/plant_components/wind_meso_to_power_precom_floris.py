@@ -68,15 +68,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Confirm that logging_option is in h_dict[self.component_name]
-        if "logging_option" not in h_dict[self.component_name]:
-            raise ValueError(f"logging_option must be in the h_dict for {self.component_name}")
-        self.logging_option = h_dict[self.component_name]["logging_option"]
-        if self.logging_option not in ["base", "turb_subset", "all"]:
-            raise ValueError(
-                f"logging_option must be one of: base, turb_subset, all for {self.component_name}"
-            )
-
         self.logger.info("Completed base class init...")
 
         # Track the number of FLORIS calculations
@@ -216,7 +207,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
-        self.floris_wind_speed = self.ws_mat_mean[0]
+        self.wind_speed_mean_background = self.ws_mat_mean[0]
 
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
@@ -327,20 +318,20 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
             # Use deficits from this evaluation time for the whole block
             deficits_all[start_idx : end_idx + 1, :] = floris_wake_deficits_eval[block_idx, :]
 
-        # Compute all the waked velocities from unwaked minus deficits
-        self.waked_velocities_all = self.ws_mat - deficits_all
+        # Compute all the withwakes wind speeds from background minus deficits
+        self.wind_speeds_withwakes_all = self.ws_mat - deficits_all
 
         # Initialize the turbine powers to nan
         self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
-        # Get the initial unwaked velocities
-        self.unwaked_velocities = self.ws_mat[0, :]
+        # Get the initial background wind speeds
+        self.wind_speeds_background = self.ws_mat[0, :]
 
-        # Compute initial waked velocities
-        self.waked_velocities = self.waked_velocities_all[0, :]
+        # Compute initial withwakes wind speeds
+        self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[0, :]
 
         # Get the initial FLORIS wake deficits
-        self.floris_wake_deficits = self.unwaked_velocities - self.waked_velocities
+        self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
         # Get the turbine information
         self.turbine_dict = load_yaml(self.turbine_file_name)
@@ -350,13 +341,13 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         if self.turbine_model_type == "filter_model":
             # Use vectorized implementation for improved performance
             self.turbine_array = TurbineFilterModelVectorized(
-                self.turbine_dict, self.dt, self.fmodel, self.waked_velocities
+                self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes
             )
             self.use_vectorized_turbines = True
         elif self.turbine_model_type == "dof1_model":
             self.turbine_array = [
                 Turbine1dofModel(
-                    self.turbine_dict, self.dt, self.fmodel, self.waked_velocities[t_idx]
+                    self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes[t_idx]
                 )
                 for t_idx in range(self.n_turbines)
             ]
@@ -382,40 +373,6 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Get the capacity of the farm
         self.capacity = self.n_turbines * self.rated_turbine_power
 
-        # Set the logging outputs based on the logging_option
-        # First add outputs included in every logging option
-        self.log_outputs = [
-            "power",
-            "wind_speed",
-            "wind_direction",
-            "wind_speed_waked",
-        ]
-
-        # If including subset of turbines, add the turbine indices
-        if self.logging_option == "turb_subset":
-            self.random_turbine_indices = np.random.choice(self.n_turbines, size=3, replace=False)
-            self.log_outputs = self.log_outputs + [
-                f"waked_velocities_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
-            ]
-            self.log_outputs = self.log_outputs + [
-                f"turbine_powers_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
-            ]
-            self.log_outputs = self.log_outputs + [
-                f"turbine_power_setpoints_turb_{t_idx:03d}" for t_idx in self.random_turbine_indices
-            ]
-
-        # If including all data add these data points
-        elif self.logging_option == "all":
-            self.log_outputs = self.log_outputs + [
-                "turbine_powers",
-                "turbine_power_setpoints",
-                "floris_wind_speed",
-                "floris_wind_direction",
-                "floris_ti",
-                "unwaked_velocities",
-                "waked_velocities",
-            ]
-
         # Update the user
         self.logger.info(
             f"Initialized Wind_MesoToPowerPrecomFloris with {self.n_turbines} turbines"
@@ -436,8 +393,8 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         h_dict["wind_farm"]["n_turbines"] = self.n_turbines
         h_dict["wind_farm"]["capacity"] = self.capacity
         h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
-        h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
-        h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["wind_direction_mean"] = self.wd_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
@@ -470,60 +427,41 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
         # Grab the instantaneous turbine power setpoint signal and update the power_setpoints buffer
         turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
 
-        # Update all the velocities
-        self.unwaked_velocities = self.ws_mat[step, :]
-        self.waked_velocities = self.waked_velocities_all[step, :]
-        self.floris_wake_deficits = self.unwaked_velocities - self.waked_velocities
+        # Update all the wind speeds
+        self.wind_speeds_background = self.ws_mat[step, :]
+        self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[step, :]
+        self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
         # Update the turbine powers
         if self.use_vectorized_turbines:
             # Vectorized calculation for all turbines at once
             self.turbine_powers = self.turbine_array.step(
-                self.waked_velocities,
+                self.wind_speeds_withwakes,
                 turbine_power_setpoints,
             )
         else:
             # Original loop-based calculation
             for t_idx in range(self.n_turbines):
                 self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
-                    self.waked_velocities[t_idx],
+                    self.wind_speeds_withwakes[t_idx],
                     power_setpoint=turbine_power_setpoints[t_idx],
                 )
 
         # Update instantaneous wind direction and wind speed
-        self.wind_direction = self.wd_mat_mean[step]
-        self.wind_speed = self.ws_mat_mean[step]
+        self.wind_direction_mean = self.wd_mat_mean[step]
+        self.wind_speed_mean_background = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
-        h_dict[self.component_name]["wind_direction"] = self.wind_direction
-        h_dict[self.component_name]["wind_speed"] = self.wind_speed
-        h_dict[self.component_name]["wind_speed_waked"] = np.mean(
-            self.waked_velocities, dtype=hercules_float_type
+        h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
+        h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
+        h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
+            self.wind_speeds_withwakes, dtype=hercules_float_type
         )
-
-        # If logging_option is "turb_subset", add the turbine indices
-        if self.logging_option == "turb_subset":
-            for t_idx in self.random_turbine_indices:
-                h_dict[self.component_name][f"waked_velocities_turb_{t_idx:03d}"] = (
-                    self.waked_velocities[t_idx]
-                )
-                h_dict[self.component_name][f"turbine_powers_turb_{t_idx:03d}"] = (
-                    self.turbine_powers[t_idx]
-                )
-                h_dict[self.component_name][f"turbine_power_setpoints_turb_{t_idx:03d}"] = (
-                    turbine_power_setpoints[t_idx]
-                )
-
-        # Else if logging_option is "all", add the turbine powers
-        elif self.logging_option == "all":
-            h_dict[self.component_name]["floris_wind_speed"] = self.wind_speed
-            h_dict[self.component_name]["floris_wind_direction"] = self.wind_direction
-            h_dict[self.component_name]["floris_ti"] = self.ti_mat_mean[step]
-            h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
-            h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
+        h_dict[self.component_name]["wind_speeds_withwakes"] = self.wind_speeds_withwakes
+        h_dict[self.component_name]["wind_speeds_background"] = self.wind_speeds_background
 
         return h_dict
 

@@ -43,6 +43,7 @@ class ElectrolyzerPlant(ComponentBase):
         # Remove keys not expected by Supervisor
         elec_config = dict(electrolyzer_dict["electrolyzer"])
         elec_config.pop("allow_grid_power_consumption", None)
+        elec_config.pop("log_channels", None)
         # Initialize electrolyzer plant
         self.elec_sys = Supervisor.from_dict(elec_config)
 

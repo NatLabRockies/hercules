@@ -1,6 +1,6 @@
 # Solar PV
 
-The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Renewable Energy Laboratory's System Advisor Model (SAM) to predict the power output of the solar PV plant. 
+The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Renewable Energy Laboratory's System Advisor Model (SAM) to predict the power output of the solar PV plant.
 
 Presently only one solar simulator is available
 
@@ -11,7 +11,7 @@ Presently only one solar simulator is available
 ### Inputs
 
 Both models require an input weather file:
-1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include: 
+1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:
     - timestamp (see [timing](timing.md) for time format requirements)
     - direct normal irradiance (DNI)
     - diffuse horizontal irradiance (DHI)
@@ -35,7 +35,30 @@ The PVWatts model is configured with the following hardcoded parameters for util
 
 The array tilt angle must be specified in the input configuration file.
 
-When `log_extra_outputs` is set to `True` in the input .yaml file, the solar modules also output plane-of-array irradiance (`poa`) in W/m^2, direct normal irradiance (`dni`) in W/m^2, and the angle of incidence (`aoi`) in degrees.
+### Logging Configuration
+
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
+
+**Available Channels:**
+- `power`: DC power output in kW (always logged)
+- `poa`: Plane-of-array irradiance in W/m²
+- `dni`: Direct normal irradiance in W/m²
+- `aoi`: Angle of incidence in degrees
+
+**Example:**
+```yaml
+solar_farm:
+  component_type: SolarPySAMPVWatts
+  solar_input_filename: inputs/solar_input.csv
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
+  # ... other parameters
+```
+
+If `log_channels` is not specified, only `power` will be logged.
 
 ### Efficiency and Loss Parameters
 

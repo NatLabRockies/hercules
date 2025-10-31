@@ -5,7 +5,7 @@ name: example_00
 
 ###
 # Describe this emulator setup
-description: Wind Farm Only
+description: Wind Farm Only, Logging All Turbine Data
 
 dt: 1.0
 starttime_utc: "2020-01-01T00:00:00Z" # Midnight Jan 1, 2020 UTC (Zulu time)
@@ -22,7 +22,14 @@ wind_farm:
   wind_input_filename: ../inputs/wind_input_small.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  logging_option: all
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
   floris_update_time_s: 30.0 # Update wakes every 30 seconds
 
 

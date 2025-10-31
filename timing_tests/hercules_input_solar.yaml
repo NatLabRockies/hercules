@@ -24,6 +24,11 @@ solar_farm:
   system_capacity: 100000  # kW (100 MW)
   tilt: 0  # degrees
   losses: 0
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
 
 
   initial_conditions:
@@ -31,4 +36,4 @@ solar_farm:
     dni: 1000
     poa: 1000
 
-controller: 
+controller:

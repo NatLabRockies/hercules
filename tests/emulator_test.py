@@ -470,3 +470,72 @@ def test_log_every_n_option():
         assert df_hdf5["step"].iloc[0] == 0
         assert df_hdf5["step"].iloc[1] == 3
         assert df_hdf5["step"].iloc[2] == 6
+
+
+def test_log_selective_array_element():
+    """Test that selective array element logging (e.g., turbine_powers.001) works correctly.
+
+    This test verifies that when log_channels specifies a specific array element
+    (e.g., turbine_powers.001), only that element is logged and not other elements.
+    """
+    import copy
+
+    # Use h_dict_wind as base for testing
+    test_h_dict = copy.deepcopy(h_dict_wind)
+
+    # Modify log_channels to only include turbine_powers.001 (not the full array)
+    test_h_dict["wind_farm"]["log_channels"] = ["power", "turbine_powers.001"]
+
+    # Set up logger for testing
+    logger = setup_logging(console_output=False)
+
+    controller = SimpleControllerWind(test_h_dict)
+    hybrid_plant = HybridPlant(test_h_dict)
+
+    emulator = Emulator(controller, hybrid_plant, test_h_dict, logger)
+
+    # Set up the simulation state
+    emulator.time = 5.0
+    emulator.step = 5
+    emulator.h_dict["time"] = 5.0
+    emulator.h_dict["step"] = 5
+
+    # Run controller and hybrid_plant steps to generate plant-level outputs
+    emulator.h_dict = controller.step(emulator.h_dict)
+    emulator.h_dict = hybrid_plant.step(emulator.h_dict)
+
+    # Call the new HDF5 logging function
+    emulator._log_data_to_hdf5()
+
+    # Check that ONLY turbine_powers.001 is logged (not .000 or .002)
+    actual_datasets = set(emulator.hdf5_datasets.keys())
+
+    # turbine_powers.001 SHOULD be present
+    assert (
+        "wind_farm.turbine_powers.001" in actual_datasets
+    ), "Expected wind_farm.turbine_powers.001 to be logged"
+
+    # turbine_powers.000 should NOT be present
+    assert (
+        "wind_farm.turbine_powers.000" not in actual_datasets
+    ), "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
+
+    # turbine_powers.002 should NOT be present
+    assert (
+        "wind_farm.turbine_powers.002" not in actual_datasets
+    ), "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
+
+    # Verify that basic datasets are still present
+    assert "time" in actual_datasets
+    assert "step" in actual_datasets
+    assert "wind_farm.power" in actual_datasets
+
+    # Flush buffer to write data to HDF5
+    if hasattr(emulator, "data_buffers") and emulator.data_buffers and emulator.buffer_row > 0:
+        emulator._flush_buffer_to_hdf5()
+
+    # Verify that turbine_powers.001 has a valid value
+    assert emulator.hdf5_datasets["wind_farm.turbine_powers.001"][0] > 0
+
+    # Clean up
+    emulator.close()

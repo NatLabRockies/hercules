@@ -4,7 +4,7 @@ import os
 import tempfile
 
 import yaml
-from hercules.utilities_examples import ensure_example_inputs_exist
+from hercules.utilities_examples import generate_example_inputs
 from test_example_utilities import (
     copy_example_files,
     generate_input_data,
@@ -52,8 +52,6 @@ def modify_input_file_for_precom_floris(temp_dir, input_file):
         h_dict["wind_farm"]["floris_update_time_s"] = h_dict["wind_farm"].get(
             "floris_update_time_s", 300.0
         )
-        # Add logging_option for the new logging system
-        h_dict["wind_farm"]["logging_option"] = "all"
 
     # Write the modified YAML file back
     with open(input_path, "w") as f:
@@ -108,7 +106,7 @@ def test_example_00b_precom_floris_limited_time_regression():
     outputs are reasonable and consistent.
     """
     # Ensure centralized example inputs exist
-    ensure_example_inputs_exist()
+    generate_example_inputs()
 
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:

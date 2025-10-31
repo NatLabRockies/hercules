@@ -37,6 +37,12 @@ dependencies = [
 "polars~=1.0",
 "pyarrow",
 "h5py~=3.10",
+"NREL-rex[hsds]",
+"utm",
+"cartopy",
+"openmeteo_requests",
+"requests_cache",
+"retry_requests"
 ]
 
 [project.optional-dependencies]
