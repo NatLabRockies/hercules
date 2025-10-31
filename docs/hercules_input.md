@@ -140,6 +140,8 @@ The `load_hercules_input()` function performs strict validation on input files t
 
 - Required keys at the top level (`dt`, `starttime_utc`, `endtime_utc`, `plant`)
 - Valid UTC datetime strings (ISO 8601 format) for `starttime_utc` and `endtime_utc`
+  - Accepts: strings ending with "Z" (explicit UTC) or naive strings (no timezone)
+  - Rejects: strings with timezone offsets (e.g., `+05:00`, `-08:00`) since the field must be UTC
 - Logical time ordering (`endtime_utc` must be after `starttime_utc`)
 - Valid component types and configurations
 - Numeric validation for timing and power parameters

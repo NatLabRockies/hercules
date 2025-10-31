@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 import h5py
 import numpy as np
@@ -107,6 +108,54 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
+def _validate_utc_datetime_string(dt_str, field_name):
+    """Validate that a datetime string represents UTC time.
+
+    Accepts:
+    - Strings ending with "Z" (explicit UTC in ISO 8601 format)
+    - Naive strings with no timezone info (treated as UTC)
+
+    Rejects:
+    - Strings with timezone offsets (e.g., "+05:00", "-08:00")
+
+    Args:
+        dt_str (str): Datetime string to validate.
+        field_name (str): Name of the field being validated (for error messages).
+
+    Returns:
+        pd.Timestamp: UTC-aware timestamp.
+
+    Raises:
+        ValueError: If string contains timezone offset or is invalid.
+    """
+    if not isinstance(dt_str, str):
+        raise ValueError(f"{field_name} must be a string")
+
+    dt_str_stripped = dt_str.strip()
+
+    # Check for timezone offsets (not allowed since field name implies UTC)
+    # Timezone offsets come after 'T' or at the end
+    # Pattern matches timezone offsets like +05:00, -08:00, +05:30, etc.
+    tz_offset_pattern = r"[+-]\d{2}:\d{2}$|[T][\d:-]*[+-]\d{2}:\d{2}"
+    if re.search(tz_offset_pattern, dt_str_stripped):
+        raise ValueError(
+            f"{field_name} contains a timezone offset (e.g., +05:00, -08:00). "
+            f"Since the field is named '{field_name}', it must be UTC time. "
+            f"Use 'Z' to explicitly mark UTC (e.g., '2020-01-01T00:00:00Z') "
+            f"or use a naive string without timezone info."
+        )
+
+    # Parse with utc=True to ensure result is UTC
+    try:
+        return pd.to_datetime(dt_str, utc=True)
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"{field_name} must be a valid UTC datetime string in ISO 8601 format. "
+            f"Accepted formats: 'YYYY-MM-DDTHH:MM:SSZ' (with Z) or "
+            f"'YYYY-MM-DDTHH:MM:SS' (naive, treated as UTC). Error: {e}"
+        )
+
+
 def load_hercules_input(filename):
     """Load and validate Hercules input file.
 
@@ -145,14 +194,8 @@ def load_hercules_input(filename):
             raise ValueError(f"Required key {key} not found in input file {filename}")
 
     # Validate and convert starttime_utc and endtime_utc to pandas Timestamps
-    try:
-        starttime_utc = pd.to_datetime(h_dict["starttime_utc"], utc=True)
-        endtime_utc = pd.to_datetime(h_dict["endtime_utc"], utc=True)
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"starttime_utc and endtime_utc must be valid UTC datetime strings "
-            f"in input file {filename}: {e}"
-        )
+    starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
+    endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
 
     # Validate endtime_utc is after starttime_utc
     if endtime_utc <= starttime_utc:

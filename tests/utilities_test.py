@@ -361,6 +361,67 @@ def test_output_configuration_validation():
         load_hercules_input_from_dict(test_dict)
 
 
+def test_load_hercules_input_utc_validation():
+    """Test UTC datetime string validation.
+
+    Verifies that:
+    - Strings with 'Z' are accepted
+    - Naive strings are accepted
+    - Strings with timezone offsets are rejected
+    """
+    # Test accepted formats: explicit UTC with Z
+    valid_config_z = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00Z",
+        "endtime_utc": "2020-01-01T01:00:00Z",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    result = load_hercules_input_from_dict(valid_config_z)
+    assert isinstance(result["starttime_utc"], pd.Timestamp)
+    assert result["starttime_utc"].tz is not None
+
+    # Test accepted formats: naive string (treated as UTC)
+    valid_config_naive = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00",
+        "endtime_utc": "2020-01-01T01:00:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    result = load_hercules_input_from_dict(valid_config_naive)
+    assert isinstance(result["starttime_utc"], pd.Timestamp)
+    assert result["starttime_utc"].tz is not None
+
+    # Test rejected formats: timezone offset (positive)
+    invalid_config_positive_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00+05:00",
+        "endtime_utc": "2020-01-01T01:00:00+05:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_positive_offset)
+
+    # Test rejected formats: timezone offset (negative)
+    invalid_config_negative_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00-08:00",
+        "endtime_utc": "2020-01-01T01:00:00-08:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_negative_offset)
+
+    # Test rejected formats: UTC offset (even +00:00 should use Z)
+    invalid_config_utc_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00+00:00",
+        "endtime_utc": "2020-01-01T01:00:00+00:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_utc_offset)
+
+
 def load_hercules_input_from_dict(h_dict):
     """Helper function to test hercules input validation from a dictionary."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:

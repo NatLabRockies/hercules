@@ -24,6 +24,30 @@ starttime_utc: "2020-01-01T00:00:00Z"  # ISO 8601 format
 endtime_utc: "2020-01-01T01:00:00Z"    # 1 hour simulation
 ```
 
+### Datetime String Format (ISO 8601)
+
+Hercules accepts UTC datetime strings in **ISO 8601** format. The variable names `starttime_utc` and `endtime_utc` indicate that these times must represent UTC (Coordinated Universal Time).
+
+**Accepted formats:**
+- **Explicit UTC with "Z" suffix**: `"2020-01-01T00:00:00Z"` - The "Z" (Zulu time) explicitly marks the time as UTC
+- **Naive string (no timezone)**: `"2020-01-01T00:00:00"` - Without timezone info, treated as UTC
+
+**Rejected formats:**
+- **Timezone offsets**: `"2020-01-01T00:00:00+05:00"` or `"2020-01-01T00:00:00-08:00"` - These imply a different timezone, which contradicts the UTC requirement
+
+**About ISO 8601:**
+ISO 8601 is an international standard for representing dates and times. The format used by Hercules is:
+- Date: `YYYY-MM-DD` (year-month-day)
+- Separator: `T` (separates date and time)
+- Time: `HH:MM:SS` (24-hour format)
+- UTC marker: `Z` (optional but recommended for clarity)
+
+Examples:
+- `"2020-01-01T00:00:00Z"` - Midnight, January 1, 2020 UTC
+- `"2020-06-15T12:30:45Z"` - 12:30:45 PM, June 15, 2020 UTC
+
+When loading input files, Hercules validates that datetime strings don't contain timezone offsets and will raise a clear error if a non-UTC timezone is detected.
+
 ## Computed Time Values
 
 When Hercules loads your input file, it automatically computes:
