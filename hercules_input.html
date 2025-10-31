@@ -476,7 +476,7 @@ document.write(`
 <h2>Structure<a class="headerlink" href="#structure" title="Link to this heading">#</a></h2>
 <p>The input file structure mirrors the <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> structure documented in the <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict page</span></a>. Key sections include:</p>
 <ul class="simple">
-<li><p><strong>Top level parameters</strong>: <code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime</span></code> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for details)</p></li>
+<li><p><strong>Top level parameters</strong>: <code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for details)</p></li>
 <li><p><strong>Plant configuration</strong>: <code class="docutils literal notranslate"><span class="pre">interconnect_limit</span></code></p></li>
 <li><p><strong>Hybrid plant configurations</strong>: <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></li>
 <li><p><strong>Optional settings</strong>: <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">output_file</span></code></p></li>
@@ -487,7 +487,9 @@ document.write(`
 <p>The <code class="docutils literal notranslate"><span class="pre">load_hercules_input()</span></code> function in <code class="docutils literal notranslate"><span class="pre">utilities.py</span></code> performs comprehensive validation:</p>
 <ol class="arabic simple">
 <li><p>Loads the YAML file using the custom <code class="docutils literal notranslate"><span class="pre">Loader</span></code> class</p></li>
-<li><p>Validates required keys (<code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime</span></code>, <code class="docutils literal notranslate"><span class="pre">plant</span></code>)</p></li>
+<li><p>Validates required keys (<code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">plant</span></code>)</p></li>
+<li><p>Parses and validates UTC datetime strings for <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> and <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code></p></li>
+<li><p>Computes derived values: <code class="docutils literal notranslate"><span class="pre">starttime</span></code> (always 0.0) and <code class="docutils literal notranslate"><span class="pre">endtime</span></code> (duration in seconds)</p></li>
 <li><p>Ensures <code class="docutils literal notranslate"><span class="pre">plant.interconnect_limit</span></code> is present and numeric</p></li>
 <li><p>Validates component configurations and types</p></li>
 <li><p>Sets defaults for optional parameters (e.g., <code class="docutils literal notranslate"><span class="pre">verbose:</span> <span class="pre">False</span></code>)</p></li>
@@ -501,8 +503,8 @@ document.write(`
 <span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Wind and Solar Farm Simulation</span>
 
 <span class="nt">dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
-<span class="nt">starttime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="nt">endtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">950.0</span>
+<span class="nt">starttime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-01-01T00:00:00Z&quot;</span><span class="w">  </span><span class="c1"># Simulation start in UTC</span>
+<span class="nt">endtime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-01-01T00:15:50Z&quot;</span><span class="w">    </span><span class="c1"># Simulation end (15 min 50 sec later)</span>
 <span class="nt">verbose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
 
 <span class="nt">plant</span><span class="p">:</span>
@@ -589,8 +591,9 @@ document.write(`
 <h3>Example with Output Configuration<a class="headerlink" href="#example-with-output-configuration" title="Link to this heading">#</a></h3>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Advanced output configuration example</span>
 <span class="nt">dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
-<span class="nt">starttime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="nt">endtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600.0</span>
+<span class="nt">starttime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T12:00:00Z&quot;</span>
+<span class="nt">endtime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T13:00:00Z&quot;</span><span class="w">  </span><span class="c1"># 1 hour simulation</span>
+
 
 <span class="c1"># Log every 60 seconds (1 minute) to reduce file size</span>
 <span class="nt">log_every_n</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
@@ -622,7 +625,14 @@ document.write(`
 <h2>Validation<a class="headerlink" href="#validation" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">load_hercules_input()</span></code> function performs strict validation on input files to catch configuration errors early. This includes checking for:</p>
 <ul class="simple">
-<li><p>Required keys at the top level (<code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime</span></code>, <code class="docutils literal notranslate"><span class="pre">plant</span></code>)</p></li>
+<li><p>Required keys at the top level (<code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">plant</span></code>)</p></li>
+<li><p>Valid UTC datetime strings (ISO 8601 format) for <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> and <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code></p>
+<ul>
+<li><p>Accepts: strings ending with “Z” (explicit UTC) or naive strings (no timezone)</p></li>
+<li><p>Rejects: strings with timezone offsets (e.g., <code class="docutils literal notranslate"><span class="pre">+05:00</span></code>, <code class="docutils literal notranslate"><span class="pre">-08:00</span></code>) since the field must be UTC</p></li>
+</ul>
+</li>
+<li><p>Logical time ordering (<code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code> must be after <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>)</p></li>
 <li><p>Valid component types and configurations</p></li>
 <li><p>Numeric validation for timing and power parameters</p></li>
 <li><p>File existence checks for referenced input files</p></li>

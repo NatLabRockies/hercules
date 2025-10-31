@@ -441,11 +441,23 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#important-metadata">Important Metadata</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consistency">Consistency</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">Logging</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diagram">Diagram</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datetime-string-format-iso-8601">Datetime String Format (ISO 8601)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-local-time-to-utc">Converting Local Time to UTC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-time-values">Computed Time Values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-file-requirements">Data File Requirements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-and-solar-input-data">Wind and Solar Input Data</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-coordinate-system">Time Coordinate System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-files">Output Files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-compatibility">Backward Compatibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consistency-validation">Consistency Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#best-practices">Best Practices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-complete-timing-setup">Example: Complete Timing Setup</a></li>
 </ul>
             </nav>
         </div>
@@ -459,50 +471,219 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="timing">
 <h1>Timing<a class="headerlink" href="#timing" title="Link to this heading">#</a></h1>
-<p>Timing in Hercules is specified by two primary variables:</p>
+<p>Hercules uses a simplified, UTC-first time model where all simulations are referenced to coordinated universal time (UTC).</p>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">#</a></h2>
+<p>Timing in Hercules is specified using two complementary representations:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> (float): Time in seconds from <code class="docutils literal notranslate"><span class="pre">time=0</span></code> and the <code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code> value</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code> (datetime): Time in UTC (Coordinated Universal Time)</p></li>
-</ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">time</span></code> variable is always mandatory, while <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> may be required for certain components (e.g., solar components).</p>
-<section id="important-metadata">
-<h2>Important Metadata<a class="headerlink" href="#important-metadata" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code>: The UTC time corresponding to <code class="docutils literal notranslate"><span class="pre">time==0</span></code>. This is implied by the input data and doesn’t need to be specified explicitly.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">starttime</span></code>: The simulation start time value. Required in the <a class="reference internal" href="hercules_input.html"><span class="std std-doc">input file</span></a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">start_time_utc</span></code>: The UTC time corresponding to <code class="docutils literal notranslate"><span class="pre">starttime</span></code>. Implied by the data.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">endtime</span></code>: The simulation end time value.  Required in the <a class="reference internal" href="hercules_input.html"><span class="std std-doc">input file</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> (float): Simulation time in seconds, where <code class="docutils literal notranslate"><span class="pre">time=0</span></code> corresponds to <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code> (datetime): Absolute UTC timestamp</p></li>
 </ul>
 </section>
 <section id="input-requirements">
 <h2>Input Requirements<a class="headerlink" href="#input-requirements" title="Link to this heading">#</a></h2>
-<p>Both <a class="reference internal" href="wind.html"><span class="std std-doc">wind</span></a> and <a class="reference internal" href="solar_pv.html"><span class="std std-doc">solar</span></a> inputs require a <code class="docutils literal notranslate"><span class="pre">time</span></code> column, while <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> is optional for wind and mandatory for solar. A top-level <code class="docutils literal notranslate"><span class="pre">time</span></code> column is constructed based on the time step (<code class="docutils literal notranslate"><span class="pre">dt</span></code>) specified in the <a class="reference internal" href="hercules_input.html"><span class="std std-doc">input file</span></a> and logged at the top level of <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>.</p>
+<p>All Hercules input files must specify start and end times using UTC datetime strings:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>: The UTC datetime when the simulation begins (required in input YAML)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code>: The UTC datetime when the simulation ends (required in input YAML)</p></li>
+</ul>
+<p>These are the ONLY time parameters you need to specify in your input file. Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="nt">starttime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-01-01T00:00:00Z&quot;</span><span class="w">  </span><span class="c1"># ISO 8601 format</span>
+<span class="nt">endtime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-01-01T01:00:00Z&quot;</span><span class="w">    </span><span class="c1"># 1 hour simulation</span>
+</pre></div>
+</div>
+<section id="datetime-string-format-iso-8601">
+<h3>Datetime String Format (ISO 8601)<a class="headerlink" href="#datetime-string-format-iso-8601" title="Link to this heading">#</a></h3>
+<p>Hercules accepts UTC datetime strings in <strong>ISO 8601</strong> format. The variable names <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> and <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code> indicate that these times must represent UTC (Coordinated Universal Time).</p>
+<p><strong>Accepted formats:</strong></p>
+<ul class="simple">
+<li><p><strong>Explicit UTC with “Z” suffix</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;2020-01-01T00:00:00Z&quot;</span></code> - The “Z” (Zulu time) explicitly marks the time as UTC</p></li>
+<li><p><strong>Naive string (no timezone)</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;2020-01-01T00:00:00&quot;</span></code> - Without timezone info, treated as UTC</p></li>
+</ul>
+<p><strong>Rejected formats:</strong></p>
+<ul class="simple">
+<li><p><strong>Timezone offsets</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;2020-01-01T00:00:00+05:00&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;2020-01-01T00:00:00-08:00&quot;</span></code> - These imply a different timezone, which contradicts the UTC requirement</p></li>
+</ul>
+<p><strong>About ISO 8601:</strong>
+ISO 8601 is an international standard for representing dates and times. The format used by Hercules is:</p>
+<ul class="simple">
+<li><p>Date: <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code> (year-month-day)</p></li>
+<li><p>Separator: <code class="docutils literal notranslate"><span class="pre">T</span></code> (separates date and time)</p></li>
+<li><p>Time: <code class="docutils literal notranslate"><span class="pre">HH:MM:SS</span></code> (24-hour format)</p></li>
+<li><p>UTC marker: <code class="docutils literal notranslate"><span class="pre">Z</span></code> (optional but recommended for clarity)</p></li>
+</ul>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;2020-01-01T00:00:00Z&quot;</span></code> - Midnight, January 1, 2020 UTC</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;2020-06-15T12:30:45Z&quot;</span></code> - 12:30:45 PM, June 15, 2020 UTC</p></li>
+</ul>
+<p>When loading input files, Hercules validates that datetime strings don’t contain timezone offsets and will raise a clear error if a non-UTC timezone is detected.</p>
 </section>
-<section id="consistency">
-<h2>Consistency<a class="headerlink" href="#consistency" title="Link to this heading">#</a></h2>
-<p>When both wind and solar inputs contain <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> columns, the <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> class ensures their <code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code> and <code class="docutils literal notranslate"><span class="pre">start_time_utc</span></code> values are consistent and brings them to the top level of <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>.</p>
+<section id="converting-local-time-to-utc">
+<h3>Converting Local Time to UTC<a class="headerlink" href="#converting-local-time-to-utc" title="Link to this heading">#</a></h3>
+<p>If you only know your local time and need to convert it to UTC (accounting for daylight saving time), Hercules provides a utility function to help:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">local_time_to_utc</span>
+
+<span class="c1"># Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)</span>
+<span class="n">utc_time_jan</span> <span class="o">=</span> <span class="n">local_time_to_utc</span><span class="p">(</span><span class="s2">&quot;2025-01-01T00:00:00&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;America/Denver&quot;</span><span class="p">)</span>
+<span class="c1"># Returns: &quot;2025-01-01T07:00:00Z&quot;</span>
+
+<span class="c1"># Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST in effect)</span>
+<span class="n">utc_time_july</span> <span class="o">=</span> <span class="n">local_time_to_utc</span><span class="p">(</span><span class="s2">&quot;2025-07-01T00:00:00&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;America/Denver&quot;</span><span class="p">)</span>
+<span class="c1"># Returns: &quot;2025-07-01T06:00:00Z&quot;</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">tz</span></code> parameter is <strong>required</strong>. You must specify your timezone using IANA timezone names.</p>
+<p><strong>Available Timezone Names:</strong></p>
+<p>Common timezone names:</p>
+<ul class="simple">
+<li><p><strong>US</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;America/New_York&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;America/Chicago&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;America/Denver&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;America/Los_Angeles&quot;</span></code></p></li>
+<li><p><strong>Europe</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;Europe/London&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Europe/Paris&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Europe/Berlin&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Europe/Madrid&quot;</span></code></p></li>
+<li><p><strong>Asia</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;Asia/Tokyo&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Asia/Shanghai&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Asia/Dubai&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Asia/Kolkata&quot;</span></code></p></li>
+<li><p><strong>Pacific</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;Pacific/Auckland&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Pacific/Honolulu&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Pacific/Sydney&quot;</span></code></p></li>
+</ul>
+<p><strong>Complete list of timezones:</strong></p>
+<p>For a complete list of all available IANA timezone names, see:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia: List of tz database time zones</a></p></li>
+<li><p>Or in Python:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">zoneinfo</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">zoneinfo</span><span class="o">.</span><span class="n">available_timezones</span><span class="p">()))</span>
+</pre></div>
+</div>
+<p>The function automatically handles daylight saving time conversions based on the date you provide.</p>
+<p><strong>Example usage in your input YAML:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">local_time_to_utc</span>
+
+<span class="c1"># If you want midnight local time (Mountain Time) on Jan 1, 2025</span>
+<span class="n">start_utc</span> <span class="o">=</span> <span class="n">local_time_to_utc</span><span class="p">(</span><span class="s2">&quot;2025-01-01T00:00:00&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;America/Denver&quot;</span><span class="p">)</span>
+<span class="n">end_utc</span> <span class="o">=</span> <span class="n">local_time_to_utc</span><span class="p">(</span><span class="s2">&quot;2025-07-01T00:00:00&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;America/Denver&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use these values in your YAML:</span>
+<span class="c1"># starttime_utc: &quot;2025-01-01T07:00:00Z&quot;</span>
+<span class="c1"># endtime_utc: &quot;2025-07-01T06:00:00Z&quot;</span>
+</pre></div>
+</div>
 </section>
-<section id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">#</a></h2>
-<p>To save space, <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> is not logged. However, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code>, and <code class="docutils literal notranslate"><span class="pre">start_time_utc</span></code> are logged, allowing <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> to be reconstructed during <a class="reference internal" href="output_files.html"><span class="std std-doc">post-processing</span></a>.</p>
 </section>
-<section id="diagram">
-<h2>Diagram<a class="headerlink" href="#diagram" title="Link to this heading">#</a></h2>
+<section id="computed-time-values">
+<h2>Computed Time Values<a class="headerlink" href="#computed-time-values" title="Link to this heading">#</a></h2>
+<p>When Hercules loads your input file, it automatically computes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">starttime</span></code>: Always 0.0 (seconds)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endtime</span></code>: Simulation duration in seconds, computed as <code class="docutils literal notranslate"><span class="pre">(endtime_utc</span> <span class="pre">-</span> <span class="pre">starttime_utc).total_seconds()</span></code></p></li>
+</ul>
+<p>For the example above, <code class="docutils literal notranslate"><span class="pre">endtime</span></code> would be 3600.0 seconds.</p>
+</section>
+<section id="data-file-requirements">
+<h2>Data File Requirements<a class="headerlink" href="#data-file-requirements" title="Link to this heading">#</a></h2>
+<section id="wind-and-solar-input-data">
+<h3>Wind and Solar Input Data<a class="headerlink" href="#wind-and-solar-input-data" title="Link to this heading">#</a></h3>
+<p>Both wind and solar input CSV/Feather/Parquet files must contain a <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column with UTC timestamps:</p>
+<div class="highlight-csv notranslate"><div class="highlight"><pre><span></span>time_utc,wd_mean,ws_000,ws_001,ws_002
+2020-01-01T00:00:00Z,270.0,8.0,8.1,8.2
+2020-01-01T00:00:01Z,270.5,8.1,8.2,8.3
+...
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">time</span></code> column (numeric seconds from t=0) is computed internally by Hercules components and should NOT be included in your input files.</p>
+</section>
+</section>
+<section id="time-coordinate-system">
+<h2>Time Coordinate System<a class="headerlink" href="#time-coordinate-system" title="Link to this heading">#</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Timeline Visualization:
 
-time (seconds):    0 -------- starttime -------- endtime
-                   |           |               |
-                   |           |               |
-time_utc:          |           |               |
-                   |           |               |
-                   v           v               v
-                   zero_time_utc start_time_utc end_time_utc
-                   (datetime)   (datetime)     (datetime)
+time (seconds):    0.0 ----------- duration (endtime) -----------&gt;
+                   |                                        |
+                   |                                        |
+time_utc:          |                                        |
+                   v                                        v
+                   starttime_utc                         endtime_utc
+                   (datetime)                            (datetime)
 
 Key Points:
-• time=0 corresponds to zero_time_utc
-• starttime corresponds to start_time_utc  
-• time_utc can be calculated as: zero_time_utc + timedelta(seconds=time)
+• time=0 corresponds to starttime_utc
+• time is always relative to starttime_utc
+• All times advance together: time_utc = starttime_utc + timedelta(seconds=time)
+</pre></div>
+</div>
+</section>
+<section id="output-files">
+<h2>Output Files<a class="headerlink" href="#output-files" title="Link to this heading">#</a></h2>
+<p>Hercules output HDF5 files store:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> array: Simulation time points (seconds from t=0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code> array: Simulation step numbers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> metadata: Starting UTC timestamp (Unix timestamp format)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column: Reconstructed UTC timestamps for each time point</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column in output data is reconstructed during read using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">time_utc</span> <span class="o">=</span> <span class="n">starttime_utc</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="backward-compatibility">
+<h2>Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Link to this heading">#</a></h2>
+<p><strong>Note for users with old output files:</strong> Hercules maintains backward compatibility with output files created before this timing model change. Old files may contain <code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code> metadata instead of <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>. The output reader automatically handles both formats.</p>
+</section>
+<section id="consistency-validation">
+<h2>Consistency Validation<a class="headerlink" href="#consistency-validation" title="Link to this heading">#</a></h2>
+<p>When multiple plant components (wind, solar) provide time-series data:</p>
+<ol class="arabic simple">
+<li><p>All input data files must contain <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> columns</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> class validates that all components’ <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> values match</p></li>
+<li><p>A single <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> value is promoted to the top level of <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
+</ol>
+<p>This ensures temporal consistency across all simulation components.</p>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Always use UTC timestamps</strong> in your input files to avoid timezone confusion</p></li>
+<li><p><strong>Use ISO 8601 format</strong> for datetime strings: <code class="docutils literal notranslate"><span class="pre">&quot;YYYY-MM-DDTHH:MM:SSZ&quot;</span></code></p></li>
+<li><p><strong>Ensure data coverage</strong>: Your input data files must cover the full range from <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> to <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code></p></li>
+<li><p><strong>Don’t include <code class="docutils literal notranslate"><span class="pre">time</span></code> columns</strong> in your input CSV files - Hercules computes these internally</p></li>
+<li><p><strong>Match your dt</strong>: Ensure your input data’s temporal resolution is compatible with your simulation <code class="docutils literal notranslate"><span class="pre">dt</span></code></p></li>
+</ol>
+</section>
+<section id="example-complete-timing-setup">
+<h2>Example: Complete Timing Setup<a class="headerlink" href="#example-complete-timing-setup" title="Link to this heading">#</a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># hercules_input.yaml</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example_simulation</span>
+<span class="nt">dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">  </span><span class="c1"># seconds</span>
+
+<span class="c1"># Specify UTC times (REQUIRED)</span>
+<span class="nt">starttime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T12:00:00Z&quot;</span>
+<span class="nt">endtime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T13:00:00Z&quot;</span><span class="w">  </span><span class="c1"># 1 hour simulation</span>
+
+<span class="nt">plant</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">interconnect_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50000</span><span class="w">  </span><span class="c1"># kW</span>
+
+<span class="nt">wind_farm</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Wind_MesoToPower</span>
+<span class="w">  </span><span class="nt">wind_input_filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inputs/wind_data.ftr</span>
+<span class="w">  </span><span class="c1"># wind_data.ftr must have time_utc column covering the simulation period</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</pre></div>
+</div>
+<p>Your <code class="docutils literal notranslate"><span class="pre">wind_data.ftr</span></code> file should contain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">time_utc</span>                 <span class="o">|</span> <span class="n">wd_mean</span> <span class="o">|</span> <span class="n">ws_000</span> <span class="o">|</span> <span class="n">ws_001</span> <span class="o">|</span> <span class="o">...</span>
+<span class="o">-------------------------|---------|--------|--------|----</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T12</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">270.0</span>   <span class="o">|</span> <span class="mf">8.0</span>    <span class="o">|</span> <span class="mf">8.1</span>    <span class="o">|</span> <span class="o">...</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T12</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">01</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">270.1</span>   <span class="o">|</span> <span class="mf">8.0</span>    <span class="o">|</span> <span class="mf">8.1</span>    <span class="o">|</span> <span class="o">...</span>
+<span class="o">...</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T13</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">271.5</span>   <span class="o">|</span> <span class="mf">8.2</span>    <span class="o">|</span> <span class="mf">8.3</span>    <span class="o">|</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Hercules will automatically compute the <code class="docutils literal notranslate"><span class="pre">time</span></code> column internally:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">time_utc</span>                 <span class="o">|</span> <span class="n">time</span> <span class="o">|</span> <span class="o">...</span>
+<span class="o">-------------------------|------|----</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T12</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">0.0</span>  <span class="o">|</span> <span class="o">...</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T12</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">01</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">1.0</span>  <span class="o">|</span> <span class="o">...</span>
+<span class="o">...</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">15</span><span class="n">T13</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span>     <span class="o">|</span> <span class="mf">3600.0</span> <span class="o">|</span> <span class="o">...</span>
 </pre></div>
 </div>
 </section>
@@ -572,11 +753,23 @@ Key Points:
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#important-metadata">Important Metadata</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consistency">Consistency</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">Logging</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diagram">Diagram</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datetime-string-format-iso-8601">Datetime String Format (ISO 8601)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-local-time-to-utc">Converting Local Time to UTC</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-time-values">Computed Time Values</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-file-requirements">Data File Requirements</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-and-solar-input-data">Wind and Solar Input Data</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-coordinate-system">Time Coordinate System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-files">Output Files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-compatibility">Backward Compatibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consistency-validation">Consistency Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#best-practices">Best Practices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-complete-timing-setup">Example: Complete Timing Setup</a></li>
 </ul>
   </nav></div>
 

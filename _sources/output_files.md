@@ -37,10 +37,12 @@ hercules_output.h5
     ├── dt_sim                  # Simulation time step (seconds)
     ├── dt_log                  # Logging time step (seconds)
     ├── log_every_n             # Logging stride value
+    ├── starttime               # Simulation start time (always 0.0 seconds)
+    ├── endtime                 # Simulation end time (duration in seconds)
     ├── start_clock_time        # Simulation start wall clock time
     ├── end_clock_time          # Simulation end wall clock time
-    ├── start_time_utc          # Simulation start UTC time (if any component data contains time_utc)
-    ├── zero_time_utc           # Simulation zero UTC time (if any component data contains time_utc)
+    ├── total_time_wall         # Total wall clock time for simulation
+    ├── starttime_utc           # Simulation start UTC time (Unix timestamp)
     └── ...                     # Other metadata attributes
 ```
 
@@ -93,7 +95,7 @@ from hercules.utilities import get_hercules_metadata
 # Get simulation metadata
 metadata = get_hercules_metadata("outputs/hercules_output.h5")
 print(f"Simulation configuration: {metadata['h_dict']}")
-print(f"Start time: {metadata.get('start_time_utc')}")
+print(f"Start time: {metadata.get('starttime_utc')}")
 ```
 
 ### Convenience Class
@@ -126,7 +128,7 @@ The `HerculesOutput` class provides a convenient interface while still allowing 
 
 ### Time UTC Reconstruction
 
-If any component input data contains `time_utc` columns, the utilities can reconstruct UTC timestamps for each simulation step:
+The `read_hercules_hdf5()` function automatically reconstructs UTC timestamps for each simulation step using the stored `starttime_utc` metadata:
 
 ```python
 from hercules.utilities import read_hercules_hdf5
@@ -135,4 +137,20 @@ from hercules.utilities import read_hercules_hdf5
 df = read_hercules_hdf5("outputs/hercules_output.h5")
 if "time_utc" in df.columns:
     print(f"UTC timestamps available: {df['time_utc'].head()}")
+```
+
+The reconstruction formula is:
+```python
+time_utc = starttime_utc + timedelta(seconds=time)
+```
+
+## Backward Compatibility
+
+Hercules maintains backward compatibility with output files created before the timing model changes (prior to version 2.0). Old output files may contain:
+
+- `zero_time_utc` instead of `starttime_utc`
+- Different metadata field names
+
+The `HerculesOutput` class and reading utilities automatically handle both old and new formats, so you can read any Hercules output file regardless of when it was created.
+
 ```

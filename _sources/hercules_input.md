@@ -10,7 +10,7 @@ Input files use YAML format for readability and flexibility. The `Loader` class 
 
 The input file structure mirrors the `h_dict` structure documented in the [h_dict page](h_dict.md). Key sections include:
 
-- **Top level parameters**: `dt`, `starttime`, `endtime` (see [timing](timing.md) for details)
+- **Top level parameters**: `dt`, `starttime_utc`, `endtime_utc` (see [timing](timing.md) for details)
 - **Plant configuration**: `interconnect_limit`
 - **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
@@ -21,10 +21,12 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 The `load_hercules_input()` function in `utilities.py` performs comprehensive validation:
 
 1. Loads the YAML file using the custom `Loader` class
-2. Validates required keys (`dt`, `starttime`, `endtime`, `plant`)
-3. Ensures `plant.interconnect_limit` is present and numeric
-4. Validates component configurations and types
-5. Sets defaults for optional parameters (e.g., `verbose: False`)
+2. Validates required keys (`dt`, `starttime_utc`, `endtime_utc`, `plant`)
+3. Parses and validates UTC datetime strings for `starttime_utc` and `endtime_utc`
+4. Computes derived values: `starttime` (always 0.0) and `endtime` (duration in seconds)
+5. Ensures `plant.interconnect_limit` is present and numeric
+6. Validates component configurations and types
+7. Sets defaults for optional parameters (e.g., `verbose: False`)
 
 ## Example
 
@@ -35,8 +37,8 @@ name: example_simulation
 description: Wind and Solar Farm Simulation
 
 dt: 1.0
-starttime: 0.0
-endtime: 950.0
+starttime_utc: "2020-01-01T00:00:00Z"  # Simulation start in UTC
+endtime_utc: "2020-01-01T00:15:50Z"    # Simulation end (15 min 50 sec later)
 verbose: False
 
 plant:
@@ -122,8 +124,9 @@ Controls the memory buffer size for writing data (default: 50000 rows). Larger b
 ```yaml
 # Advanced output configuration example
 dt: 1.0
-starttime: 0.0
-endtime: 3600.0
+starttime_utc: "2020-06-15T12:00:00Z"
+endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
+
 
 # Log every 60 seconds (1 minute) to reduce file size
 log_every_n: 60
@@ -153,7 +156,11 @@ controller:
 
 The `load_hercules_input()` function performs strict validation on input files to catch configuration errors early. This includes checking for:
 
-- Required keys at the top level (`dt`, `starttime`, `endtime`, `plant`)
+- Required keys at the top level (`dt`, `starttime_utc`, `endtime_utc`, `plant`)
+- Valid UTC datetime strings (ISO 8601 format) for `starttime_utc` and `endtime_utc`
+  - Accepts: strings ending with "Z" (explicit UTC) or naive strings (no timezone)
+  - Rejects: strings with timezone offsets (e.g., `+05:00`, `-08:00`) since the field must be UTC
+- Logical time ordering (`endtime_utc` must be after `starttime_utc`)
 - Valid component types and configurations
 - Numeric validation for timing and power parameters
 - File existence checks for referenced input files

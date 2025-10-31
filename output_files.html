@@ -451,6 +451,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time-utc-reconstruction">Time UTC Reconstruction</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-compatibility">Backward Compatibility</a></li>
 </ul>
             </nav>
         </div>
@@ -498,10 +499,12 @@ document.write(`
     ├── dt_sim                  # Simulation time step (seconds)
     ├── dt_log                  # Logging time step (seconds)
     ├── log_every_n             # Logging stride value
+    ├── starttime               # Simulation start time (always 0.0 seconds)
+    ├── endtime                 # Simulation end time (duration in seconds)
     ├── start_clock_time        # Simulation start wall clock time
     ├── end_clock_time          # Simulation end wall clock time
-    ├── start_time_utc          # Simulation start UTC time (if any component data contains time_utc)
-    ├── zero_time_utc           # Simulation zero UTC time (if any component data contains time_utc)
+    ├── total_time_wall         # Total wall clock time for simulation
+    ├── starttime_utc           # Simulation start UTC time (Unix timestamp)
     └── ...                     # Other metadata attributes
 </pre></div>
 </div>
@@ -552,7 +555,7 @@ document.write(`
 <span class="c1"># Get simulation metadata</span>
 <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_hercules_metadata</span><span class="p">(</span><span class="s2">&quot;outputs/hercules_output.h5&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation configuration: </span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;h_dict&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Start time: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time_utc&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Start time: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;starttime_utc&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -584,7 +587,7 @@ document.write(`
 </section>
 <section id="time-utc-reconstruction">
 <h3>Time UTC Reconstruction<a class="headerlink" href="#time-utc-reconstruction" title="Link to this heading">#</a></h3>
-<p>If any component input data contains <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> columns, the utilities can reconstruct UTC timestamps for each simulation step:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">read_hercules_hdf5()</span></code> function automatically reconstructs UTC timestamps for each simulation step using the stored <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> metadata:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_hercules_hdf5</span>
 
 <span class="c1"># Read data with reconstructed time_utc</span>
@@ -593,7 +596,23 @@ document.write(`
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;UTC timestamps available: </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;time_utc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>The reconstruction formula is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">time_utc</span> <span class="o">=</span> <span class="n">starttime_utc</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
+</section>
+<section id="backward-compatibility">
+<h2>Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Link to this heading">#</a></h2>
+<p>Hercules maintains backward compatibility with output files created before the timing model changes (prior to version 2.0). Old output files may contain:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zero_time_utc</span></code> instead of <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code></p></li>
+<li><p>Different metadata field names</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">HerculesOutput</span></code> class and reading utilities automatically handle both old and new formats, so you can read any Hercules output file regardless of when it was created.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -671,6 +690,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time-utc-reconstruction">Time UTC Reconstruction</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backward-compatibility">Backward Compatibility</a></li>
 </ul>
   </nav></div>
 
