@@ -22,6 +22,7 @@ parts:
   - caption: Inputs
     chapters:
     - file: hercules_input
+    - file: resource_downloading
   - caption: Examples
     chapters:
     - file: examples_overview
@@ -33,11 +34,3 @@ parts:
   - caption: Usage
     chapters:
     - file: order_of_op
-
-
-
-
-
-
-
-

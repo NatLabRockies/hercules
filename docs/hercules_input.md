@@ -122,7 +122,7 @@ Controls the memory buffer size for writing data (default: 50000 rows). Larger b
 ```yaml
 # Advanced output configuration example
 dt: 1.0
-starttime: 0.0  
+starttime: 0.0
 endtime: 3600.0
 
 # Log every 60 seconds (1 minute) to reduce file size
@@ -160,4 +160,4 @@ The `load_hercules_input()` function performs strict validation on input files t
 - Output configuration validation (`log_every_n` must be a positive integer)
 - Component-specific validation (e.g., `log_channels` must be a list of valid channel names)
 
-Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging. 
+Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging.
