@@ -1,4 +1,6 @@
-# Process the results of the grid status download using generate_locational_marginal_price_dataframe
+# Process the results of the grid status download using generate_locational_marginal_price_dataframe.
+# The output dataframe is formatted for use as external data in Hercules and includes convenient 
+# forward hours of day ahead for certain WHOC applications.
 
 import pandas as pd
 from hercules.grid.grid_utilities import generate_locational_marginal_price_dataframe
