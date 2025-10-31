@@ -1,6 +1,6 @@
 # Solar PV
 
-The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Renewable Energy Laboratory's System Advisor Model (SAM) to predict the power output of the solar PV plant. 
+The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Renewable Energy Laboratory's System Advisor Model (SAM) to predict the power output of the solar PV plant.
 
 Presently only one solar simulator is available
 
@@ -11,7 +11,7 @@ Presently only one solar simulator is available
 ### Inputs
 
 Both models require an input weather file:
-1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include: 
+1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:
     - timestamp (see [timing](timing.md) for time format requirements)
     - direct normal irradiance (DNI)
     - diffuse horizontal irradiance (DHI)

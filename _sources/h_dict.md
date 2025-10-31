@@ -79,4 +79,3 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `costs` | dict | Cost parameters |
 | `cell_params` | dict | Cell parameters |
 | `degradation` | dict | Degradation parameters |
-

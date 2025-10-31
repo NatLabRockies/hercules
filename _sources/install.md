@@ -66,7 +66,7 @@ git switch v2
 
 ## Wind Hybrid Open Controller (WHOC)
 
-NREL's Wind Hybrid Open Controller (WHOC) software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform. 
+NREL's Wind Hybrid Open Controller (WHOC) software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.
 
 
 To install:
@@ -82,7 +82,7 @@ pip install -e .
 
 ## Electrolyzer
 
-A python electrolyzer model is also required for hercules. To install 
+A python electrolyzer model is also required for hercules. To install
 the electrolyzer, use
 
 ```bash
@@ -92,7 +92,3 @@ cd electrolyzer
 git fetch --all
 git switch main
 ```
-
-
-
-
