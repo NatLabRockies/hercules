@@ -35,7 +35,30 @@ The PVWatts model is configured with the following hardcoded parameters for util
 
 The array tilt angle must be specified in the input configuration file.
 
-When `log_extra_outputs` is set to `True` in the input .yaml file, the solar modules also output plane-of-array irradiance (`poa`) in W/m^2, direct normal irradiance (`dni`) in W/m^2, and the angle of incidence (`aoi`) in degrees.
+### Logging Configuration
+
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
+
+**Available Channels:**
+- `power`: DC power output in kW (always logged)
+- `poa`: Plane-of-array irradiance in W/m²
+- `dni`: Direct normal irradiance in W/m²
+- `aoi`: Angle of incidence in degrees
+
+**Example:**
+```yaml
+solar_farm:
+  component_type: SolarPySAMPVWatts
+  solar_input_filename: inputs/solar_input.csv
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
+  # ... other parameters
+```
+
+If `log_channels` is not specified, only `power` will be logged.
 
 ### Efficiency and Loss Parameters
 

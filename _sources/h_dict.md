@@ -31,12 +31,13 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **Hybrid Plant Components** |
 
 ### Wind Farm (`wind_farm`)
-| `component_type` | str | Must be "Wind_MesoToPower" |
+| `component_type` | str | Must be "Wind_MesoToPower" or "Wind_MesoToPowerPrecomFloris" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |
 | `log_file_name` | str | Wind farm log file path |
-| `logging_option` | str | Logging level: "base", "turb_subset", or "all" |
+| `log_channels` | list | List of channels to log (e.g., ["power", "wind_speed_mean_background", "turbine_powers"]) |
+| `floris_update_time_s` | float | How often to update FLORIS wake calculations in seconds |
 
 ### Solar Farm (`solar_farm`)
 | `component_type` | str | "SolarPySAMPVWatts" |
@@ -48,6 +49,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
+| `log_channels` | list | List of channels to log (e.g., ["power", "dni", "poa", "aoi"]) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
 ### Battery (`battery`)
@@ -61,6 +63,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `min_SOC` | float | Minimum state of charge (0-1) | Required |
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
+| `log_channels` | list | List of channels to log (e.g., ["power", "soc", "power_setpoint"]) | ["power"] |
 | `roundtrip_efficiency` | float | Roundtrip efficiency (BatterySimple only) | 1.0 |
 | `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatterySimple only) | inf |
 | `track_usage` | bool | Enable usage tracking (BatterySimple only) | False |

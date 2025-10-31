@@ -479,10 +479,18 @@ document.write(`
 │   ├── plant_power             # Total plant power output
 │   ├── plant_locally_generated_power  # Locally generated power
 │   ├── components/
-│   │   ├── wind_farm.power     # Wind farm power output
-│   │   ├── wind_farm.wind_speed # Wind speed at hub height
-│   │   ├── solar_farm.power    # Solar farm power output
-│   │   └── ...                 # Other component outputs
+│   │   ├── wind_farm.power                   # Wind farm power output
+│   │   ├── wind_farm.wind_speed_mean_background # Farm-average background wind speed
+│   │   ├── wind_farm.wind_speed_mean_withwakes   # Farm-average with-wakes wind speed
+│   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
+│   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
+│   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
+│   │   ├── solar_farm.power                  # Solar farm power output
+│   │   ├── solar_farm.dni                    # Direct normal irradiance (if logged)
+│   │   ├── solar_farm.poa                    # Plane-of-array irradiance (if logged)
+│   │   ├── battery.power                     # Battery power (if present)
+│   │   ├── battery.soc                       # Battery state of charge (if logged)
+│   │   └── ...                               # Other component outputs
 │   └── external_signals/
 │       └── ...                 # Other external signals
 └── metadata/
@@ -519,7 +527,7 @@ document.write(`
 <span class="c1"># Read specific columns</span>
 <span class="n">df_subset</span> <span class="o">=</span> <span class="n">read_hercules_hdf5_subset</span><span class="p">(</span>
     <span class="s2">&quot;outputs/hercules_output.h5&quot;</span><span class="p">,</span>
-    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind_farm.power&quot;</span><span class="p">,</span> <span class="s2">&quot;solar_farm.power&quot;</span><span class="p">,</span> <span class="s2">&quot;external_signals.wind_speed&quot;</span><span class="p">]</span>
+    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind_farm.power&quot;</span><span class="p">,</span> <span class="s2">&quot;wind_farm.wind_speed_mean_background&quot;</span><span class="p">,</span> <span class="s2">&quot;solar_farm.power&quot;</span><span class="p">]</span>
 <span class="p">)</span>
 
 <span class="c1"># Read specific time range (seconds)</span>

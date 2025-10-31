@@ -48,7 +48,11 @@ wind_farm:
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
-  logging_option: all
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
   floris_update_time_s: 30.0
 
 solar_farm:
@@ -59,6 +63,11 @@ solar_farm:
   elev: 1829
   system_capacity: 10000  # kW (10 MW)
   tilt: 0  # degrees
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
   initial_conditions:
     power: 2000  # kW
     dni: 1000
@@ -71,6 +80,10 @@ battery:
   discharge_rate: 50.0  # MW
   max_SOC: 0.95
   min_SOC: 0.05
+  log_channels:
+    - power
+    - soc
+    - power_setpoint
   initial_conditions:
     SOC: 0.5
 
@@ -126,7 +139,11 @@ wind_farm:
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
-  logging_option: all
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
   floris_update_time_s: 30.0
 
 controller:
@@ -141,6 +158,6 @@ The `load_hercules_input()` function performs strict validation on input files t
 - Numeric validation for timing and power parameters
 - File existence checks for referenced input files
 - Output configuration validation (`log_every_n` must be a positive integer)
-- Component-specific validation (e.g., wind farm `logging_option` must be "base", "turb_subset", or "all")
+- Component-specific validation (e.g., `log_channels` must be a list of valid channel names)
 
 Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging.

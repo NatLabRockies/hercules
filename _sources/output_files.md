@@ -18,10 +18,18 @@ hercules_output.h5
 │   ├── plant_power             # Total plant power output
 │   ├── plant_locally_generated_power  # Locally generated power
 │   ├── components/
-│   │   ├── wind_farm.power     # Wind farm power output
-│   │   ├── wind_farm.wind_speed # Wind speed at hub height
-│   │   ├── solar_farm.power    # Solar farm power output
-│   │   └── ...                 # Other component outputs
+│   │   ├── wind_farm.power                   # Wind farm power output
+│   │   ├── wind_farm.wind_speed_mean_background # Farm-average background wind speed
+│   │   ├── wind_farm.wind_speed_mean_withwakes   # Farm-average with-wakes wind speed
+│   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
+│   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
+│   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
+│   │   ├── solar_farm.power                  # Solar farm power output
+│   │   ├── solar_farm.dni                    # Direct normal irradiance (if logged)
+│   │   ├── solar_farm.poa                    # Plane-of-array irradiance (if logged)
+│   │   ├── battery.power                     # Battery power (if present)
+│   │   ├── battery.soc                       # Battery state of charge (if logged)
+│   │   └── ...                               # Other component outputs
 │   └── external_signals/
 │       └── ...                 # Other external signals
 └── metadata/
@@ -60,7 +68,7 @@ from hercules.utilities import read_hercules_hdf5_subset
 # Read specific columns
 df_subset = read_hercules_hdf5_subset(
     "outputs/hercules_output.h5",
-    columns=["wind_farm.power", "solar_farm.power", "external_signals.wind_speed"]
+    columns=["wind_farm.power", "wind_farm.wind_speed_mean_background", "solar_farm.power"]
 )
 
 # Read specific time range (seconds)

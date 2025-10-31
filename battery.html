@@ -454,6 +454,7 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>
@@ -511,6 +512,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_calc_interval</span></code>: Interval for usage calculations in seconds (BatterySimple only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_lifetime</span></code>: Battery lifetime in years for time-based degradation (BatterySimple only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_cycles</span></code>: Number of cycles until replacement for cycle-based degradation (BatterySimple only)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> below)</p></li>
 </ul>
 <p>Once initialized, the battery is only interacted with using the <code class="docutils literal notranslate"><span class="pre">step</span></code> method.</p>
 </section>
@@ -536,6 +538,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual battery power in kW</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reject</span></code>: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">soc</span></code>: Battery state of charge (0-1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code>: Requested power setpoint in kW</p></li>
 </ul>
 <section id="additional-outputs-batterysimple-only-when-track-usage-true">
 <h4>Additional Outputs (BatterySimple only when track_usage=True)<a class="headerlink" href="#additional-outputs-batterysimple-only-when-track-usage-true" title="Link to this heading">#</a></h4>
@@ -545,6 +548,33 @@ for consistency with other components.  This inversions applies to power_setpoin
 <li><p><code class="docutils literal notranslate"><span class="pre">total_cycles</span></code>: Total equivalent cycles completed</p></li>
 </ul>
 </section>
+</section>
+<section id="logging-configuration">
+<h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
+<p><strong>Available Channels:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual battery power output in kW (always logged)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">soc</span></code>: State of charge (0-1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code>: Requested power setpoint in kW</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">battery</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BatterySimple</span>
+<span class="w">  </span><span class="nt">energy_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100.0</span><span class="w">  </span><span class="c1"># kWh</span>
+<span class="w">  </span><span class="nt">charge_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w">  </span><span class="c1"># kW</span>
+<span class="w">  </span><span class="nt">discharge_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w">  </span><span class="c1"># kW</span>
+<span class="w">  </span><span class="nt">max_SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.9</span>
+<span class="w">  </span><span class="nt">min_SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soc</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power_setpoint</span>
+<span class="w">  </span><span class="nt">initial_conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> is not specified, only <code class="docutils literal notranslate"><span class="pre">power</span></code> will be logged.</p>
 </section>
 </section>
 <section id="batterysimple">
@@ -663,6 +693,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>

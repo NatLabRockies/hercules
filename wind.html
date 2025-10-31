@@ -460,12 +460,12 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-outputs">Common Outputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-options">Logging Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#base-logging-logging-option-base">Base Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"base"</span></code>)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#turbine-subset-logging-logging-option-turb-subset">Turbine Subset Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"turb_subset"</span></code>)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#full-logging-logging-option-all">Full Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"all"</span></code>)</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-channels">Available Channels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#selective-array-element-logging">Selective Array Element Logging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-configurations">Example Configurations</a></li>
 </ul>
 </li>
 </ul>
@@ -520,16 +520,7 @@ document.write(`
 <p>Required parameters for Wind_MesoToPower:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: How often to update FLORIS (the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged as input)</p></li>
-</ul>
-<p>Required parameters for Wind_MesoToPower:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">logging_option</span></code>: Logging level. Options are:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;base&quot;</span></code>: Log basic outputs (power, wind_speed, wind_direction, wind_speed_waked)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;turb_subset&quot;</span></code>: Base outputs plus 3 random turbines’ waked_velocities, turbine_powers, and turbine_power_setpoints</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>: All available outputs including floris_wind_speed, floris_wind_direction, floris_ti, unwaked_velocities, waked_velocities, turbine_powers, turbine_power_setpoints</p></li>
-</ul>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 </section>
 <section id="wind-mesotopowerprecomfloris-specific-parameters">
@@ -537,13 +528,7 @@ document.write(`
 <p>Required parameters for Wind_MesoToPowerPrecomFloris:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: Determines the cadence of wake precomputation. At each cadence tick, the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">logging_option</span></code>: Logging level. Options are:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;base&quot;</span></code>: Log basic outputs (power, wind_speed, wind_direction, wind_speed_waked)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;turb_subset&quot;</span></code>: Base outputs plus 3 random turbines’ waked_velocities, turbine_powers, and turbine_power_setpoints</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>: All available outputs including floris_wind_speed, floris_wind_direction, floris_ti, unwaked_velocities, waked_velocities, turbine_powers, turbine_power_setpoints</p></li>
-</ul>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 </section>
 </section>
@@ -562,47 +547,86 @@ document.write(`
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
 <section id="common-outputs">
 <h3>Common Outputs<a class="headerlink" href="#common-outputs" title="Link to this heading">#</a></h3>
-<p>Both components provide these outputs:</p>
+<p>Both components provide these outputs in the h_dict at each simulation step:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Individual turbine power outputs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Current power setpoint values</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed</span></code>, <code class="docutils literal notranslate"><span class="pre">wind_direction</span></code>: Farm-level wind conditions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power (kW)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Individual turbine power outputs (array, kW)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Current power setpoint values (array, kW)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_background</span></code>: Farm-average background wind speed (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_withwakes</span></code>: Farm-average with-wakes wind speed (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_direction_mean</span></code>: Farm-average wind direction (degrees)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code>: Per-turbine background wind speeds (array, m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code>: Per-turbine with-wakes wind speeds (array, m/s)</p></li>
 </ul>
 </section>
-<section id="logging-options">
-<h3>Logging Options<a class="headerlink" href="#logging-options" title="Link to this heading">#</a></h3>
-<p>The logging behavior depends on the <code class="docutils literal notranslate"><span class="pre">logging_option</span></code> setting:</p>
-<section id="base-logging-logging-option-base">
-<h4>Base Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">&quot;base&quot;</span></code>)<a class="headerlink" href="#base-logging-logging-option-base" title="Link to this heading">#</a></h4>
+</section>
+<section id="logging-configuration">
+<h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
+<section id="available-channels">
+<h3>Available Channels<a class="headerlink" href="#available-channels" title="Link to this heading">#</a></h3>
+<p><strong>Scalar Channels:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed</span></code>, <code class="docutils literal notranslate"><span class="pre">wind_direction</span></code>: Farm-level wind conditions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_waked</span></code>: Average waked wind speed across the farm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power output (kW)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_background</span></code>: Farm-average background wind speed (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_withwakes</span></code>: Farm-average with-wakes wind speed (m/s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_direction_mean</span></code>: Farm-average wind direction (degrees)</p></li>
+</ul>
+<p><strong>Array Channels:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Power output for all turbines (creates datasets like <code class="docutils literal notranslate"><span class="pre">wind_farm.turbine_powers.000</span></code>, <code class="docutils literal notranslate"><span class="pre">wind_farm.turbine_powers.001</span></code>, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Power setpoints for all turbines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code>: Background wind speeds for all turbines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code>: With-wakes wind speeds for all turbines</p></li>
 </ul>
 </section>
-<section id="turbine-subset-logging-logging-option-turb-subset">
-<h4>Turbine Subset Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">&quot;turb_subset&quot;</span></code>)<a class="headerlink" href="#turbine-subset-logging-logging-option-turb-subset" title="Link to this heading">#</a></h4>
-<p>Includes all base outputs plus:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">waked_velocities_turb_XXX</span></code>: Waked velocities for 3 randomly selected turbines</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers_turb_XXX</span></code>: Power outputs for 3 randomly selected turbines</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints_turb_XXX</span></code>: Power setpoints for 3 randomly selected turbines</p></li>
-</ul>
+<section id="selective-array-element-logging">
+<h3>Selective Array Element Logging<a class="headerlink" href="#selective-array-element-logging" title="Link to this heading">#</a></h3>
+<p>For large wind farms, logging all turbine data can significantly increase file size and slow down the simulation. You can log specific turbine indices by appending a 3-digit turbine index to the channel name:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log only turbines 0, 5, and 10</span>
+<span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_background</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_withwakes</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_direction_mean</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.000</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.005</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.010</span>
+</pre></div>
+</div>
 </section>
-<section id="full-logging-logging-option-all">
-<h4>Full Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">&quot;all&quot;</span></code>)<a class="headerlink" href="#full-logging-logging-option-all" title="Link to this heading">#</a></h4>
-<p>Includes all base outputs plus:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Individual turbine power outputs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Current power setpoint values</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">floris_wind_speed</span></code>: Wind speed used in FLORIS calculations</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">floris_wind_direction</span></code>: Wind direction used in FLORIS calculations</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">floris_ti</span></code>: Turbulence intensity values</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unwaked_velocities</span></code>: Wind speeds without wake effects</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">waked_velocities</span></code>: Wind speeds with wake effects applied</p></li>
-</ul>
-</section>
+<section id="example-configurations">
+<h3>Example Configurations<a class="headerlink" href="#example-configurations" title="Link to this heading">#</a></h3>
+<p><strong>Minimal Logging:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_background</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_withwakes</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_direction_mean</span>
+</pre></div>
+</div>
+<p><strong>Detailed Logging (all turbines):</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_background</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_withwakes</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_direction_mean</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speeds_withwakes</span>
+</pre></div>
+</div>
+<p><strong>Selected Turbine Logging:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log first 3 turbines only</span>
+<span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_background</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_speed_mean_withwakes</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_direction_mean</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.000</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.001</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">turbine_powers.002</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -690,12 +714,12 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-outputs">Common Outputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-options">Logging Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#base-logging-logging-option-base">Base Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"base"</span></code>)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#turbine-subset-logging-logging-option-turb-subset">Turbine Subset Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"turb_subset"</span></code>)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#full-logging-logging-option-all">Full Logging (<code class="docutils literal notranslate"><span class="pre">logging_option:</span> <span class="pre">"all"</span></code>)</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-channels">Available Channels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#selective-array-element-logging">Selective Array Element Logging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-configurations">Example Configurations</a></li>
 </ul>
 </li>
 </ul>

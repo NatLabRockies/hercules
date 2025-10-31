@@ -443,6 +443,7 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
@@ -491,7 +492,30 @@ document.write(`
 <li><p><strong>DC/AC ratio</strong>: 1.0</p></li>
 </ul>
 <p>The array tilt angle must be specified in the input configuration file.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">log_extra_outputs</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in the input .yaml file, the solar modules also output plane-of-array irradiance (<code class="docutils literal notranslate"><span class="pre">poa</span></code>) in W/m^2, direct normal irradiance (<code class="docutils literal notranslate"><span class="pre">dni</span></code>) in W/m^2, and the angle of incidence (<code class="docutils literal notranslate"><span class="pre">aoi</span></code>) in degrees.</p>
+</section>
+<section id="logging-configuration">
+<h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
+<p><strong>Available Channels:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: DC power output in kW (always logged)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">poa</span></code>: Plane-of-array irradiance in W/m²</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dni</span></code>: Direct normal irradiance in W/m²</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aoi</span></code>: Angle of incidence in degrees</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">solar_farm</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SolarPySAMPVWatts</span>
+<span class="w">  </span><span class="nt">solar_input_filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inputs/solar_input.csv</span>
+<span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dni</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poa</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aoi</span>
+<span class="w">  </span><span class="c1"># ... other parameters</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> is not specified, only <code class="docutils literal notranslate"><span class="pre">power</span></code> will be logged.</p>
 </section>
 <section id="efficiency-and-loss-parameters">
 <h2>Efficiency and Loss Parameters<a class="headerlink" href="#efficiency-and-loss-parameters" title="Link to this heading">#</a></h2>
@@ -583,6 +607,7 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
