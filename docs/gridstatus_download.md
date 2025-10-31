@@ -86,23 +86,6 @@ The `generate_locational_marginal_price_dataframe()` function combines the real-
 - Forward-fills any missing values
 - Generates "end" rows for each 5-minute interval
 
-### Usage
-
-```python
-import pandas as pd
-from hercules.grid.grid_utilities import generate_locational_marginal_price_dataframe
-
-# Load the downloaded feather files
-df_rt = pd.read_feather("gs_spp_lmp_real_time_5_min_2024_01_01_OKGE_FRONTIER.ftr")
-df_da = pd.read_feather("gs_spp_lmp_day_ahead_hourly_2024_01_01_OKGE_FRONTIER.ftr")
-
-# Combine into WHOC format
-df_whoc = generate_locational_marginal_price_dataframe(df_da, df_rt)
-
-# Save for use in Hercules
-df_whoc.to_csv("lmp_data_for_whoc.csv", index=False)
-```
-
 See `examples/grid/process_results.py` for a complete example.
 
 ### Output Format
