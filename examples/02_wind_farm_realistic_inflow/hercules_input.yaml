@@ -4,7 +4,7 @@
 name: example_02
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Wind Only Realistic Inflow
 
 dt: 1.0

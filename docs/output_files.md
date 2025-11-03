@@ -1,6 +1,6 @@
 # Output Files
 
-Hercules generates HDF5 output files containing simulation data for analysis and visualization. This page describes the file format, available utilities for reading the data, and how the emulator generates these files.
+Hercules generates HDF5 output files containing simulation data for analysis and visualization. This page describes the file format, available utilities for reading the data, and how HerculesModel generates these files.
 
 ## File Format
 

@@ -5,7 +5,7 @@
 1. Load configuration from YAML input file into `h_dict`
 2. Initialize controller
 3. Initialize hybrid plant components based on `h_dict` configuration
-4. Initialize emulator with controller, hybrid plant, and configuration
+4. Initialize HerculesModel with controller, hybrid plant, and configuration
 5. Add plant component metadata to `h_dict`
 6. Load external data files if specified
 

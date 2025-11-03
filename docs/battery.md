@@ -12,7 +12,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 
 ### Parameters
 
-Battery parameters are defined in the hercules input yaml file used to initialize `emulator`.
+Battery parameters are defined in the hercules input yaml file used to initialize `HerculesModel`.
 
 #### Required Parameters
 - `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`

@@ -10,7 +10,7 @@ from hercules.utilities import get_available_component_names, get_available_gene
 
 
 class HybridPlant:
-    """Manages hybrid plant components for the Hercules emulator.
+    """Manages hybrid plant components for Hercules.
 
     This class handles the initialization, execution, and coordination of various
     plant components including wind farms, solar panels, batteries,

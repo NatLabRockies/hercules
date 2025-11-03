@@ -13,6 +13,7 @@ from tqdm import tqdm
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import (
     _validate_utc_datetime_string,
+    close_logging,
     get_available_component_names,
     get_available_component_types,
     hercules_float_type,
@@ -109,7 +110,7 @@ class HerculesModel:
         self.step = 0
         self.n_steps = int(self.total_simulation_time / self.dt)
 
-        # How often to update the user on current emulator time
+        # How often to update the user on current simulation time
         # In simulated time
         if "time_log_interval" in self.h_dict:
             self.time_log_interval = self.h_dict["time_log_interval"]
@@ -583,7 +584,7 @@ class HerculesModel:
             # Log the current time
             if self.verbose:
                 if (self.step % self.step_log_interval == 0) or first_iteration:
-                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
+                    self.logger.info(f"Simulation time: {self.time} (ending at {self.endtime})")
                     self.logger.info(f"Step: {self.step} of {self.n_steps}")
                     self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
 
@@ -675,13 +676,15 @@ class HerculesModel:
         self.output_written = True
 
     def __del__(self):
-        """Cleanup method to properly close output files when object is destroyed."""
+        """Cleanup method to properly close output files and logging when destroyed."""
         try:
             # Only attempt cleanup if Python is not shutting down
             import sys
 
             if sys.meta_path is not None:
                 self._finalize_hdf5_file()
+                if hasattr(self, "logger"):
+                    close_logging(self.logger)
         except (ImportError, AttributeError):
             # Ignore errors during Python shutdown
             pass
@@ -689,6 +692,8 @@ class HerculesModel:
     def close(self):
         """Explicitly close all resources and cleanup."""
         self._finalize_hdf5_file()
+        if hasattr(self, "logger"):
+            close_logging(self.logger)
 
     def _log_data_to_hdf5(self):
         """
