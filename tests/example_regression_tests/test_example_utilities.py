@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 
 import numpy as np
+import pandas as pd
 from hercules.hercules_model import HerculesModel
 from hercules.utilities_examples import generate_example_inputs
 
@@ -124,11 +125,22 @@ def run_simulation(input_file, num_time_steps):
 
     h_dict = load_yaml(input_file)
 
-    # Modify the endtime to run for the specified number of time steps
-    # Note: This overrides the endtime (duration in seconds), not endtime_utc
-    # The endtime_utc in the YAML file is validated against input data by components
-    h_dict["endtime"] = num_time_steps
-    h_dict["starttime"] = 0.0
+    # Adjust endtime_utc to achieve the requested number of time steps N
+    # If endtime_utc = starttime_utc + (N-1)*dt, loaders will compute endtime = duration + dt
+    # producing exactly N steps with dt resolution
+    if "dt" not in h_dict:
+        raise ValueError("dt must be specified in the input file")
+    if "starttime_utc" not in h_dict:
+        raise ValueError("starttime_utc must be specified in the input file")
+
+    start_ts = pd.to_datetime(h_dict["starttime_utc"], utc=True)
+    delta_seconds = (num_time_steps - 1) * float(h_dict["dt"])
+    new_end = start_ts + pd.to_timedelta(delta_seconds, unit="s")
+    h_dict["endtime_utc"] = new_end.isoformat().replace("+00:00", "Z")
+
+    # Ensure any stray start/end are removed to satisfy new loader policy
+    h_dict.pop("starttime", None)
+    h_dict.pop("endtime", None)
 
     class ControllerSimple:
         """A simple controller for testing."""

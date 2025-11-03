@@ -238,11 +238,14 @@ class HerculesModel:
             if key not in required_keys + component_names + other_keys:
                 raise ValueError(f"Key {key} not a valid key in input file {filename}")
 
-        # Compute starttime (always 0) and endtime (duration in seconds) if not already set
-        if "starttime" not in h_dict or "endtime" not in h_dict:
-            duration = (endtime_utc - starttime_utc).total_seconds()
-            h_dict["starttime"] = 0.0
-            h_dict["endtime"] = duration
+        # Disallow pre-defined start/end; derive from UTC + dt policy
+        if ("starttime" in h_dict) or ("endtime" in h_dict):
+            raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
+
+        duration = (endtime_utc - starttime_utc).total_seconds()
+        h_dict["starttime"] = 0.0
+        # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
+        h_dict["endtime"] = duration + float(h_dict["dt"])
 
         # Validate component structures
         for key in component_names:

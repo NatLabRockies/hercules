@@ -298,10 +298,15 @@ def load_hercules_input(filename):
         if key not in required_keys + component_names + other_keys:
             raise ValueError(f"Key {key} not a valid key in input file {filename}")
 
-    # Compute starttime (always 0) and endtime (duration in seconds)
+    # Enforce start/end are derived from UTC and not pre-defined in YAML
+    if ("starttime" in h_dict) or ("endtime" in h_dict):
+        raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
+
+    # Compute starttime (always 0) and endtime (duration in seconds + dt)
     duration = (endtime_utc - starttime_utc).total_seconds()
     h_dict["starttime"] = 0.0
-    h_dict["endtime"] = duration
+    # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
+    h_dict["endtime"] = duration + float(h_dict["dt"])
 
     # Validate component structures
     for key in component_names:

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from hercules.hercules_model import HerculesModel
 
 from tests.test_inputs.h_dict import h_dict_battery, h_dict_solar, h_dict_wind
@@ -69,6 +70,9 @@ def test_HerculesModel_instantiation():
 
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
+    # Enforce new loader policy: remove preset start/end and rely on *_utc
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
 
     hmodel = HerculesModel(test_h_dict, SimpleControllerSolar)
 
@@ -82,8 +86,11 @@ def test_HerculesModel_instantiation():
     test_h_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_h_dict_2["output_file"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
-    test_h_dict_2["starttime"] = 0.0
-    test_h_dict_2["endtime"] = 5.0  # External data goes to 9.0, so 5.0 + 2*0.5 = 6.0 is safe
+    # Remove preset start/end and adjust endtime_utc to preserve prior behavior
+    test_h_dict_2.pop("starttime", None)
+    test_h_dict_2.pop("endtime", None)
+    # To achieve endtime = 5.0 and endtime + 2*dt = 6.0, set duration = 4.5s
+    test_h_dict_2["endtime_utc"] = test_h_dict_2["starttime_utc"] + pd.to_timedelta(4.5, unit="s")
 
     hmodel = HerculesModel(test_h_dict_2, SimpleControllerSolar)
 
@@ -104,6 +111,8 @@ def test_log_data_to_hdf5():
 
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
 
     hmodel = HerculesModel(test_h_dict, SimpleControllerSolar)
 
@@ -136,9 +145,9 @@ def test_log_data_to_hdf5():
 
     actual_datasets = set(hmodel.hdf5_datasets.keys())
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -159,12 +168,12 @@ def test_log_data_to_hdf5_with_external_signals():
 
     # Use h_dict_battery as base for testing (no external data requirements)
     test_h_dict = h_dict_battery.copy()
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
 
     # Add external data file
     test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_h_dict["dt"] = 1.0
-    test_h_dict["starttime"] = 0.0
-    test_h_dict["endtime"] = 10.0
 
     hmodel = HerculesModel(test_h_dict, SimpleControllerWind)
 
@@ -214,6 +223,8 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
     # Use h_dict_wind as base for testing
     test_h_dict = h_dict_wind.copy()
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
 
     hmodel = HerculesModel(test_h_dict, SimpleControllerWind)
 
@@ -246,9 +257,9 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
     # Verify that all expected datasets are present
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -285,8 +296,12 @@ def test_hdf5_output_configuration():
         test_h_dict_hdf5 = test_h_dict.copy()
         test_h_dict_hdf5["output_file"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_hdf5["dt"] = 1.0
-        test_h_dict_hdf5["starttime"] = 0.0
-        test_h_dict_hdf5["endtime"] = 5.0
+        # Remove preset start/end and set endtime_utc for 5 steps (duration=4s)
+        test_h_dict_hdf5.pop("starttime", None)
+        test_h_dict_hdf5.pop("endtime", None)
+        test_h_dict_hdf5["endtime_utc"] = test_h_dict_hdf5["starttime_utc"] + pd.to_timedelta(
+            4.0, unit="s"
+        )
 
         hmodel = HerculesModel(test_h_dict_hdf5, SimpleControllerSolar)
 
@@ -319,8 +334,11 @@ def test_hdf5_output_configuration():
         test_h_dict_hdf5_2["output_file"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_hdf5_2["output_buffer_size"] = 500  # Custom chunk size
         test_h_dict_hdf5_2["dt"] = 1.0
-        test_h_dict_hdf5_2["starttime"] = 0.0
-        test_h_dict_hdf5_2["endtime"] = 5.0
+        test_h_dict_hdf5_2.pop("starttime", None)
+        test_h_dict_hdf5_2.pop("endtime", None)
+        test_h_dict_hdf5_2["endtime_utc"] = test_h_dict_hdf5_2["starttime_utc"] + pd.to_timedelta(
+            4.0, unit="s"
+        )
 
         hmodel = HerculesModel(test_h_dict_hdf5_2, SimpleControllerSolar)
 
@@ -361,8 +379,12 @@ def test_log_every_n_option():
         test_h_dict_log["output_file"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_log["log_every_n"] = 2  # Log every 2 steps
         test_h_dict_log["dt"] = 1.0
-        test_h_dict_log["starttime"] = 0.0
-        test_h_dict_log["endtime"] = 6.0  # 6 steps total
+        test_h_dict_log.pop("starttime", None)
+        test_h_dict_log.pop("endtime", None)
+        # For 6 steps total, duration=5s
+        test_h_dict_log["endtime_utc"] = test_h_dict_log["starttime_utc"] + pd.to_timedelta(
+            5.0, unit="s"
+        )
 
         hmodel = HerculesModel(test_h_dict_log, SimpleControllerSolar)
 
@@ -400,8 +422,12 @@ def test_log_every_n_option():
         test_h_dict_log2["output_file"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_log2["log_every_n"] = 3  # Log every 3 steps
         test_h_dict_log2["dt"] = 1.0
-        test_h_dict_log2["starttime"] = 0.0
-        test_h_dict_log2["endtime"] = 7.0  # 7 steps total
+        test_h_dict_log2.pop("starttime", None)
+        test_h_dict_log2.pop("endtime", None)
+        # For 7 steps total, duration=6s
+        test_h_dict_log2["endtime_utc"] = test_h_dict_log2["starttime_utc"] + pd.to_timedelta(
+            6.0, unit="s"
+        )
 
         hmodel = HerculesModel(test_h_dict_log2, SimpleControllerSolar)
 
@@ -444,6 +470,8 @@ def test_log_selective_array_element():
 
     # Use h_dict_wind as base for testing
     test_h_dict = copy.deepcopy(h_dict_wind)
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
 
     # Modify log_channels to only include turbine_powers.001 (not the full array)
     test_h_dict["wind_farm"]["log_channels"] = ["power", "turbine_powers.001"]
@@ -467,19 +495,19 @@ def test_log_selective_array_element():
     actual_datasets = set(hmodel.hdf5_datasets.keys())
 
     # turbine_powers.001 SHOULD be present
-    assert (
-        "wind_farm.turbine_powers.001" in actual_datasets
-    ), "Expected wind_farm.turbine_powers.001 to be logged"
+    assert "wind_farm.turbine_powers.001" in actual_datasets, (
+        "Expected wind_farm.turbine_powers.001 to be logged"
+    )
 
     # turbine_powers.000 should NOT be present
-    assert (
-        "wind_farm.turbine_powers.000" not in actual_datasets
-    ), "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
+    assert "wind_farm.turbine_powers.000" not in actual_datasets, (
+        "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
+    )
 
     # turbine_powers.002 should NOT be present
-    assert (
-        "wind_farm.turbine_powers.002" not in actual_datasets
-    ), "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
+    assert "wind_farm.turbine_powers.002" not in actual_datasets, (
+        "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
+    )
 
     # Verify that basic datasets are still present
     assert "time" in actual_datasets
