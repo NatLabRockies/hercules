@@ -117,20 +117,18 @@ def run_simulation(input_file, num_time_steps):
     Returns:
         pd.DataFrame: The simulation output dataframe.
     """
-    # Load the input file and modify endtime
+    # Load the input file
+
+    # Load the YAML file without full validation (to allow endtime override)
     from hercules.utilities import load_yaml
 
     h_dict = load_yaml(input_file)
 
     # Modify the endtime to run for the specified number of time steps
-    h_dict["endtime"] = h_dict["starttime_utc"]  # Store the original starttime_utc temporarily
-    h_dict["starttime_utc"] = h_dict["starttime_utc"]  # Keep starttime_utc
-
-    # Calculate new endtime_utc based on num_time_steps
-    import pandas as pd
-
-    starttime_utc = pd.to_datetime(h_dict["starttime_utc"], utc=True)
-    h_dict["endtime_utc"] = starttime_utc + pd.Timedelta(seconds=num_time_steps)
+    # Note: This overrides the endtime (duration in seconds), not endtime_utc
+    # The endtime_utc in the YAML file is validated against input data by components
+    h_dict["endtime"] = num_time_steps
+    h_dict["starttime"] = 0.0
 
     class ControllerSimple:
         """A simple controller for testing."""
