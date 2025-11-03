@@ -3,8 +3,11 @@
 This module provides:
 - generate_example_inputs: runs the three example data generator scripts.
 - ensure_example_inputs_exist: checks for expected input files and generates them if missing.
+- prepare_output_directory: removes and recreates an output directory for clean runs.
 """
 
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -60,3 +63,18 @@ def ensure_example_inputs_exist():
 
     if not all(p.exists() for p in expected_files):
         generate_example_inputs()
+
+
+def prepare_output_directory(output_dir="outputs"):
+    """Remove and recreate an output directory for clean runs.
+
+    If the output directory exists, it will be deleted and recreated.
+    This ensures a clean output directory before running examples.
+
+    Args:
+        output_dir (str, optional): Path to the output directory to prepare.
+            Defaults to "outputs".
+    """
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)

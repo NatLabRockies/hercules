@@ -1,26 +1,9 @@
-import os
-import shutil
-import sys
-
 from hercules.hercules_model import HerculesModel
+from hercules.utilities_examples import prepare_output_directory
 
-# If the output folder exists, delete it
-if os.path.exists("outputs"):
-    shutil.rmtree("outputs")
-os.makedirs("outputs")
+prepare_output_directory()
 
-# If more than one argument is provided raise and error
-if len(sys.argv) > 2:
-    raise Exception(
-        "Usage: python hercules_runscript.py [hercules_input_file] or python hercules_runscript.py"
-    )
-
-# If one argument is provided, use it as the input file
-if len(sys.argv) == 2:
-    input_file = sys.argv[1]
-# If no arguments are provided, use the default input file
-else:
-    input_file = "hercules_input.yaml"
+input_file = "hercules_input.yaml"
 
 
 # Define a simple controller that sets all deratings to full rating
