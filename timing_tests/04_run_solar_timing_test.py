@@ -5,12 +5,11 @@ and measures the execution time. It includes a simple controller that curtails
 power to 20 MW halfway through the simulation (at 500 minutes).
 """
 
-import os
-import shutil
 import time
 
 import matplotlib.pyplot as plt
 from hercules.hercules_model import HerculesModel
+from hercules.utilities_examples import prepare_output_directory
 
 from utilities import record_timing_result
 
@@ -59,19 +58,20 @@ def main():
     """Run the solar timing test with power curtailment."""
     print("Starting solar timing test with power curtailment...")
 
-    # Clean up output directory
-    if os.path.exists("outputs"):
-        shutil.rmtree("outputs")
-    os.makedirs("outputs")
+    # Prepare output directory
+    prepare_output_directory()
 
     # Load the input file
     input_file = "hercules_input_solar.yaml"
 
+    # Initialize the Hercules model
+    hmodel = HerculesModel(input_file)
+
+    # Instantiate the controller and assign to the Hercules model
+    hmodel.assign_controller(PowerCurtailmentController(hmodel.h_dict))
+
     # Record start time
     start_time = time.time()
-
-    # Initialize and run the Hercules model
-    hmodel = HerculesModel(input_file, PowerCurtailmentController)
 
     # Run the simulation
     hmodel.logger.info("Starting simulation execution...")
@@ -82,6 +82,7 @@ def main():
     execution_time = end_time - start_time
 
     hmodel.logger.info(f"Simulation execution completed in {execution_time:.2f} seconds")
+    hmodel.logger.info("Process completed successfully")
 
     # Record timing result
     result_file = "timing_results.csv"
