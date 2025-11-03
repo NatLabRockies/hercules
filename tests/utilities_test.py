@@ -9,7 +9,6 @@ import pytest
 from hercules.utilities import (
     find_time_utc_value,
     interpolate_df,
-    interpolate_df_fast,
     load_h_dict_from_text,
     load_hercules_input,
     local_time_to_utc,
@@ -443,32 +442,6 @@ def load_hercules_input_from_dict(h_dict):
 # ==================== INTERPOLATION COMPARISON TESTS ====================
 
 
-def test_interpolate_df_functions_identical_simple():
-    """Test that interpolate_df and interpolate_df_fast produce identical results for simple case.
-
-    Creates a simple DataFrame with linear values and verifies both functions
-    produce exactly the same interpolated results.
-    """
-    # Create a simple dataframe with time points 0, 2, 4, 6, 8, 10
-    df = pd.DataFrame(
-        {
-            "time": [0, 2, 4, 6, 8, 10],
-            "value": [0, 2, 4, 6, 8, 10],  # Linear function y = x
-            "power": [0, 4, 16, 36, 64, 100],  # Quadratic function y = x^2
-        }
-    )
-
-    # Create new_time with more points (upsampling)
-    new_time = np.linspace(0, 10, 21)  # 0, 0.5, 1.0, ..., 10.0
-
-    # Interpolate with both functions
-    result_original = interpolate_df(df, new_time)
-    result_fast = interpolate_df_fast(df, new_time)
-
-    # Verify results are identical
-    pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
-
-
 # ==================== find_time_utc_value TESTS ====================
 
 
@@ -530,47 +503,11 @@ def test_find_time_utc_extrapolates_after_range():
     assert t == pd.Timestamp("2023-01-01 00:00:15", tz="UTC")
 
 
-def test_interpolate_df_functions_identical_with_datetime():
-    """Test that both functions produce identical results with datetime columns.
+def test_interpolate_df_with_large_dataset():
+    """Test interpolate_df with larger datasets.
 
-    Creates a DataFrame with both numeric and datetime columns and verifies
-    both interpolation functions produce exactly the same results.
-    """
-    # Create a dataframe with time, numeric, and datetime columns
-    df = pd.DataFrame(
-        {
-            "time": [0, 5, 10, 15, 20],
-            "temperature": [20.0, 25.0, 30.0, 28.0, 22.0],
-            "pressure": [1013.25, 1015.0, 1012.0, 1014.5, 1013.8],
-            "time_utc": [
-                "2023-01-01 00:00:00",
-                "2023-01-01 05:00:00",
-                "2023-01-01 10:00:00",
-                "2023-01-01 15:00:00",
-                "2023-01-01 20:00:00",
-            ],
-        }
-    )
-
-    # Convert time_utc to datetime
-    df["time_utc"] = pd.to_datetime(df["time_utc"], utc=True)
-
-    # Create new_time points for interpolation
-    new_time = np.array([0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20])
-
-    # Interpolate with both functions
-    result_original = interpolate_df(df, new_time)
-    result_fast = interpolate_df_fast(df, new_time)
-
-    # Verify results are identical
-    pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
-
-
-def test_interpolate_df_functions_identical_large_dataset():
-    """Test that both functions produce identical results for larger datasets.
-
-    Creates a larger DataFrame to test the polars code path and verify
-    both functions produce identical results even with size optimizations.
+    Creates a larger DataFrame to verify the function works correctly
+    with datasets using the polars backend.
     """
     # Create a larger dataset (>1000 rows to trigger polars path)
     n_points = 1500
@@ -594,62 +531,13 @@ def test_interpolate_df_functions_identical_large_dataset():
     # Create new time points (downsampling to 500 points)
     new_time = np.linspace(0, 1000, 500)
 
-    # Interpolate with both functions
-    result_original = interpolate_df(df, new_time)
-    result_fast = interpolate_df_fast(df, new_time)
+    # Interpolate
+    result = interpolate_df(df, new_time)
 
-    # Verify results are identical (allow small floating point differences)
-    pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False, rtol=1e-10)
-
-
-def test_interpolate_df_functions_identical_edge_cases():
-    """Test that both functions handle edge cases identically.
-
-    Tests various edge cases including single data points, identical time points,
-    and boundary conditions.
-    """
-    # Test with minimal dataset (3 points)
-    df_minimal = pd.DataFrame(
-        {
-            "time": [0, 1, 2],
-            "value": [10, 20, 30],
-        }
-    )
-    new_time_minimal = np.array([0, 0.5, 1, 1.5, 2])
-
-    result_orig_minimal = interpolate_df(df_minimal, new_time_minimal)
-    result_fast_minimal = interpolate_df_fast(df_minimal, new_time_minimal)
-    pd.testing.assert_frame_equal(result_orig_minimal, result_fast_minimal, check_dtype=False)
-
-    # Test with boundary points only
-    new_time_boundary = np.array([0, 2])
-    result_orig_boundary = interpolate_df(df_minimal, new_time_boundary)
-    result_fast_boundary = interpolate_df_fast(df_minimal, new_time_boundary)
-    pd.testing.assert_frame_equal(result_orig_boundary, result_fast_boundary, check_dtype=False)
-
-
-def test_interpolate_df_functions_identical_multiple_dtypes():
-    """Test both functions with various data types.
-
-    Creates a DataFrame with different numeric types and verifies
-    both functions handle them identically.
-    """
-    df = pd.DataFrame(
-        {
-            "time": np.array([0, 1, 2, 3, 4], dtype=np.float64),
-            "int_col": np.array([10, 20, 30, 40, 50], dtype=np.int32),
-            "float32_col": np.array([1.1, 2.2, 3.3, 4.4, 5.5], dtype=np.float32),
-            "float64_col": np.array([100.1, 200.2, 300.3, 400.4, 500.5], dtype=np.float64),
-        }
-    )
-
-    new_time = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])
-
-    result_original = interpolate_df(df, new_time)
-    result_fast = interpolate_df_fast(df, new_time)
-
-    # Verify results are identical
-    pd.testing.assert_frame_equal(result_original, result_fast, check_dtype=False)
+    # Verify result has the correct shape and columns
+    assert len(result) == len(new_time)
+    assert list(result.columns) == list(df.columns)
+    assert np.allclose(result["time"], new_time)
 
 
 def test_read_hercules_hdf5_external_signals():

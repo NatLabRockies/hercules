@@ -446,43 +446,8 @@ def close_logging(logger):
 def interpolate_df(df, new_time):
     """Interpolate DataFrame values to match new time axis.
 
-    Uses linear interpolation. Converts datetime columns to timestamps for interpolation.
-
-    Args:
-        df (pd.DataFrame): DataFrame with 'time' column and data columns.
-        new_time (array-like): New time points for interpolation.
-
-    Returns:
-        pd.DataFrame: DataFrame with new time axis and interpolated data columns.
-    """
-    # Create dictionary to store all columns
-    result_dict = {"time": new_time}
-
-    # Populate the dictionary with interpolated values for each column
-    for col in df.columns:
-        if col != "time":
-            # Check if column contains datetime values
-            if pd.api.types.is_datetime64_any_dtype(df[col]):
-                # Convert datetime to timestamps (float) for interpolation
-                timestamps = df[col].astype("int64") / 10**9  # nanoseconds to seconds
-                f = interp1d(df["time"].values, timestamps, bounds_error=True)
-                interpolated_timestamps = f(new_time)
-                # Convert timestamps back to datetime
-                result_dict[col] = pd.to_datetime(interpolated_timestamps, unit="s", utc=True)
-            else:
-                # Standard interpolation for non-datetime columns
-                f = interp1d(df["time"].values, df[col].values, bounds_error=True)
-                result_dict[col] = f(new_time)
-
-    # Create DataFrame from the dictionary (all columns at once)
-    result = pd.DataFrame(result_dict)
-    return result
-
-
-def interpolate_df_fast(df, new_time):
-    """Optimized interpolate_df with Polars backend for better performance.
-
-    Same functionality as interpolate_df but with improved memory efficiency and speed.
+    Uses linear interpolation with Polars backend for better performance and memory efficiency.
+    Converts datetime columns to timestamps for interpolation.
 
     Args:
         df (pd.DataFrame): DataFrame with 'time' column and data columns.
