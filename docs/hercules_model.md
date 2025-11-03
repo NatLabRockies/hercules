@@ -8,7 +8,7 @@ The HerculesModel serves as the central coordinator that drives the simulation f
 
 ## Usage
 
-Following the FLORIS pattern, HerculesModel can be initialized with an input file.  It also  requires a controller class.  The simplest case is a pass-through controller:
+Following the FLORIS pattern, HerculesModel can be initialized with an input file. It also requires a controller class. The simplest case is a pass-through controller:
 
 ```python
 from hercules import HerculesModel
