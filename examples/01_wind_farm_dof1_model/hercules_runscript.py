@@ -63,6 +63,6 @@ class ControllerToggleTurbine000:
 hmodel = HerculesModel(input_file, ControllerToggleTurbine000)
 
 # Run the simulation
-hmodel.enter_execution()
+hmodel.run()
 
 hmodel.logger.info("Process completed successfully")

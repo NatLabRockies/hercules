@@ -506,27 +506,97 @@ class HerculesModel:
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
 
-    def enter_execution(self):
+    def run(self):
         """
         Execute the main simulation loop and handle timing and logging.
 
-        This method initiates the simulation execution, runs the main loop, and handles
-        all associated timing calculations, logging, and file operations. It ensures proper
-        cleanup of resources even if exceptions occur during simulation.
+        This method runs the complete simulation from start to end, including timing calculations,
+        progress logging, and resource cleanup. It executes the simulation step by step, updating
+        controller and Python simulators, logging state, and handling external data interpolation.
+        Ensures proper cleanup of resources even if exceptions occur during simulation.
         """
-
-        # No need to open output file upfront with fast logging
 
         # Wrap this effort in a try block to ensure proper cleanup
         try:
             # Record start clock time for metadata
             self.start_clock_time = _time.time()
 
-            # Run the main loop
-            self.run()
+            # Begin the main simulation loop
+            self.logger.info(" #### Entering main loop #### ")
+
+            first_iteration = True
+
+            # Create progress bar
+            progress_bar = tqdm(
+                total=self.n_steps,
+                desc="Simulation Progress",
+                unit="steps",
+                ncols=100,
+                leave=True,
+                mininterval=5.0,  # Update at most once every 5 seconds
+                maxinterval=30.0,  # Update at least every 30 seconds
+            )
+
+            # Cache frequently accessed attributes and methods locally for speed
+            controller_step = self.controller.step
+            plant_step = self.hybrid_plant.step
+            log_current_state = self._log_data_to_hdf5
+            external_data_all = self.external_data_all
+            h_dict = self.h_dict
+
+            # Set current time and run simulation through steps
+            self.time = self.starttime
+            last_progress_update = 0
+            for self.step in range(self.n_steps):
+                # Log the current time
+                if self.verbose:
+                    if (self.step % self.step_log_interval == 0) or first_iteration:
+                        self.logger.info(f"Simulation time: {self.time} (ending at {self.endtime})")
+                        self.logger.info(f"Step: {self.step} of {self.n_steps}")
+                        percent_complete = 100 * self.step / self.n_steps
+                        self.logger.info(f"--Percent completed: {percent_complete:.2f}%")
+
+                # Update progress bar independently of verbose logging, more frequently
+                if (self.step % self.progress_update_interval == 0) or first_iteration:
+                    steps_to_update = self.step - last_progress_update
+                    if steps_to_update > 0:
+                        progress_bar.update(steps_to_update)
+                        last_progress_update = self.step
+
+                # Fast external data lookup by step index (avoids per-step array equality checks)
+                if external_data_all:
+                    for k in external_data_all:
+                        if k == "time":
+                            continue
+                        h_dict["external_signals"][k] = external_data_all[k][self.step]
+
+                # Update controller and py sims
+                h_dict["time"] = self.time
+                h_dict["step"] = self.step
+                h_dict = controller_step(h_dict)
+                h_dict = plant_step(h_dict)
+                self.h_dict = h_dict
+
+                # Log the current state
+                log_current_state()
+
+                # If this is first iteration log the input dict
+                # And turn off the first iteration flag
+                if first_iteration:
+                    # self.logger.info(self.h_dict)
+                    self._save_h_dict_as_text()
+                    first_iteration = False
+
+                # Update the time
+                self.time = self.time + self.dt
+
+            # Update progress bar to final step and close
+            final_steps_to_update = self.n_steps - last_progress_update
+            if final_steps_to_update > 0:
+                progress_bar.update(final_steps_to_update)
+            progress_bar.close()
 
             # Note the total elapsed time
-
             self.end_clock_time = _time.time()
             self.total_time_wall = self.end_clock_time - self.start_clock_time
 
@@ -558,86 +628,6 @@ class HerculesModel:
             # Ensure output data is written to file
             self.logger.info("Finalizing HDF5 output file")
             self._finalize_hdf5_file()
-
-    def run(self):
-        """Run the main emulation loop until the end time is reached.
-
-        Executes the simulation step by step, updating controller and Python
-        simulators, logging state, and handling external data interpolation.
-        Logs progress at specified intervals and saves initial state on first iteration.
-        """
-        self.logger.info(" #### Entering main loop #### ")
-
-        first_iteration = True
-
-        # Create progress bar
-        progress_bar = tqdm(
-            total=self.n_steps,
-            desc="Simulation Progress",
-            unit="steps",
-            ncols=100,
-            leave=True,
-            mininterval=5.0,  # Update at most once every 5 seconds
-            maxinterval=30.0,  # Update at least every 30 seconds
-        )
-
-        # Cache frequently accessed attributes and methods locally for speed
-        controller_step = self.controller.step
-        plant_step = self.hybrid_plant.step
-        log_current_state = self._log_data_to_hdf5
-        external_data_all = self.external_data_all
-        h_dict = self.h_dict
-
-        # Set current time and run simulation through steps
-        self.time = self.starttime
-        last_progress_update = 0
-        for self.step in range(self.n_steps):
-            # Log the current time
-            if self.verbose:
-                if (self.step % self.step_log_interval == 0) or first_iteration:
-                    self.logger.info(f"Simulation time: {self.time} (ending at {self.endtime})")
-                    self.logger.info(f"Step: {self.step} of {self.n_steps}")
-                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
-
-            # Update progress bar independently of verbose logging, more frequently
-            if (self.step % self.progress_update_interval == 0) or first_iteration:
-                steps_to_update = self.step - last_progress_update
-                if steps_to_update > 0:
-                    progress_bar.update(steps_to_update)
-                    last_progress_update = self.step
-
-            # Fast external data lookup by step index (avoids per-step array equality checks)
-            if external_data_all:
-                for k in external_data_all:
-                    if k == "time":
-                        continue
-                    h_dict["external_signals"][k] = external_data_all[k][self.step]
-
-            # Update controller and py sims
-            h_dict["time"] = self.time
-            h_dict["step"] = self.step
-            h_dict = controller_step(h_dict)
-            h_dict = plant_step(h_dict)
-            self.h_dict = h_dict
-
-            # Log the current state
-            log_current_state()
-
-            # If this is first iteration log the input dict
-            # And turn off the first iteration flag
-            if first_iteration:
-                # self.logger.info(self.h_dict)
-                self._save_h_dict_as_text()
-                first_iteration = False
-
-            # Update the time
-            self.time = self.time + self.dt
-
-        # Update progress bar to final step and close
-        final_steps_to_update = self.n_steps - last_progress_update
-        if final_steps_to_update > 0:
-            progress_bar.update(final_steps_to_update)
-        progress_bar.close()
 
     def _finalize_hdf5_file(self):
         """Finalize HDF5 file with proper compression and metadata."""

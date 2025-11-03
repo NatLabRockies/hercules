@@ -25,7 +25,7 @@ class MyController:
 
 # Initialize and run
 hmodel = HerculesModel("hercules_input.yaml", MyController)
-hmodel.enter_execution()
+hmodel.run()
 ```
 
 The HerculesModel handles all initialization automatically:

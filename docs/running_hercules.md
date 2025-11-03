@@ -19,7 +19,7 @@ class MyController:
 
 # Initialize and run the Hercules model
 hmodel = HerculesModel("hercules_input.yaml", MyController)
-hmodel.enter_execution()
+hmodel.run()
 ```
 
 See the example runscripts in the `examples/` directory for complete examples.

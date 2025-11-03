@@ -85,6 +85,6 @@ class ControllerLimitSolar:
 hmodel = HerculesModel(input_file, ControllerLimitSolar)
 
 # Run the simulation
-hmodel.enter_execution()
+hmodel.run()
 
 hmodel.logger.info("Process completed successfully")

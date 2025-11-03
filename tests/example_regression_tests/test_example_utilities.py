@@ -168,7 +168,7 @@ def run_simulation(input_file, num_time_steps):
     hmodel.logger.handlers[0].setLevel(100)  # Suppress console output
 
     # Run the simulation
-    hmodel.enter_execution()
+    hmodel.run()
 
     # Check that the output file was created
     output_file = "outputs/hercules_output.h5"

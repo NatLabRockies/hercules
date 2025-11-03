@@ -81,7 +81,7 @@ def main():
 
     # Run the simulation
     hmodel.logger.info("Starting simulation execution...")
-    hmodel.enter_execution()
+    hmodel.run()
 
     # Record end time
     end_time = time.time()
