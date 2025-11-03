@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from pathlib import Path
 
 import h5py
 import numpy as np
@@ -340,41 +341,90 @@ def load_hercules_input(filename):
     return h_dict
 
 
-def setup_logging(logfile="log_hercules.log", console_output=True):
-    """Set up logging to file and console.
+def setup_logging(
+    logger_name="hercules",
+    log_file="log_hercules.log",
+    console_output=True,
+    console_prefix=None,
+    log_level=logging.INFO,
+    use_outputs_dir=True,
+):
+    """Set up logging to file and console with flexible configuration.
 
-    Creates 'outputs' directory and configures file/console logging with timestamps.
+    This function provides a unified interface for setting up logging across all
+    Hercules components. It supports both simple filenames (with automatic 'outputs'
+    directory creation) and full file paths. Console output is optional and can be
+    customized with a prefix.
 
     Args:
-        logfile (str, optional): Log file name. Defaults to "log_hercules.log".
+        logger_name (str, optional): Name for the logger instance. Defaults to "hercules".
+        log_file (str, optional): Log file name or full path. Defaults to "log_hercules.log".
         console_output (bool, optional): Enable console output. Defaults to True.
+        console_prefix (str, optional): Prefix for console messages. If None, uses
+            logger_name in uppercase. Defaults to None.
+        log_level (int, optional): Logging level (e.g., logging.INFO, logging.DEBUG).
+            Defaults to logging.INFO.
+        use_outputs_dir (bool, optional): If True and log_file is a simple filename
+            (no directory separators), automatically places it in 'outputs' directory.
+            If False, treats log_file as-is. Defaults to True.
 
     Returns:
         logging.Logger: Configured logger instance.
-    """
-    log_dir = os.path.join(os.getcwd(), "outputs")
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, logfile)
 
-    # Get the root logger
-    logger = logging.getLogger("emulator")
+    Examples:
+        Basic usage with defaults:
+        >>> logger = setup_logging()
+
+        Component-specific logging:
+        >>> logger = setup_logging(logger_name="wind_farm", log_file="log_wind.log")
+
+        Full path logging without console:
+        >>> logger = setup_logging(
+        ...     logger_name="battery",
+        ...     log_file="/path/to/logs/battery.log",
+        ...     console_output=False,
+        ...     use_outputs_dir=False
+        ... )
+
+        Custom console prefix:
+        >>> logger = setup_logging(
+        ...     logger_name="solar",
+        ...     console_prefix="SOLAR_PV"
+        ... )
+    """
+    # Determine the log file path
+    if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
+        # Simple filename - use outputs directory
+        log_dir = os.path.join(os.getcwd(), "outputs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file_path = os.path.join(log_dir, log_file)
+    else:
+        # Full path or use_outputs_dir=False - use as-is but ensure directory exists
+        log_file_path = log_file
+        log_dir = Path(log_file_path).parent
+        log_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get the logger
+    logger = logging.getLogger(logger_name)
 
     # Clear any existing handlers to avoid duplicates
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    logger.setLevel(logging.INFO)
+    logger.setLevel(log_level)
 
     # Add file handler
-    file_handler = logging.FileHandler(log_file)
+    file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(file_handler)
 
-    # Add console handler
+    # Add console handler if requested
     if console_output:
         console_handler = logging.StreamHandler()
+        # Use provided prefix or default to logger name in uppercase
+        prefix = console_prefix if console_prefix is not None else logger_name.upper()
         console_handler.setFormatter(
-            logging.Formatter("[EMULATOR] %(asctime)s - %(levelname)s - %(message)s")
+            logging.Formatter(f"[{prefix}] %(asctime)s - %(levelname)s - %(message)s")
         )
         logger.addHandler(console_handler)
 

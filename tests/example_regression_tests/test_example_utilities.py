@@ -6,9 +6,7 @@ import subprocess
 import tempfile
 
 import numpy as np
-from hercules.emulator import Emulator
-from hercules.hybrid_plant import HybridPlant
-from hercules.utilities import load_hercules_input, setup_logging
+from hercules.hercules_model import HerculesModel
 from hercules.utilities_examples import generate_example_inputs
 
 
@@ -119,14 +117,20 @@ def run_simulation(input_file, num_time_steps):
     Returns:
         pd.DataFrame: The simulation output dataframe.
     """
-    # Load the input file
-    h_dict = load_hercules_input(input_file)
+    # Load the input file and modify endtime
+    from hercules.utilities import load_yaml
+
+    h_dict = load_yaml(input_file)
 
     # Modify the endtime to run for the specified number of time steps
-    h_dict["endtime"] = num_time_steps
+    h_dict["endtime"] = h_dict["starttime_utc"]  # Store the original starttime_utc temporarily
+    h_dict["starttime_utc"] = h_dict["starttime_utc"]  # Keep starttime_utc
 
-    # Set up logging
-    logger = setup_logging(console_output=False)
+    # Calculate new endtime_utc based on num_time_steps
+    import pandas as pd
+
+    starttime_utc = pd.to_datetime(h_dict["starttime_utc"], utc=True)
+    h_dict["endtime_utc"] = starttime_utc + pd.Timedelta(seconds=num_time_steps)
 
     class ControllerSimple:
         """A simple controller for testing."""
@@ -137,7 +141,7 @@ def run_simulation(input_file, num_time_steps):
             Args:
                 h_dict (dict): Hercules input dictionary.
             """
-            pass
+            self.h_dict = h_dict
 
         def step(self, h_dict):
             """Execute one control step.
@@ -161,17 +165,12 @@ def run_simulation(input_file, num_time_steps):
 
             return h_dict
 
-    # Initialize the controller
-    controller = ControllerSimple(h_dict)
+    # Initialize and run the Hercules model
+    hmodel = HerculesModel(h_dict, ControllerSimple)
+    hmodel.logger.handlers[0].setLevel(100)  # Suppress console output
 
-    # Initialize the hybrid plant
-    hybrid_plant = HybridPlant(h_dict)
-
-    # Initialize the emulator
-    emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-    # Run the emulator
-    emulator.enter_execution(function_targets=[], function_arguments=[[]])
+    # Run the simulation
+    hmodel.enter_execution()
 
     # Check that the output file was created
     output_file = "outputs/hercules_output.h5"

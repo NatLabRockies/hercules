@@ -17,7 +17,7 @@ parts:
     - file: timing
     - file: h_dict
     - file: hybrid_plant
-    - file: emulator
+    - file: hercules_model
     - file: output_files
   - caption: Inputs
     chapters:

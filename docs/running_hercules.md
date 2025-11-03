@@ -1,7 +1,28 @@
 
 # Running Hercules
 
-It is recommended to run Hercules using a python runscript that sets up the emulation environment and then runs the emulator.  See for example the [hercules_runscript.py](../example_case_folders/00_wind_farm_only/hercules_runscript.py) file for an example.
+It is recommended to run Hercules using a python runscript. The typical pattern follows the FLORIS convention:
+
+```python
+from hercules import HerculesModel
+
+# Define your controller class
+class MyController:
+    def __init__(self, h_dict):
+        # Initialize with the prepared h_dict
+        self.h_dict = h_dict
+    
+    def step(self, h_dict):
+        # Implement your control logic here
+        # Set power setpoints, etc.
+        return h_dict
+
+# Initialize and run the Hercules model
+hmodel = HerculesModel("hercules_input.yaml", MyController)
+hmodel.enter_execution()
+```
+
+See the example runscripts in the `examples/` directory for complete examples.
 
 
 

@@ -2,17 +2,12 @@ import os
 import shutil
 import sys
 
-from hercules.emulator import Emulator
-from hercules.hybrid_plant import HybridPlant
-from hercules.utilities import load_hercules_input, setup_logging
+from hercules.hercules_model import HerculesModel
 
 # If the output folder exists, delete it
 if os.path.exists("outputs"):
     shutil.rmtree("outputs")
 os.makedirs("outputs")
-
-# Get the logger
-logger = setup_logging()
 
 # If more than one argument is provided raise and error
 if len(sys.argv) > 2:
@@ -26,12 +21,6 @@ if len(sys.argv) == 2:
 # If no arguments are provided, use the default input file
 else:
     input_file = "hercules_input.yaml"
-
-# Initialize logging
-logger.info(f"Starting with input file: {input_file}")
-
-# Load the input file
-h_dict = load_hercules_input(input_file)
 
 
 # Define a simple controller that sets all deratings to full rating
@@ -49,7 +38,7 @@ class ControllerToggleTurbine000:
         Args:
             h_dict (dict): The hercules input dictionary.
         """
-        pass
+        self.h_dict = h_dict
 
     def step(self, h_dict):
         """Execute one control step.
@@ -70,16 +59,10 @@ class ControllerToggleTurbine000:
         return h_dict
 
 
-# Initialize the controller
-controller = ControllerToggleTurbine000(h_dict)
+# Initialize and run the Hercules model
+hmodel = HerculesModel(input_file, ControllerToggleTurbine000)
 
-# Initialize the hybrid plant
-hybrid_plant = HybridPlant(h_dict)
+# Run the simulation
+hmodel.enter_execution()
 
-# Initialize the emulator
-emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-# Run the emulator
-emulator.enter_execution(function_targets=[], function_arguments=[[]])
-
-logger.info("Process completed successfully")
+hmodel.logger.info("Process completed successfully")

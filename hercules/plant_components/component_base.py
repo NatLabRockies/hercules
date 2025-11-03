@@ -1,7 +1,7 @@
 # Base class for plant components in Hercules.
 
-import logging
-from pathlib import Path
+
+from hercules.utilities import setup_logging
 
 
 class ComponentBase:
@@ -72,37 +72,20 @@ class ComponentBase:
         file and console. It ensures the log directory exists, clears any existing handlers to
         avoid duplicates, and formats log messages with timestamps, log levels, and messages.
         Both file and console output are enabled with component identification in console messages.
+        This method wraps the utilities.setup_logging function for backward compatibility.
 
         Args:
             log_file_name (str): The full path to the log file where log messages will be written.
         Returns:
             logging.Logger: Configured logger instance for the component.
         """
-
-        # Split the logfile into directory and filename
-        log_dir = Path(log_file_name).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
-
-        # Get the logger for this component, use the component_name for uniqueness
-        logger = logging.getLogger(self.component_name)
-        logger.setLevel(logging.INFO)
-
-        # Clear any existing handlers to avoid duplicates
-        for handler in logger.handlers[:]:
-            logger.removeHandler(handler)
-
-        # Add file handler
-        file_handler = logging.FileHandler(log_file_name)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        logger.addHandler(file_handler)
-
-        # Add console handler with component identification
-        console_handler = logging.StreamHandler()
-        formatter_str = f"[{self.component_name.upper()}] %(asctime)s - %(levelname)s - %(message)s"
-        console_handler.setFormatter(logging.Formatter(formatter_str))
-        logger.addHandler(console_handler)
-
-        return logger
+        return setup_logging(
+            logger_name=self.component_name,
+            log_file=log_file_name,
+            console_output=True,
+            console_prefix=self.component_name.upper(),
+            use_outputs_dir=False,  # log_file_name is already a full path
+        )
 
     def __del__(self):
         """

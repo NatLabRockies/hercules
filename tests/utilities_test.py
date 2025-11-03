@@ -1,5 +1,7 @@
+import logging
 import os
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -11,6 +13,7 @@ from hercules.utilities import (
     load_h_dict_from_text,
     load_hercules_input,
     local_time_to_utc,
+    setup_logging,
 )
 
 
@@ -778,97 +781,224 @@ def test_local_time_to_utc_returns_z_suffix():
     assert len(result) == 20  # Format: YYYY-MM-DDTHH:MM:SSZ
 
 
-# def test_read_hercules_hdf5_subset():
-#     """Test reading subset of HDF5 file data.
+def test_setup_logging_basic():
+    """Test basic setup_logging with default parameters."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Change to temp directory for this test
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
 
-#     Creates a mock HDF5 file and verifies that the subset function
-#     correctly filters by columns and time range.
-#     """
-#     import h5py
+            # Call setup_logging with defaults
+            logger = setup_logging()
 
-#     with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
-#         temp_file = f.name
+            # Verify logger was created
+            assert logger is not None
+            assert logger.name == "hercules"
+            assert logger.level == logging.INFO
 
-#     try:
-#         # Create mock HDF5 file with more data
-#         with h5py.File(temp_file, "w") as f:
-#             f.create_group("data")
-#             f.create_group("metadata")
+            # Verify handlers were added
+            assert len(logger.handlers) == 2  # file + console
 
-#             # Add time data (0, 1, 2, 3, 4, 5 seconds)
-#             f["data/time"] = np.array([0, 1, 2, 3, 4, 5])
-#             f["data/step"] = np.array([0, 1, 2, 3, 4, 5])
-#             f["data/clock_time"] = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
+            # Verify outputs directory was created
+            assert Path("outputs").exists()
+            assert Path("outputs/log_hercules.log").exists()
 
-#             # Add plant data
-#             f["data/plant_power"] = np.array([100, 200, 300, 400, 500, 600])
-#             f["data/plant_locally_generated_power"] = np.array([90, 180, 270, 360, 450, 540])
+            # Test logging works
+            logger.info("Test message")
 
-#             # Add components group
-#             components_group = f.create_group("data/components")
-#             components_group["wind_farm.power"] = np.array([50, 100, 150, 200, 250, 300])
-#             components_group["solar_farm.power"] = np.array([40, 80, 120, 160, 200, 240])
+            # Read log file
+            with open("outputs/log_hercules.log") as f:
+                content = f.read()
+                assert "Test message" in content
 
-#             # Add external signals
-#             external_signals_group = f.create_group("data/external_signals")
-#             external_signals_group["external_signals.wind_speed"] = np.array(
-#                 [8.5, 9.0, 8.8, 9.2, 8.9, 9.1]
-#             )
-#             external_signals_group["external_signals.temperature"] = np.array(
-#                 [20.0, 21.0, 20.5, 22.0, 21.5, 22.5]
-#             )
+        finally:
+            # Clean up logger handlers
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            os.chdir(original_cwd)
 
-#         # Test column filtering
-#         from hercules.utilities import read_hercules_hdf5_subset
 
-#         result_columns = read_hercules_hdf5_subset(
-#             temp_file, columns=["wind_farm.power", "external_signals.wind_speed"]
-#         )
+def test_setup_logging_custom_logger_name():
+    """Test setup_logging with custom logger name."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
 
-#         # Verify only requested columns plus time are present
-#         expected_columns = {
-#             "time",
-#             "wind_farm.power",
-#             "external_signals.wind_speed",
-#         }
-#         assert set(result_columns.columns) == expected_columns
+            logger = setup_logging(logger_name="wind_farm", log_file="log_wind.log")
 
-#         # Test time range filtering
-#         result_time = read_hercules_hdf5_subset(temp_file, time_range=(1.5, 4.5))
+            assert logger.name == "wind_farm"
+            assert Path("outputs/log_wind.log").exists()
 
-#         # Verify time range is correct (should include times 2, 3, 4)
-#         assert len(result_time) == 3
-#         np.testing.assert_array_equal(result_time["time"], [2, 3, 4])
+            # Test prefix in console handler (not file handler)
+            console_handler = [
+                h
+                for h in logger.handlers
+                if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+            ][0]
+            formatter_str = console_handler.formatter._fmt
+            assert "[WIND_FARM]" in formatter_str
 
-#         # Test both filters together
-#         result_both = read_hercules_hdf5_subset(
-#             temp_file, columns=["solar_farm.power"], time_range=(1.0, 3.0)
-#         )
+        finally:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            os.chdir(original_cwd)
 
-#         # Verify both filters work together
-#         assert len(result_both) == 3  # times 1, 2, 3 (inclusive of end time)
-#         assert "solar_farm.power" in result_both.columns
-#         assert "wind_farm.power" not in result_both.columns
-#         assert set(result_both.columns) == {"time", "solar_farm.power"}
 
-#         # Test stride parameter
-#         result_stride = read_hercules_hdf5_subset(temp_file, stride=2)
+def test_setup_logging_no_console_output():
+    """Test setup_logging with console output disabled."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
 
-#         # Verify stride works (should read every 2nd point: 0, 2, 4)
-#         assert len(result_stride) == 3
-#         np.testing.assert_array_equal(result_stride["time"], [0, 2, 4])
+            logger = setup_logging(console_output=False)
 
-#         # Test stride with time range
-#         result_stride_time = read_hercules_hdf5_subset(temp_file, time_range=(1.0, 4.0), stride=2)
+            # Should only have file handler
+            assert len(logger.handlers) == 1
+            assert isinstance(logger.handlers[0], logging.FileHandler)
 
-#         # Should get times 1, 3 (within range, every 2nd point starting from first in range)
-#         assert len(result_stride_time) == 2
-#         np.testing.assert_array_equal(result_stride_time["time"], [1, 3])
+        finally:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            os.chdir(original_cwd)
 
-#         # Test with no columns specified (should return only time)
-#         result_time_only = read_hercules_hdf5_subset(temp_file)
-#         assert set(result_time_only.columns) == {"time"}
-#         assert len(result_time_only) == 6  # All time points
 
-#     finally:
-#         os.unlink(temp_file)
+def test_setup_logging_custom_console_prefix():
+    """Test setup_logging with custom console prefix."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+
+            logger = setup_logging(logger_name="solar", console_prefix="SOLAR_PV")
+
+            # Find console handler (not file handler)
+            console_handler = [
+                h
+                for h in logger.handlers
+                if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+            ][0]
+            formatter_str = console_handler.formatter._fmt
+            assert "[SOLAR_PV]" in formatter_str
+
+        finally:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            os.chdir(original_cwd)
+
+
+def test_setup_logging_full_path():
+    """Test setup_logging with full file path and use_outputs_dir=False."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_file = str(Path(tmpdir) / "custom_logs" / "test.log")
+
+        logger = setup_logging(logger_name="battery", log_file=log_file, use_outputs_dir=False)
+
+        # Verify log file was created at specified path
+        assert Path(log_file).exists()
+        assert Path(log_file).parent.name == "custom_logs"
+
+        # Test logging
+        logger.info("Battery test message")
+        with open(log_file) as f:
+            content = f.read()
+            assert "Battery test message" in content
+
+        # Clean up
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+
+
+def test_setup_logging_custom_log_level():
+    """Test setup_logging with custom log level."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+
+            logger = setup_logging(log_level=logging.DEBUG)
+
+            assert logger.level == logging.DEBUG
+
+            # Test that debug messages are logged
+            logger.debug("Debug message")
+            with open("outputs/log_hercules.log") as f:
+                content = f.read()
+                assert "Debug message" in content
+
+        finally:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            os.chdir(original_cwd)
+
+
+def test_setup_logging_clears_existing_handlers():
+    """Test that setup_logging clears existing handlers to avoid duplicates."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+
+            # Create logger twice
+            logger1 = setup_logging(logger_name="test_logger")
+            num_handlers_first = len(logger1.handlers)
+
+            logger2 = setup_logging(logger_name="test_logger")
+            num_handlers_second = len(logger2.handlers)
+
+            # Should have same number of handlers (old ones cleared)
+            assert num_handlers_first == num_handlers_second
+            assert logger1 is logger2  # Same logger instance
+
+        finally:
+            for handler in logger1.handlers[:]:
+                handler.close()
+                logger1.removeHandler(handler)
+            os.chdir(original_cwd)
+
+
+def test_setup_logging_multiple_loggers():
+    """Test that multiple loggers can be created with different names."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmpdir)
+
+            logger1 = setup_logging(logger_name="logger1", log_file="log1.log")
+            logger2 = setup_logging(logger_name="logger2", log_file="log2.log")
+
+            # Verify they are different loggers
+            assert logger1 is not logger2
+            assert logger1.name == "logger1"
+            assert logger2.name == "logger2"
+
+            # Verify separate log files
+            logger1.info("Message from logger1")
+            logger2.info("Message from logger2")
+
+            with open("outputs/log1.log") as f:
+                content1 = f.read()
+                assert "Message from logger1" in content1
+                assert "Message from logger2" not in content1
+
+            with open("outputs/log2.log") as f:
+                content2 = f.read()
+                assert "Message from logger2" in content2
+                assert "Message from logger1" not in content2
+
+        finally:
+            for handler in logger1.handlers[:]:
+                handler.close()
+                logger1.removeHandler(handler)
+            for handler in logger2.handlers[:]:
+                handler.close()
+                logger2.removeHandler(handler)
+            os.chdir(original_cwd)
