@@ -17,6 +17,7 @@ from hercules.utilities import (
     get_available_component_names,
     get_available_component_types,
     hercules_float_type,
+    interpolate_df,
     load_yaml,
     setup_logging,
 )
@@ -73,6 +74,12 @@ class HerculesModel:
         self.log_every_n = self.h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
 
+        # Read in any external data
+        self.external_data_all = {}
+        if "external_data_file" in self.h_dict:
+            self._read_external_data_file(self.h_dict["external_data_file"])
+            self.h_dict["external_signals"] = {}
+
         # Initialize HDF5 output configuration
         if "output_file" in self.h_dict:
             self.output_file = self.h_dict["output_file"]
@@ -128,12 +135,6 @@ class HerculesModel:
         # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
-
-        # Read in any external data
-        self.external_data_all = {}
-        if "external_data_file" in self.h_dict:
-            self._read_external_data_file(self.h_dict["external_data_file"])
-            self.h_dict["external_signals"] = {}
 
     def _setup_logging(self, logfile="log_hercules.log", console_output=True):
         """Set up logging to file and console.
@@ -285,28 +286,38 @@ class HerculesModel:
         Read and interpolate external data from a CSV file.
 
         This method reads external data from the specified CSV file and interpolates it
-        according to the simulation time steps. The external data must include a 'time' column.
+        according to the simulation time steps. The external data must include a 'time_utc'
+        column which will be converted to simulation time.
         The interpolated data is stored in self.external_data_all.
+
         Args:
             filename (str): Path to the CSV file containing external data.
         """
 
         # Read in the external data file
         df_ext = pd.read_csv(filename)
-        if "time" not in df_ext.columns:
-            raise ValueError("External data file must have a 'time' column")
+        if "time_utc" not in df_ext.columns:
+            raise ValueError("External data file must have a 'time_utc' column")
 
-        # Interpolate the external data according to time.
+        # Convert time_utc to pandas datetime and then to simulation time
+        df_ext["time_utc"] = pd.to_datetime(df_ext["time_utc"], utc=True)
+        starttime_utc = pd.to_datetime(self.starttime_utc, utc=True)
+        df_ext["time"] = (df_ext["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Create simulation time array
         # Goes to 1 time step past stoptime specified in the input file.
-        times = np.arange(
+        new_times = np.arange(
             self.starttime,
             self.endtime + (2 * self.dt),
             self.dt,
         )
-        self.external_data_all["time"] = times
-        for c in df_ext.columns:
-            if c != "time":
-                self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
+
+        # Interpolate using the utility function
+        df_interpolated = interpolate_df(df_ext, new_times)
+
+        # Convert interpolated DataFrame to dictionary format
+        for col in df_interpolated.columns:
+            self.external_data_all[col] = df_interpolated[col].values
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
