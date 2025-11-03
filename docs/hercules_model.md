@@ -8,23 +8,28 @@ The HerculesModel serves as the central coordinator that drives the simulation f
 
 ## Usage
 
-Following the FLORIS pattern, HerculesModel can be initialized with an input file. It also requires a controller class. The simplest case is a pass-through controller:
+HerculesModel is initialized with an input file, and then a controller is assigned separately. The simplest case is a pass-through controller:
 
 ```python
-from hercules import HerculesModel
+from hercules.hercules_model import HerculesModel
+
+# Initialize the Hercules model
+hmodel = HerculesModel("hercules_input.yaml")
 
 # Define your controller class
 class MyController:
     def __init__(self, h_dict):
         # Initialize with prepared h_dict
-        self.h_dict = h_dict
+        pass
     
     def step(self, h_dict):
         # Implement control logic
         return h_dict
 
-# Initialize and run
-hmodel = HerculesModel("hercules_input.yaml", MyController)
+# Assign the controller to the model
+hmodel.assign_controller(MyController(hmodel.h_dict))
+
+# Run the simulation
 hmodel.run()
 ```
 
@@ -33,7 +38,10 @@ The HerculesModel handles all initialization automatically:
 - Loads and validates the input file
 - Initializes the hybrid plant
 - Adds plant metadata to h_dict
-- Initializes the controller with the prepared h_dict
+
+The controller is then assigned using the `assign_controller()` method, which:
+- Takes a controller instance (not the class)
+- The controller instance is initialized with the prepared h_dict from the model
 
 ## Simulation Flow
 

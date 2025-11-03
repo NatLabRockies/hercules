@@ -35,8 +35,6 @@ class HerculesModel:
         Args:
             input_file (Union[str, dict]): Path to Hercules input YAML file or dictionary
                 containing input configuration.
-            controller_class (class): The controller class (not instance) to be initialized
-                with the prepared h_dict.
 
         """
 

@@ -48,6 +48,7 @@ class ControllerToggleTurbine000:
 
         return h_dict
 
+
 # Instantiate the controller and assign to the Hercules model
 hmodel.assign_controller(ControllerToggleTurbine000(hmodel.h_dict))
 
