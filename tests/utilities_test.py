@@ -10,6 +10,7 @@ from hercules.utilities import (
     interpolate_df_fast,
     load_h_dict_from_text,
     load_hercules_input,
+    local_time_to_utc,
 )
 
 
@@ -173,7 +174,12 @@ def test_load_hercules_input_invalid_plant_structure():
     Creates a config with plant as string instead of dict
     and verifies the function raises appropriate error.
     """
-    invalid_config = {"dt": 1.0, "starttime": 0.0, "endtime": 30.0, "plant": "not_a_dict"}
+    invalid_config = {
+        "dt": 1.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
+        "plant": "not_a_dict",
+    }
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         import yaml
@@ -196,8 +202,8 @@ def test_load_hercules_input_invalid_component_type():
     """
     invalid_config = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 30.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
         "plant": {"interconnect_limit": 30000.0},
         "wind_farm": {"component_type": "InvalidType"},
     }
@@ -223,8 +229,8 @@ def test_load_hercules_input_verbose_default():
     """
     config_without_verbose = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 30.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:30",
         "plant": {"interconnect_limit": 30000.0},
     }
 
@@ -334,8 +340,8 @@ def test_output_configuration_validation():
 
     base_h_dict = {
         "dt": 1.0,
-        "starttime": 0.0,
-        "endtime": 10.0,
+        "starttime_utc": "2018-05-10 12:31:00",
+        "endtime_utc": "2018-05-10 12:31:10",
         "plant": {"interconnect_limit": 5000},
         "solar_farm": {"component_type": "SolarPySAMPVWatts"},
     }
@@ -354,6 +360,67 @@ def test_output_configuration_validation():
     test_dict["log_every_n"] = 0
     with pytest.raises(ValueError, match="log_every_n must be a positive integer"):
         load_hercules_input_from_dict(test_dict)
+
+
+def test_load_hercules_input_utc_validation():
+    """Test UTC datetime string validation.
+
+    Verifies that:
+    - Strings with 'Z' are accepted
+    - Naive strings are accepted
+    - Strings with timezone offsets are rejected
+    """
+    # Test accepted formats: explicit UTC with Z
+    valid_config_z = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00Z",
+        "endtime_utc": "2020-01-01T01:00:00Z",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    result = load_hercules_input_from_dict(valid_config_z)
+    assert isinstance(result["starttime_utc"], pd.Timestamp)
+    assert result["starttime_utc"].tz is not None
+
+    # Test accepted formats: naive string (treated as UTC)
+    valid_config_naive = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00",
+        "endtime_utc": "2020-01-01T01:00:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    result = load_hercules_input_from_dict(valid_config_naive)
+    assert isinstance(result["starttime_utc"], pd.Timestamp)
+    assert result["starttime_utc"].tz is not None
+
+    # Test rejected formats: timezone offset (positive)
+    invalid_config_positive_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00+05:00",
+        "endtime_utc": "2020-01-01T01:00:00+05:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_positive_offset)
+
+    # Test rejected formats: timezone offset (negative)
+    invalid_config_negative_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00-08:00",
+        "endtime_utc": "2020-01-01T01:00:00-08:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_negative_offset)
+
+    # Test rejected formats: UTC offset (even +00:00 should use Z)
+    invalid_config_utc_offset = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00+00:00",
+        "endtime_utc": "2020-01-01T01:00:00+00:00",
+        "plant": {"interconnect_limit": 30000.0},
+    }
+    with pytest.raises(ValueError, match="contains a timezone offset"):
+        load_hercules_input_from_dict(invalid_config_utc_offset)
 
 
 def load_hercules_input_from_dict(h_dict):
@@ -598,7 +665,13 @@ def test_read_hercules_hdf5_external_signals():
         with h5py.File(temp_file, "w") as f:
             # Create basic data structure
             f.create_group("data")
-            f.create_group("metadata")
+            metadata = f.create_group("metadata")
+
+            # Add starttime_utc metadata (required)
+            import pandas as pd
+
+            starttime_utc = pd.to_datetime("2018-05-10 12:31:00", utc=True)
+            metadata.attrs["starttime_utc"] = starttime_utc.timestamp()
 
             # Add basic time data
             f["data/time"] = np.array([0, 1, 2])
@@ -632,6 +705,77 @@ def test_read_hercules_hdf5_external_signals():
 
     finally:
         os.unlink(temp_file)
+
+
+def test_local_time_to_utc_with_timezone():
+    """Test local_time_to_utc with explicit timezone.
+
+    Tests conversion of local time to UTC with daylight saving time handling.
+    """
+    # Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)
+    result_jan = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result_jan == "2025-01-01T07:00:00Z"
+
+    # Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST)
+    result_july = local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+    assert result_july == "2025-07-01T06:00:00Z"
+
+    # Test with different timezone (Eastern Time)
+    # Midnight Jan 1, 2025 in Eastern Time (EST, UTC-5, no DST)
+    result_eastern_jan = local_time_to_utc("2025-01-01T00:00:00", tz="America/New_York")
+    assert result_eastern_jan == "2025-01-01T05:00:00Z"
+
+    # Midnight July 1, 2025 in Eastern Time (EDT, UTC-4, DST)
+    result_eastern_july = local_time_to_utc("2025-07-01T00:00:00", tz="America/New_York")
+    assert result_eastern_july == "2025-07-01T04:00:00Z"
+
+
+def test_local_time_to_utc_with_pandas_timestamp():
+    """Test local_time_to_utc with pandas Timestamp input."""
+    dt = pd.Timestamp("2025-01-01T00:00:00")
+    result = local_time_to_utc(dt, tz="America/Denver")
+    assert result == "2025-01-01T07:00:00Z"
+
+
+def test_local_time_to_utc_with_different_formats():
+    """Test local_time_to_utc with different datetime string formats."""
+    # ISO format with T
+    result1 = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result1 == "2025-01-01T07:00:00Z"
+
+    # ISO format with space
+    result2 = local_time_to_utc("2025-01-01 00:00:00", tz="America/Denver")
+    assert result2 == "2025-01-01T07:00:00Z"
+
+    # Date only (defaults to midnight)
+    result3 = local_time_to_utc("2025-01-01", tz="America/Denver")
+    assert result3 == "2025-01-01T07:00:00Z"
+
+
+def test_local_time_to_utc_invalid_timezone():
+    """Test local_time_to_utc with invalid timezone raises error."""
+    with pytest.raises(ValueError, match="Invalid timezone"):
+        local_time_to_utc("2025-01-01T00:00:00", tz="Invalid/Timezone")
+
+
+def test_local_time_to_utc_invalid_datetime():
+    """Test local_time_to_utc with invalid datetime string raises error."""
+    with pytest.raises(ValueError, match="Cannot parse local_time"):
+        local_time_to_utc("invalid-datetime", tz="America/Denver")
+
+
+def test_local_time_to_utc_missing_timezone():
+    """Test local_time_to_utc with missing timezone parameter raises error."""
+    with pytest.raises(ValueError, match="Timezone parameter 'tz' is required"):
+        local_time_to_utc("2025-01-01T00:00:00", tz=None)
+
+
+def test_local_time_to_utc_returns_z_suffix():
+    """Test that local_time_to_utc returns string with Z suffix."""
+    result = local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+    assert result.endswith("Z")
+    assert "T" in result
+    assert len(result) == 20  # Format: YYYY-MM-DDTHH:MM:SSZ
 
 
 # def test_read_hercules_hdf5_subset():

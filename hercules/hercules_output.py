@@ -80,18 +80,21 @@ class HerculesOutput:
 
         # UTC time information
         print("UTC Time----")
-        zero_time_utc = self.metadata.get("zero_time_utc")
-        if zero_time_utc is not None:
-            zero_time_utc = pd.to_datetime(zero_time_utc, unit="s", utc=True)
-            print(f"   Zero Time (UTC): {zero_time_utc}")
+
+        # Backward compatibility: Try to read starttime_utc (new format)
+        # or fall back to zero_time_utc (deprecated, from old output files)
+        starttime_utc = self.metadata.get("starttime_utc")
+        if starttime_utc is not None:
+            starttime_utc = pd.to_datetime(starttime_utc, unit="s", utc=True)
+            print(f"   Start Time (UTC): {starttime_utc}")
         else:
-            print("   Zero Time (UTC): Not available")
-        start_time_utc = self.metadata.get("start_time_utc")
-        if start_time_utc is not None:
-            start_time_utc = pd.to_datetime(start_time_utc, unit="s", utc=True)
-            print(f"   Start Time (UTC): {start_time_utc}")
-        else:
-            print("   Start Time (UTC): Not available")
+            # Backward compatibility: Check for deprecated zero_time_utc
+            zero_time_utc = self.metadata.get("zero_time_utc")
+            if zero_time_utc is not None:
+                zero_time_utc = pd.to_datetime(zero_time_utc, unit="s", utc=True)
+                print(f"   Start Time (UTC): {zero_time_utc} (from deprecated zero_time_utc)")
+            else:
+                print("   Start Time (UTC): Not available")
 
         # Check if time_utc column exists in the data
         if "time_utc" in self.df.columns:
@@ -114,11 +117,9 @@ class HerculesOutput:
             else:
                 print("   Elapsed Calendar Time: Not available")
         else:
-            print("   Zero Time (UTC): Not available")
-            print("   Start Time (UTC): Not available")
-            print("   First Time (UTC): Not available")
-            print("   Last Time (UTC): Not available")
-            print("   Elapsed Calendar Time: Not available")
+            print("   First Time (UTC): Not available (no time_utc column in data)")
+            print("   Last Time (UTC): Not available (no time_utc column in data)")
+            print("   Elapsed Calendar Time: Not available (no time_utc column in data)")
 
         print("Model Setup----")
 

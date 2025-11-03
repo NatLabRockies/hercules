@@ -19,11 +19,11 @@ df_solar = pd.read_csv("Flatirons_solar_data_sunset_1s.csv", index_col=False)
 df_solar["time_utc"] = pd.to_datetime(df_solar["Timestamp"], format="ISO8601", utc=True)
 df_solar = df_solar.drop(columns=["Timestamp"])
 
-# Add a zero-based seconds column (not time-synced with wind in examples)
-df_solar["time"] = (df_solar["time_utc"] - df_solar["time_utc"].min()).dt.total_seconds()
-
 # Clean index and finalize columns
 df_solar = df_solar.reset_index(drop=True)
 
 # Save the data
 df_solar.to_feather("solar_input.ftr")
+
+print(f"First time (UTC): {df_solar['time_utc'].iloc[0]}")
+print(f"Last time (UTC): {df_solar['time_utc'].iloc[-1]}")

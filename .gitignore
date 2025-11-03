@@ -6,6 +6,7 @@ data.db
 *.python-version
 *.DS_Store
 *.conda
+*.sqlite
 slices
 
 # macOS files

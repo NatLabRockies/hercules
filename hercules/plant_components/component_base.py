@@ -30,8 +30,27 @@ class ComponentBase:
 
         self.logger = self._setup_logging(self.log_file_name)
 
-        # Initialize the outputs to log
-        self.log_outputs = ["power"]
+        # Parse log_channels from the h_dict
+        if "log_channels" in h_dict[component_name]:
+            log_channels_input = h_dict[component_name]["log_channels"]
+            # Require list format
+            if isinstance(log_channels_input, list):
+                self.log_channels = log_channels_input
+            else:
+                raise TypeError(
+                    f"log_channels must be a list, got {type(log_channels_input)}. "
+                    f"Use YAML list format:\n"
+                    f"  log_channels:\n"
+                    f"    - power\n"
+                    f"    - channel_name"
+                )
+
+            # If power is not in the list, add it
+            if "power" not in self.log_channels:
+                self.log_channels.append("power")
+        else:
+            # Default to just power if not specified
+            self.log_channels = ["power"]
 
         # Save the time information
         self.dt = h_dict["dt"]

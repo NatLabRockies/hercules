@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 import h5py
 import numpy as np
@@ -107,6 +108,131 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
+def _validate_utc_datetime_string(dt_str, field_name):
+    """Validate that a datetime string represents UTC time.
+
+    Accepts:
+    - Strings ending with "Z" (explicit UTC in ISO 8601 format)
+    - Naive strings with no timezone info (treated as UTC)
+
+    Rejects:
+    - Strings with timezone offsets (e.g., "+05:00", "-08:00")
+
+    Args:
+        dt_str (str): Datetime string to validate.
+        field_name (str): Name of the field being validated (for error messages).
+
+    Returns:
+        pd.Timestamp: UTC-aware timestamp.
+
+    Raises:
+        ValueError: If string contains timezone offset or is invalid.
+    """
+    if not isinstance(dt_str, str):
+        raise ValueError(f"{field_name} must be a string")
+
+    dt_str_stripped = dt_str.strip()
+
+    # Check for timezone offsets (not allowed since field name implies UTC)
+    # Timezone offsets come after 'T' or at the end
+    # Pattern matches timezone offsets like +05:00, -08:00, +05:30, etc.
+    tz_offset_pattern = r"[+-]\d{2}:\d{2}$|[T][\d:-]*[+-]\d{2}:\d{2}"
+    if re.search(tz_offset_pattern, dt_str_stripped):
+        raise ValueError(
+            f"{field_name} contains a timezone offset (e.g., +05:00, -08:00). "
+            f"Since the field is named '{field_name}', it must be UTC time. "
+            f"Use 'Z' to explicitly mark UTC (e.g., '2020-01-01T00:00:00Z') "
+            f"or use a naive string without timezone info."
+        )
+
+    # Parse with utc=True to ensure result is UTC
+    try:
+        return pd.to_datetime(dt_str, utc=True)
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"{field_name} must be a valid UTC datetime string in ISO 8601 format. "
+            f"Accepted formats: 'YYYY-MM-DDTHH:MM:SSZ' (with Z) or "
+            f"'YYYY-MM-DDTHH:MM:SS' (naive, treated as UTC). Error: {e}"
+        )
+
+
+def local_time_to_utc(local_time, tz):
+    """Convert local time to UTC time string in ISO 8601 format with Z suffix.
+
+    This utility helps users who only know their local time convert it to UTC,
+    accounting for daylight saving time automatically. Useful for users less
+    familiar with timezones who need to provide UTC timestamps for Hercules
+    input files.
+
+    Args:
+        local_time (str or pd.Timestamp): Local datetime string or pandas Timestamp.
+            Accepts formats like "2025-01-01T00:00:00" or "2025-07-01 00:00:00".
+        tz (str): Timezone string using IANA timezone names (e.g., "America/Denver",
+            "America/New_York", "Europe/London", "Asia/Tokyo"). Required parameter.
+
+    Returns:
+        str: UTC datetime string in ISO 8601 format with Z suffix (e.g.,
+            "2025-01-01T07:00:00Z").
+
+    Examples:
+        >>> # Midnight Jan 1, 2025 in Mountain Time (MST, UTC-7, no DST)
+        >>> local_time_to_utc("2025-01-01T00:00:00", tz="America/Denver")
+        '2025-01-01T07:00:00Z'
+        >>> # Midnight July 1, 2025 in Mountain Time (MDT, UTC-6, DST in effect)
+        >>> local_time_to_utc("2025-07-01T00:00:00", tz="America/Denver")
+        '2025-07-01T06:00:00Z'
+        >>> # Eastern Time example
+        >>> local_time_to_utc("2025-01-01T00:00:00", tz="America/New_York")
+        '2025-01-01T05:00:00Z'
+
+    Raises:
+        ValueError: If local_time cannot be parsed or tz is invalid or missing.
+
+    Note:
+        Common timezone names:
+        - US: "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"
+        - Europe: "Europe/London", "Europe/Paris", "Europe/Berlin"
+        - Asia: "Asia/Tokyo", "Asia/Shanghai", "Asia/Dubai"
+        - Pacific: "Pacific/Auckland", "Pacific/Honolulu"
+
+        For a complete list of all available IANA timezone names, see:
+        - https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        - Or in Python: `import zoneinfo; zoneinfo.available_timezones()`
+    """
+    if tz is None:
+        raise ValueError(
+            "Timezone parameter 'tz' is required. "
+            "Use IANA timezone names like 'America/Denver' or 'Europe/London'. "
+            "See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for valid names."
+        )
+
+    # Parse local_time to pandas Timestamp (naive)
+    try:
+        dt = pd.to_datetime(local_time)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Cannot parse local_time '{local_time}': {e}")
+
+    # Localize naive datetime to the specified timezone
+    try:
+        dt_localized = dt.tz_localize(tz)
+    except Exception as e:
+        raise ValueError(
+            f"Invalid timezone '{tz}': {e}. "
+            "Use IANA timezone names like 'America/Denver' or 'Europe/London'. "
+            "See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for valid names, "
+            "or in Python: `import zoneinfo; zoneinfo.available_timezones()`"
+        )
+
+    # Convert to UTC
+    dt_utc = dt_localized.tz_convert("UTC")
+
+    # Format as ISO 8601 with Z suffix
+    # Remove timezone info and add Z manually to match Hercules format
+    utc_str = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    return utc_str
+
+
 def load_hercules_input(filename):
     """Load and validate Hercules input file.
 
@@ -116,7 +242,7 @@ def load_hercules_input(filename):
         filename (str): Path to Hercules input YAML file.
 
     Returns:
-        dict: Validated Hercules input configuration.
+        dict: Validated Hercules input configuration with computed starttime/endtime.
 
     Raises:
         ValueError: If required keys missing, invalid data types, or incorrect structure.
@@ -124,7 +250,7 @@ def load_hercules_input(filename):
     h_dict = load_yaml(filename)
 
     # Define valid keys
-    required_keys = ["dt", "starttime", "endtime", "plant"]
+    required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
     component_names = get_available_component_names()
     component_types = get_available_component_types()
     other_keys = [
@@ -144,6 +270,18 @@ def load_hercules_input(filename):
         if key not in h_dict:
             raise ValueError(f"Required key {key} not found in input file {filename}")
 
+    # Validate and convert starttime_utc and endtime_utc to pandas Timestamps
+    starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
+    endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
+
+    # Validate endtime_utc is after starttime_utc
+    if endtime_utc <= starttime_utc:
+        raise ValueError(f"endtime_utc must be after starttime_utc in input file {filename}")
+
+    # Store UTC timestamps in h_dict
+    h_dict["starttime_utc"] = starttime_utc
+    h_dict["endtime_utc"] = endtime_utc
+
     # Validate plant structure
     if not isinstance(h_dict["plant"], dict):
         raise ValueError(f"Plant must be a dictionary in input file {filename}")
@@ -158,6 +296,11 @@ def load_hercules_input(filename):
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
             raise ValueError(f"Key {key} not a valid key in input file {filename}")
+
+    # Compute starttime (always 0) and endtime (duration in seconds)
+    duration = (endtime_utc - starttime_utc).total_seconds()
+    h_dict["starttime"] = 0.0
+    h_dict["endtime"] = duration
 
     # Validate component structures
     for key in component_names:
@@ -566,11 +709,12 @@ def read_hercules_hdf5(filename):
             "step": f["data/step"][:],
         }
 
-        # Reconstruct time_utc using zero_time_utc
-        if "zero_time_utc" in f["metadata"].attrs:
-            zero_time_utc = pd.to_datetime(f["metadata"].attrs["zero_time_utc"], unit="s", utc=True)
-            time = pd.to_timedelta(data["time"], unit="s")
-            data["time_utc"] = zero_time_utc + time
+        # Reconstruct time_utc using starttime_utc (required)
+        if "starttime_utc" not in f["metadata"].attrs:
+            raise ValueError(f"starttime_utc not found in metadata attributes in file {filename}")
+        starttime_utc = pd.to_datetime(f["metadata"].attrs["starttime_utc"], unit="s", utc=True)
+        time = pd.to_timedelta(data["time"], unit="s")
+        data["time_utc"] = starttime_utc + time
 
         # Read plant data
         data["plant.power"] = f["data/plant_power"][:]
@@ -587,70 +731,6 @@ def read_hercules_hdf5(filename):
                 data[dataset_name] = f["data/external_signals"][dataset_name][:]
 
     return pd.DataFrame(data)
-
-
-# def read_hercules_hdf5_subset(filename, columns=None, time_range=None, stride=1):
-#     """Read subset of Hercules HDF5 output file data.
-
-#     Returns only specified columns and time range, reducing memory usage for large datasets.
-#     Optionally applies stride to read every Nth data point for further downsampling.
-
-#     Args:
-#         filename (str): Path to Hercules HDF5 output file.
-#         columns (list, optional): Column names to include. If None, includes only time column.
-#         time_range (tuple, optional): (start_time, end_time) in seconds. If None, includes all
-#             times.
-#         stride (int, optional): Read every Nth data point. Defaults to 1 (read all points).
-
-#     Returns:
-#         pd.DataFrame: Subset of simulation data.
-#     """
-#     with h5py.File(filename, "r") as f:
-#         # Get time indices for subset
-#         time_data = f["data/time"][:]
-#         start_idx = 0
-#         end_idx = len(time_data)
-
-#         if time_range is not None:
-#             start_time, end_time = time_range
-#             start_idx = np.searchsorted(time_data, start_time, side="left")
-#             end_idx = np.searchsorted(time_data, end_time, side="right")
-
-#         # Apply stride to indices
-#         indices = np.arange(start_idx, end_idx, stride)
-
-#         # Always include time data
-#         data = {"time": time_data[indices]}
-
-#         # If no columns specified, return only time
-#         if columns is None:
-#             return pd.DataFrame(data)
-
-#         # Read requested columns
-#         for col in columns:
-#             if col == "step":
-#                 data[col] = f["data/step"][indices]
-
-#             elif col == "time_utc":
-#                 if "time_utc" in f["data"]:
-#                     data[col] = f["data/time_utc"][indices]
-#                 elif "start_time_utc" in f["metadata"].attrs:
-#                     # Reconstruct time_utc from start_time_utc
-#                     start_time_utc = pd.to_datetime(
-#                         f["metadata"].attrs["start_time_utc"], unit="s", utc=True
-#                     )
-#                     time_subset = pd.to_timedelta(data["time"], unit="s")
-#                     data[col] = start_time_utc + time_subset
-#             elif col == "plant.power":
-#                 data[col] = f["data/plant_power"][indices]
-#             elif col == "plant.locally_generated_power":
-#                 data[col] = f["data/plant_locally_generated_power"][indices]
-#             elif col in f["data/components"]:
-#                 data[col] = f["data/components"][col][indices]
-#             elif col in f["data/external_signals"]:
-#                 data[col] = f["data/external_signals"][col][indices]
-
-#     return pd.DataFrame(data)
 
 
 def get_hercules_metadata(filename):

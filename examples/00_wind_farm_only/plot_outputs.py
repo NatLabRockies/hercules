@@ -25,30 +25,39 @@ fig, axarr = plt.subplots(2, 1, sharex=True)
 # Plot the wind speeds
 ax = axarr[0]
 for t_idx in range(3):
-    if f"wind_farm.unwaked_velocities.{t_idx:03}" in df.columns:
+    if f"wind_farm.wind_speeds_background.{t_idx:03}" in df.columns:
         ax.plot(
             df["time"],
-            df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
-            label=f"Unwaked {t_idx}",
+            df[f"wind_farm.wind_speeds_background.{t_idx:03}"],
+            label=f"Background {t_idx}",
             color=colors[t_idx],
         )
 for t_idx in range(3):
-    if f"wind_farm.waked_velocities.{t_idx:03}" in df.columns:
+    if f"wind_farm.wind_speeds_withwakes.{t_idx:03}" in df.columns:
         ax.plot(
             df["time"],
-            df[f"wind_farm.waked_velocities.{t_idx:03}"],
-            label=f"Waked {t_idx}",
+            df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
+            label=f"With wakes {t_idx}",
             linestyle="--",
             color=colors[t_idx],
         )
 
 # Plot the FLORIS wind speed if available
-if "wind_farm.floris_wind_speed" in df.columns:
+if "wind_farm.wind_speed_mean_background" in df.columns:
     ax.plot(
         df["time"],
-        df["wind_farm.floris_wind_speed"],
-        label="FLORIS",
+        df["wind_farm.wind_speed_mean_background"],
+        label="Mean Background Wind Speed",
         color="black",
+        lw=2,
+    )
+
+if "wind_farm.wind_speed_mean_withwakes" in df.columns:
+    ax.plot(
+        df["time"],
+        df["wind_farm.wind_speed_mean_withwakes"],
+        label="Mean With-Wakes Wind Speed",
+        color="red",
         lw=2,
     )
 

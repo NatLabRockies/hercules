@@ -49,7 +49,7 @@ def create_test_hdf5_file(filename: str):
         f["metadata"].attrs["log_every_n"] = 5
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567895.0
-        f["metadata"].attrs["start_time_utc"] = 1234567890.0  # Unix timestamp for UTC time
+        f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
 
         # Add h_dict as JSON string
         import json

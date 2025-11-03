@@ -51,9 +51,6 @@ def generate_solar_input(
     temp_data = np.zeros(num_time_steps)  # Temperature
     wind_speed_data = np.zeros(num_time_steps)  # Wind Speed
 
-    # Get time in seconds
-    time_seconds = time_minutes * 60
-
     for i, (time_min, utc_time) in enumerate(zip(time_minutes, time_utc)):
         # Calculate solar position (simplified)
         hour = utc_time.hour + utc_time.minute / 60.0
@@ -125,7 +122,6 @@ def generate_solar_input(
             "SRRL BMS Dry Bulb Temperature (°C)": temp_data,
             "SRRL BMS Wind Speed at 19' (m/s)": wind_speed_data,
             "time_utc": time_utc,
-            "time": time_seconds,
         }
     )
 

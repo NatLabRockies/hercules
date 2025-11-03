@@ -3,6 +3,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 
 PRINT_VALUES = True
@@ -91,6 +92,17 @@ def get_solar_params():
             "verbose": False,
         },
     }
+
+    # Derive starttime_utc and endtime_utc from the input file to satisfy model requirements
+    df = pd.read_csv(solar_dict["solar_farm"]["solar_input_filename"])
+    if "time_utc" not in df.columns:
+        raise ValueError("Test input solar_pysam_data.csv must include a 'time_utc' column")
+    if not pd.api.types.is_datetime64_any_dtype(df["time_utc"]):
+        df["time_utc"] = pd.to_datetime(df["time_utc"], format="ISO8601", utc=True)
+    start_ts = df["time_utc"].min()
+    solar_dict["starttime_utc"] = start_ts.isoformat()
+    end_ts = start_ts + pd.to_timedelta(solar_dict["endtime"], unit="s")
+    solar_dict["endtime_utc"] = end_ts.isoformat()
 
     return solar_dict
 

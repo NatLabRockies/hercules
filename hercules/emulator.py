@@ -44,8 +44,12 @@ class Emulator:
 
         # Save time step, start time and end time first
         self.dt = h_dict["dt"]
-        self.starttime = h_dict["starttime"]
-        self.endtime = h_dict["endtime"]
+        self.starttime = h_dict["starttime"]  # Always 0, computed from UTC
+        self.endtime = h_dict["endtime"]  # Duration in seconds, computed from UTC
+
+        # Save UTC timestamps
+        self.starttime_utc = h_dict["starttime_utc"]
+        self.endtime_utc = h_dict["endtime_utc"]
 
         # Initialize logging configuration
         self.log_every_n = h_dict.get("log_every_n", 1)
@@ -110,9 +114,9 @@ class Emulator:
         # Add plant component metadata to the h_dict
         self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
 
-        # Save zero time and start time following add meta data
-        self.zero_time_utc = h_dict.get("zero_time_utc", None)
-        self.start_time_utc = h_dict.get("start_time_utc", None)
+        # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        # starttime_utc is required and should already be set, but ensure it's still present
+        self.starttime_utc = h_dict["starttime_utc"]
 
         # Read in any external data
         self.external_data_all = {}
@@ -183,19 +187,12 @@ class Emulator:
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
-        # Store zero and start time UTC information if not None
-        if self.zero_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
-            if hasattr(self.zero_time_utc, "timestamp"):
-                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc.timestamp()
-            else:
-                metadata_group.attrs["zero_time_utc"] = self.zero_time_utc
-        if self.start_time_utc is not None:
-            # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
-            if hasattr(self.start_time_utc, "timestamp"):
-                metadata_group.attrs["start_time_utc"] = self.start_time_utc.timestamp()
-            else:
-                metadata_group.attrs["start_time_utc"] = self.start_time_utc
+        # Store start time UTC information (required)
+        # Convert pandas Timestamp to Unix timestamp for HDF5 compatibility
+        if hasattr(self.starttime_utc, "timestamp"):
+            metadata_group.attrs["starttime_utc"] = self.starttime_utc.timestamp()
+        else:
+            metadata_group.attrs["starttime_utc"] = self.starttime_utc
 
         # Create data group
         data_group = self.hdf5_file.create_group("data")
@@ -251,17 +248,56 @@ class Emulator:
         components_group = data_group.create_group("components")
         for component_name in self.hybrid_plant.component_names:
             component_obj = self.hybrid_plant.component_objects[component_name]
-            log_outputs = getattr(component_obj, "log_outputs", ["power"])
 
-            for output_name in log_outputs:
-                if output_name in self.h_dict[component_name]:
-                    output_value = self.h_dict[component_name][output_name]
+            for c in component_obj.log_channels:
+                # First check if channel name ends with a 3-digit number after a period
+                if len(c) >= 4 and c[-4] == "." and c[-3:].isdigit():
+                    # In this case, we want a single index from within an array output
+                    # For example, wind_farm.turbine_powers.000
+                    # We want to create a dataset for this index
+                    index = int(c[-3:])
+                    channel_name = c[:-4]
+                    channel_obj = self.h_dict[component_name][channel_name]
+                    if isinstance(channel_obj, (list, np.ndarray)):
+                        if index < len(channel_obj):
+                            dataset_name = f"{component_name}.{channel_name}.{index:03d}"
+                            self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                                dataset_name,
+                                shape=(total_rows,),
+                                dtype=hercules_float_type,
+                                **compression_params,
+                            )
+                        else:
+                            raise ValueError(
+                                (
+                                    f"Index {index} is out of range for {channel_name} "
+                                    f"in {component_name}"
+                                )
+                            )
+                    else:
+                        raise ValueError(
+                            f"Channel {channel_name} is not an array in {component_name}"
+                        )
 
-                    if isinstance(output_value, (list, np.ndarray)):
-                        # Handle arrays by creating individual datasets
-                        arr = np.asarray(output_value)
-                        for i in range(len(arr)):
-                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
+                else:
+                    # In this case, either the value is a scalar, or we want to log the entire array
+                    if c in self.h_dict[component_name]:
+                        output_value = self.h_dict[component_name][c]
+
+                        if isinstance(output_value, (list, np.ndarray)):
+                            # Handle arrays by creating individual datasets
+                            arr = np.asarray(output_value)
+                            for i in range(len(arr)):
+                                dataset_name = f"{component_name}.{c}.{i:03d}"
+                                self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                                    dataset_name,
+                                    shape=(total_rows,),
+                                    dtype=hercules_float_type,
+                                    **compression_params,
+                                )
+                        else:
+                            # Handle scalar values
+                            dataset_name = f"{component_name}.{c}"
                             self.hdf5_datasets[dataset_name] = components_group.create_dataset(
                                 dataset_name,
                                 shape=(total_rows,),
@@ -269,14 +305,7 @@ class Emulator:
                                 **compression_params,
                             )
                     else:
-                        # Handle scalar values
-                        dataset_name = f"{component_name}.{output_name}"
-                        self.hdf5_datasets[dataset_name] = components_group.create_dataset(
-                            dataset_name,
-                            shape=(total_rows,),
-                            dtype=hercules_float_type,
-                            **compression_params,
-                        )
+                        raise ValueError(f"Output {c} not found in {component_name}")
 
         # Create external signals datasets
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
@@ -545,24 +574,44 @@ class Emulator:
         # Buffer component outputs
         for component_name in self.hybrid_plant.component_names:
             component_obj = self.hybrid_plant.component_objects[component_name]
-            log_outputs = getattr(component_obj, "log_outputs", ["power"])
 
-            for output_name in log_outputs:
-                if output_name in self.h_dict[component_name]:
-                    output_value = self.h_dict[component_name][output_name]
-
-                    if isinstance(output_value, (list, np.ndarray)):
-                        # Handle arrays by buffering to individual datasets
-                        arr = np.asarray(output_value)
-                        for i in range(len(arr)):
-                            dataset_name = f"{component_name}.{output_name}.{i:03d}"
+            for c in component_obj.log_channels:
+                # First check if channel ends in with a 3-digit number after a period
+                if len(c) >= 4 and c[-4] == "." and c[-3:].isdigit():
+                    # In this case, we want a single index from within an array output
+                    # For example, wind_farm.turbine_powers.000
+                    # We want to create a dataset for this index
+                    index = int(c[-3:])
+                    channel_name = c[:-4]
+                    channel_obj = self.h_dict[component_name][channel_name]
+                    if isinstance(channel_obj, (list, np.ndarray)):
+                        if index < len(channel_obj):
+                            dataset_name = f"{component_name}.{channel_name}.{index:03d}"
                             if dataset_name in self.data_buffers:
-                                self.data_buffers[dataset_name][self.buffer_row] = arr[i]
+                                self.data_buffers[dataset_name][self.buffer_row] = channel_obj[
+                                    index
+                                ]
                     else:
-                        # Handle scalar values
-                        dataset_name = f"{component_name}.{output_name}"
-                        if dataset_name in self.data_buffers:
-                            self.data_buffers[dataset_name][self.buffer_row] = output_value
+                        raise ValueError(
+                            f"Channel {channel_name} is not an array in {component_name}"
+                        )
+                else:
+                    # In this case, either the value is a scalar, or we want to log the entire array
+                    if c in self.h_dict[component_name]:
+                        output_value = self.h_dict[component_name][c]
+
+                        if isinstance(output_value, (list, np.ndarray)):
+                            # Handle arrays by buffering to individual datasets
+                            arr = np.asarray(output_value)
+                            for i in range(len(arr)):
+                                dataset_name = f"{component_name}.{c}.{i:03d}"
+                                if dataset_name in self.data_buffers:
+                                    self.data_buffers[dataset_name][self.buffer_row] = arr[i]
+                        else:
+                            # Handle scalar values
+                            dataset_name = f"{component_name}.{c}"
+                            if dataset_name in self.data_buffers:
+                                self.data_buffers[dataset_name][self.buffer_row] = output_value
 
         # Buffer external signals
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
