@@ -176,7 +176,8 @@ def run_simulation(input_file, num_time_steps):
             return h_dict
 
     # Initialize and run the Hercules model
-    hmodel = HerculesModel(h_dict, ControllerSimple)
+    hmodel = HerculesModel(h_dict)
+    hmodel.assign_controller(ControllerSimple(h_dict))
     hmodel.logger.handlers[0].setLevel(100)  # Suppress console output
 
     # Run the simulation

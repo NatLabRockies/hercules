@@ -28,7 +28,7 @@ Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
 class HerculesModel:
-    def __init__(self, input_file, controller_class):
+    def __init__(self, input_file):
         """
         Initializes the HerculesModel.
 
@@ -55,8 +55,8 @@ class HerculesModel:
         # Add plant component metadata to h_dict
         self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
 
-        # Initialize the controller
-        self.controller = controller_class(self.h_dict)
+        # Initialize the controller as None, to be assigned in a subsequent call
+        self._controller = None
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -509,6 +509,35 @@ class HerculesModel:
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
 
+    def assign_controller(self, controller):
+        """
+        Assign a controller instance to the HerculesModel.
+
+        This method allows setting controller instance used in the simulation.
+        It is useful when the controller needs to be initialized separately or changed after
+        the HerculesModel has been created.
+
+        Alternatively, the controller can be set directly using HerculesModel.controller = ...
+
+        Args:
+            controller (object): An instance of the controller to be used in the simulation.
+        """
+        if not hasattr(controller, "step"):
+            raise ValueError(
+                "Assigned controller does not have a 'step' method. ",
+                "Ensure the controller is properly implemented.",
+            )
+        self._controller = controller
+
+    @property
+    def controller(self):
+        """Get the assigned controller instance.
+
+        Returns:
+            object: The controller instance assigned to the HerculesModel.
+        """
+        return self._controller
+
     def run(self):
         """
         Execute the main simulation loop and handle timing and logging.
@@ -518,6 +547,13 @@ class HerculesModel:
         controller and Python simulators, logging state, and handling external data interpolation.
         Ensures proper cleanup of resources even if exceptions occur during simulation.
         """
+
+        # Check that a valid controller has been assigned
+        if self._controller is None:
+            raise ValueError(
+                "No valid controller assigned to HerculesModel. ",
+                "Call assign_controller() before running the simulation.",
+            )
 
         # Wrap this effort in a try block to ensure proper cleanup
         try:

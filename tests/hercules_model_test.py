@@ -74,7 +74,7 @@ def test_HerculesModel_instantiation():
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
 
-    hmodel = HerculesModel(test_h_dict, SimpleControllerSolar)
+    hmodel = HerculesModel(test_h_dict)
 
     # Check default settings
     assert hmodel.output_file == "outputs/hercules_output.h5"
@@ -92,7 +92,7 @@ def test_HerculesModel_instantiation():
     # To achieve endtime = 5.0 and endtime + 2*dt = 6.0, set duration = 4.5s
     test_h_dict_2["endtime_utc"] = test_h_dict_2["starttime_utc"] + pd.to_timedelta(4.5, unit="s")
 
-    hmodel = HerculesModel(test_h_dict_2, SimpleControllerSolar)
+    hmodel = HerculesModel(test_h_dict_2)
 
     # Check external data loading
     assert hmodel.external_data_all["power_reference"][0] == 1000
@@ -114,7 +114,8 @@ def test_log_data_to_hdf5():
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
 
-    hmodel = HerculesModel(test_h_dict, SimpleControllerSolar)
+    hmodel = HerculesModel(test_h_dict)
+    hmodel.assign_controller(SimpleControllerSolar(test_h_dict))
 
     # Set up the simulation state
     hmodel.time = 5.0
@@ -175,7 +176,8 @@ def test_log_data_to_hdf5_with_external_signals():
     test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_h_dict["dt"] = 1.0
 
-    hmodel = HerculesModel(test_h_dict, SimpleControllerWind)
+    hmodel = HerculesModel(test_h_dict)
+    hmodel.assign_controller(SimpleControllerWind(test_h_dict))
 
     # Set up the simulation state
     hmodel.time = 5.0
@@ -226,7 +228,8 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
 
-    hmodel = HerculesModel(test_h_dict, SimpleControllerWind)
+    hmodel = HerculesModel(test_h_dict)
+    hmodel.assign_controller(SimpleControllerWind(test_h_dict))
 
     # Set up the simulation state
     hmodel.time = 5.0
@@ -303,7 +306,8 @@ def test_hdf5_output_configuration():
             4.0, unit="s"
         )
 
-        hmodel = HerculesModel(test_h_dict_hdf5, SimpleControllerSolar)
+        hmodel = HerculesModel(test_h_dict_hdf5)
+        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_hdf5))
 
         # Run simulation and write output
         for step in range(5):  # 5 steps (0-4) for dt=1.0, endtime=5.0, starttime=0.0
@@ -340,7 +344,8 @@ def test_hdf5_output_configuration():
             4.0, unit="s"
         )
 
-        hmodel = HerculesModel(test_h_dict_hdf5_2, SimpleControllerSolar)
+        hmodel = HerculesModel(test_h_dict_hdf5_2)
+        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_hdf5_2))
 
         # Check configuration
         assert hmodel.buffer_size == 500
@@ -386,7 +391,8 @@ def test_log_every_n_option():
             5.0, unit="s"
         )
 
-        hmodel = HerculesModel(test_h_dict_log, SimpleControllerSolar)
+        hmodel = HerculesModel(test_h_dict_log)
+        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_log))
 
         # Check configuration
         assert hmodel.log_every_n == 2
@@ -429,7 +435,8 @@ def test_log_every_n_option():
             6.0, unit="s"
         )
 
-        hmodel = HerculesModel(test_h_dict_log2, SimpleControllerSolar)
+        hmodel = HerculesModel(test_h_dict_log2)
+        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_log2))
 
         # Check configuration
         assert hmodel.log_every_n == 3
@@ -476,7 +483,8 @@ def test_log_selective_array_element():
     # Modify log_channels to only include turbine_powers.001 (not the full array)
     test_h_dict["wind_farm"]["log_channels"] = ["power", "turbine_powers.001"]
 
-    hmodel = HerculesModel(test_h_dict, SimpleControllerWind)
+    hmodel = HerculesModel(test_h_dict)
+    hmodel.assign_controller(SimpleControllerWind(test_h_dict))
 
     # Set up the simulation state
     hmodel.time = 5.0

@@ -7,7 +7,8 @@ prepare_output_directory()
 # Ensure example inputs exist
 ensure_example_inputs_exist()
 
-input_file = "hercules_input.yaml"
+# Initialize the Hercules model
+hmodel = HerculesModel("hercules_input.yaml")
 
 
 # Define a simple controller that sets all deratings to full rating
@@ -47,9 +48,8 @@ class ControllerToggleTurbine000:
 
         return h_dict
 
-
-# Initialize and run the Hercules model
-hmodel = HerculesModel(input_file, ControllerToggleTurbine000)
+# Instantiate the controller and assign to the Hercules model
+hmodel.assign_controller(ControllerToggleTurbine000(hmodel.h_dict))
 
 # Run the simulation
 hmodel.run()
