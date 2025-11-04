@@ -45,29 +45,29 @@ class HerculesModel:
         self.logger = self._setup_logging()
 
         # Load and validate the input file
-        self.h_dict = self._load_hercules_input(input_file)
+        h_dict = self._load_hercules_input(input_file)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
 
         # Save time step, start time and end time first
-        self.dt = self.h_dict["dt"]
-        self.starttime = self.h_dict["starttime"]  # Always 0, computed from UTC
-        self.endtime = self.h_dict["endtime"]  # Duration in seconds, computed from UTC
+        self.dt = h_dict["dt"]
+        self.starttime = h_dict["starttime"]  # Always 0, computed from UTC
+        self.endtime = h_dict["endtime"]  # Duration in seconds, computed from UTC
 
         # Save UTC timestamps
-        self.starttime_utc = self.h_dict["starttime_utc"]
-        self.endtime_utc = self.h_dict["endtime_utc"]
+        self.starttime_utc = h_dict["starttime_utc"]
+        self.endtime_utc = h_dict["endtime_utc"]
 
         # Initialize logging configuration
-        self.log_every_n = self.h_dict.get("log_every_n", 1)
+        self.log_every_n = h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
 
         # Initialize the hybrid plant
-        self.hybrid_plant = HybridPlant(self.h_dict)
+        self.hybrid_plant = HybridPlant(h_dict)
 
         # Add plant component metadata to h_dict
-        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
+        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(h_dict)
 
         # Initialize the controller as None, to be assigned in a subsequent call
         self._controller = None
