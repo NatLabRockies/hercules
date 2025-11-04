@@ -146,8 +146,8 @@ electrolyzer = {
 # Base h_dict with no components
 h_dict = {
     "dt": 1.0,
-    "starttime": 0.0,
-    "endtime": 30.0,
+    # "starttime": 0.0,
+    # "endtime": 30.0,
     "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
     "endtime_utc": pd.to_datetime("2018-05-10 12:31:30", utc=True),
     "plant": plant,

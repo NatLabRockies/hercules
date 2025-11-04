@@ -47,15 +47,6 @@ class HerculesModel:
         # Load and validate the input file
         self.h_dict = self._load_hercules_input(input_file)
 
-        # Initialize the hybrid plant
-        self.hybrid_plant = HybridPlant(self.h_dict)
-
-        # Add plant component metadata to h_dict
-        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
-
-        # Initialize the controller as None, to be assigned in a subsequent call
-        self._controller = None
-
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
 
@@ -71,6 +62,17 @@ class HerculesModel:
         # Initialize logging configuration
         self.log_every_n = self.h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
+
+        # Initialize the hybrid plant
+        self.hybrid_plant = HybridPlant(self.h_dict)
+
+        # Add plant component metadata to h_dict
+        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
+
+        # Initialize the controller as None, to be assigned in a subsequent call
+        self._controller = None
+
+
 
         # Read in any external data
         self.external_data_all = {}
@@ -184,8 +186,7 @@ class HerculesModel:
             "external_data_file",
             "output_use_compression",
             "output_buffer_size",
-            "starttime",  # May already be set in test h_dicts
-            "endtime",  # May already be set in test h_dicts
+
             "time",  # Runtime key that may be present
             "step",  # Runtime key that may be present
             "component_names",  # Metadata added by HybridPlant

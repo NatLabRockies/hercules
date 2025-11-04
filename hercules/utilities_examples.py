@@ -1,9 +1,4 @@
 """Utility helpers for generating and validating example input files.
-
-This module provides:
-- generate_example_inputs: runs the three example data generator scripts.
-- ensure_example_inputs_exist: checks for expected input files and generates them if missing.
-- prepare_output_directory: removes and recreates an output directory for clean runs.
 """
 
 import os

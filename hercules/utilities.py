@@ -376,26 +376,7 @@ def setup_logging(
     Returns:
         logging.Logger: Configured logger instance.
 
-    Examples:
-        Basic usage with defaults:
-        >>> logger = setup_logging()
 
-        Component-specific logging:
-        >>> logger = setup_logging(logger_name="wind_farm", log_file="log_wind.log")
-
-        Full path logging without console:
-        >>> logger = setup_logging(
-        ...     logger_name="battery",
-        ...     log_file="/path/to/logs/battery.log",
-        ...     console_output=False,
-        ...     use_outputs_dir=False
-        ... )
-
-        Custom console prefix:
-        >>> logger = setup_logging(
-        ...     logger_name="solar",
-        ...     console_prefix="SOLAR_PV"
-        ... )
     """
     # Determine the log file path
     if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
