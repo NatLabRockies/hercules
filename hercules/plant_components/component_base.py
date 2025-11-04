@@ -5,13 +5,14 @@ from pathlib import Path
 
 
 class ComponentBase:
-    """
-    Base class for plant components.
+    """Base class for plant components.
+
+    Provides common functionality for all Hercules plant components including logging setup,
+    time step management, and shared configuration parameters.
     """
 
     def __init__(self, h_dict, component_name):
-        """
-        Initialize the base component with a dictionary of parameters.
+        """Initialize the base component with a dictionary of parameters.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
@@ -65,16 +66,14 @@ class ComponentBase:
         self.logger.info(f"read in verbose flag = {self.verbose}")
 
     def _setup_logging(self, log_file_name):
-        """
-        Sets up logging for the component.
+        """Set up logging for the component.
 
-        This method configures a logger named after the component to log messages to a specified
-        file and console. It ensures the log directory exists, clears any existing handlers to
-        avoid duplicates, and formats log messages with timestamps, log levels, and messages.
-        Both file and console output are enabled with component identification in console messages.
+        Configures a logger to write to both file and console. Creates log directory
+        if needed and clears any existing handlers to avoid duplicates.
 
         Args:
-            log_file_name (str): The full path to the log file where log messages will be written.
+            log_file_name (str): Full path to the log file.
+
         Returns:
             logging.Logger: Configured logger instance for the component.
         """
@@ -105,18 +104,14 @@ class ComponentBase:
         return logger
 
     def __del__(self):
-        """
-        Cleanup method to properly close log file handlers.
-        """
+        """Cleanup method to properly close log file handlers."""
         if hasattr(self, "logger"):
             for handler in self.logger.handlers[:]:
                 handler.close()
                 self.logger.removeHandler(handler)
 
     def close_logging(self):
-        """
-        Explicitly close all log file handlers.
-        """
+        """Explicitly close all log file handlers."""
         if hasattr(self, "logger"):
             for handler in self.logger.handlers[:]:
                 handler.close()
