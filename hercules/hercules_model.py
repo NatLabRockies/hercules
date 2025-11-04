@@ -72,8 +72,6 @@ class HerculesModel:
         # Initialize the controller as None, to be assigned in a subsequent call
         self._controller = None
 
-
-
         # Read in any external data
         self.external_data_all = {}
         if "external_data_file" in self.h_dict:
@@ -186,7 +184,6 @@ class HerculesModel:
             "external_data_file",
             "output_use_compression",
             "output_buffer_size",
-
             "time",  # Runtime key that may be present
             "step",  # Runtime key that may be present
             "component_names",  # Metadata added by HybridPlant

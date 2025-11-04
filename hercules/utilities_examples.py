@@ -1,5 +1,4 @@
-"""Utility helpers for generating and validating example input files.
-"""
+"""Utility helpers for generating and validating example input files."""
 
 import os
 import shutil
