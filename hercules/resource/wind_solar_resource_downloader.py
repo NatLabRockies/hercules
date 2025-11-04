@@ -47,8 +47,7 @@ def download_nsrdb_data(
     plot_data: bool = False,
     plot_type: str = "timeseries",
 ) -> dict:
-    """
-    Download NSRDB solar irradiance data for a specified location and time period.
+    """Download NSRDB solar irradiance data for a specified location and time period.
 
     This function requires an NREL API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
@@ -60,53 +59,35 @@ def download_nsrdb_data(
 
     More information can be found at: https://github.com/NREL/hsds-examples.
 
-    Parameters:
-    -----------
-    target_lat : float
-        Target latitude coordinate
-    target_lon : float
-        Target longitude coordinate
-    year : Optional[int]
-        Year of data to download (if using full year approach)
-    start_date : Optional[str]
-        Start date in format 'YYYY-MM-DD' (if using date range approach)
-    end_date : Optional[str]
-        End date in format 'YYYY-MM-DD' (if using date range approach)
-    variables : List[str]
-        List of variables to download (default: ['ghi', 'dni', 'dhi'])
-    nsrdb_dataset_path : str
-        Path name of NSRDB dataset. Available datasets are described at
-        https://developer.nrel.gov/docs/solar/nsrdb/ and path names can be found at
-        https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb. Defaults to the GOES Conus v4.0.0
-        dataset: "/nrel/nsrdb/GOES/conus/v4.0.0".
-    nsrdb_filename_prefix : str
-        File name prefix for the NSRDB HDF5 files in the format {nsrdb_filename_prefix}_{year}.h5.
-        Information about file names can be found here:
-        https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb. Defaults to "nsrdb_conus".
-    coord_delta : float
-        Coordinate delta for bounding box (default: 0.1 degrees)
-    output_dir : str
-        Directory to save output files
-    filename_prefix : str
-        Prefix for output filenames
-    plot_data : bool
-        Whether to create plots of the data (default: False)
-    plot_type : str
-        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+    Args:
+        target_lat (float): Target latitude coordinate.
+        target_lon (float): Target longitude coordinate.
+        year (int, optional): Year of data to download (if using full year approach).
+        start_date (str, optional): Start date in format 'YYYY-MM-DD' (if using date range
+            approach).
+        end_date (str, optional): End date in format 'YYYY-MM-DD' (if using date range
+            approach).
+        variables (List[str], optional): List of variables to download.
+            Defaults to ['ghi', 'dni', 'dhi'].
+        nsrdb_dataset_path (str, optional): Path name of NSRDB dataset. Available datasets at
+            https://developer.nrel.gov/docs/solar/nsrdb/.
+            Defaults to "/nrel/nsrdb/GOES/conus/v4.0.0".
+        nsrdb_filename_prefix (str, optional): File name prefix for the NSRDB HDF5 files in the
+            format {nsrdb_filename_prefix}_{year}.h5. Defaults to "nsrdb_conus".
+        coord_delta (float, optional): Coordinate delta for bounding box. Defaults to 0.1 degrees.
+        output_dir (str, optional): Directory to save output files. Defaults to "./data".
+        filename_prefix (str, optional): Prefix for output filenames. Defaults to "nsrdb".
+        plot_data (bool, optional): Whether to create plots of the data. Defaults to False.
+        plot_type (str, optional): Type of plot to create: 'timeseries' or 'map'.
+            Defaults to "timeseries".
 
     Returns:
-    --------
-    dict
-        Dictionary containing DataFrames for each variable and coordinates
+        dict: Dictionary containing DataFrames for each variable and coordinates.
 
-    Notes:
-    ------
-    Either 'year' OR both 'start_date' and 'end_date' must be provided.
-    Date range approach allows for more flexible time periods than full year.
-
-    Plots are not automatically shown when calling this function. If plot_data is set to True,
-    users will need to call matplotlib.pyplot.show() after the function has executed to display the
-    figure.
+    Note:
+        Either 'year' OR both 'start_date' and 'end_date' must be provided. Date range approach
+        allows for more flexible time periods than full year. Plots are not automatically shown.
+        If plot_data is True, call matplotlib.pyplot.show() to display the figure.
     """
 
     # Create output directory if it doesn't exist
@@ -247,8 +228,7 @@ def download_wtk_data(
     plot_data: bool = False,
     plot_type: str = "timeseries",
 ) -> dict:
-    """
-    Download WTK wind data for a specified location and time period.
+    """Download WTK wind data for a specified location and time period.
 
     This function requires an NREL API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
@@ -260,44 +240,29 @@ def download_wtk_data(
 
     More information can be found at: https://github.com/NREL/hsds-examples.
 
-    Parameters:
-    -----------
-    target_lat : float
-        Target latitude coordinate
-    target_lon : float
-        Target longitude coordinate
-    year : Optional[int]
-        Year of data to download (if using full year approach)
-    start_date : Optional[str]
-        Start date in format 'YYYY-MM-DD' (if using date range approach)
-    end_date : Optional[str]
-        End date in format 'YYYY-MM-DD' (if using date range approach)
-    variables : List[str]
-        List of variables to download (default: ['windspeed_100m', 'winddirection_100m'])
-    coord_delta : float
-        Coordinate delta for bounding box (default: 0.1 degrees)
-    output_dir : str
-        Directory to save output files
-    filename_prefix : str
-        Prefix for output filenames
-    plot_data : bool
-        Whether to create plots of the data (default: False)
-    plot_type : str
-        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
+    Args:
+        target_lat (float): Target latitude coordinate.
+        target_lon (float): Target longitude coordinate.
+        year (int, optional): Year of data to download (if using full year approach).
+        start_date (str, optional): Start date in format 'YYYY-MM-DD' (if using date range
+            approach).
+        end_date (str, optional): End date in format 'YYYY-MM-DD' (if using date range approach).
+        variables (List[str], optional): List of variables to download.
+            Defaults to ['windspeed_100m', 'winddirection_100m'].
+        coord_delta (float, optional): Coordinate delta for bounding box. Defaults to 0.1 degrees.
+        output_dir (str, optional): Directory to save output files. Defaults to "./data".
+        filename_prefix (str, optional): Prefix for output filenames. Defaults to "wtk".
+        plot_data (bool, optional): Whether to create plots of the data. Defaults to False.
+        plot_type (str, optional): Type of plot to create: 'timeseries' or 'map'.
+            Defaults to "timeseries".
 
     Returns:
-    --------
-    dict
-        Dictionary containing DataFrames for each variable and coordinates
+        dict: Dictionary containing DataFrames for each variable and coordinates.
 
-    Notes:
-    ------
-    Either 'year' OR both 'start_date' and 'end_date' must be provided.
-    Date range approach allows for more flexible time periods than full year.
-
-    Plots are not automatically shown when calling this function. If plot_data is set to True,
-    users will need to call matplotlib.pyplot.show() after the function has executed to display the
-    figure.
+    Note:
+        Either 'year' OR both 'start_date' and 'end_date' must be provided. Date range approach
+        allows for more flexible time periods than full year. Plots are not automatically shown.
+        If plot_data is True, call matplotlib.pyplot.show() to display the figure.
     """
 
     # Create output directory if it doesn't exist
@@ -442,60 +407,43 @@ def download_openmeteo_data(
     plot_type: str = "timeseries",
     remove_duplicate_coords=True,
 ) -> dict:
-    """
-    Download Open-Meteo weather data for a specified location or locations and time period. Data
-    are retrieved from the nearest weather grid cell to the requested locations. The grid cell
+    """Download Open-Meteo weather data for specified location(s) and time period.
+
+    Data are retrieved from the nearest weather grid cell to the requested locations. The grid cell
     resolution varies with latitude, but at ~35 degrees latitude, the grid cell resolution is
     approximately 0.027 degrees latitude (~2.4 km in the N-S direction) and 0.0333 degrees
     longitude (~3.7km in the E-W direction).
 
-    Parameters:
-    -----------
-    target_lat : float | List[float]
-        Target latitude coordinate or list of latitude coordinates
-    target_lon : float | List[float]
-        Target longitude coordinate  or list of longitude coordinates
-    year : Optional[int]
-        Year of data to download (if using full year approach)
-    start_date : Optional[str]
-        Start date in format 'YYYY-MM-DD' (if using date range approach)
-    end_date : Optional[str]
-        End date in format 'YYYY-MM-DD' (if using date range approach)
-    variables : List[str]
-        List of variables to download. Available options include:
-        - wind_speed_80m: Wind speed at 80m height (m/s)
-        - wind_direction_80m: Wind direction at 80m height (°)
-        - temperature_2m: Temperature at 2m height (°C)
-        - shortwave_radiation_instant: Shortwave radiation (W/m²)
-        - diffuse_radiation_instant: Diffuse radiation (W/m²)
-        - direct_normal_irradiance_instant: Direct normal irradiance (W/m²)
-    coord_delta : float
-        Not used for Open-Meteo (points specified individually), kept for consistency
-    output_dir : str
-        Directory to save output files
-    filename_prefix : str
-        Prefix for output filenames
-    plot_data : bool
-        Whether to create plots of the data (default: False)
-    plot_type : str
-        Type of plot to create: 'timeseries' or 'map' (default: 'timeseries')
-    remove_duplicate_coords : Optional[bool]
-        Whether to remove data from duplicate coordinates (default: True)
+    Args:
+        target_lat (float | List[float]): Target latitude coordinate or list of latitude
+            coordinates.
+        target_lon (float | List[float]): Target longitude coordinate or list of longitude
+            coordinates.
+        year (int, optional): Year of data to download (if using full year approach).
+        start_date (str, optional): Start date in format 'YYYY-MM-DD' (if using date range
+            approach).
+        end_date (str, optional): End date in format 'YYYY-MM-DD' (if using date range approach).
+        variables (List[str], optional): List of variables to download. Available options include
+            wind_speed_80m, wind_direction_80m, temperature_2m, shortwave_radiation_instant,
+            diffuse_radiation_instant, direct_normal_irradiance_instant.
+        coord_delta (float, optional): Not used for Open-Meteo (points specified individually),
+            kept for consistency. Defaults to 0.1.
+        output_dir (str, optional): Directory to save output files. Defaults to "./data".
+        filename_prefix (str, optional): Prefix for output filenames. Defaults to "openmeteo".
+        plot_data (bool, optional): Whether to create plots of the data. Defaults to False.
+        plot_type (str, optional): Type of plot to create: 'timeseries' or 'map'.
+            Defaults to "timeseries".
+        remove_duplicate_coords (bool, optional): Whether to remove data from duplicate coordinates.
+            Defaults to True.
 
     Returns:
-    --------
-    dict
-        Dictionary containing DataFrames for each variable and coordinates
+        dict: Dictionary containing DataFrames for each variable and coordinates.
 
-    Notes:
-    ------
-    Either 'year' OR both 'start_date' and 'end_date' must be provided.
-    Open-Meteo provides point data (not gridded), so coord_delta is ignored.
-    Available historical data typically spans from 1940 to present.
-
-    Plots are not automatically shown when calling this function. If plot_data is set to True,
-    users will need to call matplotlib.pyplot.show() after the function has executed to display the
-    figure.
+    Note:
+        Either 'year' OR both 'start_date' and 'end_date' must be provided. Open-Meteo provides
+        point data (not gridded), so coord_delta is ignored. Available historical data typically
+        spans from 1940 to present. Plots are not automatically shown. If plot_data is True, call
+        matplotlib.pyplot.show() to display the figure.
     """
 
     # Create output directory if it doesn't exist
@@ -703,19 +651,13 @@ def download_openmeteo_data(
 
 
 def plot_timeseries(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
-    """
-    Create time-series plots for the downloaded data.
+    """Create time-series plots for the downloaded data.
 
-    Parameters:
-    -----------
-    data_dict : dict
-        Dictionary containing DataFrames for each variable
-    variables : List[str]
-        List of variables to plot
-    coordinates : np.ndarray
-        Array of coordinates for the data points
-    title : str
-        Title for the plots
+    Args:
+        data_dict (dict): Dictionary containing DataFrames for each variable.
+        variables (List[str]): List of variables to plot.
+        coordinates (np.ndarray): Array of coordinates for the data points.
+        title (str): Title for the plots.
     """
 
     n_vars = len(variables)
@@ -745,19 +687,13 @@ def plot_timeseries(data_dict: dict, variables: List[str], coordinates: np.ndarr
 
 
 def plot_spatial_map(data_dict: dict, variables: List[str], coordinates: np.ndarray, title: str):
-    """
-    Create spatial maps showing the mean values across the region.
+    """Create spatial maps showing the mean values across the region.
 
-    Parameters:
-    -----------
-    data_dict : dict
-        Dictionary containing DataFrames for each variable
-    variables : List[str]
-        List of variables to plot
-    coordinates : np.ndarray
-        Array of coordinates for the data points
-    title : str
-        Title for the plots
+    Args:
+        data_dict (dict): Dictionary containing DataFrames for each variable.
+        variables (List[str]): List of variables to plot.
+        coordinates (np.ndarray): Array of coordinates for the data points.
+        title (str): Title for the plots.
     """
 
     n_vars = len(variables)
@@ -865,7 +801,14 @@ def plot_spatial_map(data_dict: dict, variables: List[str], coordinates: np.ndar
 
 
 def get_variable_label(variable: str) -> str:
-    """Get appropriate label and units for a variable."""
+    """Get appropriate label and units for a variable.
+
+    Args:
+        variable (str): Variable name.
+
+    Returns:
+        str: Label with units for the variable.
+    """
     labels = {
         "ghi": "GHI (W/m²)",
         "dni": "DNI (W/m²)",
@@ -889,7 +832,14 @@ def get_variable_label(variable: str) -> str:
 
 
 def get_variable_colormap(variable: str) -> str:
-    """Get appropriate colormap for a variable."""
+    """Get appropriate colormap for a variable.
+
+    Args:
+        variable (str): Variable name.
+
+    Returns:
+        str: Matplotlib colormap name for the variable.
+    """
     colormaps = {
         "ghi": "plasma",
         "dni": "plasma",

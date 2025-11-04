@@ -22,32 +22,21 @@ def _spatially_interpolate_wind_data(
     x_locs_interp: np.ndarray,
     y_locs_interp: np.ndarray,
 ) -> np.ndarray:
-    """
-    This function spatially interpolates wind data provided as a time series of values at each grid
-    location. Spatial interpolation at the desired locations is achieved using 2D Clough-Tocher
-    interpolation.
+    """Spatially interpolate wind data using 2D Clough-Tocher interpolation.
 
-    Parameters:
-    -----------
-    x_locs_orig : np.ndarray
-        x locations of points at which wind data are provided (meters).
-    y_locs_orig : np.ndarray
-        y locations of points at which wind data are provided (meters).
-    wind_values : np.ndarray
-        An N x M array of wind variable values to spatially interpolate, where N is the number of
-        time steps and M is the number of locations at which wind data are provided.
-    x_locs_interp : np.ndarray
-        x locations of points at which to generate spatially interpolated wind time series
-        (meters).
-    y_locs_interp : np.ndarray
-        y locations of points at which to generate spatially interpolated wind time series
-        (meters).
+    Args:
+        x_locs_orig (np.ndarray): x locations of points at which wind data are provided (meters).
+        y_locs_orig (np.ndarray): y locations of points at which wind data are provided (meters).
+        wind_values (np.ndarray): N x M array of wind variable values to spatially interpolate,
+            where N is the number of time steps and M is the number of locations.
+        x_locs_interp (np.ndarray): x locations for spatially interpolated wind time series
+            (meters).
+        y_locs_interp (np.ndarray): y locations for spatially interpolated wind time series
+            (meters).
 
     Returns:
-    --------
-    np.ndarray
-        An P x N array of spatially interpolated wind variable values, where P is the number of
-        locations at which the wind data are interpolated and N is the number of time steps.
+        np.ndarray: P x N array of spatially interpolated wind variable values, where P is the
+            number of interpolated locations and N is the number of time steps.
     """
 
     N = len(wind_values)
@@ -68,26 +57,20 @@ def _spatially_interpolate_wind_data(
 def _upsample_Nyquist(
     base_values: np.ndarray, timestep_base: int, timestep_upsample: int = 1
 ) -> np.ndarray:
-    """
-    This function upsamples an array of time series by adding frequency content up to the Nyquist
-    frequency of the original data to create smoothly interpolated time series without adding
-    higher frequency content.
+    """Upsample time series by adding frequency content up to the Nyquist frequency.
 
-    Parameters:
-    -----------
-    base_values : np.ndarray
-        An M x N array containing M time series of length N to be upsampled.
-    timestep_base : int
-        The time step of the original data to be upsampled.
-    timestep_upsample : Optional[int]
-        The time step of the new upsampled time series (s). This must be defined so that
-        timestep_base is an integer multiple of timestep_upsample. Defaults to 1 s.
+    Creates smoothly interpolated time series without adding higher frequency content.
+
+    Args:
+        base_values (np.ndarray): M x N array containing M time series of length N to be upsampled.
+        timestep_base (int): Time step of the original data to be upsampled (seconds).
+        timestep_upsample (int, optional): Time step of the new upsampled time series (seconds).
+            This must be defined so that timestep_base is an integer multiple of timestep_upsample.
+            Defaults to 1.
 
     Returns:
-    --------
-    np.ndarray
-        An M x P array of M temporally upsampled time series of length P,
-        where P = N * timestep_base / timestep_upsample.
+        np.ndarray: M x P array of M temporally upsampled time series of length P,
+            where P = N * timestep_base / timestep_upsample.
     """
 
     up_factor = timestep_base // timestep_upsample
@@ -117,26 +100,17 @@ def _upsample_Nyquist(
 
 
 def _psd_kaimal(f: np.ndarray, Vhub: float, sigma: float = 1.0, L: float = 340.2):
-    """
-    This function generates the Kaimal turbulence power spectral density for the provided array of
-    frequencies.
+    """Generate the Kaimal turbulence power spectral density.
 
-    Parameters:
-    -----------
-    f : np.ndarray
-        An array of frequencies for which the Kaimal PSD will be returned (Hz).
-    Vhub : float
-        The hub height wind speed (m/s).
-    sigma : Optional[float]
-        The wind speed standard deviation (m/s). Defaults to 1.
-    L : Optional[float]
-        The turbulence length scale (m). Defaults to 340.2 m, the value specified in the IEC
-        standard.
+    Args:
+        f (np.ndarray): Array of frequencies for which the Kaimal PSD will be returned (Hz).
+        Vhub (float): Hub height wind speed (m/s).
+        sigma (float, optional): Wind speed standard deviation (m/s). Defaults to 1.
+        L (float, optional): Turbulence length scale (m). Defaults to 340.2 m,
+            the value specified in the IEC standard.
 
     Returns:
-    --------
-    np.ndarray
-        A 1D array of power spectral density values.
+        np.ndarray: 1D array of power spectral density values.
     """
     return (sigma**2) * f * (L / Vhub) / ((1 + 6 * f * L / Vhub) ** (5 / 3))
 
@@ -149,31 +123,25 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
     turbulence_L: float = 340.2,
     ws_std: float = 1.0,
 ) -> np.ndarray:
-    """
-    This function generates one or more spatially uncorrelated zero-mean stochastic wind speed time
-    series using the Kaimal turbulence spectrum.
+    """Generate spatially uncorrelated zero-mean stochastic wind speed time series.
 
-    Parameters:
-    -----------
-    N_points : int
-        The number of turbulence time series to generate.
-    N_samples : int
-        The number of samples in the turbulence time series. An even number of samples must be
-        specified.
-    timestep : int
-        The time step of the turbulence time series (s).
-    turbulence_Uhub : float
-        Mean hub-height wind speed to use for the Kaimal turbulence spectrum (m/s).
-    turbulence_L : Optional[float]
-        The turbulence length scale to use for the Kaimal turbulence spectrum (m). Defaults to
-        340.2 m, the value specified in the IEC standard.
-    ws_std : Optional[float]
-        The standard deviation of the stochastic wind speed time series (m/s). Defaults to 1 m/s.
+    Uses the Kaimal turbulence spectrum.
+
+    Args:
+        N_points (int): Number of turbulence time series to generate.
+        N_samples (int): Number of samples in the turbulence time series.
+            An even number of samples must be specified.
+        timestep (int): Time step of the turbulence time series (seconds).
+        turbulence_Uhub (float): Mean hub-height wind speed for the Kaimal turbulence
+            spectrum (m/s).
+        turbulence_L (float, optional): Turbulence length scale for the Kaimal turbulence
+            spectrum (m). Defaults to 340.2 m, the value specified in the IEC standard.
+        ws_std (float, optional): Standard deviation of the stochastic wind speed time series
+            (m/s). Defaults to 1 m/s.
 
     Returns:
-    --------
-    np.ndarray
-        An N_points x N_samples array of zero-mean stochastic wind speed turbulence time series.
+        np.ndarray: N_points x N_samples array of zero-mean stochastic wind speed turbulence
+            time series.
     """
 
     fs = 1.0 / timestep  # Sampling frequency
@@ -214,31 +182,25 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
 def _get_iec_turbulence_std(
     ws_array: np.ndarray, ws_ref: float, ti_ref: float, offset: float = 3.8
 ):
-    """
-    This function generates an array of wind speed standard deviations using the normal turbulence
-    model in the IEC 61400-1 standard. First, the Iref parameter is defined to achieve the desired
-    reference turbulence intensity at the provided reference wind speed. Next, this value of Iref
-    is used to determine the wind speed standard deviation for all "mean" wind speeds in the
-    provided ws_array.
+    """Generate wind speed standard deviations using the IEC 61400-1 normal turbulence model.
 
-    Parameters:
-    -----------
-    ws_array : np.ndarray
-        The array of mean wind speeds for which corresponding wind speed standard deviations are
-        computed (m/s).
-    ws_ref : float
-        The reference wind speed at which the desired turbulence intensity is defined (m/s).
-    ti_ref : float
-        The reference turbulence intensity corresponding to the reference wind speed (m/s).
-    offset : Optional[float]
-        Offset value for IEC normal turbulence model equation. Defaults to 3.8, as defined in the
-        IEC standard to give the expected value of TI for each wind speed.
+    First, the Iref parameter is defined to achieve the desired reference turbulence intensity
+    at the provided reference wind speed. Next, this value of Iref is used to determine the
+    wind speed standard deviation for all "mean" wind speeds in the provided ws_array.
+
+    Args:
+        ws_array (np.ndarray): Array of mean wind speeds for which corresponding wind speed
+            standard deviations are computed (m/s).
+        ws_ref (float): Reference wind speed at which the desired turbulence intensity is
+            defined (m/s).
+        ti_ref (float): Reference turbulence intensity corresponding to the reference wind speed.
+        offset (float, optional): Offset value for IEC normal turbulence model equation.
+            Defaults to 3.8, as defined in the IEC standard to give the expected value of TI
+            for each wind speed.
 
     Returns:
-    --------
-    np.ndarray
-        An array of wind speed standard deviations corresponding to the mean wind speeds in
-        ws_array.
+        np.ndarray: Array of wind speed standard deviations corresponding to the mean wind speeds
+            in ws_array.
     """
 
     Iref = ti_ref * ws_ref / (0.75 * ws_ref + 3.8)
@@ -263,68 +225,53 @@ def upsample_wind_data(
     TI_ws_ref: float = 8.0,
     save_individual_wds: bool = False,
 ) -> dict:
-    """
-    This function spatially interpolates and temporally upsamples wind speed and direction data
-    from wind files generated using wind data downloading functions in the
+    """Spatially interpolate and temporally upsample wind speed and direction data.
+
+    Processes wind files generated using wind data downloading functions in the
     wind_solar_resource_downloader module (e.g., for the Wind Toolkit or Open-Meteo datasets).
     Spatial interpolation is achieved using 2D Clough-Tocher interpolation. Upsampling is
     accomplished by simple Nyquist upsampling to create a smooth signal. Lastly, for the wind
-    speeds, stochastic, uncorrelated turbulence generated using the Kaimal spectrum is added. The
-    turbulence intensity is assigned as a function of wind speed based on the IEC normal turbulence
-    model. This function currently assumes the wind time series have an even number of samples. If
-    they have an off number of samples, the last sample will be discarded.
+    speeds, stochastic, uncorrelated turbulence generated using the Kaimal spectrum is added.
+    The turbulence intensity is assigned as a function of wind speed based on the IEC normal
+    turbulence model.
 
-    Parameters:
-    -----------
-    ws_data_filepath : str | Path
-        File path to the wind speed file.
-    wd_data_filepath : str | Path
-        File path to the wind direction file.
-    coords_filepath : str | Path
-        File path to the coordinates file.
-    upsampled_data_dir : str | Path
-        Directory to save upsampled data files.
-    upsampled_data_filename : str
-        Filename for upsampled output files.
-    x_locs_upsample : np.ndarray
-        x locations of points at which to generate upsampled wind time series (meters).
-    y_locs_upsample : np.ndarray
-        y locations of points at which to generate upsampled wind time series (meters).
-    origin_lat : Optional[float | None]
-        Latitude to use for the origin for defining the y locations of the upsample wind locations
-        (degrees). If None, the mean latitude from the coordinates will be used. Defaults to None.
-    origin_lon : Optional[float | None]
-        Longitude to use for the origin for defining the x locations of the upsample wind locations
-        (degrees). If None, the mean longitude from the coordinates will be used. Defaults to None.
-    timestep_upsample : Optional[int]
-        Time step of upsampled wind time series (seconds). Defaults to 1 second.
-    turbulence_Uhub : Optional[float | None]
-        Mean hub-height wind speed to use for the Kaimal turbulence spectrum (m/s). If None, the
-        mean wind speed from the spatially interpolated upsample locations from the wind speed file
-        will be used. Defaults to None.
-    turbulence_L : Optional[float]
-        The turbulence length scale to use for the Kaimal turbulence spectrum (m). Defaults to
-        340.2 m, the value specified in the IEC standard.
-    TI_ref : Optional[float]
-        The reference TI corresponding to the reference wind speed TI_ws_ref (fraction). Defaults
-        to 0.1.
-    TI_ws_ref : Optional[float]
-        The reference wind speed at which the reference TI TI_ref is defined (m/s). Defaults to
-        8 m/s.
-    save_individual_wds : Optional[bool]
-        If True, upsampled wind directions will be saved in the output for each upsampled location.
-        If False, only the mean wind direction over all locations will be saved. Defaults to False.
+    Args:
+        ws_data_filepath (str | Path): File path to the wind speed file.
+        wd_data_filepath (str | Path): File path to the wind direction file.
+        coords_filepath (str | Path): File path to the coordinates file.
+        upsampled_data_dir (str | Path): Directory to save upsampled data files.
+        upsampled_data_filename (str): Filename for upsampled output files.
+        x_locs_upsample (np.ndarray): x locations for upsampled wind time series (meters).
+        y_locs_upsample (np.ndarray): y locations for upsampled wind time series (meters).
+        origin_lat (float | None, optional): Latitude for the origin for defining y locations of
+            the upsample wind locations (degrees). If None, the mean latitude from the coordinates
+            will be used. Defaults to None.
+        origin_lon (float | None, optional): Longitude for the origin for defining x locations of
+            the upsample wind locations (degrees). If None, the mean longitude from the coordinates
+            will be used. Defaults to None.
+        timestep_upsample (int, optional): Time step of upsampled wind time series (seconds).
+            Defaults to 1 second.
+        turbulence_Uhub (float | None, optional): Mean hub-height wind speed for the Kaimal
+            turbulence spectrum (m/s). If None, the mean wind speed from the spatially interpolated
+            upsample locations from the wind speed file will be used. Defaults to None.
+        turbulence_L (float, optional): Turbulence length scale for the Kaimal turbulence
+            spectrum (m). Defaults to 340.2 m, the value specified in the IEC standard.
+        TI_ref (float, optional): Reference TI corresponding to the reference wind speed TI_ws_ref
+            (fraction). Defaults to 0.1.
+        TI_ws_ref (float, optional): Reference wind speed at which the reference TI TI_ref is
+            defined (m/s). Defaults to 8 m/s.
+        save_individual_wds (bool, optional): If True, upsampled wind directions will be saved
+            in the output for each upsampled location. If False, only the mean wind direction
+            over all locations will be saved. Defaults to False.
 
     Returns:
-    --------
-    pd.DataFrame
-        DataFrame containing the wind speeds and wind directions at each upsampled location.
+        pd.DataFrame: DataFrame containing the wind speeds and wind directions at each
+            upsampled location.
 
-    Notes:
-    ------
-    The provided wind time series should have an even number of samples (this simplifies the FFT
-    operations). If the time series have an odd number of samples, the last sample will be
-    discarded.
+    Note:
+        The provided wind time series should have an even number of samples (this simplifies
+        the FFT operations). If the time series have an odd number of samples, the last sample
+        will be discarded.
     """
 
     # Create output directory if it doesn't exist
