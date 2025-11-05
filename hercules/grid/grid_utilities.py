@@ -48,27 +48,24 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     df = pd.merge(df_da, df_rt, on="time_utc", how="outer").ffill()
     df["time_utc"] = pd.to_datetime(df["time_utc"])
 
-    # Create an hourly version for the DA LMP (drop all periods that aren't on an hour)
-    df_hr = df[df["time_utc"].dt.minute == 0].copy(deep=True)
-
-    # Extract date and hour for use in pivot_table
-    df_hr["date"] = df_hr["time_utc"].dt.date
-    df_hr["hour"] = df_hr["time_utc"].dt.hour
-
-    df_hourly = df_hr.pivot_table(
-        values="DA_LMP",
-        index="date",
-        columns="hour",
-        aggfunc="first",  # Use first value if multiple entries per hour
-    )
-    df_hourly = df_hourly.reindex(columns=list(range(24)))
-    df_hourly = df_hourly.rename(columns={h: "DA_LMP_{:02d}".format(h) for h in df_hourly.columns})
-    df_hourly = df_hourly.reset_index()
-
-    # Add time_utc and drop date
-    # Note that time _must_ be specified as UTC for Hercules
-    df_hourly["time_utc"] = pd.to_datetime(df_hourly["date"], utc=True)
-    df_hourly = df_hourly.drop(columns=["date"])
+    # Create a rolling hourly version for the DA LMP
+    df_rolling_hourly = df.copy()
+    
+    # For each 5-minute interval, create 24 rolling hourly columns (forward-looking)
+    periods_per_hour = 12 # TODO: avoid hardcoding this.
+    for offset_hour in range(24):
+        shift_amount = -offset_hour * periods_per_hour
+        
+        # Use shift to get values from h hours in the future
+        df_rolling_hourly[f"DA_LMP_rolling_{offset_hour:02d}"] = df_rolling_hourly["DA_LMP"].shift(shift_amount)
+    
+    # Keep only the rolling columns and time
+    rolling_cols = ["time_utc"] + [f"DA_LMP_rolling_{h:02d}" for h in range(24)]
+    df_hourly = df_rolling_hourly[rolling_cols].copy()
+    
+    # Rename columns to match expected format (removing 'rolling_' prefix)
+    rename_dict = {f"DA_LMP_rolling_{h:02d}": f"DA_LMP_{h:02d}" for h in range(24)}
+    df_hourly = df_hourly.rename(columns=rename_dict)
 
     df = pd.merge(df, df_hourly, on="time_utc", how="outer").ffill()
 
@@ -76,8 +73,5 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     df_2 = df.copy(deep=True)
     df_2["time_utc"] = df_2["time_utc"] + pd.Timedelta(seconds=5 * 60 - 1)
     df = pd.merge(df, df_2, how="outer").sort_values("time_utc").reset_index(drop=True)
-
-    # Add time column in seconds from the first timestamp
-    df["time"] = (df["time_utc"] - df["time_utc"].iloc[0]).dt.total_seconds()
 
     return df
