@@ -310,12 +310,6 @@ def load_hercules_input(filename):
     if ("starttime" in h_dict) or ("endtime" in h_dict):
         raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
 
-    # TODO: should starttime and endtime be removed?
-    duration = (endtime_utc - starttime_utc).total_seconds()
-    h_dict["starttime"] = 0.0
-    # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
-    h_dict["endtime"] = duration + float(h_dict["dt"])
-
     # Validate component structures
     for key in component_names:
         if key in h_dict:

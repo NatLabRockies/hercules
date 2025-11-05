@@ -42,7 +42,7 @@ class HerculesModel:
         self.logger = self._setup_logging()
 
         # Load and validate the input file
-        h_dict = load_hercules_input(input_file)
+        h_dict = self._load_hercules_input(input_file)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -165,7 +165,15 @@ class HerculesModel:
         Raises:
             ValueError: If required keys missing, invalid data types, or incorrect structure.
         """
-        return load_hercules_input(filename)
+        h_dict = load_hercules_input(filename)
+
+        # Add in starttime and endttime as needed for Hercules simulation
+        h_dict["starttime"] = 0.0
+        h_dict["endtime"] = (
+            (h_dict["endtime_utc"] - h_dict["starttime_utc"]).total_seconds() + float(h_dict["dt"])
+        )
+
+        return h_dict
 
     def _read_external_data_file(self, filename):
         """
