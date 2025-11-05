@@ -13,11 +13,10 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
 
     The RT dataframe is assumed to have five-minute time resolution, while the DA dataframe
     is assumed to have hourly time resolution.
-    Assumes that both dataframe begins at 00:00 UTC on the first day
-    (e.g. yyyy-mm-dd 00:00:00+00:00) TODO: Is that ok? how should UTC offset be handled?
 
     Returns a dataframe with the RT LMP and DA LMP at five-minute intervals, along with
-    the DA LMP for each hour in separate columns. For use as external data in Hercules.
+    the DA LMP for each future hour over the next 24 hours in separate columns. For use as external
+    data in Hercules.
 
     Args:
         df_day_ahead_lmp (pd.DataFrame): DataFrame with day ahead data
@@ -25,17 +24,13 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
 
     Returns:
         pd.DataFrame: DataFrame with columns
-            'time', 'RT_LMP', 'DA_LMP', 'DA_LMP_00', ..., 'DA_LMP_23'
+            "time_utc", "RT_LMP", "DA_LMP", "DA_LMP_00", ..., "DA_LMP_23"
     """
     # Check correct market on each
     if df_day_ahead_lmp["market"].unique() != ["DAY_AHEAD_HOURLY"]:
         raise ValueError("df_day_ahead_lmp must only contain DAY_AHEAD_HOURLY market data.")
     if df_real_time_lmp["market"].unique() != ["REAL_TIME_5_MIN"]:
         raise ValueError("df_real_time_lmp must only contain REAL_TIME_5_MIN market data.")
-
-    # TODO: Add checks that dataframes cover the same time period, have no missing data, etc.
-    # TODO: How do we handle dataframes where the first row is not 00:00 UTC?
-    # TODO: Should DA_LMP_00 be _local_ midnight? How can we handle that? It may not matter?
 
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
@@ -44,34 +39,43 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     df_rt = df_real_time_lmp[["interval_start_utc", "lmp"]].rename(
         columns={"interval_start_utc": "time_utc", "lmp": "RT_LMP"}
     )
+
+    # Ensure datetime format
+    df_da["time_utc"] = pd.to_datetime(df_da["time_utc"])
+    df_rt["time_utc"] = pd.to_datetime(df_rt["time_utc"])
+
+    # Check that there is an overlap between time ranges
+    if (
+        max(df_da["time_utc"].min(), df_rt["time_utc"].min())
+        >= min(df_da["time_utc"].max(), df_rt["time_utc"].max())
+    ):
+        raise ValueError(
+            f"No time overlap between day-ahead and real-time data.\n"
+            f"Day-ahead range: {df_da.time_utc.min()} to {df_da.time_utc.max()}.\n"
+            f"Real-time range: {df_rt.time_utc.min()} to {df_rt.time_utc.max()}."
+        )
+
     # Merge on time_utc
     df = pd.merge(df_da, df_rt, on="time_utc", how="outer").ffill()
-    df["time_utc"] = pd.to_datetime(df["time_utc"])
 
-    # Create a rolling hourly version for the DA LMP
-    df_rolling_hourly = df.copy()
-    
-    # For each 5-minute interval, create 24 rolling hourly columns (forward-looking)
-    periods_per_hour = 12 # TODO: avoid hardcoding this.
-    for offset_hour in range(24):
-        shift_amount = -offset_hour * periods_per_hour
-        
-        # Use shift to get values from h hours in the future
-        df_rolling_hourly[f"DA_LMP_rolling_{offset_hour:02d}"] = df_rolling_hourly["DA_LMP"].shift(shift_amount)
-    
-    # Keep only the rolling columns and time
-    rolling_cols = ["time_utc"] + [f"DA_LMP_rolling_{h:02d}" for h in range(24)]
-    df_hourly = df_rolling_hourly[rolling_cols].copy()
-    
-    # Rename columns to match expected format (removing 'rolling_' prefix)
-    rename_dict = {f"DA_LMP_rolling_{h:02d}": f"DA_LMP_{h:02d}" for h in range(24)}
-    df_hourly = df_hourly.rename(columns=rename_dict)
+    # Get time step for merged data
+    dt = (df["time_utc"].iloc[1] - df["time_utc"].iloc[0]).total_seconds()
 
-    df = pd.merge(df, df_hourly, on="time_utc", how="outer").ffill()
+    # Create 24 rolling hourly columns (forward-looking)
+    periods_per_hour = 3600 / dt
+    if not periods_per_hour.is_integer():
+        raise ValueError(
+            f"Data time step of {dt} seconds is not compatible with hourly periods."
+        )
+    periods_per_hour = int(periods_per_hour)
 
-    # Add "end" rows
+    for h in range(24):
+        h_shift = -h * periods_per_hour
+        df[f"DA_LMP_{h:02d}"] = df["DA_LMP"].shift(h_shift)
+
+    # Add rows representing the end of each interval for step-like interpolation
     df_2 = df.copy(deep=True)
-    df_2["time_utc"] = df_2["time_utc"] + pd.Timedelta(seconds=5 * 60 - 1)
+    df_2["time_utc"] = df_2["time_utc"] + pd.Timedelta(seconds=dt - 1)
     df = pd.merge(df, df_2, how="outer").sort_values("time_utc").reset_index(drop=True)
 
     return df
