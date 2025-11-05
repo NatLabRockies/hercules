@@ -1,16 +1,34 @@
 # Wind Farm Components
 
-## Wind_MesoToPower
+Hercules provides three wind farm simulation components that differ in their approach to wake modeling. All three components support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.
 
-Wind_MesoToPower is a comprehensive wind farm simulator that focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. It combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
+## Wind_MesoToPower (Dynamic Wake Model)
 
-## Wind_MesoToPowerPrecomFloris
+Wind_MesoToPower is a comprehensive wind farm simulator that computes wake effects dynamically at each time step (or at intervals specified by `floris_update_time_s`). It focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. This model combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
 
-Wind_MesoToPowerPrecomFloris is an optimized variant of Wind_MesoToPower that pre-computes FLORIS wake deficits for improved simulation performance. This approach trades some accuracy for significant speed improvements in specific operating scenarios.
+**Use this model when:**
+- Turbines have individual power setpoints or non-uniform operation
+- Precise wake modeling is required for each control action
+- Turbines may be partially derated or individually controlled
+
+## Wind_MesoToPowerPrecomFloris (Precomputed Wake Model)
+
+Wind_MesoToPowerPrecomFloris is an optimized variant that pre-computes all FLORIS wake deficits at initialization for improved simulation performance. This approach provides significant speed improvements while conservatively assuming wakes are always based on nominal operation.
+
+**Use this model when:**
+- Not investigating wakes of derated turbines or wake losses can be conservatively estimated.
+
+
+## Wind_MesoToPowerDirect (No Wake Modeling)
+
+Wind_MesoToPowerDirect assumes that wake effects are already included in the input wind data and performs no wake modeling during simulation. Model is appropriate for using SCADA data of operational farm since wake losses already included in data.
+
+
+
 
 ## Overview
 
-Both wind farm components integrate FLORIS for wake effects with individual turbine models to simulate wind farm behavior over extended periods. They support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.
+All three wind farm components apply wind speed time signals to turbine models to simulate wind farm behavior over extended periods. They differ only in how wake effects are computed and applied.
 
 ### Precomputed FLORIS Approach
 
@@ -45,6 +63,13 @@ Required parameters for Wind_MesoToPowerPrecomFloris:
 - `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
+### Wind_MesoToPowerDirect Specific Parameters
+
+Required parameters for Wind_MesoToPowerDirect:
+- `floris_update_time_s`: Required for interface consistency but not used (no FLORIS calculations performed)
+- `floris_input_file`: Still required to read turbine power curve and properties
+- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+
 ## Turbine Models
 
 ### Filter Model
@@ -57,7 +82,7 @@ Advanced model with rotor dynamics, pitch control, and generator torque control.
 
 ### Common Outputs
 
-Both components provide these outputs in the h_dict at each simulation step:
+All three components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
 - `turbine_power_setpoints`: Current power setpoint values (array, kW)
@@ -66,6 +91,8 @@ Both components provide these outputs in the h_dict at each simulation step:
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
+
+**Note for Wind_MesoToPowerDirect:** In direct mode (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
 
 ## Logging Configuration
 
