@@ -73,6 +73,8 @@ def test_HerculesModel_instantiation():
     # Enforce new loader policy: remove preset start/end and rely on *_utc
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
 
     hmodel = HerculesModel(test_h_dict)
 
@@ -82,13 +84,15 @@ def test_HerculesModel_instantiation():
     assert hmodel.external_data_all == {}
 
     # Test with external data file and custom output file
-    test_h_dict_2 = test_h_dict.copy()
+    test_h_dict_2 = h_dict_solar.copy()
     test_h_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_h_dict_2["output_file"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
     # Remove preset start/end and adjust endtime_utc to preserve prior behavior
     test_h_dict_2.pop("starttime", None)
     test_h_dict_2.pop("endtime", None)
+    test_h_dict_2.pop("time", None)
+    test_h_dict_2.pop("step", None)
     # To achieve endtime = 5.0 and endtime + 2*dt = 6.0, set duration = 4.5s
     test_h_dict_2["endtime_utc"] = test_h_dict_2["starttime_utc"] + pd.to_timedelta(4.5, unit="s")
 
@@ -113,6 +117,8 @@ def test_log_data_to_hdf5():
     test_h_dict = h_dict_solar.copy()
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
 
     hmodel = HerculesModel(test_h_dict)
     hmodel.assign_controller(SimpleControllerSolar(test_h_dict))
@@ -171,6 +177,8 @@ def test_log_data_to_hdf5_with_external_signals():
     test_h_dict = h_dict_battery.copy()
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
 
     # Add external data file
     test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
@@ -227,6 +235,8 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     test_h_dict = h_dict_wind.copy()
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
 
     hmodel = HerculesModel(test_h_dict)
     hmodel.assign_controller(SimpleControllerWind(test_h_dict))
@@ -302,6 +312,8 @@ def test_hdf5_output_configuration():
         # Remove preset start/end and set endtime_utc for 5 steps (duration=4s)
         test_h_dict_hdf5.pop("starttime", None)
         test_h_dict_hdf5.pop("endtime", None)
+        test_h_dict_hdf5.pop("time", None)
+        test_h_dict_hdf5.pop("step", None)
         test_h_dict_hdf5["endtime_utc"] = test_h_dict_hdf5["starttime_utc"] + pd.to_timedelta(
             4.0, unit="s"
         )
@@ -340,6 +352,8 @@ def test_hdf5_output_configuration():
         test_h_dict_hdf5_2["dt"] = 1.0
         test_h_dict_hdf5_2.pop("starttime", None)
         test_h_dict_hdf5_2.pop("endtime", None)
+        test_h_dict_hdf5_2.pop("time", None)
+        test_h_dict_hdf5_2.pop("step", None)
         test_h_dict_hdf5_2["endtime_utc"] = test_h_dict_hdf5_2["starttime_utc"] + pd.to_timedelta(
             4.0, unit="s"
         )
@@ -386,6 +400,8 @@ def test_log_every_n_option():
         test_h_dict_log["dt"] = 1.0
         test_h_dict_log.pop("starttime", None)
         test_h_dict_log.pop("endtime", None)
+        test_h_dict_log.pop("time", None)
+        test_h_dict_log.pop("step", None)
         # For 6 steps total, duration=5s
         test_h_dict_log["endtime_utc"] = test_h_dict_log["starttime_utc"] + pd.to_timedelta(
             5.0, unit="s"
@@ -430,6 +446,8 @@ def test_log_every_n_option():
         test_h_dict_log2["dt"] = 1.0
         test_h_dict_log2.pop("starttime", None)
         test_h_dict_log2.pop("endtime", None)
+        test_h_dict_log2.pop("time", None)
+        test_h_dict_log2.pop("step", None)
         # For 7 steps total, duration=6s
         test_h_dict_log2["endtime_utc"] = test_h_dict_log2["starttime_utc"] + pd.to_timedelta(
             6.0, unit="s"
@@ -479,6 +497,8 @@ def test_log_selective_array_element():
     test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
 
     # Modify log_channels to only include turbine_powers.001 (not the full array)
     test_h_dict["wind_farm"]["log_channels"] = ["power", "turbine_powers.001"]

@@ -130,8 +130,8 @@ def test_load_hercules_input_valid_file():
 
     # Check required keys are present
     assert "dt" in result
-    assert "starttime" in result
-    assert "endtime" in result
+    assert "starttime_utc" in result
+    assert "endtime_utc" in result
     assert "plant" in result
 
     # Check plant structure
