@@ -2,9 +2,9 @@
 
 ## Description
 
-This example demonstrates the `Wind_MesoToPowerDirect` wake model, which assumes that wake effects are already included in the input wind data and performs no additional wake modeling. 
+This example demonstrates the `Wind_MesoToPowerNoAddedWakes` wake model, which assumes that wake effects are already included in the input wind data and performs no additional wake modeling. 
 
-The `Wind_MesoToPowerDirect` component type uses `wake_model="none"` internally, which means:
+The `Wind_MesoToPowerNoAddedWakes` component type uses `wake_model="no_added_wakes"` internally, which means:
 - No FLORIS calculations are performed during the simulation (only at initialization to read turbine properties)
 - `wind_speeds_withwakes` equals `wind_speeds_background` at all times
 - Wake deficits are always zero

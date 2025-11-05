@@ -1,27 +1,26 @@
-"""Tests for the WindFarm class in direct wake mode (Wind_MesoToPowerDirect)."""
+"""Tests for the WindFarm class in direct wake mode (Wind_MesoToPowerNoAddedWakes)."""
 
 import copy
 
 import numpy as np
-import pytest
 from hercules.plant_components.wind_farm import WindFarm
 from hercules.utilities import hercules_float_type
 
 from tests.test_inputs.h_dict import h_dict_wind
 
-# Create a base test dictionary for Wind_MesoToPowerDirect
+# Create a base test dictionary for Wind_MesoToPowerNoAddedWakes
 h_dict_wind_direct = copy.deepcopy(h_dict_wind)
 # Update component type
-h_dict_wind_direct["wind_farm"]["component_type"] = "Wind_MesoToPowerDirect"
+h_dict_wind_direct["wind_farm"]["component_type"] = "Wind_MesoToPowerNoAddedWakes"
 
 
 def test_wind_farm_direct_initialization():
-    """Test that WindFarm initializes correctly with wake_model='none'."""
+    """Test that WindFarm initializes correctly with wake_model='no_added_wakes'."""
     wind_sim = WindFarm(h_dict_wind_direct)
 
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "Wind_MesoToPowerDirect"
-    assert wind_sim.wake_model == "none"
+    assert wind_sim.component_type == "Wind_MesoToPowerNoAddedWakes"
+    assert wind_sim.wake_model == "no_added_wakes"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
@@ -121,7 +120,6 @@ def test_wind_farm_direct_power_setpoint_zero():
 
     # After multiple steps, powers should be effectively zero
     assert np.all(result["wind_farm"]["turbine_powers"] < 1.0)
-
 
 
 def test_wind_farm_direct_initial_conditions():

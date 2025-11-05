@@ -19,9 +19,9 @@ Wind_MesoToPowerPrecomFloris is an optimized variant that pre-computes all FLORI
 - Not investigating wakes of derated turbines or wake losses can be conservatively estimated.
 
 
-## Wind_MesoToPowerDirect (No Wake Modeling)
+## Wind_MesoToPowerNoAddedWakes (No Wake Modeling)
 
-Wind_MesoToPowerDirect assumes that wake effects are already included in the input wind data and performs no wake modeling during simulation. Model is appropriate for using SCADA data of operational farm since wake losses already included in data.
+Wind_MesoToPowerNoAddedWakes assumes that wake effects are already included in the input wind data and performs no wake modeling during simulation. Model is appropriate for using SCADA data of operational farm since wake losses already included in data.
 
 
 
@@ -63,9 +63,9 @@ Required parameters for Wind_MesoToPowerPrecomFloris:
 - `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
-### Wind_MesoToPowerDirect Specific Parameters
+### Wind_MesoToPowerNoAddedWakes Specific Parameters
 
-Required parameters for Wind_MesoToPowerDirect:
+Required parameters for Wind_MesoToPowerNoAddedWakes:
 - `floris_update_time_s`: Required for interface consistency but not used (no FLORIS calculations performed)
 - `floris_input_file`: Still required to read turbine power curve and properties
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
@@ -92,7 +92,7 @@ All three components provide these outputs in the h_dict at each simulation step
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
-**Note for Wind_MesoToPowerDirect:** In direct mode (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
+**Note for Wind_MesoToPowerNoAddedWakes:** In no_added_wakes mode (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
 
 ## Logging Configuration
 

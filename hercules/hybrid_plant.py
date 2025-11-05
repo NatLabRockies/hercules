@@ -100,13 +100,13 @@ class HybridPlant:
         if component_type in [
             "Wind_MesoToPower",
             "Wind_MesoToPowerPrecomFloris",
-            "Wind_MesoToPowerDirect",
+            "Wind_MesoToPowerNoAddedWakes",
         ]:
             # Map component_type to wake_model
             wake_model_map = {
                 "Wind_MesoToPower": "dynamic",
                 "Wind_MesoToPowerPrecomFloris": "precomputed",
-                "Wind_MesoToPowerDirect": "none",
+                "Wind_MesoToPowerNoAddedWakes": "no_added_wakes",
             }
             wake_model = wake_model_map[component_type]
             return WindFarm(h_dict, wake_model=wake_model)

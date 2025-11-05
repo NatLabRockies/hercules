@@ -44,7 +44,7 @@ class WindFarm(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
             wake_model (str, optional): Wake modeling strategy: "dynamic", "precomputed",
-                or "none". If None, infers from component_type for backward compatibility.
+                or "no_added_wakes". If None, infers from component_type for backward compatibility.
                 Defaults to None.
 
         Raises:
@@ -58,9 +58,10 @@ class WindFarm(ComponentBase):
             wake_model = self._infer_wake_model_from_component_type(h_dict)
 
         # Validate wake_model
-        if wake_model not in ["dynamic", "precomputed", "none"]:
+        if wake_model not in ["dynamic", "precomputed", "no_added_wakes"]:
             raise ValueError(
-                f"wake_model must be 'dynamic', 'precomputed', or 'none', got '{wake_model}'"
+                f"wake_model must be 'dynamic', 'precomputed', or "
+                f"'no_added_wakes', got '{wake_model}'"
             )
 
         self.wake_model = wake_model
@@ -178,7 +179,7 @@ class WindFarm(ComponentBase):
             self._init_floris_precomputed(df_wi)
         elif self.wake_model == "dynamic":
             self._init_floris_dynamic(df_wi)
-        else:  # wake_model == "none"
+        else:  # wake_model == "no_added_wakes"
             self._init_floris_none(df_wi)
 
         # Common post-FLORIS initialization
@@ -237,7 +238,7 @@ class WindFarm(ComponentBase):
             h_dict (dict): Dictionary containing simulation parameters.
 
         Returns:
-            str: Inferred wake_model ("dynamic", "precomputed", or "none").
+            str: Inferred wake_model ("dynamic", "precomputed", or "no_added_wakes").
         """
         component_type = h_dict[self.component_name].get("component_type", "WindFarm")
 
@@ -245,8 +246,8 @@ class WindFarm(ComponentBase):
             return "dynamic"
         elif component_type == "Wind_MesoToPowerPrecomFloris":
             return "precomputed"
-        elif component_type == "Wind_MesoToPowerDirect":
-            return "none"
+        elif component_type == "Wind_MesoToPowerNoAddedWakes":
+            return "no_added_wakes"
         else:
             # Default to dynamic for unknown types
             return "dynamic"
@@ -706,7 +707,7 @@ class WindFarm(ComponentBase):
             self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[step, :]
             self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
-        else:  # wake_model == "none"
+        else:  # wake_model == "no_added_wakes"
             # No wake modeling - use background speeds directly
             self.wind_speeds_background = self.ws_mat[step, :]
             self.wind_speeds_withwakes = self.wind_speeds_background.copy()

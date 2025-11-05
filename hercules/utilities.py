@@ -50,7 +50,11 @@ def get_available_component_types():
         dict: Component names mapped to available simulation types.
     """
     return {
-        "wind_farm": ["Wind_MesoToPower", "Wind_MesoToPowerPrecomFloris", "Wind_MesoToPowerDirect"],
+        "wind_farm": [
+            "Wind_MesoToPower",
+            "Wind_MesoToPowerPrecomFloris",
+            "Wind_MesoToPowerNoAddedWakes",
+        ],
         "solar_farm": ["SolarPySAMPVWatts"],
         "battery": ["BatterySimple", "BatteryLithiumIon"],
         "electrolyzer": ["ElectrolyzerPlant"],
