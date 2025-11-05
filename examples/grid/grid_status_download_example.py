@@ -1,9 +1,9 @@
 # Example version of the gridstatus_download.py script
 # Download 2 days of data for the OKGE.FRONTIER location
 # Download both real time and day ahead data
-# See the documentation for more details of this example: 
+# See the documentation for more details of this example:
 # https://nrel.github.io/hercules/gridstatus_download.html
-# Note api key is required, see the documentation for more details: 
+# Note api key is required, see the documentation for more details:
 # https://nrel.github.io/hercules/gridstatus_download.html#api-key-setup
 
 # Run using uvx --with gridstatusio --with pyarrow python grid_status_download_example.py
