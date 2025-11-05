@@ -4,7 +4,7 @@
 name: test_input
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Test input file
 
 dt: 1.0

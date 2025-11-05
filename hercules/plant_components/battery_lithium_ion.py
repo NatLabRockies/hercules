@@ -226,7 +226,7 @@ class BatteryLithiumIon(ComponentBase):
             dtype=hercules_float_type,
         )
 
-        # initial state of battery outputs for hercules emulator
+        # initial state of battery outputs for hercules
         self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0

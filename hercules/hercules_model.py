@@ -10,34 +10,42 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from hercules.utilities import hercules_float_type
+from hercules.hybrid_plant import HybridPlant
+from hercules.utilities import (
+    _validate_utc_datetime_string,
+    close_logging,
+    get_available_component_names,
+    get_available_component_types,
+    hercules_float_type,
+    interpolate_df,
+    load_yaml,
+    setup_logging,
+)
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
 
 Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
-class Emulator:
-    def __init__(self, controller, hybrid_plant, h_dict, logger):
+class HerculesModel:
+    def __init__(self, input_file):
         """
-        Initializes the emulator.
+        Initializes the HerculesModel.
 
         Args:
-            controller (object): The controller object responsible for managing the simulation.
-            hybrid_plant (object): An object containing hybrid plant components.
-            h_dict (dict): A dictionary contains parameters and values for the simulation.
-            logger (object): A logger instance for logging messages during the simulation.
+            input_file (Union[str, dict]): Path to Hercules input YAML file or dictionary
+                containing input configuration.
 
         """
 
         # Make sure output folder exists
         Path("outputs").mkdir(parents=True, exist_ok=True)
 
-        # Use the provided logger
-        self.logger = logger
+        # Set up logging
+        self.logger = self._setup_logging()
 
-        # Save the input dict to main dict
-        self.h_dict = h_dict
+        # Load and validate the input file
+        h_dict = self._load_hercules_input(input_file)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -55,9 +63,24 @@ class Emulator:
         self.log_every_n = h_dict.get("log_every_n", 1)
         self.dt_log = self.dt * self.log_every_n
 
+        # Initialize the hybrid plant
+        self.hybrid_plant = HybridPlant(h_dict)
+
+        # Add plant component metadata to h_dict
+        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(h_dict)
+
+        # Initialize the controller as None, to be assigned in a subsequent call
+        self._controller = None
+
+        # Read in any external data
+        self.external_data_all = {}
+        if "external_data_file" in self.h_dict:
+            self._read_external_data_file(self.h_dict["external_data_file"])
+            self.h_dict["external_signals"] = {}
+
         # Initialize HDF5 output configuration
-        if "output_file" in h_dict:
-            self.output_file = h_dict["output_file"]
+        if "output_file" in self.h_dict:
+            self.output_file = self.h_dict["output_file"]
             # Ensure .h5 extension
             if not self.output_file.endswith(".h5"):
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
@@ -74,16 +97,16 @@ class Emulator:
 
         # HDF5 configuration
         # Enable/disable compression
-        self.use_compression = h_dict.get("output_use_compression", True)
+        self.use_compression = self.h_dict.get("output_use_compression", True)
 
         # Buffering configuration
         # Buffer 10000 rows in memory (optimized default)
-        self.buffer_size = h_dict.get("output_buffer_size", 50000)
+        self.buffer_size = self.h_dict.get("output_buffer_size", 50000)
         self.data_buffers = {}  # Dictionary to hold buffered data
         self.buffer_row = 0  # Current position in buffer
 
         # Get verbose flag from h_dict
-        self.verbose = h_dict.get("verbose", False)
+        self.verbose = self.h_dict.get("verbose", False)
         self.total_simulation_time = self.endtime - self.starttime  # In seconds
         self.total_simulation_days = self.total_simulation_time / 86400
         self.time = self.starttime
@@ -92,10 +115,10 @@ class Emulator:
         self.step = 0
         self.n_steps = int(self.total_simulation_time / self.dt)
 
-        # How often to update the user on current emulator time
+        # How often to update the user on current simulation time
         # In simulated time
-        if "time_log_interval" in h_dict:
-            self.time_log_interval = h_dict["time_log_interval"]
+        if "time_log_interval" in self.h_dict:
+            self.time_log_interval = self.h_dict["time_log_interval"]
         else:
             self.time_log_interval = 600  # seconds
         self.step_log_interval = self.time_log_interval / self.dt
@@ -107,50 +130,193 @@ class Emulator:
         # Update every 1% of completion or every 100 steps, whichever is more frequent
         self.progress_update_interval = min(max(1, self.n_steps // 100), 100)
 
-        # Initialize components
-        self.controller = controller
-        self.hybrid_plant = hybrid_plant
-
-        # Add plant component metadata to the h_dict
-        self.h_dict = self.hybrid_plant.add_plant_metadata_to_h_dict(self.h_dict)
-
         # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
         # starttime_utc is required and should already be set, but ensure it's still present
-        self.starttime_utc = h_dict["starttime_utc"]
+        self.starttime_utc = self.h_dict["starttime_utc"]
 
-        # Read in any external data
-        self.external_data_all = {}
-        if "external_data_file" in h_dict:
-            self._read_external_data_file(h_dict["external_data_file"])
-            self.h_dict["external_signals"] = {}
+    def _setup_logging(self, logfile="log_hercules.log", console_output=True):
+        """Set up logging to file and console.
+
+        Creates 'outputs' directory and configures file/console logging with timestamps.
+        This method wraps the utilities.setup_logging function for backward compatibility.
+
+        Args:
+            logfile (str, optional): Log file name. Defaults to "log_hercules.log".
+            console_output (bool, optional): Enable console output. Defaults to True.
+
+        Returns:
+            logging.Logger: Configured logger instance.
+        """
+        return setup_logging(
+            logger_name="hercules",
+            log_file=logfile,
+            console_output=console_output,
+            console_prefix="HERCULES",
+        )
+
+    def _load_hercules_input(self, filename):
+        """Load and validate Hercules input file.
+
+        Loads YAML file and validates input structure, required keys, and data types.
+
+        Args:
+            filename (Union[str, dict]): Path to Hercules input YAML file or dictionary.
+
+        Returns:
+            dict: Validated Hercules input configuration with computed starttime/endtime.
+
+        Raises:
+            ValueError: If required keys missing, invalid data types, or incorrect structure.
+        """
+        h_dict = load_yaml(filename)
+
+        # Define valid keys
+        required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
+        component_names = get_available_component_names()
+        component_types = get_available_component_types()
+        other_keys = [
+            "name",
+            "description",
+            "controller",
+            "verbose",
+            "output_file",
+            "log_every_n",
+            "external_data_file",
+            "output_use_compression",
+            "output_buffer_size",
+            "time",  # Runtime key that may be present
+            "step",  # Runtime key that may be present
+            "component_names",  # Metadata added by HybridPlant
+            "generator_names",  # Metadata added by HybridPlant
+            "n_components",  # Metadata added by HybridPlant
+            "external_signals",  # Added when external data is present
+        ]
+
+        # Validate required keys
+        for key in required_keys:
+            if key not in h_dict:
+                raise ValueError(f"Required key {key} not found in input file {filename}")
+
+        # Validate and convert starttime_utc and endtime_utc to pandas Timestamps
+        # If they're already Timestamps (e.g., from test h_dicts), use them directly
+        if isinstance(h_dict["starttime_utc"], pd.Timestamp):
+            starttime_utc = h_dict["starttime_utc"]
+        else:
+            starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
+
+        if isinstance(h_dict["endtime_utc"], pd.Timestamp):
+            endtime_utc = h_dict["endtime_utc"]
+        else:
+            endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
+
+        # Validate endtime_utc is after starttime_utc
+        if endtime_utc <= starttime_utc:
+            raise ValueError(f"endtime_utc must be after starttime_utc in input file {filename}")
+
+        # Store UTC timestamps in h_dict
+        h_dict["starttime_utc"] = starttime_utc
+        h_dict["endtime_utc"] = endtime_utc
+
+        # Validate plant structure
+        if not isinstance(h_dict["plant"], dict):
+            raise ValueError(f"Plant must be a dictionary in input file {filename}")
+
+        if "interconnect_limit" not in h_dict["plant"]:
+            raise ValueError(
+                f"Plant must contain an interconnect_limit key in input file {filename}"
+            )
+
+        if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
+            raise ValueError(f"Interconnect limit must be a float in input file {filename}")
+
+        # Validate all keys are valid
+        for key in h_dict:
+            if key not in required_keys + component_names + other_keys:
+                raise ValueError(f"Key {key} not a valid key in input file {filename}")
+
+        # Disallow pre-defined start/end; derive from UTC + dt policy
+        if ("starttime" in h_dict) or ("endtime" in h_dict):
+            raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
+
+        duration = (endtime_utc - starttime_utc).total_seconds()
+        h_dict["starttime"] = 0.0
+        # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
+        h_dict["endtime"] = duration + float(h_dict["dt"])
+
+        # Validate component structures
+        for key in component_names:
+            if key in h_dict:
+                if not isinstance(h_dict[key], dict):
+                    raise ValueError(f"{key} must be a dictionary in input file {filename}")
+
+        # Set verbose default and validate
+        if "verbose" not in h_dict:
+            h_dict["verbose"] = False
+        elif not isinstance(h_dict["verbose"], bool):
+            raise ValueError(f"Verbose must be a boolean in input file {filename}")
+
+        # Validate log_every_n if present
+        if "log_every_n" in h_dict:
+            if not isinstance(h_dict["log_every_n"], int) or h_dict["log_every_n"] <= 0:
+                raise ValueError(f"log_every_n must be a positive integer in input file {filename}")
+
+        # Validate no components have verbose key
+        for key in component_names:
+            if key in h_dict and "verbose" in h_dict[key]:
+                raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
+
+        # Validate component types
+        for key in component_names:
+            if key in h_dict:
+                if "component_type" not in h_dict[key]:
+                    raise ValueError(
+                        f"{key} must include a component_type key in input file {filename}"
+                    )
+                if h_dict[key]["component_type"] not in component_types[key]:
+                    raise ValueError(
+                        f"{key} has an invalid component_type {h_dict[key]['component_type']} "
+                        f"in input file {filename}"
+                    )
+
+        return h_dict
 
     def _read_external_data_file(self, filename):
         """
         Read and interpolate external data from a CSV file.
 
         This method reads external data from the specified CSV file and interpolates it
-        according to the simulation time steps. The external data must include a 'time' column.
+        according to the simulation time steps. The external data must include a 'time_utc'
+        column which will be converted to simulation time.
         The interpolated data is stored in self.external_data_all.
+
         Args:
             filename (str): Path to the CSV file containing external data.
         """
 
         # Read in the external data file
         df_ext = pd.read_csv(filename)
-        if "time" not in df_ext.columns:
-            raise ValueError("External data file must have a 'time' column")
+        if "time_utc" not in df_ext.columns:
+            raise ValueError("External data file must have a 'time_utc' column")
 
-        # Interpolate the external data according to time.
+        # Convert time_utc to pandas datetime and then to simulation time
+        df_ext["time_utc"] = pd.to_datetime(df_ext["time_utc"], utc=True)
+        starttime_utc = pd.to_datetime(self.starttime_utc, utc=True)
+        df_ext["time"] = (df_ext["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Create simulation time array
         # Goes to 1 time step past stoptime specified in the input file.
-        times = np.arange(
+        new_times = np.arange(
             self.starttime,
             self.endtime + (2 * self.dt),
             self.dt,
         )
-        self.external_data_all["time"] = times
-        for c in df_ext.columns:
-            if c != "time":
-                self.external_data_all[c] = np.interp(times, df_ext.time, df_ext[c])
+
+        # Interpolate using the utility function
+        df_interpolated = interpolate_df(df_ext, new_times)
+
+        # Convert interpolated DataFrame to dictionary format
+        for col in df_interpolated.columns:
+            self.external_data_all[col] = df_interpolated[col].values
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
@@ -339,34 +505,133 @@ class Emulator:
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
 
-    def enter_execution(self, function_targets=[], function_arguments=[[]]):
+    def assign_controller(self, controller):
+        """
+        Assign a controller instance to the HerculesModel.
+
+        This method allows setting controller instance used in the simulation.
+        It is useful when the controller needs to be initialized separately or changed after
+        the HerculesModel has been created.
+
+        Alternatively, the controller can be set directly using HerculesModel.controller = ...
+
+        Args:
+            controller (object): An instance of the controller to be used in the simulation.
+        """
+        if not hasattr(controller, "step"):
+            raise ValueError(
+                "Assigned controller does not have a 'step' method. ",
+                "Ensure the controller is properly implemented.",
+            )
+        self._controller = controller
+
+    @property
+    def controller(self):
+        """Get the assigned controller instance.
+
+        Returns:
+            object: The controller instance assigned to the HerculesModel.
+        """
+        return self._controller
+
+    def run(self):
         """
         Execute the main simulation loop and handle timing and logging.
 
-        This method initiates the simulation execution, runs the main loop, and handles
-        all associated timing calculations, logging, and file operations. It ensures proper
-        cleanup of resources even if exceptions occur during simulation.
-
-        Args:
-            function_targets (list, optional): List of functions to execute during simulation.
-                Defaults to empty list.
-            function_arguments (list of lists, optional): List of argument lists to pass to each
-                corresponding function in function_targets.
-                Defaults to a list containing an empty list.
+        This method runs the complete simulation from start to end, including timing calculations,
+        progress logging, and resource cleanup. It executes the simulation step by step, updating
+        controller and Python simulators, logging state, and handling external data interpolation.
+        Ensures proper cleanup of resources even if exceptions occur during simulation.
         """
 
-        # No need to open output file upfront with fast logging
+        # Check that a valid controller has been assigned
+        if self._controller is None:
+            raise ValueError(
+                "No valid controller assigned to HerculesModel. ",
+                "Call assign_controller() before running the simulation.",
+            )
 
         # Wrap this effort in a try block to ensure proper cleanup
         try:
             # Record start clock time for metadata
             self.start_clock_time = _time.time()
 
-            # Run the main loop
-            self.run()
+            # Begin the main simulation loop
+            self.logger.info(" #### Entering main loop #### ")
+
+            first_iteration = True
+
+            # Create progress bar
+            progress_bar = tqdm(
+                total=self.n_steps,
+                desc="Simulation Progress",
+                unit="steps",
+                ncols=100,
+                leave=True,
+                mininterval=5.0,  # Update at most once every 5 seconds
+                maxinterval=30.0,  # Update at least every 30 seconds
+            )
+
+            # Cache frequently accessed attributes and methods locally for speed
+            controller_step = self.controller.step
+            plant_step = self.hybrid_plant.step
+            log_current_state = self._log_data_to_hdf5
+            external_data_all = self.external_data_all
+            h_dict = self.h_dict
+
+            # Set current time and run simulation through steps
+            self.time = self.starttime
+            last_progress_update = 0
+            for self.step in range(self.n_steps):
+                # Log the current time
+                if self.verbose:
+                    if (self.step % self.step_log_interval == 0) or first_iteration:
+                        self.logger.info(f"Simulation time: {self.time} (ending at {self.endtime})")
+                        self.logger.info(f"Step: {self.step} of {self.n_steps}")
+                        percent_complete = 100 * self.step / self.n_steps
+                        self.logger.info(f"--Percent completed: {percent_complete:.2f}%")
+
+                # Update progress bar independently of verbose logging, more frequently
+                if (self.step % self.progress_update_interval == 0) or first_iteration:
+                    steps_to_update = self.step - last_progress_update
+                    if steps_to_update > 0:
+                        progress_bar.update(steps_to_update)
+                        last_progress_update = self.step
+
+                # Fast external data lookup by step index (avoids per-step array equality checks)
+                if external_data_all:
+                    for k in external_data_all:
+                        if k == "time":
+                            continue
+                        h_dict["external_signals"][k] = external_data_all[k][self.step]
+
+                # Update controller and py sims
+                h_dict["time"] = self.time
+                h_dict["step"] = self.step
+                h_dict = controller_step(h_dict)
+                h_dict = plant_step(h_dict)
+                self.h_dict = h_dict
+
+                # Log the current state
+                log_current_state()
+
+                # If this is first iteration log the input dict
+                # And turn off the first iteration flag
+                if first_iteration:
+                    # self.logger.info(self.h_dict)
+                    self._save_h_dict_as_text()
+                    first_iteration = False
+
+                # Update the time
+                self.time = self.time + self.dt
+
+            # Update progress bar to final step and close
+            final_steps_to_update = self.n_steps - last_progress_update
+            if final_steps_to_update > 0:
+                progress_bar.update(final_steps_to_update)
+            progress_bar.close()
 
             # Note the total elapsed time
-
             self.end_clock_time = _time.time()
             self.total_time_wall = self.end_clock_time - self.start_clock_time
 
@@ -398,86 +663,6 @@ class Emulator:
             # Ensure output data is written to file
             self.logger.info("Finalizing HDF5 output file")
             self._finalize_hdf5_file()
-
-    def run(self):
-        """Run the main emulation loop until the end time is reached.
-
-        Executes the simulation step by step, updating controller and Python
-        simulators, logging state, and handling external data interpolation.
-        Logs progress at specified intervals and saves initial state on first iteration.
-        """
-        self.logger.info(" #### Entering main loop #### ")
-
-        first_iteration = True
-
-        # Create progress bar
-        progress_bar = tqdm(
-            total=self.n_steps,
-            desc="Simulation Progress",
-            unit="steps",
-            ncols=100,
-            leave=True,
-            mininterval=5.0,  # Update at most once every 5 seconds
-            maxinterval=30.0,  # Update at least every 30 seconds
-        )
-
-        # Cache frequently accessed attributes and methods locally for speed
-        controller_step = self.controller.step
-        plant_step = self.hybrid_plant.step
-        log_current_state = self._log_data_to_hdf5
-        external_data_all = self.external_data_all
-        h_dict = self.h_dict
-
-        # Set current time and run simulation through steps
-        self.time = self.starttime
-        last_progress_update = 0
-        for self.step in range(self.n_steps):
-            # Log the current time
-            if self.verbose:
-                if (self.step % self.step_log_interval == 0) or first_iteration:
-                    self.logger.info(f"Emulator time: {self.time} (ending at {self.endtime})")
-                    self.logger.info(f"Step: {self.step} of {self.n_steps}")
-                    self.logger.info(f"--Percent completed: {100 * self.step / self.n_steps:.2f}%")
-
-            # Update progress bar independently of verbose logging, more frequently
-            if (self.step % self.progress_update_interval == 0) or first_iteration:
-                steps_to_update = self.step - last_progress_update
-                if steps_to_update > 0:
-                    progress_bar.update(steps_to_update)
-                    last_progress_update = self.step
-
-            # Fast external data lookup by step index (avoids per-step array equality checks)
-            if external_data_all:
-                for k in external_data_all:
-                    if k == "time":
-                        continue
-                    h_dict["external_signals"][k] = external_data_all[k][self.step]
-
-            # Update controller and py sims
-            h_dict["time"] = self.time
-            h_dict["step"] = self.step
-            h_dict = controller_step(h_dict)
-            h_dict = plant_step(h_dict)
-            self.h_dict = h_dict
-
-            # Log the current state
-            log_current_state()
-
-            # If this is first iteration log the input dict
-            # And turn off the first iteration flag
-            if first_iteration:
-                # self.logger.info(self.h_dict)
-                self._save_h_dict_as_text()
-                first_iteration = False
-
-            # Update the time
-            self.time = self.time + self.dt
-
-        # Update progress bar to final step and close
-        final_steps_to_update = self.n_steps - last_progress_update
-        if final_steps_to_update > 0:
-            progress_bar.update(final_steps_to_update)
-        progress_bar.close()
 
     def _finalize_hdf5_file(self):
         """Finalize HDF5 file with proper compression and metadata."""
@@ -527,13 +712,15 @@ class Emulator:
         self.output_written = True
 
     def __del__(self):
-        """Cleanup method to properly close output files when object is destroyed."""
+        """Cleanup method to properly close output files and logging when destroyed."""
         try:
             # Only attempt cleanup if Python is not shutting down
             import sys
 
             if sys.meta_path is not None:
                 self._finalize_hdf5_file()
+                if hasattr(self, "logger"):
+                    close_logging(self.logger)
         except (ImportError, AttributeError):
             # Ignore errors during Python shutdown
             pass
@@ -541,6 +728,8 @@ class Emulator:
     def close(self):
         """Explicitly close all resources and cleanup."""
         self._finalize_hdf5_file()
+        if hasattr(self, "logger"):
+            close_logging(self.logger)
 
     def _log_data_to_hdf5(self):
         """

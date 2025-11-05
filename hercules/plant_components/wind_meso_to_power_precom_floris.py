@@ -13,7 +13,7 @@ from hercules.plant_components.wind_meso_to_power import (
 )
 from hercules.utilities import (
     hercules_float_type,
-    interpolate_df_fast,
+    interpolate_df,
     load_yaml,
 )
 from scipy.interpolate import interp1d
@@ -172,7 +172,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
 
         # Interpolate df_wi on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
-        df_wi = interpolate_df_fast(df_wi, time_steps_all)
+        df_wi = interpolate_df(df_wi, time_steps_all)
 
         # FLORIS PRECOMPUTATION
 
