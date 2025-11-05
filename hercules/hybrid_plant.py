@@ -5,6 +5,7 @@ from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.wind_farm import WindFarm
+from hercules.plant_components.wind_farm_scada_power import WindFarmSCADAPower
 from hercules.utilities import get_available_component_names, get_available_generator_names
 
 
@@ -110,6 +111,9 @@ class HybridPlant:
             }
             wake_model = wake_model_map[component_type]
             return WindFarm(h_dict, wake_model=wake_model)
+
+        if component_type == "WindFarmSCADAPower":
+            return WindFarmSCADAPower(h_dict)
 
         if component_type == "SolarPySAMPVWatts":
             return SolarPySAMPVWatts(h_dict)

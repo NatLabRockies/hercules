@@ -1,6 +1,6 @@
 # Wind Farm Components
 
-Hercules provides three wind farm simulation components that differ in their approach to wake modeling. All three components support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.
+Hercules provides four wind farm simulation components that differ in their approach to wake modeling and data sources. The first three components support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics, while the fourth component uses SCADA power data directly.
 
 ## Wind_MesoToPower (Dynamic Wake Model)
 
@@ -24,11 +24,15 @@ Wind_MesoToPowerPrecomFloris is an optimized variant that pre-computes all FLORI
 Wind_MesoToPowerNoAddedWakes assumes that wake effects are already included in the input wind data and performs no wake modeling during simulation. Model is appropriate for using SCADA data of operational farm since wake losses already included in data.
 
 
+## WindFarmSCADAPower (SCADA Power Data)
+
+WindFarmSCADAPower uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component applies a filter to the SCADA power data to simulate turbine response dynamics and respects power setpoint constraints.
+
 
 
 ## Overview
 
-All three wind farm components apply wind speed time signals to turbine models to simulate wind farm behavior over extended periods. They differ only in how wake effects are computed and applied.
+The first three wind farm components apply wind speed time signals to turbine models to simulate wind farm behavior over extended periods. They differ only in how wake effects are computed and applied. The WindFarmSCADAPower component uses a fundamentally different approach by using actual SCADA power measurements as input.
 
 ### Precomputed FLORIS Approach
 
@@ -70,19 +74,42 @@ Required parameters for Wind_MesoToPowerNoAddedWakes:
 - `floris_input_file`: Still required to read turbine power curve and properties
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
+### WindFarmSCADAPower Specific Parameters
+
+Required parameters for WindFarmSCADAPower:
+- `scada_filename`: Path to SCADA data file (CSV, pickle, or feather format)
+- `turbine_file_name`: Turbine model configuration (for filter parameters)
+- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+
+**SCADA File Format:**
+
+The SCADA file must contain the following columns:
+- `time_utc`: Timestamps in UTC (ISO 8601 format or parseable datetime strings)
+- `wd_mean`: Mean wind direction in degrees
+- `pow_###`: Power output for each turbine (e.g., `pow_000`, `pow_001`, `pow_002`)
+
+Optional columns:
+- `ws_###`: Wind speed for each turbine (e.g., `ws_000`, `ws_001`, `ws_002`)
+- `ws_mean`: Mean wind speed (used if individual turbine speeds not provided)
+- `ti_###`: Turbulence intensity for each turbine (defaults to 0.08 if not provided)
+
+The number of turbines and rated power are automatically inferred from the SCADA data.
+
 ## Turbine Models
+
+**Note:** WindFarmSCADAPower uses only the filter model for power smoothing, as power values come directly from SCADA data rather than being computed from wind speeds.
 
 ### Filter Model
 Simple first-order filter for power output smoothing with configurable time constants.
 
 ### 1-DOF Model
-Advanced model with rotor dynamics, pitch control, and generator torque control.
+Advanced model with rotor dynamics, pitch control, and generator torque control. Not applicable to WindFarmSCADAPower.
 
 ## Outputs
 
 ### Common Outputs
 
-All three components provide these outputs in the h_dict at each simulation step:
+All four components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
 - `turbine_power_setpoints`: Current power setpoint values (array, kW)
@@ -92,7 +119,7 @@ All three components provide these outputs in the h_dict at each simulation step
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
-**Note for Wind_MesoToPowerNoAddedWakes:** In no_added_wakes mode (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
+**Note for Wind_MesoToPowerNoAddedWakes and WindFarmSCADAPower:** In these models (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
 
 ## Logging Configuration
 
