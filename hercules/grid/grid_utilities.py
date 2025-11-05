@@ -34,6 +34,8 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
         raise ValueError("df_real_time_lmp must only contain REAL_TIME_5_MIN market data.")
 
     # TODO: Add checks that dataframes cover the same time period, have no missing data, etc.
+    # TODO: How do we handle dataframes where the first row is not 00:00 UTC?
+    # TODO: Should DA_LMP_00 be _local_ midnight? How can we handle that? It may not matter?
 
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
@@ -64,7 +66,7 @@ def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_
     df_hourly = df_hourly.reset_index()
 
     # Add time_utc and drop date
-    # TODO: What if the user's timezone is not UTC?
+    # Note that time _must_ be specified as UTC for Hercules
     df_hourly["time_utc"] = pd.to_datetime(df_hourly["date"], utc=True)
     df_hourly = df_hourly.drop(columns=["date"])
 
