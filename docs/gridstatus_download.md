@@ -40,6 +40,8 @@ The downloaded feather files can be used directly in Hercules for applications t
 
 This script uses [uvx](https://docs.astral.sh/uv/guides/tools/) to run in an isolated environment because the `gridstatusio` package requires a different version of numpy than the rest of Hercules. Using uvx prevents dependency conflicts between the Grid Status client and Hercules' requirements.
 
+See https://docs.astral.sh/uv/getting-started/installation/ for information in installing uv.
+
 ### Usage
 
 1. Copy the script to your project folder
