@@ -12,13 +12,10 @@ from tqdm import tqdm
 
 from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import (
-    _validate_utc_datetime_string,
     close_logging,
-    get_available_component_names,
-    get_available_component_types,
     hercules_float_type,
     interpolate_df,
-    load_yaml,
+    load_hercules_input,
     setup_logging,
 )
 
@@ -168,115 +165,13 @@ class HerculesModel:
         Raises:
             ValueError: If required keys missing, invalid data types, or incorrect structure.
         """
-        h_dict = load_yaml(filename)
+        h_dict = load_hercules_input(filename)
 
-        # Define valid keys
-        required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
-        component_names = get_available_component_names()
-        component_types = get_available_component_types()
-        other_keys = [
-            "name",
-            "description",
-            "controller",
-            "verbose",
-            "output_file",
-            "log_every_n",
-            "external_data_file",
-            "output_use_compression",
-            "output_buffer_size",
-            "time",  # Runtime key that may be present
-            "step",  # Runtime key that may be present
-            "component_names",  # Metadata added by HybridPlant
-            "generator_names",  # Metadata added by HybridPlant
-            "n_components",  # Metadata added by HybridPlant
-            "external_signals",  # Added when external data is present
-        ]
-
-        # Validate required keys
-        for key in required_keys:
-            if key not in h_dict:
-                raise ValueError(f"Required key {key} not found in input file {filename}")
-
-        # Validate and convert starttime_utc and endtime_utc to pandas Timestamps
-        # If they're already Timestamps (e.g., from test h_dicts), use them directly
-        if isinstance(h_dict["starttime_utc"], pd.Timestamp):
-            starttime_utc = h_dict["starttime_utc"]
-        else:
-            starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
-
-        if isinstance(h_dict["endtime_utc"], pd.Timestamp):
-            endtime_utc = h_dict["endtime_utc"]
-        else:
-            endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
-
-        # Validate endtime_utc is after starttime_utc
-        if endtime_utc <= starttime_utc:
-            raise ValueError(f"endtime_utc must be after starttime_utc in input file {filename}")
-
-        # Store UTC timestamps in h_dict
-        h_dict["starttime_utc"] = starttime_utc
-        h_dict["endtime_utc"] = endtime_utc
-
-        # Validate plant structure
-        if not isinstance(h_dict["plant"], dict):
-            raise ValueError(f"Plant must be a dictionary in input file {filename}")
-
-        if "interconnect_limit" not in h_dict["plant"]:
-            raise ValueError(
-                f"Plant must contain an interconnect_limit key in input file {filename}"
-            )
-
-        if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
-            raise ValueError(f"Interconnect limit must be a float in input file {filename}")
-
-        # Validate all keys are valid
-        for key in h_dict:
-            if key not in required_keys + component_names + other_keys:
-                raise ValueError(f"Key {key} not a valid key in input file {filename}")
-
-        # Disallow pre-defined start/end; derive from UTC + dt policy
-        if ("starttime" in h_dict) or ("endtime" in h_dict):
-            raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
-
-        duration = (endtime_utc - starttime_utc).total_seconds()
+        # Add in starttime and endttime as needed for Hercules simulation
         h_dict["starttime"] = 0.0
-        # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
-        h_dict["endtime"] = duration + float(h_dict["dt"])
-
-        # Validate component structures
-        for key in component_names:
-            if key in h_dict:
-                if not isinstance(h_dict[key], dict):
-                    raise ValueError(f"{key} must be a dictionary in input file {filename}")
-
-        # Set verbose default and validate
-        if "verbose" not in h_dict:
-            h_dict["verbose"] = False
-        elif not isinstance(h_dict["verbose"], bool):
-            raise ValueError(f"Verbose must be a boolean in input file {filename}")
-
-        # Validate log_every_n if present
-        if "log_every_n" in h_dict:
-            if not isinstance(h_dict["log_every_n"], int) or h_dict["log_every_n"] <= 0:
-                raise ValueError(f"log_every_n must be a positive integer in input file {filename}")
-
-        # Validate no components have verbose key
-        for key in component_names:
-            if key in h_dict and "verbose" in h_dict[key]:
-                raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
-
-        # Validate component types
-        for key in component_names:
-            if key in h_dict:
-                if "component_type" not in h_dict[key]:
-                    raise ValueError(
-                        f"{key} must include a component_type key in input file {filename}"
-                    )
-                if h_dict[key]["component_type"] not in component_types[key]:
-                    raise ValueError(
-                        f"{key} has an invalid component_type {h_dict[key]['component_type']} "
-                        f"in input file {filename}"
-                    )
+        h_dict["endtime"] = (
+            (h_dict["endtime_utc"] - h_dict["starttime_utc"]).total_seconds() + float(h_dict["dt"])
+        )
 
         return h_dict
 

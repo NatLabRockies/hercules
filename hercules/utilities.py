@@ -272,8 +272,16 @@ def load_hercules_input(filename):
             raise ValueError(f"Required key {key} not found in input file {filename}")
 
     # Validate and convert starttime_utc and endtime_utc to pandas Timestamps
-    starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
-    endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
+    # If they're already Timestamps (e.g., from test h_dicts), use them directly
+    if isinstance(h_dict["starttime_utc"], pd.Timestamp):
+        starttime_utc = h_dict["starttime_utc"]
+    else:
+        starttime_utc = _validate_utc_datetime_string(h_dict["starttime_utc"], "starttime_utc")
+
+    if isinstance(h_dict["endtime_utc"], pd.Timestamp):
+        endtime_utc = h_dict["endtime_utc"]
+    else:
+        endtime_utc = _validate_utc_datetime_string(h_dict["endtime_utc"], "endtime_utc")
 
     # Validate endtime_utc is after starttime_utc
     if endtime_utc <= starttime_utc:
@@ -296,17 +304,11 @@ def load_hercules_input(filename):
     # Validate all keys are valid
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
-            raise ValueError(f"Key {key} not a valid key in input file {filename}")
+            raise ValueError(f"Key \"{key}\" not a valid key in input file {filename}")
 
-    # Enforce start/end are derived from UTC and not pre-defined in YAML
+    # Disallow pre-defined start/end; derive from UTC + dt policy
     if ("starttime" in h_dict) or ("endtime" in h_dict):
         raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
-
-    # Compute starttime (always 0) and endtime (duration in seconds + dt)
-    duration = (endtime_utc - starttime_utc).total_seconds()
-    h_dict["starttime"] = 0.0
-    # Add one dt so that if endtime_utc = start + (N-1)*dt, we get exactly N steps
-    h_dict["endtime"] = duration + float(h_dict["dt"])
 
     # Validate component structures
     for key in component_names:
