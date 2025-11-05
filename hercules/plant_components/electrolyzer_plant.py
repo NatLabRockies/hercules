@@ -6,11 +6,17 @@ from hercules.plant_components.component_base import ComponentBase
 
 
 class ElectrolyzerPlant(ComponentBase):
+    """Electrolyzer plant component for hydrogen production.
+
+    This component models an electrolyzer system that converts electrical power
+    into hydrogen using the electrolyzer module simulation.
+    """
+
     def __init__(self, h_dict):
-        """
-        Initializes the ElectrolyzerPlant class.
+        """Initialize the ElectrolyzerPlant class.
+
         Args:
-            h_dict (dict): Dict containing values for the simulation
+            h_dict (dict): Dictionary containing simulation parameters.
         """
         # Store the name of this component
         self.component_name = "electrolyzer"
@@ -89,6 +95,25 @@ class ElectrolyzerPlant(ComponentBase):
         return h_dict
 
     def step(self, h_dict):
+        """Advance the electrolyzer simulation by one time step.
+
+        Updates the electrolyzer state including hydrogen production, power consumption,
+        and stack status based on available power and control signals.
+
+        Args:
+            h_dict (dict): Dictionary containing simulation state including:
+                - locally_generated_power: Available power for electrolyzer [kW]
+                - electrolyzer.electrolyzer_signal: Optional power command [kW]
+
+        Returns:
+            dict: Updated h_dict with electrolyzer outputs:
+                - H2_output: Hydrogen produced in this time step [kg]
+                - H2_mfr: Hydrogen mass flow rate [kg/s]
+                - stacks_on: Number of active stacks
+                - stacks_waiting: List of stack waiting states
+                - power_used_kw: Power consumed by electrolyzer [kW]
+                - power_input_kw: Power input to electrolyzer [kW]
+        """
         # Gather inputs
         local_power = h_dict["locally_generated_power"]  # TODO check what units this is in
         if "electrolyzer_signal" in h_dict[self.component_name].keys():

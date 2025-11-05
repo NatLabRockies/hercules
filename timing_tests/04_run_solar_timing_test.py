@@ -5,14 +5,11 @@ and measures the execution time. It includes a simple controller that curtails
 power to 20 MW halfway through the simulation (at 500 minutes).
 """
 
-import os
-import shutil
 import time
 
 import matplotlib.pyplot as plt
-from hercules.emulator import Emulator
-from hercules.hybrid_plant import HybridPlant
-from hercules.utilities import load_hercules_input, setup_logging
+from hercules.hercules_model import HerculesModel
+from hercules.utilities_examples import prepare_output_directory
 
 from utilities import record_timing_result
 
@@ -61,44 +58,31 @@ def main():
     """Run the solar timing test with power curtailment."""
     print("Starting solar timing test with power curtailment...")
 
-    # Clean up output directory
-    if os.path.exists("outputs"):
-        shutil.rmtree("outputs")
-    os.makedirs("outputs")
-
-    # Setup logging
-    logger = setup_logging()
-    logger.info("Starting solar timing test with power curtailment")
+    # Prepare output directory
+    prepare_output_directory()
 
     # Load the input file
     input_file = "hercules_input_solar.yaml"
-    logger.info(f"Loading input file: {input_file}")
-    h_dict = load_hercules_input(input_file)
+
+    # Initialize the Hercules model
+    hmodel = HerculesModel(input_file)
+
+    # Instantiate the controller and assign to the Hercules model
+    hmodel.assign_controller(PowerCurtailmentController(hmodel.h_dict))
 
     # Record start time
     start_time = time.time()
 
-    # Initialize the hybrid plant
-    hybrid_plant = HybridPlant(h_dict)
-
-    # Add meta data
-    h_dict = hybrid_plant.add_plant_metadata_to_h_dict(h_dict)
-
-    # Initialize the controller
-    controller = PowerCurtailmentController(h_dict)
-
-    # Initialize the emulator
-    emulator = Emulator(controller, hybrid_plant, h_dict, logger)
-
-    # Run the emulator
-    logger.info("Starting emulator execution...")
-    emulator.enter_execution(function_targets=[], function_arguments=[[]])
+    # Run the simulation
+    hmodel.logger.info("Starting simulation execution...")
+    hmodel.run()
 
     # Record end time
     end_time = time.time()
     execution_time = end_time - start_time
 
-    logger.info(f"Emulator execution completed in {execution_time:.2f} seconds")
+    hmodel.logger.info(f"Simulation execution completed in {execution_time:.2f} seconds")
+    hmodel.logger.info("Process completed successfully")
 
     # Record timing result
     result_file = "timing_results.csv"
@@ -121,7 +105,10 @@ def main():
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(df_p["time"], df_p["solar_farm.power"])
         ax.axvline(
-            x=controller.curtailment_time, color="red", linestyle="--", label="Curtailment Start"
+            x=hmodel.controller.curtailment_time,
+            color="red",
+            linestyle="--",
+            label="Curtailment Start",
         )
         ax.legend()
         ax.set_xlabel("Time (s)")

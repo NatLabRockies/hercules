@@ -10,5 +10,5 @@ The central data structure that contains all simulation parameters, component co
 ### [Hybrid Plant Components](hybrid_plant.md)
 Manages individual components like wind farms, solar panels, batteries, and electrolyzers. 
 
-### [Emulator](emulator.md)
-The central orchestrator that drives the simulation forward step-by-step. The emulator manages the main execution loop, coordinates between components, and handles output generation.
+### [HerculesModel](hercules_model.md)
+The central orchestrator that drives the simulation forward step-by-step. HerculesModel manages the main execution loop, coordinates between components, and handles output generation.

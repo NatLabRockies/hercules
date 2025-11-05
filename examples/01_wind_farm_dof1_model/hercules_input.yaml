@@ -4,7 +4,7 @@
 name: example_01
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Wind Farm Only - 1 DOF Model
 
 dt: 1.0
