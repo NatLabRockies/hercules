@@ -74,7 +74,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Battery" href="battery.html" />
-    <link rel="prev" title="Examples Overview" href="examples_overview.html" />
+    <link rel="prev" title="Example 04: Wind and storage hybrid plant" href="examples/04_wind_and_storage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -220,6 +220,12 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02_wind_farm_realistic_inflow.html">Example 02: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
 <ul class="current nav bd-sidenav">
@@ -521,7 +527,7 @@ document.write(`
 <p>Required parameters for Wind_MesoToPower:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: How often to update FLORIS (the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged as input)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#wind-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 </section>
 <section id="wind-mesotopowerprecomfloris-specific-parameters">
@@ -529,7 +535,7 @@ document.write(`
 <p>Required parameters for Wind_MesoToPowerPrecomFloris:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: Determines the cadence of wake precomputation. At each cadence tick, the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#wind-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 </section>
 </section>
@@ -562,7 +568,7 @@ document.write(`
 </section>
 </section>
 <section id="logging-configuration">
-<h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<span id="wind-logging-configuration"></span><h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
 <section id="available-channels">
 <h3>Available Channels<a class="headerlink" href="#available-channels" title="Link to this heading">#</a></h3>
@@ -663,12 +669,12 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="examples_overview.html"
+       href="examples/04_wind_and_storage.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Examples Overview</p>
+        <p class="prev-next-title">Example 04: Wind and storage hybrid plant</p>
       </div>
     </a>
     <a class="right-next"

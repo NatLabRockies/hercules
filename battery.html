@@ -222,6 +222,12 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02_wind_farm_realistic_inflow.html">Example 02: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
 <ul class="current nav bd-sidenav">
@@ -513,7 +519,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_calc_interval</span></code>: Interval for usage calculations in seconds (BatterySimple only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_lifetime</span></code>: Battery lifetime in years for time-based degradation (BatterySimple only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">usage_cycles</span></code>: Number of cycles until replacement for cycle-based degradation (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> below)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#battery-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> below)</p></li>
 </ul>
 <p>Once initialized, the battery is only interacted with using the <code class="docutils literal notranslate"><span class="pre">step</span></code> method.</p>
 </section>
@@ -551,7 +557,7 @@ for consistency with other components.  This inversions applies to power_setpoin
 </section>
 </section>
 <section id="logging-configuration">
-<h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h3>
+<span id="battery-logging-configuration"></span><h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
 <p><strong>Available Channels:</strong></p>
 <ul class="simple">
