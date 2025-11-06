@@ -208,12 +208,13 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
@@ -445,7 +446,31 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="running-hercules">
 <h1>Running Hercules<a class="headerlink" href="#running-hercules" title="Link to this heading">#</a></h1>
-<p>It is recommended to run Hercules using a python runscript that sets up the emulation environment and then runs the emulator.  See for example the <a class="reference internal" href="#../example_case_folders/00_wind_farm_only/hercules_runscript.py"><span class="xref myst">hercules_runscript.py</span></a> file for an example.</p>
+<p>It is recommended to run Hercules using a python runscript. The typical pattern is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.hercules_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">HerculesModel</span>
+
+<span class="c1"># Initialize the Hercules model</span>
+<span class="n">hmodel</span> <span class="o">=</span> <span class="n">HerculesModel</span><span class="p">(</span><span class="s2">&quot;hercules_input.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define your controller class</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyController</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
+        <span class="c1"># Initialize with the prepared h_dict</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
+        <span class="c1"># Implement your control logic here</span>
+        <span class="c1"># Set power setpoints, etc.</span>
+        <span class="k">return</span> <span class="n">h_dict</span>
+
+<span class="c1"># Assign the controller to the Hercules model</span>
+<span class="n">hmodel</span><span class="o">.</span><span class="n">assign_controller</span><span class="p">(</span><span class="n">MyController</span><span class="p">(</span><span class="n">hmodel</span><span class="o">.</span><span class="n">h_dict</span><span class="p">))</span>
+
+<span class="c1"># Run the simulation</span>
+<span class="n">hmodel</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the example runscripts in the <code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory for complete examples.</p>
 </section>
 
     <script type="text/x-thebe-config">

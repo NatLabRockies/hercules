@@ -207,12 +207,13 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="emulator.html">Emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
@@ -459,12 +460,13 @@ document.write(`
 <section id="initialization">
 <h2>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Load configuration from YAML input file into <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
-<li><p>Initialize controller</p></li>
+<li><p>Initialize HerculesModel with YAML input file</p></li>
+<li><p>Load and validate configuration into <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
 <li><p>Initialize hybrid plant components based on <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> configuration</p></li>
-<li><p>Initialize emulator with controller, hybrid plant, and configuration</p></li>
 <li><p>Add plant component metadata to <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
 <li><p>Load external data files if specified</p></li>
+<li><p>Initialize controller instance with the prepared <code class="docutils literal notranslate"><span class="pre">h_dict</span></code></p></li>
+<li><p>Assign controller to HerculesModel using <code class="docutils literal notranslate"><span class="pre">assign_controller()</span></code> method</p></li>
 </ol>
 </section>
 <section id="main-simulation-loop">

@@ -40,6 +40,11 @@ uv venv
 source .venv/bin/activate
 ```
 
+See https://docs.astral.sh/uv/getting-started/installation/ for information in installing uv.
+
+Note, `uvx` is used for in running the gridstatus_download.py script.  So you will need to install if using the gridstatus_download.py script.
+See (Grid Status Data Download)[gridstatus_download.md] for more information.
+
 ## PIP Install
 
 Install Hercules in editible mode into the active virtual environment.

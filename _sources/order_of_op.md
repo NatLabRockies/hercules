@@ -2,12 +2,13 @@
 
 ## Initialization
 
-1. Load configuration from YAML input file into `h_dict`
-2. Initialize controller
+1. Initialize HerculesModel with YAML input file
+2. Load and validate configuration into `h_dict`
 3. Initialize hybrid plant components based on `h_dict` configuration
-4. Initialize emulator with controller, hybrid plant, and configuration
-5. Add plant component metadata to `h_dict`
-6. Load external data files if specified
+4. Add plant component metadata to `h_dict`
+5. Load external data files if specified
+6. Initialize controller instance with the prepared `h_dict`
+7. Assign controller to HerculesModel using `assign_controller()` method
 
 ## Main Simulation Loop
 

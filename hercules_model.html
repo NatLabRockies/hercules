@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Emulator &#8212; HERCULES</title>
+    <title>HerculesModel &#8212; HERCULES</title>
   
   
   
@@ -70,7 +70,7 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'emulator';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'hercules_model';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Output Files" href="output_files.html" />
@@ -208,12 +208,13 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Emulator</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
@@ -300,7 +301,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/emulator.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/hercules_model.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -317,7 +318,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Femulator.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fhercules_model.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -347,7 +348,7 @@
       
       
       
-      <li><a href="_sources/emulator.md" target="_blank"
+      <li><a href="_sources/hercules_model.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -431,7 +432,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Emulator</h1>
+    <h1>HerculesModel</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -442,10 +443,15 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-flow">Simulation Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-options">Configuration Options</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-file-generation">Output File Generation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Logging Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#internal-usage">Internal Usage</a></li>
 </ul>
 </li>
 </ul>
@@ -459,12 +465,50 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="emulator">
-<h1>Emulator<a class="headerlink" href="#emulator" title="Link to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">Emulator</span></code> class orchestrates the entire Hercules simulation, managing the main execution loop and coordinating between the controller, Python simulators, and output logging.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="herculesmodel">
+<h1>HerculesModel<a class="headerlink" href="#herculesmodel" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">HerculesModel</span></code> class orchestrates the entire Hercules simulation, managing the main execution loop and coordinating between the controller, HybridPlant, and output logging.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>The emulator serves as the central coordinator that drives the simulation forward step-by-step, handling data logging, performance monitoring, and output file generation.</p>
+<p>The HerculesModel serves as the central coordinator that drives the simulation forward step-by-step, handling data logging, performance monitoring, and output file generation.</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h2>
+<p>HerculesModel is initialized with an input file, and then a controller is assigned separately. The simplest case is a pass-through controller:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.hercules_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">HerculesModel</span>
+
+<span class="c1"># Initialize the Hercules model</span>
+<span class="n">hmodel</span> <span class="o">=</span> <span class="n">HerculesModel</span><span class="p">(</span><span class="s2">&quot;hercules_input.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define your controller class</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyController</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
+        <span class="c1"># Initialize with prepared h_dict</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
+        <span class="c1"># Implement control logic</span>
+        <span class="k">return</span> <span class="n">h_dict</span>
+
+<span class="c1"># Assign the controller to the model</span>
+<span class="n">hmodel</span><span class="o">.</span><span class="n">assign_controller</span><span class="p">(</span><span class="n">MyController</span><span class="p">(</span><span class="n">hmodel</span><span class="o">.</span><span class="n">h_dict</span><span class="p">))</span>
+
+<span class="c1"># Run the simulation</span>
+<span class="n">hmodel</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The HerculesModel handles all initialization automatically:</p>
+<ul class="simple">
+<li><p>Sets up logging</p></li>
+<li><p>Loads and validates the input file</p></li>
+<li><p>Initializes the hybrid plant</p></li>
+<li><p>Adds plant metadata to h_dict</p></li>
+</ul>
+<p>The controller is then assigned using the <code class="docutils literal notranslate"><span class="pre">assign_controller()</span></code> method, which:</p>
+<ul class="simple">
+<li><p>Takes a controller instance (not the class)</p></li>
+<li><p>The controller instance is initialized with the prepared h_dict from the model</p></li>
+</ul>
 </section>
 <section id="simulation-flow">
 <h2>Simulation Flow<a class="headerlink" href="#simulation-flow" title="Link to this heading">#</a></h2>
@@ -481,7 +525,7 @@ document.write(`
 <h2>Configuration Options<a class="headerlink" href="#configuration-options" title="Link to this heading">#</a></h2>
 <section id="logging-configuration">
 <h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h3>
-<p>The emulator supports configurable logging frequency through the <code class="docutils literal notranslate"><span class="pre">log_every_n</span></code> parameter:</p>
+<p>The HerculesModel supports configurable logging frequency through the <code class="docutils literal notranslate"><span class="pre">log_every_n</span></code> parameter:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">log_every_n</span></code></strong> (int, optional): Controls how often simulation data is logged to the output file.</p>
 <ul>
@@ -494,7 +538,7 @@ document.write(`
 </section>
 <section id="output-file-generation">
 <h3>Output File Generation<a class="headerlink" href="#output-file-generation" title="Link to this heading">#</a></h3>
-<p>The emulator generates HDF5 output files containing comprehensive simulation data for analysis and visualization.</p>
+<p>The HerculesModel generates HDF5 output files containing comprehensive simulation data for analysis and visualization.</p>
 <p>The output file includes metadata with:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">dt_sim</span></code>: Simulation time step (seconds)</p></li>
@@ -503,6 +547,19 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">start_clock_time</span></code> and <code class="docutils literal notranslate"><span class="pre">end_clock_time</span></code>: Wall clock timing information</p></li>
 </ul>
 <p>For detailed information about the output file format and reading utilities, see the <a class="reference internal" href="output_files.html"><span class="std std-doc">Output Files</span></a> documentation.</p>
+</section>
+</section>
+<section id="id1">
+<h2>Logging Configuration<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>Hercules provides a unified <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> function in the <code class="docutils literal notranslate"><span class="pre">hercules.utilities</span></code> module that handles all logging setup across the framework. This function is used internally by <code class="docutils literal notranslate"><span class="pre">HerculesModel</span></code> and all component classes, but can also be used directly for custom applications.</p>
+<section id="internal-usage">
+<h3>Internal Usage<a class="headerlink" href="#internal-usage" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> function is called automatically by:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">HerculesModel</span></code> during initialization (creates hercules logger)</p></li>
+<li><p>All component classes through <code class="docutils literal notranslate"><span class="pre">ComponentBase</span></code> (creates component-specific loggers)</p></li>
+</ul>
+<p>Each component gets its own logger with an appropriate console prefix for easy identification of log messages.</p>
 </section>
 </section>
 </section>
@@ -572,10 +629,15 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulation-flow">Simulation Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-options">Configuration Options</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-file-generation">Output File Generation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Logging Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#internal-usage">Internal Usage</a></li>
 </ul>
 </li>
 </ul>

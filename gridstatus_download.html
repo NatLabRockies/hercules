@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Units Convention in Hercules &#8212; HERCULES</title>
+    <title>Grid Status Data Download &#8212; HERCULES</title>
   
   
   
@@ -70,11 +70,11 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'units';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'gridstatus_download';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Timing" href="timing.html" />
-    <link rel="prev" title="Key Concepts" href="key_concepts.html" />
+    <link rel="next" title="Solar and Wind Resource Downloading and Upsampling" href="resource_downloading.html" />
+    <link rel="prev" title="Hercules Input Files" href="hercules_input.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -202,9 +202,9 @@
 <li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
@@ -212,9 +212,9 @@
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Grid Status Data Download</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
@@ -301,7 +301,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/units.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/gridstatus_download.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -318,7 +318,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Funits.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fgridstatus_download.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -348,7 +348,7 @@
       
       
       
-      <li><a href="_sources/units.md" target="_blank"
+      <li><a href="_sources/gridstatus_download.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -432,7 +432,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Units Convention in Hercules</h1>
+    <h1>Grid Status Data Download</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -442,13 +442,20 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-units">Power Units</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-units">Energy Units</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#internal-energy-calculations">Internal Energy Calculations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-workflow">Basic Workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-grid-status">What is Grid Status?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-key-setup">API Key Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-lmp-data-with-grid-status-download-py">Downloading LMP Data with <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-uvx">Why uvx?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-and-analysis">Output and Analysis</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#historical-note">Historical Note</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-whoc">Combining Real-Time and Day-Ahead Data for WHOC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-format">Output Format</a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -460,47 +467,113 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="units-convention-in-hercules">
-<h1>Units Convention in Hercules<a class="headerlink" href="#units-convention-in-hercules" title="Link to this heading">#</a></h1>
-<p>Hercules follows a consistent units convention throughout the codebase to ensure clarity and prevent unit conversion errors.</p>
-<section id="power-units">
-<h2>Power Units<a class="headerlink" href="#power-units" title="Link to this heading">#</a></h2>
-<p><strong>All power values in Hercules are specified in kilowatts (kW).</strong></p>
-<p>This applies to:</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="grid-status-data-download">
+<h1>Grid Status Data Download<a class="headerlink" href="#grid-status-data-download" title="Link to this heading">#</a></h1>
+<p>This page describes how to download LMP (Locational Marginal Pricing) data from <a class="reference external" href="https://www.gridstatus.io/">Grid Status</a> for use in Hercules simulations.</p>
+<section id="basic-workflow">
+<h2>Basic Workflow<a class="headerlink" href="#basic-workflow" title="Link to this heading">#</a></h2>
+<p>Refer to <code class="docutils literal notranslate"><span class="pre">examples/grid/grid_status_download_example.py</span></code> for an example of how to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.</p>
+<p><strong>If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)</strong>, see the section on <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> at the end of this page.</p>
+</section>
+<section id="what-is-grid-status">
+<h2>What is Grid Status?<a class="headerlink" href="#what-is-grid-status" title="Link to this heading">#</a></h2>
+<p><a class="reference external" href="https://www.gridstatus.io/">Grid Status</a> is a platform that provides electricity market data including:</p>
 <ul class="simple">
-<li><p>Component power ratings (e.g., wind turbine rated power)</p></li>
-<li><p>Battery charge/discharge rates</p></li>
-<li><p>Solar farm power output</p></li>
-<li><p>Electrolyzer power consumption</p></li>
-<li><p>Plant interconnect limits</p></li>
-<li><p>Power setpoints and references</p></li>
+<li><p>Real-time and historical LMP data</p></li>
+<li><p>Market operations data</p></li>
+<li><p>Grid status information</p></li>
+<li><p>Power system reliability data</p></li>
 </ul>
 </section>
-<section id="energy-units">
-<h2>Energy Units<a class="headerlink" href="#energy-units" title="Link to this heading">#</a></h2>
-<p><strong>All energy values in Hercules input/output interfaces are specified in kilowatt-hours (kWh).</strong></p>
-<p>This applies to:</p>
+<section id="api-key-setup">
+<h2>API Key Setup<a class="headerlink" href="#api-key-setup" title="Link to this heading">#</a></h2>
+<p>To use this script, you’ll need an API key from Grid Status:</p>
+<ol class="arabic simple">
+<li><p>Visit <a class="reference external" href="https://www.gridstatus.io/settings/api">Grid Status API Settings</a></p></li>
+<li><p>Sign up for an account if you don’t have one</p></li>
+<li><p>Generate an API key</p></li>
+<li><p>Set the API key as an environment variable or configure it in your Grid Status client, this could done either by a shell command <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">GRIDSTATUS_API_KEY=your_api_key</span></code> or by adding <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">GRIDSTATUS_API_KEY=&quot;your_api_key&quot;</span></code> to your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> or <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code> file</p></li>
+</ol>
+</section>
+<section id="downloading-lmp-data-with-grid-status-download-py">
+<h2>Downloading LMP Data with <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code><a class="headerlink" href="#downloading-lmp-data-with-grid-status-download-py" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code> example script downloads LMP data from Grid Status and saves it in a lightly modified feather format. The modifications are minimal:</p>
 <ul class="simple">
-<li><p>Battery energy capacity (in input files and API)</p></li>
-<li><p>Energy storage results and outputs</p></li>
-<li><p>Cumulative energy production/consumption</p></li>
+<li><p>Removes columns not used by Hercules (<code class="docutils literal notranslate"><span class="pre">interval_end_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code>, <code class="docutils literal notranslate"><span class="pre">location_type</span></code>, <code class="docutils literal notranslate"><span class="pre">pnode</span></code>)</p></li>
+<li><p>Keeps the original time resolution and market type</p></li>
+<li><p>Saves as a feather file for efficient storage</p></li>
 </ul>
-<section id="internal-energy-calculations">
-<h3>Internal Energy Calculations<a class="headerlink" href="#internal-energy-calculations" title="Link to this heading">#</a></h3>
-<p>While the external interface uses kWh, some components use different units internally for computational efficiency:</p>
+<p>The downloaded feather files can be used directly in Hercules for applications that need only real-time or only day-ahead data.</p>
+<section id="why-uvx">
+<h3>Why uvx?<a class="headerlink" href="#why-uvx" title="Link to this heading">#</a></h3>
+<p>We recommend running the script with <a class="reference external" href="https://docs.astral.sh/uv/guides/tools/">uvx</a> to run in an isolated environment because the <code class="docutils literal notranslate"><span class="pre">gridstatusio</span></code> package requires a different version of numpy than the rest of Hercules. Using uvx prevents dependency conflicts between the Grid Status client and Hercules’ requirements.</p>
+<p>See <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">https://docs.astral.sh/uv/getting-started/installation/</a> for information in installing uv.</p>
+</section>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h3>
+<p>To modify the example script to download data for your own use, you can:</p>
+<ol class="arabic">
+<li><p>Copy the script to your project folder</p></li>
+<li><p>Update the parameters in the script:</p>
 <ul class="simple">
-<li><p><strong>BatterySimple</strong>: Uses kilojoules (kJ) for internal energy state calculations and converts to/from kWh at the interface boundaries using utility functions <code class="docutils literal notranslate"><span class="pre">kWh2kJ()</span></code> and <code class="docutils literal notranslate"><span class="pre">kJ2kWh()</span></code></p></li>
-<li><p><strong>BatteryLithiumIon</strong>: Uses kilowatt-hours (kWh) consistently throughout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">&quot;spp_lmp_real_time_5_min&quot;</span></code> for real-time data, <code class="docutils literal notranslate"><span class="pre">&quot;spp_lmp_day_ahead_hourly&quot;</span></code> for day-ahead data, or any other Grid Status dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>: Date range for the data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_column</span></code> and <code class="docutils literal notranslate"><span class="pre">filter_value</span></code>: These are used to select the node of interest</p></li>
+</ul>
+</li>
+<li><p>Run the script with uvx:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uvx<span class="w"> </span>--with<span class="w"> </span>gridstatusio<span class="w"> </span>--with<span class="w"> </span>pyarrow<span class="w"> </span>python<span class="w"> </span>grid_status_download.py
+</pre></div>
+</div>
+</li>
+</ol>
+<p>If you need multiple datasets (e.g., both real-time and day-ahead), update the <code class="docutils literal notranslate"><span class="pre">dataset</span></code> parameter and run the script again.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/grid/grid_status_download_example.py</span></code> for an example that downloads both real-time and day-ahead datasets.</p>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>dataset</strong>: The Grid Status dataset identifier (e.g., “spp_lmp_real_time_5_min”, “spp_lmp_day_ahead_hourly”; see <a class="reference external" href="https://www.gridstatus.io/datasets">https://www.gridstatus.io/datasets</a> for a complete list)</p></li>
+<li><p><strong>start</strong>: Start date in YYYY-MM-DD format</p></li>
+<li><p><strong>end</strong>: End date in YYYY-MM-DD format</p></li>
+<li><p><strong>filter_column</strong>: Column to filter on (usually “location” to select a node)</p></li>
+<li><p><strong>filter_value</strong>: Value to filter by (should be the name of a node of interest, e.g., “OKGE.FRONTIER”; all nodes listed here: <a class="reference external" href="https://www.gridstatus.io/nodes">https://www.gridstatus.io/nodes</a>)</p></li>
+<li><p><strong>QUERY_LIMIT</strong>: Maximum number of rows to download (default: 20,000). Included to avoid accidentally using too much of account limit.</p></li>
+</ul>
+</section>
+<section id="output">
+<h3>Output<a class="headerlink" href="#output" title="Link to this heading">#</a></h3>
+<p>The script saves the downloaded data as a feather file (<code class="docutils literal notranslate"><span class="pre">.ftr</span></code>) with:</p>
+<ul class="simple">
+<li><p>Filename format: <code class="docutils literal notranslate"><span class="pre">gs_{dataset}_{start}_{filter_value}.ftr</span></code></p></li>
+<li><p>Original time resolution (5-minute intervals for real-time, hourly for day-ahead)</p></li>
+<li><p>Original market type identifier preserved in the <code class="docutils literal notranslate"><span class="pre">market</span></code> column</p></li>
 </ul>
 </section>
 </section>
-<section id="output-and-analysis">
-<h2>Output and Analysis<a class="headerlink" href="#output-and-analysis" title="Link to this heading">#</a></h2>
-<p>While internal calculations use kW/kWh, output plots and analysis may display results in MW/MWh for better readability when dealing with large-scale systems. This conversion is performed only at the presentation layer.</p>
+<section id="combining-real-time-and-day-ahead-data-for-whoc">
+<h2>Combining Real-Time and Day-Ahead Data for WHOC<a class="headerlink" href="#combining-real-time-and-day-ahead-data-for-whoc" title="Link to this heading">#</a></h2>
+<p>If you need to combine both real-time and day-ahead LMP data for use with WHOC (Wind Hybrid Open Controller), use the <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> function located in <code class="docutils literal notranslate"><span class="pre">hercules/grid/grid_utilities.py</span></code>.</p>
+<p><strong>Note:</strong> This step is only necessary if you need both real-time and day-ahead data combined. If you only need one type of data, you can use the feather files from <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code> directly.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_griddstatus()</span></code> function combines the real-time and day-ahead LMP data into a format optimized for WHOC:</p>
+<ul class="simple">
+<li><p>Merges real-time and day-ahead data at the base interval of the real-time data</p></li>
+<li><p>Creates hourly day-ahead LMP columns (<code class="docutils literal notranslate"><span class="pre">DA_LMP_00</span></code> through <code class="docutils literal notranslate"><span class="pre">DA_LMP_23</span></code>) for each hour of the day</p></li>
+<li><p>Forward-fills any missing values</p></li>
+<li><p>Generates “end” rows for each time interval for Hercules interpolation</p></li>
+</ul>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/grid/process_grid_status_results.py</span></code> for a complete example.</p>
+<section id="output-format">
+<h3>Output Format<a class="headerlink" href="#output-format" title="Link to this heading">#</a></h3>
+<p>The resulting DataFrame contains:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: UTC timestamp</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RT_LMP</span></code>: Real-time LMP at the base time interval</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DA_LMP</span></code>: Day-ahead LMP (forward-filled to the base interval)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DA_LMP_00</span></code> through <code class="docutils literal notranslate"><span class="pre">DA_LMP_23</span></code>: Day-ahead LMP for each hour of the day</p></li>
+</ul>
+<p>This format is optimized for use with WHOC in Hercules simulations.</p>
 </section>
-<section id="historical-note">
-<h2>Historical Note<a class="headerlink" href="#historical-note" title="Link to this heading">#</a></h2>
-<p>Prior to this standardization, some components used MW/MWh units in their input specifications and performed internal conversions to kW/kWh. This approach has been deprecated to improve code clarity and maintainability.</p>
 </section>
 </section>
 
@@ -535,20 +608,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="key_concepts.html"
+       href="hercules_input.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Key Concepts</p>
+        <p class="prev-next-title">Hercules Input Files</p>
       </div>
     </a>
     <a class="right-next"
-       href="timing.html"
+       href="resource_downloading.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Timing</p>
+        <p class="prev-next-title">Solar and Wind Resource Downloading and Upsampling</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -568,13 +641,20 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-units">Power Units</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-units">Energy Units</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#internal-energy-calculations">Internal Energy Calculations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-workflow">Basic Workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-grid-status">What is Grid Status?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-key-setup">API Key Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#downloading-lmp-data-with-grid-status-download-py">Downloading LMP Data with <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-uvx">Why uvx?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-and-analysis">Output and Analysis</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#historical-note">Historical Note</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-whoc">Combining Real-Time and Day-Ahead Data for WHOC</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-format">Output Format</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
