@@ -6,6 +6,7 @@ on:
     - develop
     paths:
     - docs/**
+  workflow_dispatch:
 
 # This job installs dependencies, builds the book, and pushes it to `gh-pages`
 jobs:
@@ -36,11 +37,25 @@ jobs:
         cp -v examples/04_wind_and_storage/README.md docs/examples/04_wind_and_storage.md
         ls -l docs/examples
 
+    - name: Debug directory structure
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "GitHub workspace: ${{github.workspace}}"
+        echo "Runner workspace: ${{runner.workspace}}"
+        ls -la
+        ls -la docs/
+        ls -la docs/examples/
+
+    # # Build the book
+    # - name: Build the book
+    #   working-directory: ${{runner.workspace}}/hercules/docs/
+    #   run: |
+    #     jupyter-book build .
+
     # Build the book
     - name: Build the book
-      working-directory: ${{runner.workspace}}/hercules/docs/
       run: |
-        jupyter-book build .
+        jupyter-book build docs
 
     # Push the book's HTML to github-pages
     - name: GitHub Pages action

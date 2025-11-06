@@ -115,7 +115,7 @@ For the example above, `endtime` would be 3600.0 seconds.
 
 Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps:
 
-```csv
+```text
 time_utc,wd_mean,ws_000,ws_001,ws_002
 2020-01-01T00:00:00Z,270.0,8.0,8.1,8.2
 2020-01-01T00:00:01Z,270.5,8.1,8.2,8.3

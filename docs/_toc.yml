@@ -27,6 +27,12 @@ parts:
   - caption: Examples
     chapters:
     - file: examples_overview
+    - file: examples/00_wind_farm_only
+    - file: examples/01_wind_farm_dof1_model
+    - file: examples/02_wind_farm_realistic_inflow
+    - file: examples/02b_wind_farm_realistic_inflow_precom_floris
+    - file: examples/03_wind_and_solar
+    - file: examples/04_wind_and_storage
   - caption: HybridPlant
     chapters:
     - file: wind

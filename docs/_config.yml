@@ -6,6 +6,8 @@ author: National Renewable Energy Laboratory
 logo: herc.png
 copyright: '2025'
 only_build_toc_files: false
+exclude_patterns:
+  - not_used/**
 
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
@@ -33,7 +35,8 @@ html:
   use_issues_button: true
   use_repository_button: true
   use_edit_page_button: true
-  google_analytics_id: G-3V1BDK8KEJ
+  analytics:
+    google_analytics_id: G-3V1BDK8KEJ
 
 
 
