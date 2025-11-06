@@ -22,6 +22,7 @@ parts:
   - caption: Inputs
     chapters:
     - file: hercules_input
+    - file: gridstatus_download
     - file: resource_downloading
   - caption: Examples
     chapters:
