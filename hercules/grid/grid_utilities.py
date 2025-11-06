@@ -1,36 +1,43 @@
 import pandas as pd
 
 
-def generate_locational_marginal_price_dataframe(df_day_ahead_lmp, df_real_time_lmp):
+def generate_locational_marginal_price_dataframe_from_gridstatus(
+        df_day_ahead_lmp: pd.DataFrame,
+        df_real_time_lmp: pd.DataFrame,
+        day_ahead_market_name: str="DAY_AHEAD_HOURLY",
+        real_time_market_name: str="REAL_TIME_5_MIN",
+    ):
     """
     Create a dataframe containing the day ahead price forecast and the real time price
-    at five-minute intervals.
+    at real-time price intervals.
 
     Input dataframes must contain the following columns:
         interval_start_utc (UTC time for the row)
-        market (REAL_TIME_5_MIN or DAY_AHEAD_HOURLY)
-        lmp (price of the market for that five-minute interval)
+        market (REAL_TIME_5_MIN, DAY_AHEAD_HOURLY, etc)
+        lmp (price of the market for that interval)
 
-    The RT dataframe is assumed to have five-minute time resolution, while the DA dataframe
+    The RT dataframe is assumed to have minute time resolution, while the DA dataframe
     is assumed to have hourly time resolution.
 
-    Returns a dataframe with the RT LMP and DA LMP at five-minute intervals, along with
+    Returns a dataframe with the RT LMP and DA LMP at the base intervals, along with
     the DA LMP for each future hour over the next 24 hours in separate columns. For use as external
     data in Hercules.
 
     Args:
         df_day_ahead_lmp (pd.DataFrame): DataFrame with day ahead data
         df_real_time_lmp (pd.DataFrame): DataFrame with real time data
+        day_ahead_market_name (str): Market name for day ahead data
+        real_time_market_name (str): Market name for real time data
 
     Returns:
         pd.DataFrame: DataFrame with columns
             "time_utc", "RT_LMP", "DA_LMP", "DA_LMP_00", ..., "DA_LMP_23"
     """
     # Check correct market on each
-    if df_day_ahead_lmp["market"].unique() != ["DAY_AHEAD_HOURLY"]:
-        raise ValueError("df_day_ahead_lmp must only contain DAY_AHEAD_HOURLY market data.")
-    if df_real_time_lmp["market"].unique() != ["REAL_TIME_5_MIN"]:
-        raise ValueError("df_real_time_lmp must only contain REAL_TIME_5_MIN market data.")
+    if df_day_ahead_lmp["market"].unique() != [day_ahead_market_name]:
+        raise ValueError(f"df_day_ahead_lmp must only contain {day_ahead_market_name} market data.")
+    if df_real_time_lmp["market"].unique() != [real_time_market_name]:
+        raise ValueError(f"df_real_time_lmp must only contain {real_time_market_name} market data.")
 
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
