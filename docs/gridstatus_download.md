@@ -6,7 +6,7 @@ This page describes how to download LMP (Locational Marginal Pricing) data from 
 
 Refer to `examples/grid/grid_status_download_example.py` for an example of how to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.
 
-**If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)**, see the section on `generate_locational_marginal_price_dataframe()` at the end of this page.
+**If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)**, see the section on `generate_locational_marginal_price_dataframe_from_gridstatus()` at the end of this page.
 
 ## What is Grid Status?
 
@@ -76,27 +76,25 @@ The script saves the downloaded data as a feather file (`.ftr`) with:
 
 ## Combining Real-Time and Day-Ahead Data for WHOC
 
-If you need to combine both real-time and day-ahead LMP data for use with WHOC (Wind Hybrid Open Controller), use the `generate_locational_marginal_price_dataframe()` function located in `hercules/grid/grid_utilities.py`.
+If you need to combine both real-time and day-ahead LMP data for use with WHOC (Wind Hybrid Open Controller), use the `generate_locational_marginal_price_dataframe_from_gridstatus()` function located in `hercules/grid/grid_utilities.py`.
 
 **Note:** This step is only necessary if you need both real-time and day-ahead data combined. If you only need one type of data, you can use the feather files from `grid_status_download.py` directly.
 
-The `generate_locational_marginal_price_dataframe()` function combines the real-time and day-ahead LMP data into a format optimized for WHOC:
+The `generate_locational_marginal_price_dataframe_from_griddstatus()` function combines the real-time and day-ahead LMP data into a format optimized for WHOC:
 
-- Merges real-time and day-ahead data at 5-minute intervals
+- Merges real-time and day-ahead data at the base interval of the real-time data
 - Creates hourly day-ahead LMP columns (`DA_LMP_00` through `DA_LMP_23`) for each hour of the day
-- Adds a relative time column in seconds from the start
 - Forward-fills any missing values
-- Generates "end" rows for each 5-minute interval
+- Generates "end" rows for each time interval for Hercules interpolation
 
 See `examples/grid/process_results.py` for a complete example.
 
 ### Output Format
 
 The resulting DataFrame contains:
-- `time`: Time in seconds from the start
 - `time_utc`: UTC timestamp
-- `RT_LMP`: Real-time LMP at 5-minute intervals
-- `DA_LMP`: Day-ahead LMP (forward-filled to 5-minute intervals)
+- `RT_LMP`: Real-time LMP at the base time interval
+- `DA_LMP`: Day-ahead LMP (forward-filled to the base interval)
 - `DA_LMP_00` through `DA_LMP_23`: Day-ahead LMP for each hour of the day
 
 This format is optimized for use with WHOC in Hercules simulations.
