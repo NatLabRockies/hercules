@@ -8,7 +8,7 @@ Presently only one solar simulator is available
 
 
 
-### Inputs
+## Inputs
 
 Both models require an input weather file:
 1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:
@@ -23,7 +23,7 @@ Both models require an input weather file:
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
 
-### Outputs
+## Outputs
 
 The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelevant.  The `system_capacity` parameter represents the DC system capacity under Standard Test Conditions.
 
@@ -35,7 +35,7 @@ The PVWatts model is configured with the following hardcoded parameters for util
 
 The array tilt angle must be specified in the input configuration file.
 
-### Logging Configuration
+## Logging Configuration
 
 The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
 
@@ -60,7 +60,7 @@ solar_farm:
 
 If `log_channels` is not specified, only `power` will be logged.
 
-### Efficiency and Loss Parameters
+## Efficiency and Loss Parameters
 
 ALthough the pysam model `SolarPySAMPVWatts` model, technically includes efficiency terms:
 
@@ -79,5 +79,5 @@ The system capacity can be changed in the `.yaml` file, but the DC/AC ratio is f
 For examples using the detailed `SolarPySAMPVSam` model, see the test files in the `tests/` directory.
 
 
-### References
+## References
 PySAM. National Renewable Energy Laboratory. Golden, CO. https://github.com/nrel/pysam

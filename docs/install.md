@@ -49,12 +49,12 @@ See (Grid Status Data Download)[gridstatus_download.md] for more information.
 
 Install Hercules in editible mode into the active virtual environment.
 
-#### Just Hercules
+### Just Hercules
 ```bash
 pip install -e .
 ```
 
-#### With Developer and Documentation Dependencies
+### With Developer and Documentation Dependencies
 
 ```bash
 pip install -e .[develop,docs]

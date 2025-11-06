@@ -37,13 +37,13 @@ Required parameters for both components in [h_dict](h_dict.md) (see [timing](tim
 
 Required parameters for Wind_MesoToPower:
 - `floris_update_time_s`: How often to update FLORIS (the last `floris_update_time_s` seconds are averaged as input)
-- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+- `log_channels`: List of output channels to log. See [Logging Configuration](wind-logging-configuration) section below for details.
 
 ### Wind_MesoToPowerPrecomFloris Specific Parameters
 
 Required parameters for Wind_MesoToPowerPrecomFloris:
 - `floris_update_time_s`: Determines the cadence of wake precomputation. At each cadence tick, the last `floris_update_time_s` seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.
-- `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
+- `log_channels`: List of output channels to log. See [Logging Configuration](wind-logging-configuration) section below for details.
 
 ## Turbine Models
 
@@ -67,6 +67,7 @@ Both components provide these outputs in the h_dict at each simulation step:
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
+(wind-logging-configuration)=
 ## Logging Configuration
 
 The `log_channels` parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The `power` channel is always logged, even if not explicitly specified.
