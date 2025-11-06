@@ -87,7 +87,7 @@ The `generate_locational_marginal_price_dataframe_from_griddstatus()` function c
 - Forward-fills any missing values
 - Generates "end" rows for each time interval for Hercules interpolation
 
-See `examples/grid/process_results.py` for a complete example.
+See `examples/grid/process_grid_status_results.py` for a complete example.
 
 ### Output Format
 
