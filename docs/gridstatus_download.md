@@ -4,11 +4,9 @@ This page describes how to download LMP (Locational Marginal Pricing) data from 
 
 ## Basic Workflow
 
-Use the `grid_status_download.py` script to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.
+Refer to `examples/grid/grid_status_download_example.py` for an example of how to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.
 
 **If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)**, see the section on `generate_locational_marginal_price_dataframe()` at the end of this page.
-
-See complete examples in the `examples/grid` directory.
 
 ## What is Grid Status?
 
@@ -29,7 +27,7 @@ To use this script, you'll need an API key from Grid Status:
 
 ## Downloading LMP Data with `grid_status_download.py`
 
-The `grid_status_download.py` script downloads LMP data from Grid Status and saves it in a lightly modified feather format. The modifications are minimal:
+The `grid_status_download.py` example script downloads LMP data from Grid Status and saves it in a lightly modified feather format. The modifications are minimal:
 - Removes columns not used by Hercules (`interval_end_utc`, `location`, `location_type`, `pnode`)
 - Keeps the original time resolution and market type
 - Saves as a feather file for efficient storage
@@ -38,11 +36,13 @@ The downloaded feather files can be used directly in Hercules for applications t
 
 ### Why uvx?
 
-This script uses [uvx](https://docs.astral.sh/uv/guides/tools/) to run in an isolated environment because the `gridstatusio` package requires a different version of numpy than the rest of Hercules. Using uvx prevents dependency conflicts between the Grid Status client and Hercules' requirements.
+We recommend running the script with [uvx](https://docs.astral.sh/uv/guides/tools/) to run in an isolated environment because the `gridstatusio` package requires a different version of numpy than the rest of Hercules. Using uvx prevents dependency conflicts between the Grid Status client and Hercules' requirements.
 
 See https://docs.astral.sh/uv/getting-started/installation/ for information in installing uv.
 
 ### Usage
+
+To modify the example script to download data for your own use, you can:
 
 1. Copy the script to your project folder
 2. Update the parameters in the script:
