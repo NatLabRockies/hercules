@@ -551,3 +551,280 @@ def test_log_selective_array_element():
 
     # Clean up
     hmodel.close()
+
+
+def test_external_data_new_format_with_log_channels():
+    """Test new external_data format with selective log_channels."""
+    # Create test dict with new external_data format
+    test_h_dict = h_dict_battery.copy()
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
+
+    # Use new format with log_channels
+    test_h_dict["external_data"] = {
+        "external_data_file": "tests/test_inputs/external_data.csv",
+        "log_channels": ["power_reference"],  # Only log one channel
+    }
+    test_h_dict["dt"] = 1.0
+
+    hmodel = HerculesModel(test_h_dict)
+
+    # Verify that external_data_log_channels was set
+    assert hmodel.external_data_log_channels == ["power_reference"]
+
+    # Verify that all external data was loaded into external_data_all
+    assert "power_reference" in hmodel.external_data_all
+    assert len(hmodel.external_data_all["power_reference"]) > 0
+
+    # Clean up
+    hmodel.close()
+
+
+def test_external_data_backward_compatibility():
+    """Test backward compatibility with old external_data_file format."""
+    import warnings
+
+    # Create test dict with old format
+    test_h_dict = h_dict_battery.copy()
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
+
+    # Use old format (top-level external_data_file)
+    test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict["dt"] = 1.0
+
+    # Should trigger a deprecation warning
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        hmodel = HerculesModel(test_h_dict)
+
+        # Verify that a deprecation warning was issued
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert "deprecated" in str(w[0].message).lower()
+
+    # Verify that external_data_log_channels is None (log all)
+    assert hmodel.external_data_log_channels is None
+
+    # Verify that data was loaded
+    assert "power_reference" in hmodel.external_data_all
+
+    # Clean up
+    hmodel.close()
+
+
+def test_external_data_all_channels_in_h_dict():
+    """Test that all external data channels are available in h_dict regardless of log_channels."""
+    # Create a CSV with multiple channels
+    import os
+
+    import pandas as pd
+
+    csv_path = "tests/test_inputs/multi_channel_external_data.csv"
+    df = pd.DataFrame(
+        {
+            "time_utc": pd.date_range("2018-05-10 12:31:00", periods=10, freq="1s"),
+            "channel_1": [1.0] * 10,
+            "channel_2": [2.0] * 10,
+            "channel_3": [3.0] * 10,
+        }
+    )
+    df.to_csv(csv_path, index=False)
+
+    try:
+        # Create test dict with only channel_1 in log_channels
+        test_h_dict = h_dict_battery.copy()
+        test_h_dict.pop("starttime", None)
+        test_h_dict.pop("endtime", None)
+        test_h_dict.pop("time", None)
+        test_h_dict.pop("step", None)
+
+        test_h_dict["external_data"] = {
+            "external_data_file": csv_path,
+            "log_channels": ["channel_1"],  # Only log channel_1
+        }
+        test_h_dict["dt"] = 1.0
+
+        hmodel = HerculesModel(test_h_dict)
+        hmodel.assign_controller(SimpleControllerWind(test_h_dict))
+
+        # Set up simulation state
+        hmodel.time = 5.0
+        hmodel.step = 5
+        hmodel.h_dict["time"] = 5.0
+        hmodel.h_dict["step"] = 5
+
+        # Populate external signals (as done in run loop)
+        if hmodel.external_data_all:
+            for k in hmodel.external_data_all:
+                if k == "time":
+                    continue
+                hmodel.h_dict["external_signals"][k] = hmodel.external_data_all[k][hmodel.step]
+
+        # Verify ALL channels are in h_dict["external_signals"]
+        assert "channel_1" in hmodel.h_dict["external_signals"]
+        assert "channel_2" in hmodel.h_dict["external_signals"]
+        assert "channel_3" in hmodel.h_dict["external_signals"]
+
+        # Run controller and hybrid_plant steps
+        hmodel.h_dict = hmodel.controller.step(hmodel.h_dict)
+        hmodel.h_dict = hmodel.hybrid_plant.step(hmodel.h_dict)
+
+        # Log data to HDF5
+        hmodel._log_data_to_hdf5()
+
+        # Verify only channel_1 was logged to HDF5
+        assert "external_signals.channel_1" in hmodel.hdf5_datasets
+        assert "external_signals.channel_2" not in hmodel.hdf5_datasets
+        assert "external_signals.channel_3" not in hmodel.hdf5_datasets
+
+        # Clean up
+        hmodel.close()
+    finally:
+        # Remove temporary CSV file
+        if os.path.exists(csv_path):
+            os.remove(csv_path)
+
+
+def test_external_data_log_all_when_no_log_channels():
+    """Test that all channels are logged when log_channels is not specified."""
+    import os
+
+    import pandas as pd
+
+    csv_path = "tests/test_inputs/multi_channel_external_data_2.csv"
+    df = pd.DataFrame(
+        {
+            "time_utc": pd.date_range("2018-05-10 12:31:00", periods=10, freq="1s"),
+            "channel_a": [10.0] * 10,
+            "channel_b": [20.0] * 10,
+        }
+    )
+    df.to_csv(csv_path, index=False)
+
+    try:
+        # Create test dict without log_channels
+        test_h_dict = h_dict_battery.copy()
+        test_h_dict.pop("starttime", None)
+        test_h_dict.pop("endtime", None)
+        test_h_dict.pop("time", None)
+        test_h_dict.pop("step", None)
+
+        test_h_dict["external_data"] = {
+            "external_data_file": csv_path,
+            # No log_channels specified - should log all
+        }
+        test_h_dict["dt"] = 1.0
+
+        hmodel = HerculesModel(test_h_dict)
+        hmodel.assign_controller(SimpleControllerWind(test_h_dict))
+
+        # Verify log_channels is None
+        assert hmodel.external_data_log_channels is None
+
+        # Set up simulation state
+        hmodel.time = 5.0
+        hmodel.step = 5
+        hmodel.h_dict["time"] = 5.0
+        hmodel.h_dict["step"] = 5
+
+        # Populate external signals
+        if hmodel.external_data_all:
+            for k in hmodel.external_data_all:
+                if k == "time":
+                    continue
+                hmodel.h_dict["external_signals"][k] = hmodel.external_data_all[k][hmodel.step]
+
+        # Run controller and hybrid_plant steps
+        hmodel.h_dict = hmodel.controller.step(hmodel.h_dict)
+        hmodel.h_dict = hmodel.hybrid_plant.step(hmodel.h_dict)
+
+        # Log data to HDF5
+        hmodel._log_data_to_hdf5()
+
+        # Verify ALL channels were logged to HDF5
+        assert "external_signals.channel_a" in hmodel.hdf5_datasets
+        assert "external_signals.channel_b" in hmodel.hdf5_datasets
+
+        # Clean up
+        hmodel.close()
+    finally:
+        # Remove temporary CSV file
+        if os.path.exists(csv_path):
+            os.remove(csv_path)
+
+
+def test_external_data_log_none_with_empty_list():
+    """Test that no channels are logged when log_channels is an empty list."""
+    import os
+
+    import pandas as pd
+
+    csv_path = "tests/test_inputs/multi_channel_external_data_3.csv"
+    df = pd.DataFrame(
+        {
+            "time_utc": pd.date_range("2018-05-10 12:31:00", periods=10, freq="1s"),
+            "channel_x": [100.0] * 10,
+            "channel_y": [200.0] * 10,
+        }
+    )
+    df.to_csv(csv_path, index=False)
+
+    try:
+        # Create test dict with empty log_channels list
+        test_h_dict = h_dict_battery.copy()
+        test_h_dict.pop("starttime", None)
+        test_h_dict.pop("endtime", None)
+        test_h_dict.pop("time", None)
+        test_h_dict.pop("step", None)
+
+        test_h_dict["external_data"] = {
+            "external_data_file": csv_path,
+            "log_channels": [],  # Empty list - should log nothing
+        }
+        test_h_dict["dt"] = 1.0
+
+        hmodel = HerculesModel(test_h_dict)
+        hmodel.assign_controller(SimpleControllerWind(test_h_dict))
+
+        # Verify log_channels is an empty list
+        assert hmodel.external_data_log_channels == []
+
+        # Set up simulation state
+        hmodel.time = 5.0
+        hmodel.step = 5
+        hmodel.h_dict["time"] = 5.0
+        hmodel.h_dict["step"] = 5
+
+        # Populate external signals (all channels should be available)
+        if hmodel.external_data_all:
+            for k in hmodel.external_data_all:
+                if k == "time":
+                    continue
+                hmodel.h_dict["external_signals"][k] = hmodel.external_data_all[k][hmodel.step]
+
+        # Verify ALL channels are in h_dict["external_signals"] (available to controller)
+        assert "channel_x" in hmodel.h_dict["external_signals"]
+        assert "channel_y" in hmodel.h_dict["external_signals"]
+
+        # Run controller and hybrid_plant steps
+        hmodel.h_dict = hmodel.controller.step(hmodel.h_dict)
+        hmodel.h_dict = hmodel.hybrid_plant.step(hmodel.h_dict)
+
+        # Log data to HDF5
+        hmodel._log_data_to_hdf5()
+
+        # Verify NO external signal channels were logged to HDF5
+        assert "external_signals.channel_x" not in hmodel.hdf5_datasets
+        assert "external_signals.channel_y" not in hmodel.hdf5_datasets
+
+        # Clean up
+        hmodel.close()
+    finally:
+        # Remove temporary CSV file
+        if os.path.exists(csv_path):
+            os.remove(csv_path)

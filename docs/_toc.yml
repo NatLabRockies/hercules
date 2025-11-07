@@ -33,6 +33,7 @@ parts:
     - file: examples/02b_wind_farm_realistic_inflow_precom_floris
     - file: examples/03_wind_and_solar
     - file: examples/04_wind_and_storage
+    - file: examples/05_wind_and_storage_with_lmp
   - caption: HybridPlant
     chapters:
     - file: wind
