@@ -351,7 +351,7 @@ def load_hercules_input(filename):
     # First ensure that not both external_data_file and external_data appear
     if "external_data_file" in h_dict and "external_data" in h_dict:
         raise ValueError(
-            "Cannot specify both external_data_file and external_data in input file {filename}. "
+            f"Cannot specify both external_data_file and external_data in input file {filename}. "
             "Preferred is to specify external_data_file within external_data "
             "and specify log_channels within external_data. "
             "The old format is still supported for backward compatibility "
