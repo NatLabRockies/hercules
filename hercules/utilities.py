@@ -54,6 +54,7 @@ def get_available_component_types():
             "Wind_MesoToPower",
             "Wind_MesoToPowerPrecomFloris",
             "Wind_MesoToPowerNoAddedWakes",
+            "WindFarmSCADAPower",
         ],
         "solar_farm": ["SolarPySAMPVWatts"],
         "battery": ["BatterySimple", "BatteryLithiumIon"],
