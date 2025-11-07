@@ -39,7 +39,6 @@ class WindFarmSCADAPower(ComponentBase):
 
         # Read in the input file names
         self.scada_filename = h_dict[self.component_name]["scada_filename"]
-        self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
 
         self.logger.info("Reading in SCADA power data...")
 
