@@ -179,19 +179,33 @@ class HerculesModel:
 
     def _read_external_data_file(self, filename):
         """
-        Read and interpolate external data from a CSV file.
+        Read and interpolate external data from a CSV, feather, or pickle file.
 
-        This method reads external data from the specified CSV file and interpolates it
-        according to the simulation time steps. The external data must include a 'time_utc'
-        column which will be converted to simulation time.
+        This method reads external data from the specified file (CSV, feather, or pickle)
+        and interpolates it according to the simulation time steps. The external data must
+        include a 'time_utc' column which will be converted to simulation time.
         The interpolated data is stored in self.external_data_all.
 
         Args:
-            filename (str): Path to the CSV file containing external data.
+            filename (str): Path to the file containing external data. Supported formats:
+                - CSV files (.csv)
+                - Feather files (.feather)
+                - Pickle files (.pkl, .pickle)
         """
 
-        # Read in the external data file
-        df_ext = pd.read_csv(filename)
+        # Determine file format from extension
+        filename_lower = filename.lower()
+        if filename_lower.endswith(".csv"):
+            df_ext = pd.read_csv(filename)
+        elif filename_lower.endswith((".feather", ".ftr")):
+            df_ext = pd.read_feather(filename)
+        elif filename_lower.endswith((".pickle", ".p", ".pkl")):
+            df_ext = pd.read_pickle(filename)
+        else:
+            raise ValueError(
+                f"Unsupported file format for '{filename}'. "
+                "Supported formats: CSV (.csv), Feather (.feather), Pickle (.pkl, .pickle)"
+            )
         if "time_utc" not in df_ext.columns:
             raise ValueError("External data file must have a 'time_utc' column")
 
