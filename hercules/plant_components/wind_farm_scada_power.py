@@ -160,11 +160,6 @@ class WindFarmSCADAPower(ComponentBase):
         # No wakes: withwakes == background
         self.wind_speeds_withwakes = self.wind_speeds_background.copy()
 
-        # For now require "wd_mean" to be in the df_scada
-        if "wd_mean" not in df_scada.columns:
-            raise ValueError("SCADA file must contain a column called 'wd_mean'")
-        self.wd_mat_mean = df_scada["wd_mean"].values.astype(hercules_float_type)
-
         if "ti_000" in df_scada.columns:
             self.ti_mat = df_scada[
                 [f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]
