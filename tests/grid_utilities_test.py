@@ -26,10 +26,10 @@ def test_generate_locational_marginal_price_dataframe_from_gridstatus():
     df_out = generate_locational_marginal_price_dataframe_from_gridstatus(df_da, df_rt)
 
     assert "time_utc" in df_out.columns
-    assert "RT_LMP" in df_out.columns
-    assert "DA_LMP" in df_out.columns
+    assert "lmp_rt" in df_out.columns
+    assert "lmp_da" in df_out.columns
     for hour in range(24):
-        assert f"DA_LMP_{hour:02d}" in df_out.columns
+        assert f"lmp_da_{hour:02d}" in df_out.columns
 
     # Check dt in output (should be one second less than five minutes; then 1 second)
     assert (df_out["time_utc"].iloc[1] - df_out["time_utc"].iloc[0]).total_seconds() == 299

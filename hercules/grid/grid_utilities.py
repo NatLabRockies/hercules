@@ -31,7 +31,7 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
 
     Returns:
         pd.DataFrame: DataFrame with columns
-            "time_utc", "RT_LMP", "DA_LMP", "DA_LMP_00", ..., "DA_LMP_23"
+            "time_utc", "lmp_rt", "lmp_da", "lmp_da_00", ..., "lmp_da_23"
     """
     # Check correct market on each
     if df_day_ahead_lmp["market"].unique() != [day_ahead_market_name]:
@@ -41,10 +41,10 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
 
     # Trim and rename
     df_da = df_day_ahead_lmp[["interval_start_utc", "lmp"]].rename(
-        columns={"interval_start_utc": "time_utc", "lmp": "DA_LMP"}
+        columns={"interval_start_utc": "time_utc", "lmp": "lmp_da"}
     )
     df_rt = df_real_time_lmp[["interval_start_utc", "lmp"]].rename(
-        columns={"interval_start_utc": "time_utc", "lmp": "RT_LMP"}
+        columns={"interval_start_utc": "time_utc", "lmp": "lmp_rt"}
     )
 
     # Ensure datetime format
@@ -78,7 +78,7 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
 
     for h in range(24):
         h_shift = -h * periods_per_hour
-        df[f"DA_LMP_{h:02d}"] = df["DA_LMP"].shift(h_shift)
+        df[f"lmp_da_{h:02d}"] = df["lmp_da"].shift(h_shift)
 
     # Add rows representing the end of each interval for step-like interpolation
     df_2 = df.copy(deep=True)
