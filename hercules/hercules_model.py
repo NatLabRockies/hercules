@@ -112,13 +112,8 @@ class HerculesModel:
         self.step = 0
         self.n_steps = int(self.total_simulation_time / self.dt)
 
-        # How often to update the user on current simulation time
-        # In simulated time
-        if "time_log_interval" in self.h_dict:
-            self.time_log_interval = self.h_dict["time_log_interval"]
-        else:
-            self.time_log_interval = 600  # seconds
-        self.step_log_interval = self.time_log_interval / self.dt
+        # Set step_log_interval to log 10 times per simulation
+        self.step_log_interval = self.n_steps / 10
 
         # Round to step_log_interval to be an integer greater than 0
         self.step_log_interval = np.max([1, np.round(self.step_log_interval)])
