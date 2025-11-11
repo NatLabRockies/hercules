@@ -24,7 +24,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `name` | str | Simulation name | - |
 | `description` | str | Simulation description | - |
 | `output_file` | str | Output CSV file path | "outputs/hercules_output.csv" |
-| `log_every_n` | int | Log every N simulation steps (default: 1) | 1 |
+| `log_every_n` | int | Log every N simulation steps to output log (default: 1) | 1 |
 | `external_data_file` | str | External data file path | - |
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
