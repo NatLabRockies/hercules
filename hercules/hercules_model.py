@@ -112,15 +112,12 @@ class HerculesModel:
         self.step = 0
         self.n_steps = int(self.total_simulation_time / self.dt)
 
-        # Set step_log_interval to log 10 times per simulation
-        self.step_log_interval = self.n_steps / 10
+        # Set progress_update_interval to log 10 times per simulation
+        self.progress_update_interval = self.n_steps / 10
 
-        # Round to step_log_interval to be an integer greater than 0
-        self.step_log_interval = np.max([1, np.round(self.step_log_interval)])
+        # Round to progress_update_interval to be an integer greater than 0
+        self.progress_update_interval = np.max([1, np.round(self.progress_update_interval)])
 
-        # Calculate progress bar update interval (independent of verbose logging)
-        # Update every 1% of completion or every 100 steps, whichever is more frequent
-        self.progress_update_interval = min(max(1, self.n_steps // 100), 100)
 
         # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
         # starttime_utc is required and should already be set, but ensure it's still present
@@ -475,7 +472,7 @@ class HerculesModel:
             for self.step in range(self.n_steps):
                 # Log the current time
                 if self.verbose:
-                    if (self.step % self.step_log_interval == 0) or first_iteration:
+                    if (self.step % self.progress_update_interval == 0) or first_iteration:
                         self.logger.info(f"Simulation time: {self.time} (ending at {self.endtime})")
                         self.logger.info(f"Step: {self.step} of {self.n_steps}")
                         percent_complete = 100 * self.step / self.n_steps
