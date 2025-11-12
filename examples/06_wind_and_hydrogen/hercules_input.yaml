@@ -9,7 +9,7 @@ description: Wind and hydrogen
 
 dt: 1.0
 starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
-endtime_utc: "2024-06-24T18:59:00Z" # ≈2 hours later (Jun 26, 2024 16:59:00 UTC)
+endtime_utc: "2024-06-24T17:10:00Z" # ≈2 hours later (Jun 26, 2024 16:59:00 UTC)
 # endtime_utc: "2024-06-26T16:59:00Z" # ≈48 hours later (Jun 26, 2024 16:59:00 UTC)
 verbose: False
 
@@ -50,9 +50,15 @@ electrolyzer: # The name of the py_sim object
   component_type: ElectrolyzerPlant
   general: 
     verbose: False # default
+  initial_conditions:
+    # Initial power input to electrolyzer 
+    power_available_kw: 3000    
   electrolyzer:
     initialize: True 
     initial_power_kW: 3000
+    supervisor:
+      n_stacks: 40
+      system_rating_MW: 40
     stack: 
       cell_type: PEM
       # Maximum current of Stack (A)
@@ -64,18 +70,8 @@ electrolyzer: # The name of the py_sim object
       # Stack rated power
       stack_rating_kW: 1000
       # Determines whether degradation is applied to the Stack operation
-      include_degradation_penalty: True
-
-    controller:
-      # Controller type for electrolyzer plant operation
-      control_type: PowerSharingRotation
-      # policy: 
-      #   eager_on: False
-      #   eager_off: False
-      #   sequential: False
-      #   even_dist: False
-      #   baseline: True
-    costs:
+    #   include_degradation_penalty: True
+    #   hydrogen_degradation_penalty: True
     cell_params:
       cell_type: PEM
       max_current_density: 2 
@@ -99,14 +95,21 @@ electrolyzer: # The name of the py_sim object
         rate_steady: 1.42e-10
         rate_fatigue: 3.33e-07
         rate_onoff: 1.47e-04
-    supervisor:
-      n_stacks: 40
-      system_rating_MW: 40
+    controller:
+      # Controller type for electrolyzer plant operation
+      control_type: PowerSharingRotation
+      # policy: 
+      #   eager_on: False
+      #   eager_off: False
+      #   sequential: False
+      #   even_dist: False
+      #   baseline: True
+    costs:
+  log_channels:
+    - power
+    - H2_output
+    - H2_mfr
 
-
-  initial_conditions:
-    # Initial power input to electrolyzer 
-    power_available_kw: 3000
 
 controller:
   num_turbines: 9 # Should match AMR-Wind! Ideally, would come from AMR-wind

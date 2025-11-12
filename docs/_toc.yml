@@ -38,6 +38,7 @@ parts:
     - file: wind
     - file: battery
     - file: solar_pv
+    - file: electrolyzer
   - caption: Usage
     chapters:
     - file: order_of_op
