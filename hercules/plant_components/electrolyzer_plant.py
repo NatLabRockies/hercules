@@ -10,14 +10,33 @@ class ElectrolyzerPlant(ComponentBase):
 
     This component models an electrolyzer system that converts electrical power
     into hydrogen using the electrolyzer module simulation.
+    The Eletrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
     """
 
     def __init__(self, h_dict):
         """Initialize the ElectrolyzerPlant class.
 
         Args:
-            h_dict (dict): Dictionary containing simulation parameters.
+            h_dict (dict): Dictionary containing simulation parameters including:
+            - general: General simulation parameters.
+            - electrolyzer: Electrolyzer plant specific parameters including:
+                - initialize: Whether to initialize the electrolyzer.
+                - initial_power_kW: Initial power input to the electrolyzer [kW].
+                - stack: Electrolyzer stack parameters including:
+                    - cell_area: Area of individual cells in the stack [cm^2].
+                    - max_current: Maximum current of the stack [A].
+                    - temperature: Stack operating temperature [degC].
+                    - n_cells: Number of cells per stack.
+                    - min_power: Minimum power for electrolyzer operation [kW].
+                    - stack_rating_kW: Stack rated power [kW].
+                    - include_degradation_penalty: Whether to include degradation penalty.
+                - controller: Electrolyzer control parameters including:
+                    - n_stacks: Number of electrolyzer stacks in the plant.
+                    - control_type: Controller type for electrolyzer plant operation.
+                - costs: Cost parameters for the electrolyzer plant.
+            - initial_conditions: Initial conditions for the simulation.
         """
+
         # Store the name of this component
         self.component_name = "electrolyzer"
 
@@ -47,9 +66,10 @@ class ElectrolyzerPlant(ComponentBase):
             self.allow_grid_power_consumption = False
 
         # Remove keys not expected by Supervisor
-        elec_config = dict(electrolyzer_dict["electrolyzer"])
-        elec_config.pop("allow_grid_power_consumption", None)
-        elec_config.pop("log_channels", None)
+        elec_config = dict(electrolyzer_dict["electrolyzer"]["electrolyzer"])
+        elec_config["dt"] = self.dt
+        # elec_config.pop("allow_grid_power_consumption", None)
+        # elec_config.pop("log_channels", None)
         # Initialize electrolyzer plant
         self.elec_sys = Supervisor.from_dict(elec_config)
 
@@ -57,10 +77,11 @@ class ElectrolyzerPlant(ComponentBase):
 
         # Right now, the plant initialization power and the initial condition power are the same
         # power_in is always in kW
-        power_in = h_dict[self.component_name]["initial_power_kW"]
+        power_in = elec_config["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
 
         # Run Electrolyzer two steps to get outputs
+        # Note that power is converted to Watts for electrolyzer input
         for i in range(2):
             H2_produced, H2_mfr, power_left, power_curtailed = self.elec_sys.run_control(
                 power_in * 1e3
@@ -76,6 +97,16 @@ class ElectrolyzerPlant(ComponentBase):
         self.power_left_kw = power_left / 1e3
         self.power_input_kw = power_in
         self.power_used_kw = self.power_input_kw - (self.curtailed_power_kw + self.power_left_kw)
+
+        # Update the h_dict with outputs
+        h_dict[self.component_name]["H2_output"] = self.H2_output
+        h_dict[self.component_name]["H2_mfr"] = self.H2_mfr
+        h_dict[self.component_name]["stacks_on"] = self.stacks_on
+        h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
+        h_dict[self.component_name]["power"] = -self.power_used_kw
+        h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
+
+
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -115,7 +146,8 @@ class ElectrolyzerPlant(ComponentBase):
                 - power_input_kw: Power input to electrolyzer [kW]
         """
         # Gather inputs
-        local_power = h_dict["locally_generated_power"]  # TODO check what units this is in
+        print(h_dict["plant"]["wind_farm"])
+        local_power = h_dict["plant"]["locally_generated_power"]  # TODO check what units this is in
         if "electrolyzer_signal" in h_dict[self.component_name].keys():
             power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
         elif not self.allow_grid_power_consumption:
@@ -150,7 +182,7 @@ class ElectrolyzerPlant(ComponentBase):
         h_dict[self.component_name]["H2_mfr"] = self.H2_mfr
         h_dict[self.component_name]["stacks_on"] = self.stacks_on
         h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
-        h_dict[self.component_name]["power_used_kw"] = self.power_used_kw
+        h_dict[self.component_name]["power"] = -self.power_used_kw
         h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
 
         return h_dict

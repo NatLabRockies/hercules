@@ -1,6 +1,14 @@
 import numpy as np
 from hercules.hercules_model import HerculesModel
 from hercules.utilities_examples import ensure_example_inputs_exist, prepare_output_directory
+from whoc.controllers import (
+    BatteryPassthroughController,
+    HybridSupervisoryControllerBaseline,
+    SolarPassthroughController,
+    WindFarmPowerTrackingController,
+    HydrogenPlantController,
+)
+from whoc.interfaces import HerculesV2Interface
 
 prepare_output_directory()
 
@@ -63,9 +71,28 @@ class ControllerLimitSolar:
 
         return h_dict
 
+# Establish controllers based on options
+interface = HerculesV2Interface(hmodel.h_dict)
+
+print("Setting up controller.")
+wind_controller = WindFarmPowerTrackingController(interface, hmodel.h_dict)
+# solar_controller = (
+#     SolarPassthroughController(interface, hmodel.h_dict) if include_solar
+#     else None
+# )
+# battery_controller = (
+#     BatteryPassthroughController(interface, hmodel.h_dict) if include_battery
+#     else None
+# )
+controller = HydrogenPlantController(
+    interface,
+    hmodel.h_dict,
+    generator_controller=wind_controller
+)
 
 # Assign the controller to the Hercules model
-hmodel.assign_controller(ControllerLimitSolar(hmodel.h_dict))
+hmodel.assign_controller(controller)
+print("Controller assigned.")
 
 # Run the simulation
 hmodel.run()
