@@ -63,7 +63,7 @@ def test_generate_locational_marginal_price_dataframe_from_gridstatus():
     assert df_out_2.equals(df_out)
 
     # Check that error is raised if markets are not all consistent
-    df_da_diff_market["market"].iloc[0] = "ANOTHER_MARKET"
+    df_da_diff_market.loc[df_da_diff_market.index[0], "market"] = "ANOTHER_MARKET"
     with pytest.raises(ValueError):
         generate_locational_marginal_price_dataframe_from_gridstatus(
             df_da_diff_market,

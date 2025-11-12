@@ -84,7 +84,7 @@ class SolarPySAMBase(ComponentBase):
             df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
 
         # Ensure time_utc is timezone-aware (UTC)
-        if not pd.api.types.is_datetime64tz_dtype(df_solar["time_utc"]):
+        if not isinstance(df_solar["time_utc"].dtype, pd.DatetimeTZDtype):
             df_solar["time_utc"] = df_solar["time_utc"].dt.tz_localize("UTC")
 
         # Get starttime_utc and endtime_utc from h_dict
