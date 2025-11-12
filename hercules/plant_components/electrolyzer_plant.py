@@ -197,7 +197,6 @@ class ElectrolyzerPlant(ComponentBase):
                 - power_input_kw: Power input to electrolyzer [kW]
         """
         # Gather inputs
-        print(h_dict["plant"]["wind_farm"])
         local_power = h_dict["plant"]["locally_generated_power"]  # TODO check what units this is in
         if "electrolyzer_signal" in h_dict[self.component_name].keys():
             power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
