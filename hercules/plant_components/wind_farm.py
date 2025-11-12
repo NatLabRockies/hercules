@@ -161,7 +161,7 @@ class WindFarm(ComponentBase):
         self.starttime_utc = starttime_utc
 
         # Determine the dt implied by the weather file
-        self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
+        self.dt_wi = df_wi["time"].iloc[1] - df_wi["time"].iloc[0]
 
         # Log the values
         if self.verbose:
