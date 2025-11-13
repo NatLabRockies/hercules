@@ -118,7 +118,6 @@ class HerculesModel:
         # Round progress_update_interval to be an integer greater than 0
         self.progress_update_interval = np.max([1, np.round(self.progress_update_interval)])
 
-
         # Save start time UTC (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
