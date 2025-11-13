@@ -115,7 +115,7 @@ class HerculesModel:
         # Set progress_update_interval to log 10 times per simulation
         self.progress_update_interval = self.n_steps / 10
 
-        # Round to progress_update_interval to be an integer greater than 0
+        # Round progress_update_interval to be an integer greater than 0
         self.progress_update_interval = np.max([1, np.round(self.progress_update_interval)])
 
 
