@@ -70,7 +70,7 @@ class HerculesModel:
         self._controller = None
 
         # Read in any external data
-        self.external_data_all = {}
+        self.external_signals_all = {}
         if "external_data_file" in self.h_dict:
             self._read_external_data_file(self.h_dict["external_data_file"])
             self.h_dict["external_signals"] = {}
@@ -182,7 +182,7 @@ class HerculesModel:
         This method reads external data from the specified CSV file and interpolates it
         according to the simulation time steps. The external data must include a 'time_utc'
         column which will be converted to simulation time.
-        The interpolated data is stored in self.external_data_all.
+        The interpolated data is stored in self.external_signals_all.
 
         Args:
             filename (str): Path to the CSV file containing external data.
@@ -211,7 +211,7 @@ class HerculesModel:
 
         # Convert interpolated DataFrame to dictionary format
         for col in df_interpolated.columns:
-            self.external_data_all[col] = df_interpolated[col].values
+            self.external_signals_all[col] = df_interpolated[col].values
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
@@ -471,7 +471,7 @@ class HerculesModel:
             controller_step = self.controller.step
             plant_step = self.hybrid_plant.step
             log_current_state = self._log_data_to_hdf5
-            external_data_all = self.external_data_all
+            external_signals_all = self.external_signals_all
             h_dict = self.h_dict
 
             # Set current time and run simulation through steps
@@ -494,11 +494,11 @@ class HerculesModel:
                         last_progress_update = self.step
 
                 # Fast external data lookup by step index (avoids per-step array equality checks)
-                if external_data_all:
-                    for k in external_data_all:
+                if external_signals_all:
+                    for k in external_signals_all:
                         if k == "time":
                             continue
-                        h_dict["external_signals"][k] = external_data_all[k][self.step]
+                        h_dict["external_signals"][k] = external_signals_all[k][self.step]
 
                 # Update controller and py sims
                 h_dict["time"] = self.time
