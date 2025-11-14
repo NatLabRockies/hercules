@@ -121,7 +121,7 @@ class Wind_MesoToPowerPrecomFloris(ComponentBase):
                 df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
 
         # Ensure time_utc is timezone-aware (UTC)
-        if not pd.api.types.is_datetime64tz_dtype(df_wi["time_utc"]):
+        if not isinstance(df_wi["time_utc"].dtype, pd.DatetimeTZDtype):
             df_wi["time_utc"] = df_wi["time_utc"].dt.tz_localize("UTC")
 
         # Get starttime_utc and endtime_utc from h_dict

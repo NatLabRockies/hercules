@@ -13,6 +13,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 - **Top level parameters**: `dt`, `starttime_utc`, `endtime_utc` (see [timing](timing.md) for details)
 - **Plant configuration**: `interconnect_limit`
 - **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
+- **External data**: `external_data` for external time series data (e.g., LMP prices, weather forecasts)
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
 
 
@@ -96,6 +97,106 @@ output_file: outputs/hercules_output.h5
 log_every_n: 1
 ```
 
+## External Data Configuration
+
+Hercules supports loading external time series data from CSV files (e.g., electricity prices, weather forecasts, or other external signals). This data becomes available to controllers through `h_dict["external_signals"]`.
+
+### New Format (Preferred)
+
+```yaml
+external_data:
+  external_data_file: path/to/data.csv
+  log_channels:
+    - lmp_rt
+    - wind_forecast
+```
+
+**Key features:**
+- `external_data_file`: Path to CSV file with `time_utc` column and data columns
+- `log_channels`: Optional list of channels to log to HDF5 output
+  - If **omitted**: all channels are logged (default behavior)
+  - If **empty list** (`log_channels: []`): no channels are logged
+  - If **non-empty list**: only listed channels are written to HDF5
+  - **Important**: All channels are always available to the controller via `h_dict["external_signals"]`, regardless of `log_channels`
+
+### Old Format (Deprecated)
+
+```yaml
+external_data_file: path/to/data.csv  # Logs all channels, shows deprecation warning
+```
+
+The old format is still supported for backward compatibility but will show a deprecation warning. It automatically logs all external data channels to the output file.
+
+### External Data File Format
+
+The CSV file must contain:
+- A `time_utc` column with UTC timestamps in ISO 8601 format
+- One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `lmp_rt`, `lmp_da`, `wind_forecast`, etc.
+
+Example `lmp_data.csv`:
+```csv
+time_utc,lmp_rt,lmp_da,wind_forecast
+2024-06-24T16:59:08Z,25.5,20.0,12.3
+2024-06-24T17:04:08Z,26.1,20.0,12.5
+2024-06-24T17:09:08Z,27.3,20.0,12.8
+...
+```
+
+Hercules automatically interpolates external data to match the simulation time step.
+
+### Usage in Controllers
+
+All external data channels are accessible in the controller through `h_dict["external_signals"]`:
+
+```python
+class MyController:
+    def step(self, h_dict):
+        # Access external signals (all channels available)
+        lmp_rt = h_dict["external_signals"]["lmp_rt"]
+        lmp_da = h_dict["external_signals"]["lmp_da"]
+        wind_forecast = h_dict["external_signals"]["wind_forecast"]
+        
+        # Use signals for control logic
+        if lmp_rt < 15:
+            h_dict["battery"]["power_setpoint"] = -10000  # charge
+        elif lmp_rt > 35:
+            h_dict["battery"]["power_setpoint"] = 10000  # discharge
+        else:
+            h_dict["battery"]["power_setpoint"] = 0
+        
+        return h_dict
+```
+
+Even if `log_channels` only specifies `["lmp_rt"]`, the controller can still access all channels. The `log_channels` setting only controls what gets written to the HDF5 output file.
+
+### Selective Logging Examples
+
+**Example 1: Log all channels (default)**
+```yaml
+external_data:
+  external_data_file: data.csv
+  # log_channels not specified → logs all channels
+```
+
+**Example 2: Log specific channels**
+```yaml
+external_data:
+  external_data_file: data.csv
+  log_channels:
+    - lmp_rt
+    - wind_forecast
+  # Only logs lmp_rt and wind_forecast (but all channels available to controller)
+```
+
+**Example 3: Log no channels**
+```yaml
+external_data:
+  external_data_file: data.csv
+  log_channels: []  # Empty list → logs nothing (but all channels available to controller)
+```
+
+This is useful when you want external data available for control decisions but don't need it saved in the output file.
+
 ## Output Configuration Options
 
 Hercules supports several output configuration options to optimize file size and write performance:
@@ -115,10 +216,6 @@ Controls HDF5 compression (default: True). Disable for faster writes if storage 
 ### output_buffer_size
 Controls the memory buffer size for writing data (default: 50000 rows). Larger buffers improve performance but use more memory.
 
-
-
-
-
 ### Example with Output Configuration
 
 ```yaml
@@ -126,7 +223,6 @@ Controls the memory buffer size for writing data (default: 50000 rows). Larger b
 dt: 1.0
 starttime_utc: "2020-06-15T12:00:00Z"
 endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
-
 
 # Log every 60 seconds (1 minute) to reduce file size
 log_every_n: 60

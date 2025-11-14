@@ -26,10 +26,10 @@ def test_generate_locational_marginal_price_dataframe_from_gridstatus():
     df_out = generate_locational_marginal_price_dataframe_from_gridstatus(df_da, df_rt)
 
     assert "time_utc" in df_out.columns
-    assert "RT_LMP" in df_out.columns
-    assert "DA_LMP" in df_out.columns
+    assert "lmp_rt" in df_out.columns
+    assert "lmp_da" in df_out.columns
     for hour in range(24):
-        assert f"DA_LMP_{hour:02d}" in df_out.columns
+        assert f"lmp_da_{hour:02d}" in df_out.columns
 
     # Check dt in output (should be one second less than five minutes; then 1 second)
     assert (df_out["time_utc"].iloc[1] - df_out["time_utc"].iloc[0]).total_seconds() == 299
@@ -63,7 +63,7 @@ def test_generate_locational_marginal_price_dataframe_from_gridstatus():
     assert df_out_2.equals(df_out)
 
     # Check that error is raised if markets are not all consistent
-    df_da_diff_market["market"].iloc[0] = "ANOTHER_MARKET"
+    df_da_diff_market.loc[df_da_diff_market.index[0], "market"] = "ANOTHER_MARKET"
     with pytest.raises(ValueError):
         generate_locational_marginal_price_dataframe_from_gridstatus(
             df_da_diff_market,

@@ -26,7 +26,8 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `output_file` | str | Output CSV file path | "outputs/hercules_output.csv" |
 | `time_log_interval` | int | Logging interval in steps | - |
 | `log_every_n` | int | Log every N simulation steps (default: 1) | 1 |
-| `external_data_file` | str | External data file path | - |
+| `external_data` | dict | External data configuration | - |
+| `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
 
@@ -82,3 +83,18 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `costs` | dict | Cost parameters |
 | `cell_params` | dict | Cell parameters |
 | `degradation` | dict | Degradation parameters |
+
+### External Data (`external_data`)
+| Key | Type | Description | Default |
+|-----|------|-------------|---------|
+| `external_data_file` | str | Path to CSV file with external time series data | Optional (if not specified, `external_data` is ignored) |
+| `log_channels` | list | List of channels to log to HDF5 output | None (log all) |
+
+**Logging behavior:**
+- `log_channels` **not specified**: All channels are logged (default)
+- `log_channels: []` (empty list): No channels are logged
+- `log_channels: [channel1, channel2]`: Only listed channels are logged
+
+**Note**: All channels from the external data file are always available to the controller via `h_dict["external_signals"]`, regardless of the `log_channels` setting. The `log_channels` parameter only controls which channels are written to the HDF5 output file.
+
+**Old format** (deprecated): Setting `external_data_file` at the top level is still supported but shows a deprecation warning. Use the `external_data` dict format instead.
