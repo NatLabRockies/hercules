@@ -1,8 +1,8 @@
+import electrolyzer.tools.validation as val
 import numpy as np
 
 # Electrolyzer plant module
 from electrolyzer.simulation.supervisor import Supervisor
-import electrolyzer.tools.validation as val
 from hercules.plant_components.component_base import ComponentBase
 
 
