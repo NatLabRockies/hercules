@@ -2,6 +2,7 @@ import numpy as np
 
 # Electrolyzer plant module
 from electrolyzer.simulation.supervisor import Supervisor
+import electrolyzer.tools.validation as val
 from hercules.plant_components.component_base import ComponentBase
 
 
@@ -117,24 +118,30 @@ class ElectrolyzerPlant(ComponentBase):
             self.allow_grid_power_consumption = False
 
         # Remove keys not expected by Supervisor
-        elec_config = dict(electrolyzer_dict["electrolyzer"]["electrolyzer"])
-        elec_config["dt"] = self.dt
+        elec_config = {}
+        elec_config["electrolyzer"] = dict(electrolyzer_dict["electrolyzer"]["electrolyzer"])
+        
+        elec_config["electrolyzer"]["dt"] = self.dt
 
-        self.elec_sys = Supervisor.from_dict(elec_config)
+        # Validate electrolyzer config
+        elec_config = val.validate_with_defaults(elec_config, val.fschema_model)
+
+        # Initialize electrolyzer plant
+        self.elec_sys = Supervisor.from_dict(elec_config["electrolyzer"])
 
         self.n_stacks = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
         # power_in is always in kW
 
-        power_in = elec_config["initial_power_kW"]
+        power_in = elec_config["electrolyzer"]["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
 
         self.logger.info("Initializing ElectrolyzerPlant with power input of %.2f kW", power_in)
 
         # Run Electrolyzer two steps to get outputs
         # Note that power is converted to Watts for electrolyzer input
-        for i in range(2):
+        for i in range(6):
             H2_produced, H2_mfr, power_left, power_curtailed = self.elec_sys.run_control(
                 power_in * 1e3
             )
@@ -210,7 +217,7 @@ class ElectrolyzerPlant(ComponentBase):
                 - power_input_kw: Power input to electrolyzer [kW]
         """
         # Gather inputs
-        local_power = h_dict["plant"]["locally_generated_power"]  # TODO check what units this is in
+        local_power = h_dict["plant"]["locally_generated_power"] # kW
         if "electrolyzer_signal" in h_dict[self.component_name].keys():
             power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
         elif not self.allow_grid_power_consumption:

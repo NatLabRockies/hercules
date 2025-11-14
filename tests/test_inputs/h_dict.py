@@ -127,7 +127,6 @@ electrolyzer = {
                 "baseline": True,
             },
         },
-        "costs": None,
         "cell_params": {
             "cell_type": "PEM",
             "max_current_density": 2.0,
@@ -155,7 +154,7 @@ electrolyzer = {
                 "rate_onoff": 1.47821515e-04,
             },
         },
-    }
+    },
 }
 
 # Base h_dict with no components
