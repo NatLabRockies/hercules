@@ -12,26 +12,26 @@ ensure_example_inputs_exist()
 
 # Generate LMP data file if it doesn't exist
 lmp_data_path = Path("external_data_lmp.csv")
-if not lmp_data_path.exists():
-    print("Generating LMP data file...")
-    # Create 4 hours of data at 5-minute intervals
-    # Start time matching the example: 2024-06-24T16:59:08Z
-    start_time = pd.Timestamp("2024-06-24T16:59:08Z")
-    # 4 hours = 240 minutes, 5-minute intervals = 49 time points (0, 5, 10, ..., 240)
-    time_points = pd.date_range(start=start_time, periods=49, freq="5min")
 
-    # Create the dataframe
-    df = pd.DataFrame(
-        {
-            "time_utc": time_points,
-            "lmp_da": np.full(49, 10.0),  # Constant $10
-            "lmp_rt": np.linspace(0, 50, 49),  # Ramp from $0 to $50
-        }
-    )
+print("Generating LMP data file...")
+# Create 4 hours of data at 5-minute intervals
+# Start time matching the example: 2024-06-24T16:59:08Z
+start_time = pd.Timestamp("2024-06-24T16:59:08Z")
+# 4 hours = 240 minutes, 5-minute intervals = 49 time points (0, 5, 10, ..., 240)
+time_points = pd.date_range(start=start_time, periods=49, freq="5min")
 
-    # Save to CSV
-    df.to_csv(lmp_data_path, index=False)
-    print(f"Created {lmp_data_path}")
+# Create the dataframe
+df = pd.DataFrame(
+    {
+        "time_utc": time_points,
+        "lmp_da": np.full(49, 10.0),  # Constant $10
+        "lmp_rt": np.linspace(0, 50, 49),  # Ramp from $0 to $50
+    }
+)
+
+# Save to CSV
+df.to_csv(lmp_data_path, index=False)
+print(f"Created {lmp_data_path}")
 
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")

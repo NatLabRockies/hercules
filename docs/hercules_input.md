@@ -131,7 +131,7 @@ The old format is still supported for backward compatibility but will show a dep
 
 The CSV file must contain:
 - A `time_utc` column with UTC timestamps in ISO 8601 format
-- One or more data columns with external signals
+- One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `lmp_rt`, `lmp_da`, `wind_forecast`, etc.
 
 Example `lmp_data.csv`:
 ```csv
@@ -216,10 +216,6 @@ Controls HDF5 compression (default: True). Disable for faster writes if storage 
 ### output_buffer_size
 Controls the memory buffer size for writing data (default: 50000 rows). Larger buffers improve performance but use more memory.
 
-
-
-
-
 ### Example with Output Configuration
 
 ```yaml
@@ -227,7 +223,6 @@ Controls the memory buffer size for writing data (default: 50000 rows). Larger b
 dt: 1.0
 starttime_utc: "2020-06-15T12:00:00Z"
 endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
-
 
 # Log every 60 seconds (1 minute) to reduce file size
 log_every_n: 60
