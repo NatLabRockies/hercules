@@ -204,7 +204,7 @@ class HerculesModel:
         else:
             raise ValueError(
                 f"Unsupported file format for '{filename}'. "
-                "Supported formats: CSV (.csv), Feather (.feather), Pickle (.pkl, .pickle)"
+                "Supported formats: CSV (.csv), Feather (.ftr, .f, .feather), Pickle (.p, .pkl, .pickle)"
             )
         if "time_utc" not in df_ext.columns:
             raise ValueError("External data file must have a 'time_utc' column")

@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import warnings
 from pathlib import Path
 
 import h5py
@@ -360,8 +361,6 @@ def load_hercules_input(filename):
 
     # If old-style external_data_file is used at top level, convert to new structure with warning
     if "external_data_file" in h_dict:
-        import warnings
-
         warnings.warn(
             "Specifying 'external_data_file' at the top level is deprecated. "
             "Please use 'external_data: {external_data_file: ...}' instead.",
