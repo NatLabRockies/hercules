@@ -1,8 +1,8 @@
-# Example 04: Wind and storage hybrid plant
+# Example 06: Wind and hydrogen hybrid plant
 
 ## Description
 
-Example of a wind and storage hybrid plant where the storage is constrained to charge only using power produced by the wind farm.  
+Example of a wind and hydrogen hybrid plant where power that the wind farm produces goes directly to hydrogen electrolysis 
 
 ## Setup
 

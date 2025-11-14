@@ -57,9 +57,6 @@ ax.plot(
     lw=2,
 )
 
-# ax.grid(True)
-# ax.legend()
-# ax.set_ylabel("Wind Speed [m/s]")
 
 # Plot the turbine powers
 ax = axarr[1]
