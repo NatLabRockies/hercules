@@ -70,10 +70,12 @@ class HerculesModel:
         self._controller = None
 
         # Read in any external data
-        self.external_data_all = {}
-        if "external_data_file" in self.h_dict:
-            self._read_external_data_file(self.h_dict["external_data_file"])
-            self.h_dict["external_signals"] = {}
+        self.external_signals_all = {}
+        self.external_data_log_channels = None
+        self.h_dict["external_signals"] = {}
+        if "external_data" in self.h_dict:
+            self._read_external_data_file(self.h_dict["external_data"]["external_data_file"])
+            self.external_data_log_channels = self.h_dict["external_data"]["log_channels"]
 
         # Initialize HDF5 output configuration
         if "output_file" in self.h_dict:
@@ -170,26 +172,41 @@ class HerculesModel:
         # Add in starttime and endttime as needed for Hercules simulation
         h_dict["starttime"] = 0.0
         h_dict["endtime"] = (
-            (h_dict["endtime_utc"] - h_dict["starttime_utc"]).total_seconds() + float(h_dict["dt"])
-        )
+            h_dict["endtime_utc"] - h_dict["starttime_utc"]
+        ).total_seconds() + float(h_dict["dt"])
 
         return h_dict
 
     def _read_external_data_file(self, filename):
         """
-        Read and interpolate external data from a CSV file.
+        Read and interpolate external data from a CSV, feather, or pickle file.
 
-        This method reads external data from the specified CSV file and interpolates it
-        according to the simulation time steps. The external data must include a 'time_utc'
-        column which will be converted to simulation time.
-        The interpolated data is stored in self.external_data_all.
+        This method reads external data from the specified file (CSV, feather, or pickle)
+        and interpolates it according to the simulation time steps. The external data must
+        include a 'time_utc' column which will be converted to simulation time.
+        The interpolated data is stored in self.external_signals_all.
 
         Args:
-            filename (str): Path to the CSV file containing external data.
+            filename (str): Path to the file containing external data. Supported formats:
+                - CSV files (.csv)
+                - Feather files (.feather)
+                - Pickle files (.pkl, .pickle)
         """
 
-        # Read in the external data file
-        df_ext = pd.read_csv(filename)
+        # Determine file format from extension
+        filename_lower = filename.lower()
+        if filename_lower.endswith(".csv"):
+            df_ext = pd.read_csv(filename)
+        elif filename_lower.endswith((".feather", ".ftr")):
+            df_ext = pd.read_feather(filename)
+        elif filename_lower.endswith((".pickle", ".p", ".pkl")):
+            df_ext = pd.read_pickle(filename)
+        else:
+            raise ValueError(
+                f"Unsupported file format for '{filename}'. "
+                "Supported formats: CSV (.csv), Feather (.ftr, .f, .feather), "
+                "Pickle (.p, .pkl, .pickle)"
+            )
         if "time_utc" not in df_ext.columns:
             raise ValueError("External data file must have a 'time_utc' column")
 
@@ -211,7 +228,7 @@ class HerculesModel:
 
         # Convert interpolated DataFrame to dictionary format
         for col in df_interpolated.columns:
-            self.external_data_all[col] = df_interpolated[col].values
+            self.external_signals_all[col] = df_interpolated[col].values
 
     def _initialize_hdf5_file(self):
         """Initialize HDF5 file with metadata and data structure."""
@@ -372,13 +389,19 @@ class HerculesModel:
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
             external_signals_group = data_group.create_group("external_signals")
             for signal_name in self.h_dict["external_signals"].keys():
-                dataset_name = f"external_signals.{signal_name}"
-                self.hdf5_datasets[dataset_name] = external_signals_group.create_dataset(
-                    dataset_name,
-                    shape=(total_rows,),
-                    dtype=hercules_float_type,
-                    **compression_params,
+                # Only create dataset if signal should be logged
+                should_log = (
+                    self.external_data_log_channels is None
+                    or signal_name in self.external_data_log_channels
                 )
+                if should_log:
+                    dataset_name = f"external_signals.{signal_name}"
+                    self.hdf5_datasets[dataset_name] = external_signals_group.create_dataset(
+                        dataset_name,
+                        shape=(total_rows,),
+                        dtype=hercules_float_type,
+                        **compression_params,
+                    )
 
         self.output_structure_determined = True
 
@@ -471,7 +494,7 @@ class HerculesModel:
             controller_step = self.controller.step
             plant_step = self.hybrid_plant.step
             log_current_state = self._log_data_to_hdf5
-            external_data_all = self.external_data_all
+            external_signals_all = self.external_signals_all
             h_dict = self.h_dict
 
             # Set current time and run simulation through steps
@@ -494,11 +517,11 @@ class HerculesModel:
                         last_progress_update = self.step
 
                 # Fast external data lookup by step index (avoids per-step array equality checks)
-                if external_data_all:
-                    for k in external_data_all:
+                if external_signals_all:
+                    for k in external_signals_all:
                         if k == "time":
                             continue
-                        h_dict["external_signals"][k] = external_data_all[k][self.step]
+                        h_dict["external_signals"][k] = external_signals_all[k][self.step]
 
                 # Update controller and py sims
                 h_dict["time"] = self.time
@@ -697,12 +720,18 @@ class HerculesModel:
                             if dataset_name in self.data_buffers:
                                 self.data_buffers[dataset_name][self.buffer_row] = output_value
 
-        # Buffer external signals
+        # Buffer external signals (only those specified in log_channels)
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
             for signal_name, signal_value in self.h_dict["external_signals"].items():
-                dataset_name = f"external_signals.{signal_name}"
-                if dataset_name in self.data_buffers:
-                    self.data_buffers[dataset_name][self.buffer_row] = signal_value
+                # Only buffer if signal should be logged
+                should_log = (
+                    self.external_data_log_channels is None
+                    or signal_name in self.external_data_log_channels
+                )
+                if should_log:
+                    dataset_name = f"external_signals.{signal_name}"
+                    if dataset_name in self.data_buffers:
+                        self.data_buffers[dataset_name][self.buffer_row] = signal_value
 
         # Increment buffer row counter
         self.buffer_row += 1

@@ -11,7 +11,9 @@ def test_allow_grid_power_consumption():
     electrolyzer = ElectrolyzerPlant(test_h_dict)
 
     step_inputs = {
-        "locally_generated_power": 3000,
+        "plant": {
+            "locally_generated_power": 3000,
+        },
         "electrolyzer": {
             "electrolyzer_signal": 2000,
         },
