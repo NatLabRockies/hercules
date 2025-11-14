@@ -119,17 +119,18 @@ class ElectrolyzerPlant(ComponentBase):
         # Remove keys not expected by Supervisor
         elec_config = dict(electrolyzer_dict["electrolyzer"]["electrolyzer"])
         elec_config["dt"] = self.dt
-        # elec_config.pop("allow_grid_power_consumption", None)
-        # elec_config.pop("log_channels", None)
-        # Initialize electrolyzer plant
+
         self.elec_sys = Supervisor.from_dict(elec_config)
 
         self.n_stacks = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
         # power_in is always in kW
+
         power_in = elec_config["initial_power_kW"]
         self.needed_inputs = {"locally_generated_power": power_in}
+
+        self.logger.info("Initializing ElectrolyzerPlant with power input of %.2f kW", power_in)
 
         # Run Electrolyzer two steps to get outputs
         # Note that power is converted to Watts for electrolyzer input
@@ -148,6 +149,18 @@ class ElectrolyzerPlant(ComponentBase):
         self.power_left_kw = power_left / 1e3
         self.power_input_kw = power_in
         self.power_used_kw = self.power_input_kw - (self.curtailed_power_kw + self.power_left_kw)
+
+        if self.verbose:
+            self.logger.info(
+                "ElectrolyzerPlant initialized: H2_mfr=%.4f kg/s, power_used=%.2f kW, stacks_on=%d",
+                self.H2_mfr,
+                self.power_used_kw,
+                self.stacks_on,
+            )
+        # Update the user
+        self.logger.info(
+            f"Initialized ElectrolyzerPlant with {self.n_stacks} stacks"
+        )
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["H2_output"] = self.H2_output
@@ -211,6 +224,16 @@ class ElectrolyzerPlant(ComponentBase):
         else:
             power_in_kw = min(local_power, power_command_kw)
 
+        if self.verbose:
+            self.logger.info(
+                "ElectrolyzerPlant step at time %.2f s with local_power=%.2f kW, "
+                "power_command=%.2f kW, power_in=%.2f kW",
+                h_dict["time"],
+                local_power,
+                power_command_kw,
+                power_in_kw,
+            )
+
         # Run electrolyzer forward one step
         ######## Electrolyzer needs input in Watts ########
         H2_produced, H2_mfr, power_left_w, power_curtailed_w = self.elec_sys.run_control(
@@ -226,6 +249,14 @@ class ElectrolyzerPlant(ComponentBase):
         self.stacks_waiting = [self.elec_sys.stacks[i].stack_waiting for i in range(self.n_stacks)]
         self.H2_output = H2_produced
         self.H2_mfr = H2_produced / self.elec_sys.dt
+
+        if self.verbose:
+            self.logger.info(
+                "ElectrolyzerPlant initialized: H2_mfr=%.4f kg/s, power_used=%.2f kW, stacks_on=%d",
+                self.H2_mfr,
+                self.power_used_kw,
+                self.stacks_on,
+            )
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["H2_output"] = self.H2_output

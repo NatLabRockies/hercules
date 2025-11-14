@@ -20,8 +20,24 @@ print(h_dict.keys())
 print(h_dict["electrolyzer"].keys())
 print(h_dict["external_data_file"])
 
+# Set number of turbines
+turbines_to_plot = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
-fig, axarr = plt.subplots(2, 1, sharex=True)
+# Define a consistent color map with 9
+colors = [
+    "tab:blue",
+    "tab:orange",
+    "tab:green",
+    "tab:red",
+    "tab:purple",
+    "tab:brown",
+    "tab:pink",
+    "tab:gray",
+    "tab:olive",
+]
+
+
+fig, axarr = plt.subplots(4, 1, sharex=True)
 
 # Get an index of where battery power is postive or negative
 df_battery_positive = df.copy()
@@ -29,26 +45,59 @@ df_battery_negative = df.copy()
 
 # 0 negative power from df_battery_positive and vice versa
 
-# Plot the farm power
+# Plot wind resource
 ax = axarr[0]
 
-# Plot the hybrid plant power
+# Plot the FLORIS wind speed
 ax.plot(
-    df["time"],
+    df["time_utc"],
+    df["wind_farm.wind_speed_mean_background"],
+    label="Mean Unwaked Wind Speed",
+    color="black",
+    lw=2,
+)
+
+# ax.grid(True)
+# ax.legend()
+# ax.set_ylabel("Wind Speed [m/s]")
+
+# Plot the turbine powers
+ax = axarr[1]
+for t_idx in turbines_to_plot:
+    ax.plot(
+        df["time_utc"],
+        df[f"wind_farm.turbine_powers.{t_idx:03}"],
+        label=f"Unwaked {t_idx}",
+        color=colors[t_idx],
+    )
+# for t_idx in turbines_to_plot:
+#     ax.plot(
+#         df["time_utc"],
+#         df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
+#         label=f"Waked {t_idx}",
+#         linestyle="--",
+#         color=colors[t_idx],
+#     )
+
+
+# Plot the hybrid plant power
+ax = axarr[2]
+ax.plot(
+    df["time_utc"],
     df["wind_farm.power"],
     label="Wind Power",
     color="b",
     alpha=0.75,
 )
 ax.plot(
-    df["time"],
+    df["time_utc"],
     df["electrolyzer.power_input_kw"],
     label="Electrolyzer Input Power",
     color="r",
     alpha=0.75,
 )
 ax.fill_between(
-    df["time"],
+    df["time_utc"],
     -df["electrolyzer.power"],
     label="Electrolzyer Power Used",
     color="b",
@@ -92,11 +141,12 @@ ax.fill_between(
 ax.set_ylabel("Power [kW]")
 
 # Plot hydrogen output
-ax = axarr[1]
-ax.plot(df["time"], df["external_signals.hydrogen_reference"], label="Hydrogen Reference", 
+ax = axarr[3]
+ax.plot(df["time_utc"], df["external_signals.hydrogen_reference"], label="Hydrogen Reference", 
         color="k")
 ax.set_ylabel("Hydrogen production [kg]")
-ax.plot(df["time"], df["electrolyzer.H2_mfr"], label="Hydrogen Output", color="b")
+ax.plot(df["time_utc"], df["electrolyzer.H2_mfr"], label="Hydrogen Output", color="b")
+
 
 # # Plot the battery power and power setpoint
 # ax = axarr[2]

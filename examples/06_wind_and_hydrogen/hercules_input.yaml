@@ -26,6 +26,13 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   log_file_name: outputs/log_wind_sim.log
   log_channels:
     - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
+    - turbine_power_setpoints
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
 
 # battery:
@@ -49,7 +56,7 @@ electrolyzer: # The name of the py_sim object
 
   component_type: ElectrolyzerPlant
   general: 
-    verbose: False # default
+    verbose: True # default
   initial_conditions:
     # Initial power input to electrolyzer 
     power_available_kw: 20000    
