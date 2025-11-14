@@ -87,7 +87,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 ### External Data (`external_data`)
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `external_data_file` | str | Path to CSV file with external time series data | Required (if `external_data` specified) |
+| `external_data_file` | str | Path to CSV file with external time series data | Optional (if not specified, `external_data` is ignored) |
 | `log_channels` | list | List of channels to log to HDF5 output | None (log all) |
 
 **Logging behavior:**

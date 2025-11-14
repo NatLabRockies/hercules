@@ -377,23 +377,25 @@ def load_hercules_input(filename):
         if not isinstance(h_dict["external_data"], dict):
             raise ValueError(f"external_data must be a dictionary in input file {filename}")
 
+        # If external_data_file is not specified, treat external_data as blank (remove it)
         if "external_data_file" not in h_dict["external_data"]:
-            raise ValueError(
-                f"external_data must contain 'external_data_file' key in input file {filename}"
-            )
-
-        # Validate and set default for log_channels
-        if "log_channels" in h_dict["external_data"]:
-            log_channels = h_dict["external_data"]["log_channels"]
-            # Allow None (from backward compatibility conversion) or list
-            if log_channels is not None and not isinstance(log_channels, list):
-                raise ValueError(
-                    f"external_data log_channels must be a list or None in input file {filename}"
-                )
-            # None means log all, empty list means log nothing, non-empty list means log only those
+            h_dict.pop("external_data")
         else:
-            # If not specified, default to None (log all channels)
-            h_dict["external_data"]["log_channels"] = None
+            # Validate and set default for log_channels
+            # (only if external_data_file is present)
+            if "log_channels" in h_dict["external_data"]:
+                log_channels = h_dict["external_data"]["log_channels"]
+                # Allow None (from backward compatibility conversion) or list
+                if log_channels is not None and not isinstance(log_channels, list):
+                    raise ValueError(
+                        f"external_data log_channels must be a list or None "
+                        f"in input file {filename}"
+                    )
+                # None means log all, empty list means log nothing,
+                # non-empty list means log only those
+            else:
+                # If not specified, default to None (log all channels)
+                h_dict["external_data"]["log_channels"] = None
 
     return h_dict
 
