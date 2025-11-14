@@ -10,6 +10,7 @@ Hercules includes several example cases that demonstrate different simulation co
 - [02b: Wind Farm Realistic Inflow (Precomputed FLORIS)](../examples/02b_wind_farm_realistic_inflow_precom_floris/) - Optimized version using precomputed wake deficits
 - [03: Wind and Solar](../examples/03_wind_and_solar/) - Hybrid wind and solar plant with interconnect limits
 - [04: Wind and Storage](../examples/04_wind_and_storage/) - Wind farm with battery storage system
+- [05: Wind and Storage with LMP](../examples/05_wind_and_storage_with_lmp/) - Battery control based on electricity pricing with selective external data logging
 
 ## Input Data Management
 

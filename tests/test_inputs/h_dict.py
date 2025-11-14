@@ -97,48 +97,62 @@ lib_battery = {
 }
 
 electrolyzer = {
-    # 'component_type': 'ElectrolyzerPlant',  # Removed for Supervisor compatibility
-    "initialize": True,
-    "initial_power_kW": 3000,
+    "component_type": 'ElectrolyzerPlant',  
+    "initial_conditions": { 
+        "power_available_kW": 3000,
+    },
     "log_channels": ["power"],
-    "supervisor": {
-        "n_stacks": 10,
-    },
-    "stack": {
-        "cell_type": "PEM",
-        "cell_area": 1000.0,
-        "max_current": 2000,
-        "temperature": 60,
-        "n_cells": 100,
-        "min_power": 50,
-        "stack_rating_kW": 500,
-        "include_degradation_penalty": True,
-    },
-    "controller": {
-        "n_stacks": 10,
-        "control_type": "DecisionControl",
-        "policy": {
-            "eager_on": False,
-            "eager_off": False,
-            "sequential": False,
-            "even_dist": False,
-            "baseline": True,
+    "electrolyzer":{
+        "initialize": True,
+        "initial_power_kW": 3000,
+        "supervisor": {
+            "n_stacks": 10,
+            "system_rating_MW": 5.0,
         },
-    },
-    "costs": None,
-    "cell_params": {
-        "cell_type": "PEM",
-        "PEM_params": {
-            "cell_area": 1000,
-            "turndown_ratio": 0.1,
-            "max_current_density": 2,
+        "stack": {
+            "cell_type": "PEM",
+            "max_current": 2000,
+            "temperature": 60,
+            "n_cells": 100,
+            "stack_rating_kW": 500,
+            "include_degradation_penalty": True,
         },
-    },
-    "degradation": {
-        "PEM_params": {
-            "rate_steady": 1.41737929e-10,
-            "rate_fatigue": 3.33330244e-07,
-            "rate_onoff": 1.47821515e-04,
+        "controller": {
+            "control_type": "DecisionControl",
+            "policy": {
+                "eager_on": False,
+                "eager_off": False,
+                "sequential": False,
+                "even_dist": False,
+                "baseline": True,
+            },
+        },
+        "cell_params": {
+            "cell_type": "PEM",
+            "max_current_density": 2.0,
+            "PEM_params": {
+                "cell_area": 1000,
+                "turndown_ratio": 0.1,
+                "max_current_density": 2,
+                "p_anode": 1.01325,
+                "p_cathode": 30,
+                "alpha_a":2,
+                "alpha_c":0.5,
+                "i_0_a":2.0e-7,
+                "i_0_c":2.0e-3,
+                "e_m":0.02,
+                "R_ohmic_elec":50.0e-3,
+                "f_1":250,
+                "f_2":0.996,
+            },
+        },
+        "degradation": {
+            "eol_eff_percent_loss": 10,
+            "PEM_params": {
+                "rate_steady": 1.41737929e-10,
+                "rate_fatigue": 3.33330244e-07,
+                "rate_onoff": 1.47821515e-04,
+            },
         },
     },
 }

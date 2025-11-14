@@ -249,6 +249,40 @@ def test_load_hercules_input_verbose_default():
         os.unlink(temp_file)
 
 
+def test_load_hercules_input_external_data_without_file():
+    """Test that external_data without external_data_file is silently ignored.
+
+    Verifies that if external_data is specified but external_data_file is missing,
+    the external_data key is removed (treated as blank).
+    """
+    import tempfile
+
+    import yaml
+
+    config = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00Z",
+        "endtime_utc": "2020-01-01T00:15:50Z",
+        "plant": {"interconnect_limit": 30000.0},
+        "external_data": {
+            "log_channels": ["channel1", "channel2"],
+            # Note: external_data_file is missing
+        },
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        yaml.dump(config, f)
+        temp_file = f.name
+
+    try:
+        result = load_hercules_input(temp_file)
+
+        # Verify that external_data was removed (treated as blank)
+        assert "external_data" not in result
+    finally:
+        os.unlink(temp_file)
+
+
 def test_load_h_dict_from_text_valid_file():
     """Test loading h_dict from a text file created by _save_h_dict_as_text.
 

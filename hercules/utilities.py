@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import warnings
 from pathlib import Path
 
 import h5py
@@ -262,6 +263,7 @@ def load_hercules_input(filename):
         "output_file",
         "log_every_n",
         "external_data_file",
+        "external_data",
         "output_use_compression",
         "output_buffer_size",
     ]
@@ -304,7 +306,7 @@ def load_hercules_input(filename):
     # Validate all keys are valid
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
-            raise ValueError(f"Key \"{key}\" not a valid key in input file {filename}")
+            raise ValueError(f'Key "{key}" not a valid key in input file {filename}')
 
     # Disallow pre-defined start/end; derive from UTC + dt policy
     if ("starttime" in h_dict) or ("endtime" in h_dict):
@@ -344,6 +346,56 @@ def load_hercules_input(filename):
                     f"{key} has an invalid component_type {h_dict[key]['component_type']} "
                     f"in input file {filename}"
                 )
+
+    # Handle external_data structure normalization
+
+    # First ensure that not both external_data_file and external_data appear
+    if "external_data_file" in h_dict and "external_data" in h_dict:
+        raise ValueError(
+            f"Cannot specify both external_data_file and external_data in input file {filename}. "
+            "Preferred is to specify external_data_file within external_data "
+            "and specify log_channels within external_data. "
+            "The old format is still supported for backward compatibility "
+            "but will show a deprecation warning."
+        )
+
+    # If old-style external_data_file is used at top level, convert to new structure with warning
+    if "external_data_file" in h_dict:
+        warnings.warn(
+            "Specifying 'external_data_file' at the top level is deprecated. "
+            "Please use 'external_data: {external_data_file: ...}' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        h_dict["external_data"] = {
+            "external_data_file": h_dict.pop("external_data_file"),
+            "log_channels": None,  # None means log all
+        }
+
+    # Validate external_data structure if present
+    if "external_data" in h_dict:
+        if not isinstance(h_dict["external_data"], dict):
+            raise ValueError(f"external_data must be a dictionary in input file {filename}")
+
+        # If external_data_file is not specified, treat external_data as blank (remove it)
+        if "external_data_file" not in h_dict["external_data"]:
+            h_dict.pop("external_data")
+        else:
+            # Validate and set default for log_channels
+            # (only if external_data_file is present)
+            if "log_channels" in h_dict["external_data"]:
+                log_channels = h_dict["external_data"]["log_channels"]
+                # Allow None (from backward compatibility conversion) or list
+                if log_channels is not None and not isinstance(log_channels, list):
+                    raise ValueError(
+                        f"external_data log_channels must be a list or None "
+                        f"in input file {filename}"
+                    )
+                # None means log all, empty list means log nothing,
+                # non-empty list means log only those
+            else:
+                # If not specified, default to None (log all channels)
+                h_dict["external_data"]["log_channels"] = None
 
     return h_dict
 

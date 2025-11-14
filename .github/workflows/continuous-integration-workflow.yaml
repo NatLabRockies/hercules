@@ -22,7 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[develop]"
-        pip install git+https://github.com/NREL/electrolyzer.git@638d890
+        pip install git+https://github.com/NREL/electrolyzer.git
         pip install https://github.com/NREL/SEAS/blob/v1/SEAS.tar.gz?raw=true
 #    - uses: pre-commit/action@v3.0.0
     - name: Run ruff
