@@ -26,8 +26,8 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `output_file` | str | Output CSV file path | "outputs/hercules_output.csv" |
 | `time_log_interval` | int | Logging interval in steps | - |
 | `log_every_n` | int | Log every N simulation steps (default: 1) | 1 |
-| `external_data` | dict | External data configuration (new format) | - |
-| `external_data_file` | str | External data file path (deprecated, use external_data instead) | - |
+| `external_data` | dict | External data configuration | - |
+| `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
 
@@ -87,7 +87,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 ### External Data (`external_data`)
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `external_data_file` | str | Path to CSV file with external time series data | Required |
+| `external_data_file` | str | Path to CSV file with external time series data | Required (if `external_data` specified) |
 | `log_channels` | list | List of channels to log to HDF5 output | None (log all) |
 
 **Logging behavior:**
