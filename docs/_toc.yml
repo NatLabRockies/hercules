@@ -10,6 +10,7 @@ parts:
   - caption: Running Hercules
     chapters:
     - file: running_hercules
+    - file: order_of_op
   - caption: Key Concepts
     chapters:
     - file: key_concepts
@@ -19,6 +20,12 @@ parts:
     - file: hybrid_plant
     - file: hercules_model
     - file: output_files
+  - caption: Plant Components
+    chapters:
+    - file: wind
+    - file: solar_pv
+    - file: battery
+    - file: electrolyzer
   - caption: Inputs
     chapters:
     - file: hercules_input
@@ -34,12 +41,4 @@ parts:
     - file: examples/03_wind_and_solar
     - file: examples/04_wind_and_storage
     - file: examples/05_wind_and_storage_with_lmp
-  - caption: HybridPlant
-    chapters:
-    - file: wind
-    - file: battery
-    - file: solar_pv
-    - file: electrolyzer
-  - caption: Usage
-    chapters:
-    - file: order_of_op
+    - file: examples/06_wind_and_hydrogen
