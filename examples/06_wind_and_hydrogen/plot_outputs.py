@@ -94,8 +94,9 @@ ax.set_ylabel("Power [kW]")
 
 # Plot hydrogen output
 ax = axarr[3]
-ax.plot(df["time_utc"], df["external_signals.hydrogen_reference"], label="Hydrogen Reference", 
-        color="k")
+ax.plot(
+    df["time_utc"], df["external_signals.hydrogen_reference"], label="Hydrogen Reference", color="k"
+)
 ax.set_ylabel("Hydrogen production [kg]")
 ax.plot(df["time_utc"], df["electrolyzer.H2_mfr"], label="Hydrogen Output", color="b")
 

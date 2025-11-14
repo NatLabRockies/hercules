@@ -68,6 +68,7 @@ class ControllerLimitSolar:
 
         return h_dict
 
+
 # Establish controllers based on options
 interface = HerculesV2Interface(hmodel.h_dict)
 
@@ -81,11 +82,7 @@ wind_controller = WindFarmPowerTrackingController(interface, hmodel.h_dict)
 #     BatteryPassthroughController(interface, hmodel.h_dict) if include_battery
 #     else None
 # )
-controller = HydrogenPlantController(
-    interface,
-    hmodel.h_dict,
-    generator_controller=wind_controller
-)
+controller = HydrogenPlantController(interface, hmodel.h_dict, generator_controller=wind_controller)
 
 # Assign the controller to the Hercules model
 hmodel.assign_controller(controller)
