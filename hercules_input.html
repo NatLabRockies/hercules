@@ -452,6 +452,14 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-process">Loading Process</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example">Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-configuration">External Data Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-format-preferred">New Format (Preferred)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#old-format-deprecated">Old Format (Deprecated)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-file-format">External Data File Format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-in-controllers">Usage in Controllers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#selective-logging-examples">Selective Logging Examples</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-configuration-options">Output Configuration Options</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#log-every-n">log_every_n</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-file">output_file</a></li>
@@ -486,6 +494,7 @@ document.write(`
 <li><p><strong>Top level parameters</strong>: <code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for details)</p></li>
 <li><p><strong>Plant configuration</strong>: <code class="docutils literal notranslate"><span class="pre">interconnect_limit</span></code></p></li>
 <li><p><strong>Hybrid plant configurations</strong>: <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></li>
+<li><p><strong>External data</strong>: <code class="docutils literal notranslate"><span class="pre">external_data</span></code> for external time series data (e.g., LMP prices, weather forecasts)</p></li>
 <li><p><strong>Optional settings</strong>: <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">output_file</span></code></p></li>
 </ul>
 </section>
@@ -570,6 +579,104 @@ document.write(`
 </pre></div>
 </div>
 </section>
+<section id="external-data-configuration">
+<h2>External Data Configuration<a class="headerlink" href="#external-data-configuration" title="Link to this heading">#</a></h2>
+<p>Hercules supports loading external time series data from CSV files (e.g., electricity prices, weather forecasts, or other external signals). This data becomes available to controllers through <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;external_signals&quot;]</span></code>.</p>
+<section id="new-format-preferred">
+<h3>New Format (Preferred)<a class="headerlink" href="#new-format-preferred" title="Link to this heading">#</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">external_data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">external_data_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">path/to/data.csv</span>
+<span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lmp_rt</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_forecast</span>
+</pre></div>
+</div>
+<p><strong>Key features:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">external_data_file</span></code>: Path to CSV file with <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column and data columns</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: Optional list of channels to log to HDF5 output</p>
+<ul>
+<li><p>If <strong>omitted</strong>: all channels are logged (default behavior)</p></li>
+<li><p>If <strong>empty list</strong> (<code class="docutils literal notranslate"><span class="pre">log_channels:</span> <span class="pre">[]</span></code>): no channels are logged</p></li>
+<li><p>If <strong>non-empty list</strong>: only listed channels are written to HDF5</p></li>
+<li><p><strong>Important</strong>: All channels are always available to the controller via <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;external_signals&quot;]</span></code>, regardless of <code class="docutils literal notranslate"><span class="pre">log_channels</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="old-format-deprecated">
+<h3>Old Format (Deprecated)<a class="headerlink" href="#old-format-deprecated" title="Link to this heading">#</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">external_data_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">path/to/data.csv</span><span class="w">  </span><span class="c1"># Logs all channels, shows deprecation warning</span>
+</pre></div>
+</div>
+<p>The old format is still supported for backward compatibility but will show a deprecation warning. It automatically logs all external data channels to the output file.</p>
+</section>
+<section id="external-data-file-format">
+<h3>External Data File Format<a class="headerlink" href="#external-data-file-format" title="Link to this heading">#</a></h3>
+<p>The CSV file must contain:</p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column with UTC timestamps in ISO 8601 format</p></li>
+<li><p>One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like <code class="docutils literal notranslate"><span class="pre">lmp_rt</span></code>, <code class="docutils literal notranslate"><span class="pre">lmp_da</span></code>, <code class="docutils literal notranslate"><span class="pre">wind_forecast</span></code>, etc.</p></li>
+</ul>
+<p>Example <code class="docutils literal notranslate"><span class="pre">lmp_data.csv</span></code>:</p>
+<div class="highlight-csv notranslate"><div class="highlight"><pre><span></span>time_utc,lmp_rt,lmp_da,wind_forecast
+2024-06-24T16:59:08Z,25.5,20.0,12.3
+2024-06-24T17:04:08Z,26.1,20.0,12.5
+2024-06-24T17:09:08Z,27.3,20.0,12.8
+...
+</pre></div>
+</div>
+<p>Hercules automatically interpolates external data to match the simulation time step.</p>
+</section>
+<section id="usage-in-controllers">
+<h3>Usage in Controllers<a class="headerlink" href="#usage-in-controllers" title="Link to this heading">#</a></h3>
+<p>All external data channels are accessible in the controller through <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;external_signals&quot;]</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyController</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
+        <span class="c1"># Access external signals (all channels available)</span>
+        <span class="n">lmp_rt</span> <span class="o">=</span> <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;external_signals&quot;</span><span class="p">][</span><span class="s2">&quot;lmp_rt&quot;</span><span class="p">]</span>
+        <span class="n">lmp_da</span> <span class="o">=</span> <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;external_signals&quot;</span><span class="p">][</span><span class="s2">&quot;lmp_da&quot;</span><span class="p">]</span>
+        <span class="n">wind_forecast</span> <span class="o">=</span> <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;external_signals&quot;</span><span class="p">][</span><span class="s2">&quot;wind_forecast&quot;</span><span class="p">]</span>
+        
+        <span class="c1"># Use signals for control logic</span>
+        <span class="k">if</span> <span class="n">lmp_rt</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+            <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;battery&quot;</span><span class="p">][</span><span class="s2">&quot;power_setpoint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10000</span>  <span class="c1"># charge</span>
+        <span class="k">elif</span> <span class="n">lmp_rt</span> <span class="o">&gt;</span> <span class="mi">35</span><span class="p">:</span>
+            <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;battery&quot;</span><span class="p">][</span><span class="s2">&quot;power_setpoint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>  <span class="c1"># discharge</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_dict</span><span class="p">[</span><span class="s2">&quot;battery&quot;</span><span class="p">][</span><span class="s2">&quot;power_setpoint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">return</span> <span class="n">h_dict</span>
+</pre></div>
+</div>
+<p>Even if <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> only specifies <code class="docutils literal notranslate"><span class="pre">[&quot;lmp_rt&quot;]</span></code>, the controller can still access all channels. The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> setting only controls what gets written to the HDF5 output file.</p>
+</section>
+<section id="selective-logging-examples">
+<h3>Selective Logging Examples<a class="headerlink" href="#selective-logging-examples" title="Link to this heading">#</a></h3>
+<p><strong>Example 1: Log all channels (default)</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">external_data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">external_data_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data.csv</span>
+<span class="w">  </span><span class="c1"># log_channels not specified → logs all channels</span>
+</pre></div>
+</div>
+<p><strong>Example 2: Log specific channels</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">external_data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">external_data_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data.csv</span>
+<span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lmp_rt</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_forecast</span>
+<span class="w">  </span><span class="c1"># Only logs lmp_rt and wind_forecast (but all channels available to controller)</span>
+</pre></div>
+</div>
+<p><strong>Example 3: Log no channels</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">external_data</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">external_data_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data.csv</span>
+<span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span><span class="w">  </span><span class="c1"># Empty list → logs nothing (but all channels available to controller)</span>
+</pre></div>
+</div>
+<p>This is useful when you want external data available for control decisions but don’t need it saved in the output file.</p>
+</section>
+</section>
 <section id="output-configuration-options">
 <h2>Output Configuration Options<a class="headerlink" href="#output-configuration-options" title="Link to this heading">#</a></h2>
 <p>Hercules supports several output configuration options to optimize file size and write performance:</p>
@@ -600,7 +707,6 @@ document.write(`
 <span class="nt">dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="nt">starttime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T12:00:00Z&quot;</span>
 <span class="nt">endtime_utc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2020-06-15T13:00:00Z&quot;</span><span class="w">  </span><span class="c1"># 1 hour simulation</span>
-
 
 <span class="c1"># Log every 60 seconds (1 minute) to reduce file size</span>
 <span class="nt">log_every_n</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
@@ -718,6 +824,14 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure">Structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-process">Loading Process</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example">Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-configuration">External Data Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-format-preferred">New Format (Preferred)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#old-format-deprecated">Old Format (Deprecated)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-file-format">External Data File Format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-in-controllers">Usage in Controllers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#selective-logging-examples">Selective Logging Examples</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-configuration-options">Output Configuration Options</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#log-every-n">log_every_n</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-file">output_file</a></li>

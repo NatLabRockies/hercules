@@ -564,7 +564,7 @@ document.write(`
 <p>The <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_griddstatus()</span></code> function combines the real-time and day-ahead LMP data into a format optimized for WHOC:</p>
 <ul class="simple">
 <li><p>Merges real-time and day-ahead data at the base interval of the real-time data</p></li>
-<li><p>Creates hourly day-ahead LMP columns (<code class="docutils literal notranslate"><span class="pre">DA_LMP_00</span></code> through <code class="docutils literal notranslate"><span class="pre">DA_LMP_23</span></code>) for each hour of the day</p></li>
+<li><p>Creates hourly day-ahead LMP columns (<code class="docutils literal notranslate"><span class="pre">lmp_da_00</span></code> through <code class="docutils literal notranslate"><span class="pre">lmp_da_23</span></code>) for each hour of the day</p></li>
 <li><p>Forward-fills any missing values</p></li>
 <li><p>Generates “end” rows for each time interval for Hercules interpolation</p></li>
 </ul>
@@ -574,9 +574,9 @@ document.write(`
 <p>The resulting DataFrame contains:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: UTC timestamp</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RT_LMP</span></code>: Real-time LMP at the base time interval</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DA_LMP</span></code>: Day-ahead LMP (forward-filled to the base interval)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DA_LMP_00</span></code> through <code class="docutils literal notranslate"><span class="pre">DA_LMP_23</span></code>: Day-ahead LMP for each hour of the day</p></li>
+<li><p>``: Real-time LMP at the base time interval</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmp_da</span></code>: Day-ahead LMP (forward-filled to the base interval)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmp_da_00</span></code> through <code class="docutils literal notranslate"><span class="pre">lmp_da_23</span></code>: Day-ahead LMP for each hour of the day</p></li>
 </ul>
 <p>This format is optimized for use with WHOC in Hercules simulations.</p>
 </section>
