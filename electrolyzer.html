@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Solar PV &#8212; HERCULES</title>
+    <title>Electrolyzer Plant &#8212; HERCULES</title>
   
   
   
@@ -70,11 +70,11 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'solar_pv';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'electrolyzer';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Electrolyzer Plant" href="electrolyzer.html" />
-    <link rel="prev" title="Battery" href="battery.html" />
+    <link rel="next" title="Order of Operations" href="order_of_op.html" />
+    <link rel="prev" title="Solar PV" href="solar_pv.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -231,8 +231,8 @@
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Solar PV</a></li>
-<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Electrolyzer Plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
 <ul class="nav bd-sidenav">
@@ -308,7 +308,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/solar_pv.md" target="_blank"
+      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/electrolyzer.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -325,7 +325,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fsolar_pv.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Felectrolyzer.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -355,7 +355,7 @@
       
       
       
-      <li><a href="_sources/solar_pv.md" target="_blank"
+      <li><a href="_sources/electrolyzer.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -439,7 +439,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Solar PV</h1>
+    <h1>Electrolyzer Plant</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -449,10 +449,14 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-channels">Available Channels</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
@@ -465,87 +469,168 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="solar-pv">
-<h1>Solar PV<a class="headerlink" href="#solar-pv" title="Link to this heading">#</a></h1>
-<p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Renewable Energy Laboratory’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
-<p>Presently only one solar simulator is available</p>
-<ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> in the input dictionary (.yaml file).</p></li>
-</ol>
+  <section class="tex2jax_ignore mathjax_ignore" id="electrolyzer-plant">
+<h1>Electrolyzer Plant<a class="headerlink" href="#electrolyzer-plant" title="Link to this heading">#</a></h1>
+<p>The hydrogen electrolyzer modules use the <a class="reference external" href="https://github.com/NREL/electrolyzer">electrolyzer</a> package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repot contains models for PEM and Alkaline electrolyzer cell types.</p>
+<p>To create a hydrogen electrolzer plant, set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code> in the input dictionary (.yaml file).</p>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
-<p>Both models require an input weather file:</p>
-<ol class="arabic simple">
-<li><p>A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:</p>
+<section id="required-parameters">
+<h3>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h3>
+<p>The parameters listed below are required unless otherwise specifice as <em>Optional</em>.</p>
 <ul class="simple">
-<li><p>timestamp (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements)</p></li>
-<li><p>direct normal irradiance (DNI)</p></li>
-<li><p>diffuse horizontal irradiance (DHI)</p></li>
-<li><p>global horizontal irradiance (GHI)</p></li>
-<li><p>wind speed</p></li>
-<li><p>air temperature (dry bulb temperature)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">general</span></code>: General simulation parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code>: Initial conditions for the simulation including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">power_available_kw</span></code>: Initial power available to the electrolyzer [kW]</p></li>
 </ul>
 </li>
-</ol>
-<p>The system location (latitude, longitude, and elevation) is specified in the input <code class="docutils literal notranslate"><span class="pre">yaml</span></code> file.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>: Electrolyzer plant specific parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">initialize</span></code>: boolean. Whether to initialize the electrolyzer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_power_kW</span></code>: Initial power input to the electrolyzer [kW].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">supervisor</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_rating_MW</span></code>: Total system rating in MW.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_stacks</span></code>: Number of electrolyzer stacks in the plant.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack</span></code>: Electrolyzer stack parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cell_type</span></code>: Type of electrolyzer cell (e.g., PEM, Alkaline).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_current</span></code>: Maximum current of the stack [A].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code>: Stack operating temperature [degC].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_cells</span></code>: Number of cells per stack.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_power</span></code>: Minimum power for electrolyzer operation [kW].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack_rating_kW</span></code>: Stack rated power [kW].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include_degradation_penalty</span></code>: <em>Optional</em> Whether to include degradation penalty.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hydrogen_degradation_penalty</span></code>: <em>Optional</em> boolean, wether degradation is applied to hydrogen (True) or power (False)</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cell_params</span></code>: Electrolyzer cell parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cell_area</span></code>: Area of individual cells in the stack [cm^2].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turndown_ratio</span></code>: Minimum turndown ratio for stack operation [between 0 and 1].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">current_density</span></code>: Maximum current density [A/cm^2].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_anode</span></code>: Anode operating pressure [bar].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_cathode</span></code>: Cathode operating pressure [bar].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha_a</span></code>: anode charge transfer coefficient.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha_c</span></code>: cathode charge transfer coefficient.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">i_0_a</span></code>: anode exchange current density [A/cm^2].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">i_0_c</span></code>: cathode exchange current density [A/cm^2].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">e_m</span></code>: membrane thickness [cm].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R_ohmic_elec</span></code>: electrolyte resistance [A*cm^2].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">f_1</span></code>: faradaic coefficien [mA^2/cm^4].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">f_2</span></code>: faradaic coefficien [mA^2/cm^4].</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">degradation</span></code>: Electrolyzer degradation parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">eol_eff_percent_loss</span></code>: End of life efficiency percent loss [%].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PEM_params</span></code> or <code class="docutils literal notranslate"><span class="pre">ALK_params</span></code>: Degradation parameters specific to PEM or Alkaline cells:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate_steady</span></code>: Rate of voltage degradation under steady operation alone</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate_fatigue</span></code>: Rate of voltage degradation under variable operation alone</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate_onoff</span></code>: Rate of voltage degradation per on/off cycle</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">controller</span></code>: Electrolyzer control parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_type</span></code>: Controller type for electrolyzer plant operation.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">costs</span></code>: <em>Optional</em> Cost parameters for the electrolyzer plant including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">plant_params</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">plant_life</span></code>: integer, Plant life in years</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pem_location</span></code>: Location of the PEM electrolyzer. Options are
+[onshore, offshore, in-turbine]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grid_connected</span></code>: boolean, Whether the plant is connected to the grid or not</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">feedstock</span></code>: Parameters related to the feedstock including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">water_feedstock_cost</span></code>: Cost of water per kg of water</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">water_per_kgH2</span></code>: Amount of water required per kg of hydrogen produced</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opex</span></code>: Operational expenditure parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">var_OM</span></code>: Variable operation and maintenance cost per kW</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fixed_OM</span></code>: Fixed operation and maintenance cost per kW-year</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack_replacement</span></code>: Parameters related to stack replacement costs including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">d_eol</span></code>: End of life cell voltage value [V]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack_replacement_percent</span></code>: Stack replacement cost as a percentage of CapEx [0,1]</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">capex</span></code>: Capital expenditure parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">capex_learning_rate</span></code>: Capital expenditure learning rate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_cost_bop</span></code>: Reference cost of balance of plant per kW.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_size_bop</span></code>: Reference size of balance of plant in kW.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_cost_pem</span></code>: Reference cost of PEM electrolyzer stack per kW.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_size_pem</span></code>: Reference size of PEM electrolyzer stack in kW.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">finances</span></code>: Financial parameters including:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">discount_rate</span></code>: Discount rate for financial calculations [%].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">install_factor</span></code>: Installation factor for capital expenditure [0,1].</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#elec-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> below)</p></li>
+</ul>
+</section>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>The solar module output is the DC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.  Using DC power makes the parameters <code class="docutils literal notranslate"><span class="pre">inv_eff</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_to_ac_ratio</span></code> irrelevant.  The <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> parameter represents the DC system capacity under Standard Test Conditions.</p>
-<p>The PVWatts model is configured with the following hardcoded parameters for utility-scale installations:</p>
-<ul class="simple">
-<li><p><strong>Module type</strong>: Standard crystalline silicon (module_type = 0)</p></li>
-<li><p><strong>Array type</strong>: Single-axis tracking with backtracking (array_type = 3)</p></li>
-<li><p><strong>Azimuth</strong>: 180° (due south)</p></li>
-<li><p><strong>DC/AC ratio</strong>: 1.0</p></li>
-</ul>
-<p>The array tilt angle must be specified in the input configuration file.</p>
-</section>
-<section id="logging-configuration">
-<h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<p id="elec-logging-configuration"><strong>Logging Configuration</strong></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
-<p><strong>Available Channels:</strong></p>
+<section id="available-channels">
+<h3>Available Channels<a class="headerlink" href="#available-channels" title="Link to this heading">#</a></h3>
+<p><strong>Scalar Channels:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: DC power output in kW (always logged)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">poa</span></code>: Plane-of-array irradiance in W/m²</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dni</span></code>: Direct normal irradiance in W/m²</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aoi</span></code>: Angle of incidence in degrees</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">H2_output</span></code>: Total hydrogen produced during the last timestep</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">H2_mfr</span></code>: Mass flow rate of the hydrogen production in kg/s</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Power that the electrolyzer plant used to create hydrogen (kW). This follows the convention that power consumed is negative power.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Power_input_kw</span></code>: Power allocated to the electrolyzer plant to use (kW)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stacks_on</span></code>: Total number of stacks producing hydrogen</p></li>
+</ul>
+<p><strong>Array Channels:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stacks_waiting</span></code>: Boolean list of the stacks that are waiting to start producing hydrogen (True for stacks waiting, False for stacks not waiting)</p></li>
 </ul>
 <p><strong>Example:</strong></p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">solar_farm</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SolarPySAMPVWatts</span>
-<span class="w">  </span><span class="nt">solar_input_filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inputs/solar_input.csv</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">ele</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ElectrolyzerPlant</span>
 <span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dni</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poa</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aoi</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">H2_output</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">H2_mfr</span>
+<span class="w">  </span><span class="nt">initial_conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">power_available_kw</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3000</span>
+<span class="w">  </span><span class="nt">electrolyzer</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># ... other parameters</span>
 </pre></div>
 </div>
 <p>If <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> is not specified, only <code class="docutils literal notranslate"><span class="pre">power</span></code> will be logged.</p>
 </section>
-<section id="efficiency-and-loss-parameters">
-<h2>Efficiency and Loss Parameters<a class="headerlink" href="#efficiency-and-loss-parameters" title="Link to this heading">#</a></h2>
-<p>ALthough the pysam model <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model, technically includes efficiency terms:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">inv_eff</span></code></strong> - Inverter efficiency as a percentage (0-99.5). (No longer used in Hercules)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">losses</span></code></strong> - System losses as a percentage (0-100). Default recommended value: <code class="docutils literal notranslate"><span class="pre">0</span></code> (no losses). This parameter affects the DC power generated by the PV panels, before any conversion to AC by the inverter.</p></li>
-</ul>
-<p>The example folder <code class="docutils literal notranslate"><span class="pre">03_wind_and_solar</span></code> specifies:</p>
-<ul class="simple">
-<li><p>use of the <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model with <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">&quot;SolarPySAMPVWatts&quot;</span></code></p></li>
-<li><p>weather conditions on May 10, 2018 measured at NREL’s Flatirons Campus</p></li>
-<li><p>latitude, longitude, and elevation of Golden, CO</p></li>
-<li><p>system design information for a 100 MW single-axis PV tracking system (with backtracking)</p></li>
-<li><p>inverter efficiency of 99.5% and system losses of 0%</p></li>
-</ul>
-<p>The system capacity can be changed in the <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file, but the DC/AC ratio is fixed at 1.0.</p>
-<p>For examples using the detailed <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model, see the test files in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
-<p>PySAM. National Renewable Energy Laboratory. Golden, CO. <a class="github reference external" href="https://github.com/nrel/pysam">nrel/pysam</a></p>
+<ol class="arabic simple">
+<li><p>Z. Tully, G. Starke, K. Johnson and J. King, “An Investigation of Heuristic Control Strategies for Multi-Electrolyzer Wind-Hydrogen Systems Considering Degradation,” 2023 IEEE Conference on Control Technology and Applications (CCTA), Bridgetown, Barbados, 2023, pp. 817-822, doi: 10.1109/CCTA54093.2023.10252187.</p></li>
+</ol>
 </section>
 </section>
 
@@ -580,20 +665,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="battery.html"
+       href="solar_pv.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Battery</p>
+        <p class="prev-next-title">Solar PV</p>
       </div>
     </a>
     <a class="right-next"
-       href="electrolyzer.html"
+       href="order_of_op.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Electrolyzer Plant</p>
+        <p class="prev-next-title">Order of Operations</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -613,10 +698,14 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-channels">Available Channels</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
