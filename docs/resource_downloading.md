@@ -40,7 +40,7 @@ Arguments to the `download_nsrdb_data` function used to specify the data to down
 - `year`: The year for which data are requested.
 - `start_date`: If `year` is not used, the specific start date for which data are requested.
 - `end_date`: If `year` is not used, the specific end date for which data are requested.
-- `variables`: List of variables to download. Defaults to ["ghi", "dni", "dhi"].
+- `variables`: List of variables to download. Defaults to ["ghi", "dni", "dhi", "wind_speed", "air_temperature"].
 - `nsrdb_dataset_path`:  Path name of NSRDB dataset. Available datasets are described [here](https://developer.nrel.gov/docs/solar/nsrdb/) and path names can be identified [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). Defaults to the GOES Conus v4.0.0 dataset: "/nrel/nsrdb/GOES/conus/v4.0.0".
 - `nsrdb_filename_prefix`: File name prefix for the NSRDB HDF5 files in the format "{nsrdb_filename_prefix}_{year}.h5". Information about file names can be found [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). Defaults to "nsrdb_conus".
 - `coord_delta`: Coordinate delta for bounding box defining grid of points for which data are requested. Bounding box is defined as target_lat +/- coord_delta and target_lon +/- coord_delta. Defaults to 0.1 degrees.
