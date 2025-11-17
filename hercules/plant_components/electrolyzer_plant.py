@@ -51,8 +51,8 @@ class ElectrolyzerPlant(ComponentBase):
                     - i_0_c: cathode exchange current density [A/cm^2].
                     - e_m: membrane thickness [cm].
                     - R_ohmic_elec: electrolyte resistance [A*cm^2].
-                    - f_1: faradaic coefficient [mA^2/cm^4].
-                    - f_2: faradaic coefficient [mA^2/cm^4].
+                    - f_1: Faradaic coefficient [mA^2/cm^4].
+                    - f_2: Faradaic coefficient [mA^2/cm^4].
                 degradation: Electrolyzer degradation parameters including:
                     - eol_eff_percent_loss: End of life efficiency percent loss [%].
                     - PEM_params or ALK_params: Degradation parameters specific to PEM or Alkaline
