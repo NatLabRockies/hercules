@@ -1,14 +1,14 @@
 # Electrolyzer Plant
 
-The hydrogen electrolyzer modules use the [electrolyzer](https://github.com/NREL/electrolyzer) package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repot contains models for PEM and Alkaline electrolyzer cell types.
+The hydrogen electrolyzer modules use the [electrolyzer](https://github.com/NREL/electrolyzer) package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repo contains models for PEM and Alkaline electrolyzer cell types.
 
-To create a hydrogen electrolzer plant, set `component_type` = `ElectrolyzerPlant` in the input dictionary (.yaml file).
+To create a hydrogen electrolyzer plant, set `component_type` = `ElectrolyzerPlant` in the input dictionary (.yaml file).
 
 
 ## Inputs
 
 #### Required Parameters
-The parameters listed below are required unless otherwise specifice as *Optional*.
+The parameters listed below are required unless otherwise specified as *Optional*.
 
 - `general`: General simulation parameters.
 - `initial_conditions`: Initial conditions for the simulation including:
@@ -27,7 +27,7 @@ The parameters listed below are required unless otherwise specifice as *Optional
         - `min_power`: Minimum power for electrolyzer operation [kW].
         - `stack_rating_kW`: Stack rated power [kW].
         - `include_degradation_penalty`: *Optional* Whether to include degradation penalty.
-        - `hydrogen_degradation_penalty`: *Optional* boolean, wether degradation is applied to hydrogen (True) or power (False)
+        - `hydrogen_degradation_penalty`: *Optional* boolean, whether degradation is applied to hydrogen (True) or power (False)
     - `cell_params`: Electrolyzer cell parameters including:
         - `cell_area`: Area of individual cells in the stack [cm^2].
         - `turndown_ratio`: Minimum turndown ratio for stack operation [between 0 and 1].
@@ -40,8 +40,8 @@ The parameters listed below are required unless otherwise specifice as *Optional
         - `i_0_c`: cathode exchange current density [A/cm^2].
         - `e_m`: membrane thickness [cm].
         - `R_ohmic_elec`: electrolyte resistance [A*cm^2].
-        - `f_1`: faradaic coefficien [mA^2/cm^4].
-        - `f_2`: faradaic coefficien [mA^2/cm^4].
+        - `f_1`: Faradaic coefficient [mA^2/cm^4].
+        - `f_2`: Faradaic coefficient [mA^2/cm^4].
     - `degradation`: Electrolyzer degradation parameters including:
         - `eol_eff_percent_loss`: End of life efficiency percent loss [%].
         - `PEM_params` or `ALK_params`: Degradation parameters specific to PEM or Alkaline cells:

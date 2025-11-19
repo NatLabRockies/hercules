@@ -2,11 +2,11 @@ import pandas as pd
 
 
 def generate_locational_marginal_price_dataframe_from_gridstatus(
-        df_day_ahead_lmp: pd.DataFrame,
-        df_real_time_lmp: pd.DataFrame,
-        day_ahead_market_name: str="DAY_AHEAD_HOURLY",
-        real_time_market_name: str="REAL_TIME_5_MIN",
-    ):
+    df_day_ahead_lmp: pd.DataFrame,
+    df_real_time_lmp: pd.DataFrame,
+    day_ahead_market_name: str = "DAY_AHEAD_HOURLY",
+    real_time_market_name: str = "REAL_TIME_5_MIN",
+):
     """
     Create a dataframe containing the day ahead price forecast and the real time price
     at real-time price intervals.
@@ -52,9 +52,8 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
     df_rt["time_utc"] = pd.to_datetime(df_rt["time_utc"])
 
     # Check that there is an overlap between time ranges
-    if (
-        max(df_da["time_utc"].min(), df_rt["time_utc"].min())
-        >= min(df_da["time_utc"].max(), df_rt["time_utc"].max())
+    if max(df_da["time_utc"].min(), df_rt["time_utc"].min()) >= min(
+        df_da["time_utc"].max(), df_rt["time_utc"].max()
     ):
         raise ValueError(
             f"No time overlap between day-ahead and real-time data.\n"
@@ -71,9 +70,7 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
     # Create 24 rolling hourly columns (forward-looking)
     periods_per_hour = 3600 / dt
     if not periods_per_hour.is_integer():
-        raise ValueError(
-            f"Data time step of {dt} seconds is not compatible with hourly periods."
-        )
+        raise ValueError(f"Data time step of {dt} seconds is not compatible with hourly periods.")
     periods_per_hour = int(periods_per_hour)
 
     for h in range(24):

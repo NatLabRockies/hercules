@@ -11,6 +11,7 @@ Hercules includes several example cases that demonstrate different simulation co
 - [03: Wind and Solar](../examples/03_wind_and_solar/) - Hybrid wind and solar plant with interconnect limits
 - [04: Wind and Storage](../examples/04_wind_and_storage/) - Wind farm with battery storage system
 - [05: Wind and Storage with LMP](../examples/05_wind_and_storage_with_lmp/) - Battery control based on electricity pricing with selective external data logging
+- [06: Wind and Hydrogen](../examples/06_wind_and_hydrogen/) - Wind farm with electrolyzer for hydrogen production
 
 ## Input Data Management
 

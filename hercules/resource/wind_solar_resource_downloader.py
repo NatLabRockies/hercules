@@ -38,7 +38,7 @@ def download_nsrdb_data(
     year: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    variables: List[str] = ["ghi", "dni", "dhi"],
+    variables: List[str] = ["ghi", "dni", "dhi", "wind_speed", "air_temperature"],
     nsrdb_dataset_path="/nrel/nsrdb/GOES/conus/v4.0.0",
     nsrdb_filename_prefix="nsrdb_conus",
     coord_delta: float = 0.1,
@@ -68,7 +68,7 @@ def download_nsrdb_data(
         end_date (str, optional): End date in format 'YYYY-MM-DD' (if using date range
             approach).
         variables (List[str], optional): List of variables to download.
-            Defaults to ['ghi', 'dni', 'dhi'].
+            Defaults to ['ghi', 'dni', 'dhi', 'wind_speed', 'air_temperature'].
         nsrdb_dataset_path (str, optional): Path name of NSRDB dataset. Available datasets at
             https://developer.nrel.gov/docs/solar/nsrdb/.
             Defaults to "/nrel/nsrdb/GOES/conus/v4.0.0".
