@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'electrolyzer';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Order of Operations" href="order_of_op.html" />
-    <link rel="prev" title="Solar PV" href="solar_pv.html" />
+    <link rel="next" title="Hercules Input Files" href="hercules_input.html" />
+    <link rel="prev" title="Battery" href="battery.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -200,6 +200,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
 <ul class="nav bd-sidenav">
@@ -210,6 +211,13 @@
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Electrolyzer Plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
@@ -226,17 +234,6 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Electrolyzer Plant</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 
     </div>
@@ -471,13 +468,13 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="electrolyzer-plant">
 <h1>Electrolyzer Plant<a class="headerlink" href="#electrolyzer-plant" title="Link to this heading">#</a></h1>
-<p>The hydrogen electrolyzer modules use the <a class="reference external" href="https://github.com/NREL/electrolyzer">electrolyzer</a> package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repot contains models for PEM and Alkaline electrolyzer cell types.</p>
-<p>To create a hydrogen electrolzer plant, set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code> in the input dictionary (.yaml file).</p>
+<p>The hydrogen electrolyzer modules use the <a class="reference external" href="https://github.com/NREL/electrolyzer">electrolyzer</a> package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repo contains models for PEM and Alkaline electrolyzer cell types.</p>
+<p>To create a hydrogen electrolyzer plant, set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code> in the input dictionary (.yaml file).</p>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
 <section id="required-parameters">
 <h3>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h3>
-<p>The parameters listed below are required unless otherwise specifice as <em>Optional</em>.</p>
+<p>The parameters listed below are required unless otherwise specified as <em>Optional</em>.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">general</span></code>: General simulation parameters.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code>: Initial conditions for the simulation including:</p>
@@ -504,7 +501,7 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">min_power</span></code>: Minimum power for electrolyzer operation [kW].</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stack_rating_kW</span></code>: Stack rated power [kW].</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">include_degradation_penalty</span></code>: <em>Optional</em> Whether to include degradation penalty.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hydrogen_degradation_penalty</span></code>: <em>Optional</em> boolean, wether degradation is applied to hydrogen (True) or power (False)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hydrogen_degradation_penalty</span></code>: <em>Optional</em> boolean, whether degradation is applied to hydrogen (True) or power (False)</p></li>
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cell_params</span></code>: Electrolyzer cell parameters including:</p>
@@ -520,8 +517,8 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">i_0_c</span></code>: cathode exchange current density [A/cm^2].</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">e_m</span></code>: membrane thickness [cm].</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">R_ohmic_elec</span></code>: electrolyte resistance [A*cm^2].</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">f_1</span></code>: faradaic coefficien [mA^2/cm^4].</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">f_2</span></code>: faradaic coefficien [mA^2/cm^4].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">f_1</span></code>: Faradaic coefficient [mA^2/cm^4].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">f_2</span></code>: Faradaic coefficient [mA^2/cm^4].</p></li>
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">degradation</span></code>: Electrolyzer degradation parameters including:</p>
@@ -665,20 +662,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="solar_pv.html"
+       href="battery.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Solar PV</p>
+        <p class="prev-next-title">Battery</p>
       </div>
     </a>
     <a class="right-next"
-       href="order_of_op.html"
+       href="hercules_input.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Order of Operations</p>
+        <p class="prev-next-title">Hercules Input Files</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

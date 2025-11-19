@@ -75,8 +75,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'battery';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Solar PV" href="solar_pv.html" />
-    <link rel="prev" title="Wind Farm Components" href="wind.html" />
+    <link rel="next" title="Electrolyzer Plant" href="electrolyzer.html" />
+    <link rel="prev" title="Solar PV" href="solar_pv.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -202,6 +202,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
 <ul class="nav bd-sidenav">
@@ -212,6 +213,13 @@
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
@@ -228,17 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">HybridPlant</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
-<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Usage</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 
     </div>
@@ -489,7 +486,7 @@ document.write(`
 <p>It is important to note that within the battery modules, the convention that positive power is charging the<br />
 battery is followed for consistency with battery standards.  However, at the level of the <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>
 this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
-for consistency with other components.  This inversions applies to power_setpoint and also occurs within
+for consistency with other components.  This inversion applies to power_setpoint and also occurs within
 <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>.</p>
 <section id="parameters">
 <h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
@@ -657,20 +654,20 @@ for consistency with other components.  This inversions applies to power_setpoin
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="wind.html"
+       href="solar_pv.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Wind Farm Components</p>
+        <p class="prev-next-title">Solar PV</p>
       </div>
     </a>
     <a class="right-next"
-       href="solar_pv.html"
+       href="electrolyzer.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Solar PV</p>
+        <p class="prev-next-title">Electrolyzer Plant</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

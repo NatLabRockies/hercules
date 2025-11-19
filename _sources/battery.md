@@ -7,7 +7,7 @@ There are two battery models currently implemented in Hercules: `BatterySimple` 
 It is important to note that within the battery modules, the convention that positive power is charging the  
 battery is followed for consistency with battery standards.  However, at the level of the `HybridPlant`
 this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
-for consistency with other components.  This inversions applies to power_setpoint and also occurs within
+for consistency with other components.  This inversion applies to power_setpoint and also occurs within
 `HybridPlant`.
 
 ### Parameters
