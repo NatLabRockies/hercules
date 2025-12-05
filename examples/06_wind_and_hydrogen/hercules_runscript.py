@@ -1,11 +1,11 @@
 import numpy as np
 from hercules.hercules_model import HerculesModel
 from hercules.utilities_examples import ensure_example_inputs_exist, prepare_output_directory
-from whoc.controllers import (
+from hycon.controllers import (
     HydrogenPlantController,
     WindFarmPowerTrackingController,
 )
-from whoc.interfaces import HerculesInterface
+from hycon.interfaces import HerculesInterface
 
 prepare_output_directory()
 

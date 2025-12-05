@@ -1,7 +1,7 @@
 # README
 
 # hercules
-Hercules is an open-source tool for wind-based hybrid plant simulation in real time. Hercules emulates a wind farm co-simulated with other generation to form a hybrid plant that can include solar, storage and electrolyzers. The entire hybrid plant can be controlled using the [Wind Hybrid Open Controller (WHOC)](https://github.com/nrel/wind-hybrid-open-controller).
+Hercules is an open-source tool for wind-based hybrid plant simulation in real time. Hercules emulates a wind farm co-simulated with other generation to form a hybrid plant that can include solar, storage and electrolyzers. The entire hybrid plant can be controlled using [Hycon](https://github.com/nrel/hycon).
 
 ## Part of the WETO Stack
 
