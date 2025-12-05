@@ -2,8 +2,8 @@
 WTK, NSRDB, and Open-Meteo Data Downloader
 
 This script provides functions to download weather data from multiple sources:
-- NREL's Wind Toolkit (WTK) for high-resolution wind data
-- NREL's National Solar Radiation Database (NSRDB) for solar irradiance data
+- NLR's Wind Toolkit (WTK) for high-resolution wind data
+- NLR's National Solar Radiation Database (NSRDB) for solar irradiance data
 - Open-Meteo API for historical weather data with global coverage
 
 All three data sources provide consistent output formats (feather files) for easy integration
@@ -49,7 +49,7 @@ def download_nsrdb_data(
 ) -> dict:
     """Download NSRDB solar irradiance data for a specified location and time period.
 
-    This function requires an NREL API key, which can be obtained by visiting
+    This function requires an NLR API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
     file at ~/.hscfg containing the following:
 
@@ -230,7 +230,7 @@ def download_wtk_data(
 ) -> dict:
     """Download WTK wind data for a specified location and time period.
 
-    This function requires an NREL API key, which can be obtained by visiting
+    This function requires an NLR API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
     file at ~/.hscfg containing the following:
 

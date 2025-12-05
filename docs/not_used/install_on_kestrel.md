@@ -1,6 +1,6 @@
 # Installation on Kestrel
 
-This document outlines the process for install hercules onto NREL's Kestrel
+This document outlines the process for install hercules onto NLR's Kestrel
 computer.  
 
 The initial steps for running on Kestrel are the same as those outlined in **Local installation instructions**.  Once those steps are complete, 

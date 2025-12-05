@@ -1,7 +1,7 @@
 """
 Small example using the real WTK/NSRDB downloader with minimal data.
 
-Note that this example uses the download_nsrdb_data function, which requires an NREL API key that
+Note that this example uses the download_nsrdb_data function, which requires an NLR API key that
 can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you
 must make a configuration file at ~/.hscfg containing the following:
 
@@ -97,7 +97,7 @@ def run_small_example():
 
 
 if __name__ == "__main__":
-    print("Running small example with real NREL data...")
+    print("Running small example with real NLR data...")
     print("This will download a small sample and create plots.")
     print("Note: This may take several minutes due to data download times.\n")
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     if success:
         print("\n✓ Small example completed successfully!")
         print("\nThe script has demonstrated:")
-        print("  - Real NREL data download (both NSRDB and WTK)")
+        print("  - Real NLR data download (both NSRDB and WTK)")
         print("  - Time-series plotting")
         print("  - Spatial map plotting")
         print("  - Data saving in feather format")
