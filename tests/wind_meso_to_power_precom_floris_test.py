@@ -130,9 +130,9 @@ def test_wind_meso_to_power_precom_floris_power_setpoint_applies():
     power_setpoint_values = [100.0, 200.0, 300.0]
 
     for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoint_values)):
-        assert (
-            power == setpoint
-        ), f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        assert power == setpoint, (
+            f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        )
 
 
 def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data():
@@ -246,12 +246,12 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         wind_sim.step(step_h_dict)
 
         # Verify that wind speeds have been updated
-        assert not np.array_equal(
-            wind_sim.wind_speeds_background, initial_background
-        ), "Background wind speeds should have been updated"
-        assert not np.array_equal(
-            wind_sim.wind_speeds_withwakes, initial_withwakes
-        ), "Withwakes wind speeds should have been updated"
+        assert not np.array_equal(wind_sim.wind_speeds_background, initial_background), (
+            "Background wind speeds should have been updated"
+        )
+        assert not np.array_equal(wind_sim.wind_speeds_withwakes, initial_withwakes), (
+            "Withwakes wind speeds should have been updated"
+        )
 
         # Verify the wind speeds match the expected values from the input data
         expected_background = np.array([9.0, 9.5, 10.0])  # ws values for step 1
@@ -316,15 +316,15 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
         actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
-            tzinfo=None
-        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
+            f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        )
 
         # Test that starttime_utc is added to h_dict when getting initial conditions
         result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
-        assert (
-            "starttime_utc" in result["wind_farm"]
-        ), "starttime_utc should be in wind_farm metadata"
+        assert "starttime_utc" in result["wind_farm"], (
+            "starttime_utc should be in wind_farm metadata"
+        )
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
         actual_start_time = pd.Timestamp(result["wind_farm"]["starttime_utc"])
@@ -451,15 +451,15 @@ def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
         actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values (ignoring timezone for this test)
-        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
-            tzinfo=None
-        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
+            f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        )
 
         # Test that starttime_utc is added to h_dict when getting initial conditions
         result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
-        assert (
-            "starttime_utc" in result["wind_farm"]
-        ), "starttime_utc should be in wind_farm metadata"
+        assert "starttime_utc" in result["wind_farm"], (
+            "starttime_utc should be in wind_farm metadata"
+        )
 
         # Convert numpy datetime64 to pandas Timestamp for comparison
         actual_start_time = pd.Timestamp(result["wind_farm"]["starttime_utc"])

@@ -222,9 +222,9 @@ def test_wind_meso_to_power_power_setpoint_applies():
     power_setpoint_values = [100.0, 200.0, 300.0]
 
     for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoint_values)):
-        assert (
-            power == setpoint
-        ), f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        assert power == setpoint, (
+            f"Turbine {i} power {power} should equal power setpoint {setpoint}"
+        )
 
 
 def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
