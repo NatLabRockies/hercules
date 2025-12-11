@@ -60,10 +60,12 @@ def test_step():
     SPS.step(step_inputs)
 
     # test the calculated power output (0° tilt)
-    assert_almost_equal(SPS.power, 17092.157367793126, decimal=8)
+    # Using decimal=4 for float32 precision (hercules_float_type provides ~6-7 significant digits)
+    assert_almost_equal(SPS.power, 17092.157367793126, decimal=4)
 
     # test the irradiance input
-    assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=8)
+    # Using decimal=4 for float32 precision (hercules_float_type provides ~6-7 significant digits)
+    assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=4)
 
 
 def test_control():

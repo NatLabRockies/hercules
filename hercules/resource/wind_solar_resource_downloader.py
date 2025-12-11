@@ -27,6 +27,7 @@ import numpy as np
 import openmeteo_requests
 import pandas as pd
 import requests_cache
+from hercules.utilities import hercules_float_type
 from retry_requests import retry
 from rex import ResourceX
 from scipy.interpolate import griddata
@@ -172,6 +173,14 @@ def download_nsrdb_data(
             if all_dataframes[var]:
                 print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
                 data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
+
+                # Convert numeric columns to float32 for memory efficiency
+                for col in data_dict[var].columns:
+                    if pd.api.types.is_numeric_dtype(data_dict[var][col]):
+                        data_dict[var][col] = data_dict[var][col].astype(hercules_float_type)
+
+                # Clear intermediate DataFrames to free memory
+                all_dataframes[var].clear()
 
                 # Save to feather format
                 output_file = os.path.join(
@@ -347,6 +356,14 @@ def download_wtk_data(
             if all_dataframes[var]:
                 print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
                 data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
+
+                # Convert numeric columns to float32 for memory efficiency
+                for col in data_dict[var].columns:
+                    if pd.api.types.is_numeric_dtype(data_dict[var][col]):
+                        data_dict[var][col] = data_dict[var][col].astype(hercules_float_type)
+
+                # Clear intermediate DataFrames to free memory
+                all_dataframes[var].clear()
 
                 # Save to feather format
                 output_file = os.path.join(
@@ -591,7 +608,10 @@ def download_openmeteo_data(
                 var_data = minutely_15.Variables(i).ValuesAsNumpy()
 
                 # Create DataFrame with same structure as WTK/NSRDB (datetime index, gid columns)
-                df_var = pd.DataFrame(var_data, index=date_range, columns=[gid])
+                # Convert to float32 for memory efficiency
+                df_var = pd.DataFrame(
+                    var_data.astype(hercules_float_type), index=date_range, columns=[gid]
+                )
                 df_var.index.name = "time_index"
 
                 data_dict[var_name] = pd.concat([data_dict[var_name], df_var], axis=1)
