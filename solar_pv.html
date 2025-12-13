@@ -464,7 +464,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="solar-pv">
 <h1>Solar PV<a class="headerlink" href="#solar-pv" title="Link to this heading">#</a></h1>
-<p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Renewable Energy Laboratory’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
+<p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Laboratory of the Rockies’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
 <p>Presently only one solar simulator is available</p>
 <ol class="arabic simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> in the input dictionary (.yaml file).</p></li>
@@ -532,7 +532,7 @@ document.write(`
 <p>The example folder <code class="docutils literal notranslate"><span class="pre">03_wind_and_solar</span></code> specifies:</p>
 <ul class="simple">
 <li><p>use of the <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model with <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">&quot;SolarPySAMPVWatts&quot;</span></code></p></li>
-<li><p>weather conditions on May 10, 2018 measured at NREL’s Flatirons Campus</p></li>
+<li><p>weather conditions on May 10, 2018 measured at NLR’s Flatirons Campus</p></li>
 <li><p>latitude, longitude, and elevation of Golden, CO</p></li>
 <li><p>system design information for a 100 MW single-axis PV tracking system (with backtracking)</p></li>
 <li><p>inverter efficiency of 99.5% and system losses of 0%</p></li>
@@ -542,7 +542,7 @@ document.write(`
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
-<p>PySAM. National Renewable Energy Laboratory. Golden, CO. <a class="github reference external" href="https://github.com/nrel/pysam">nrel/pysam</a></p>
+<p>PySAM. National Laboratory of the Rockies. Golden, CO. <a class="github reference external" href="https://github.com/nrel/pysam">nrel/pysam</a></p>
 </section>
 </section>
 
@@ -629,7 +629,7 @@ document.write(`
   <div class="footer-item">
     
 <p class="component-author">
-By National Renewable Energy Laboratory
+By National Laboratory of the Rockies
 </p>
 
   </div>

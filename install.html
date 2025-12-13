@@ -461,7 +461,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-hybrid-open-controller-whoc">Wind Hybrid Open Controller (WHOC)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hycon">Hycon</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
 </ul>
 </li>
@@ -484,7 +484,7 @@ document.write(`
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
 <section id="root-directory">
 <h2>Root Directory<a class="headerlink" href="#root-directory" title="Link to this heading">#</a></h2>
-<p>It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as the Wind Hybrid Open Controller (WHOC) and the Electrolyzer.</p>
+<p>It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>hercules_root
 <span class="nb">cd</span><span class="w"> </span>hercules_root
 </pre></div>
@@ -544,14 +544,14 @@ git<span class="w"> </span>switch<span class="w"> </span>v2
 </pre></div>
 </div>
 </section>
-<section id="wind-hybrid-open-controller-whoc">
-<h2>Wind Hybrid Open Controller (WHOC)<a class="headerlink" href="#wind-hybrid-open-controller-whoc" title="Link to this heading">#</a></h2>
-<p>NREL’s Wind Hybrid Open Controller (WHOC) software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.</p>
+<section id="hycon">
+<h2>Hycon<a class="headerlink" href="#hycon" title="Link to this heading">#</a></h2>
+<p>NLR’s Hycon software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.</p>
 <p>To install:
 Go back to root</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..
-git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/wind-hybrid-open-controller.git
-<span class="nb">cd</span><span class="w"> </span>wind-hybrid-open-controller
+git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/hycon.git
+<span class="nb">cd</span><span class="w"> </span>hycon
 git<span class="w"> </span>fetch<span class="w"> </span>--all
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
@@ -650,7 +650,7 @@ git<span class="w"> </span>switch<span class="w"> </span>main
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-hybrid-open-controller-whoc">Wind Hybrid Open Controller (WHOC)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hycon">Hycon</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
 </ul>
 </li>
@@ -669,7 +669,7 @@ git<span class="w"> </span>switch<span class="w"> </span>main
   <div class="footer-item">
     
 <p class="component-author">
-By National Renewable Energy Laboratory
+By National Laboratory of the Rockies
 </p>
 
   </div>

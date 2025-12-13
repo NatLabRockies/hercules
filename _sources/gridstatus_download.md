@@ -6,7 +6,7 @@ This page describes how to download LMP (Locational Marginal Pricing) data from 
 
 Refer to `examples/grid/grid_status_download_example.py` for an example of how to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.
 
-**If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)**, see the section on `generate_locational_marginal_price_dataframe_from_gridstatus()` at the end of this page.
+**If you need to combine real-time and day-ahead data for Hycon**, see the section on `generate_locational_marginal_price_dataframe_from_gridstatus()` at the end of this page.
 
 ## What is Grid Status?
 
@@ -74,13 +74,13 @@ The script saves the downloaded data as a feather file (`.ftr`) with:
 - Original time resolution (5-minute intervals for real-time, hourly for day-ahead)
 - Original market type identifier preserved in the `market` column
 
-## Combining Real-Time and Day-Ahead Data for WHOC
+## Combining Real-Time and Day-Ahead Data for Hycon
 
-If you need to combine both real-time and day-ahead LMP data for use with WHOC (Wind Hybrid Open Controller), use the `generate_locational_marginal_price_dataframe_from_gridstatus()` function located in `hercules/grid/grid_utilities.py`.
+If you need to combine both real-time and day-ahead LMP data for use with Hycon, use the `generate_locational_marginal_price_dataframe_from_gridstatus()` function located in `hercules/grid/grid_utilities.py`.
 
 **Note:** This step is only necessary if you need both real-time and day-ahead data combined. If you only need one type of data, you can use the feather files from `grid_status_download.py` directly.
 
-The `generate_locational_marginal_price_dataframe_from_griddstatus()` function combines the real-time and day-ahead LMP data into a format optimized for WHOC:
+The `generate_locational_marginal_price_dataframe_from_griddstatus()` function combines the real-time and day-ahead LMP data into a format optimized for Hycon:
 
 - Merges real-time and day-ahead data at the base interval of the real-time data
 - Creates hourly day-ahead LMP columns (`lmp_da_00` through `lmp_da_23`) for each hour of the day
@@ -97,4 +97,4 @@ The resulting DataFrame contains:
 - `lmp_da`: Day-ahead LMP (forward-filled to the base interval)
 - `lmp_da_00` through `lmp_da_23`: Day-ahead LMP for each hour of the day
 
-This format is optimized for use with WHOC in Hercules simulations.
+This format is optimized for use with Hycon in Hercules simulations.

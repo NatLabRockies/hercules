@@ -456,7 +456,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-whoc">Combining Real-Time and Day-Ahead Data for WHOC</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-hycon">Combining Real-Time and Day-Ahead Data for Hycon</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-format">Output Format</a></li>
 </ul>
 </li>
@@ -477,7 +477,7 @@ document.write(`
 <section id="basic-workflow">
 <h2>Basic Workflow<a class="headerlink" href="#basic-workflow" title="Link to this heading">#</a></h2>
 <p>Refer to <code class="docutils literal notranslate"><span class="pre">examples/grid/grid_status_download_example.py</span></code> for an example of how to download LMP data from Grid Status. The script saves data in a lightly modified feather format that can be used directly in Hercules.</p>
-<p><strong>If you need to combine real-time and day-ahead data for WHOC (Wind Hybrid Open Controller)</strong>, see the section on <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> at the end of this page.</p>
+<p><strong>If you need to combine real-time and day-ahead data for Hycon</strong>, see the section on <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> at the end of this page.</p>
 </section>
 <section id="what-is-grid-status">
 <h2>What is Grid Status?<a class="headerlink" href="#what-is-grid-status" title="Link to this heading">#</a></h2>
@@ -555,11 +555,11 @@ document.write(`
 </ul>
 </section>
 </section>
-<section id="combining-real-time-and-day-ahead-data-for-whoc">
-<h2>Combining Real-Time and Day-Ahead Data for WHOC<a class="headerlink" href="#combining-real-time-and-day-ahead-data-for-whoc" title="Link to this heading">#</a></h2>
-<p>If you need to combine both real-time and day-ahead LMP data for use with WHOC (Wind Hybrid Open Controller), use the <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> function located in <code class="docutils literal notranslate"><span class="pre">hercules/grid/grid_utilities.py</span></code>.</p>
+<section id="combining-real-time-and-day-ahead-data-for-hycon">
+<h2>Combining Real-Time and Day-Ahead Data for Hycon<a class="headerlink" href="#combining-real-time-and-day-ahead-data-for-hycon" title="Link to this heading">#</a></h2>
+<p>If you need to combine both real-time and day-ahead LMP data for use with Hycon, use the <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus()</span></code> function located in <code class="docutils literal notranslate"><span class="pre">hercules/grid/grid_utilities.py</span></code>.</p>
 <p><strong>Note:</strong> This step is only necessary if you need both real-time and day-ahead data combined. If you only need one type of data, you can use the feather files from <code class="docutils literal notranslate"><span class="pre">grid_status_download.py</span></code> directly.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_griddstatus()</span></code> function combines the real-time and day-ahead LMP data into a format optimized for WHOC:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_griddstatus()</span></code> function combines the real-time and day-ahead LMP data into a format optimized for Hycon:</p>
 <ul class="simple">
 <li><p>Merges real-time and day-ahead data at the base interval of the real-time data</p></li>
 <li><p>Creates hourly day-ahead LMP columns (<code class="docutils literal notranslate"><span class="pre">lmp_da_00</span></code> through <code class="docutils literal notranslate"><span class="pre">lmp_da_23</span></code>) for each hour of the day</p></li>
@@ -576,7 +576,7 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">lmp_da</span></code>: Day-ahead LMP (forward-filled to the base interval)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lmp_da_00</span></code> through <code class="docutils literal notranslate"><span class="pre">lmp_da_23</span></code>: Day-ahead LMP for each hour of the day</p></li>
 </ul>
-<p>This format is optimized for use with WHOC in Hercules simulations.</p>
+<p>This format is optimized for use with Hycon in Hercules simulations.</p>
 </section>
 </section>
 </section>
@@ -655,7 +655,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-whoc">Combining Real-Time and Day-Ahead Data for WHOC</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-real-time-and-day-ahead-data-for-hycon">Combining Real-Time and Day-Ahead Data for Hycon</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-format">Output Format</a></li>
 </ul>
 </li>
@@ -673,7 +673,7 @@ document.write(`
   <div class="footer-item">
     
 <p class="component-author">
-By National Renewable Energy Laboratory
+By National Laboratory of the Rockies
 </p>
 
   </div>

@@ -14,7 +14,7 @@ This section describes the functions for downloading solar and wind resource dat
 
 ### API Key
 
-The functions for downloading NSRDB and WIND Toolkit data require an NREL API key, which can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration file at ~/.hscfg containing the following:
+The functions for downloading NSRDB and WIND Toolkit data require an NLR API key, which can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration file at ~/.hscfg containing the following:
 ```
 hs_endpoint = https://developer.nrel.gov/api/hsds
 hs_api_key = YOUR_API_KEY_GOES_HERE
