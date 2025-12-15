@@ -417,7 +417,9 @@ def upsample_wind_data(
     for c in df_upsample.columns:
         df_upsample[c] = df_upsample[c].astype(hercules_float_type)
 
-    df_upsample["time"] = np.arange(0.0, N_samples_upsample * timestep_upsample, timestep_upsample)
+    df_upsample["time"] = np.arange(
+        0.0, N_samples_upsample * timestep_upsample, timestep_upsample, dtype=hercules_float_type
+    )
     df_upsample["time_utc"] = pd.date_range(
         df_ws["time_index"][0],
         df_ws.iloc[-1]["time_index"] + pd.Timedelta(seconds=timestep_orig - timestep_upsample),
