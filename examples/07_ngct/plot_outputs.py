@@ -1,0 +1,69 @@
+# Plot the outputs of the simulation for the NGCT example
+
+import matplotlib.pyplot as plt
+from hercules import HerculesOutput
+
+# Read the Hercules output file using HerculesOutput
+ho = HerculesOutput("outputs/hercules_output.h5")
+
+# Print metadata information
+print("Simulation Metadata:")
+ho.print_metadata()
+print()
+
+# Create a shortcut to the dataframe
+df = ho.df
+
+# Get the h_dict from metadata
+h_dict = ho.h_dict
+
+# Convert time to minutes for easier reading
+time_minutes = df["time"] / 60
+
+fig, axarr = plt.subplots(3, 1, sharex=True, figsize=(10, 10))
+
+# Plot the power output and setpoint
+ax = axarr[0]
+ax.plot(time_minutes, df["combustion_turbine.power"] / 1000, label="Power Output", color="b")
+ax.plot(
+    time_minutes,
+    df["combustion_turbine.power_setpoint"] / 1000,
+    label="Power Setpoint",
+    color="r",
+    linestyle="--",
+)
+ax.axhline(
+    h_dict["combustion_turbine"]["rated_capacity"] / 1000,
+    color="gray",
+    linestyle=":",
+    label="Rated Capacity",
+)
+ax.set_ylabel("Power [MW]")
+ax.set_title("Combustion Turbine Power Output")
+ax.legend()
+ax.grid(True)
+
+# Plot the state
+ax = axarr[1]
+ax.plot(time_minutes, df["combustion_turbine.state_num"], label="State Number", color="k")
+ax.set_ylabel("State")
+ax.set_yticks([0, 1, 2, 3])
+ax.set_yticklabels(["Off", "Starting", "On", "Stopping"])
+ax.set_title("Turbine State (0=Off, 1=Starting, 2=On, 3=Stopping)")
+ax.grid(True)
+
+# Plot the fuel consumption
+ax = axarr[2]
+ax.plot(
+    time_minutes,
+    df["combustion_turbine.fuel_consumption"] / 1000,
+    label="Fuel Consumption",
+    color="orange",
+)
+ax.set_ylabel("Fuel [MJ/timestep]")
+ax.set_title("Fuel Consumption per Timestep")
+ax.grid(True)
+
+
+plt.tight_layout()
+plt.show()
