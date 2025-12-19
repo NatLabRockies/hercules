@@ -157,7 +157,7 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
     )
 
     # Simply add phase component of 1 for the Nyquist frequency
-    freq_mat[:, int(N_samples / 2 + 1)] = np.ones(N_points)
+    freq_mat[:, int(N_samples / 2 + 1)] = np.ones(N_points, dtype=hercules_float_type)
 
     # Add magnitude of spectrum
     psd_1side = _psd_kaimal(freqs, turbulence_Uhub, ws_std, turbulence_L)
