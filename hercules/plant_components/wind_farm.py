@@ -231,8 +231,7 @@ class WindFarm(ComponentBase):
 
         # Update the user
         self.logger.info(
-            f"Initialized WindFarm with {self.n_turbines} turbines "
-            f"(wake_model='{self.wake_model}')"
+            f"Initialized WindFarm with {self.n_turbines} turbines (wake_model='{self.wake_model}')"
         )
 
     def _infer_wake_model_from_component_type(self, h_dict):
