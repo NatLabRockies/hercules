@@ -5,7 +5,7 @@
 
 ## Root Directory
 
-It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as the Wind Hybrid Open Controller (WHOC) and the Electrolyzer.
+It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.
 
 ```bash
 mkdir -p hercules_root
@@ -69,9 +69,9 @@ git fetch --all
 git switch v2
 ```
 
-## Wind Hybrid Open Controller (WHOC)
+## Hycon
 
-NREL's Wind Hybrid Open Controller (WHOC) software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.
+NLR's Hycon software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.
 
 
 To install:
@@ -79,8 +79,8 @@ Go back to root
 
 ```bash
 cd ..
-git clone git@github.com:NREL/wind-hybrid-open-controller.git
-cd wind-hybrid-open-controller
+git clone git@github.com:NREL/hycon.git
+cd hycon
 git fetch --all
 pip install -e .
 ```

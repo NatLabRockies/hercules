@@ -11,7 +11,7 @@ class ElectrolyzerPlant(ComponentBase):
 
     This component models an electrolyzer system that converts electrical power
     into hydrogen using the electrolyzer module simulation.
-    The Eletrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
+    The Electrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
     """
 
     def __init__(self, h_dict):
@@ -35,9 +35,9 @@ class ElectrolyzerPlant(ComponentBase):
                     - n_cells: Number of cells per stack.
                     - min_power: Minimum power for electrolyzer operation [kW].
                     - stack_rating_kW: Stack rated power [kW].
-                    - include_degradation_penalty: *Optional* boolean, Whether to include 
+                    - include_degradation_penalty: *Optional* boolean, Whether to include
                         degradation penalty.
-                    - hydrogen_degradation_penalty: *Optional* boolean, wether degradation is 
+                    - hydrogen_degradation_penalty: *Optional* boolean, whether degradation is
                         applied to hydrogen (True) or power (False)
                 cell_params: Electrolyzer cell parameters including:
                     - cell_area: Area of individual cells in the stack [cm^2].
@@ -51,28 +51,28 @@ class ElectrolyzerPlant(ComponentBase):
                     - i_0_c: cathode exchange current density [A/cm^2].
                     - e_m: membrane thickness [cm].
                     - R_ohmic_elec: electrolyte resistance [A*cm^2].
-                    - f_1: faradaic coefficien [mA^2/cm^4].
-                    - f_2: faradaic coefficien [mA^2/cm^4].
+                    - f_1: Faradaic coefficient [mA^2/cm^4].
+                    - f_2: Faradaic coefficient [mA^2/cm^4].
                 degradation: Electrolyzer degradation parameters including:
                     - eol_eff_percent_loss: End of life efficiency percent loss [%].
                     - PEM_params or ALK_params: Degradation parameters specific to PEM or Alkaline
                          cells:
                         - rate_steady: Rate of voltage degradation under steady operation alone
-                        - rate_fatigue: Rate of voltage degradation under variable operation alone 
+                        - rate_fatigue: Rate of voltage degradation under variable operation alone
                         - rate_onoff: Rate of voltage degradation per on/off cycle
                 - controller: Electrolyzer control parameters including:
                     - control_type: Controller type for electrolyzer plant operation.
                 - costs: *Optional* Cost parameters for the electrolyzer plant including:
                     - plant_params:
                         - plant_life: integer, Plant life in years
-                        - pem_location: Location of the PEM electrolyzer. Options are 
+                        - pem_location: Location of the PEM electrolyzer. Options are
                             [onshore, offshore, in-turbine]
                         - grid_connected: boolean, Whether the plant is connected to the grid or not
                     - feedstock: Parameters related to the feedstock including:
                         - water_feedstock_cost: Cost of water per kg of water
                         - water_per_kgH2: Amount of water required per kg of hydrogen produced
                     - opex: Operational expenditure parameters including:
-                        - var_OM: Variable operation and maintenance cost per kW 
+                        - var_OM: Variable operation and maintenance cost per kW
                         - fixed_OM: Fixed operation and maintenance cost per kW-year
                     - stack_replacement: Parameters related to stack replacement costs including:
                         - d_eol: End of life cell voltage value [V]
@@ -120,7 +120,7 @@ class ElectrolyzerPlant(ComponentBase):
         # Remove keys not expected by Supervisor
         elec_config = {}
         elec_config["electrolyzer"] = dict(electrolyzer_dict["electrolyzer"]["electrolyzer"])
-        
+
         elec_config["electrolyzer"]["dt"] = self.dt
 
         # Validate electrolyzer config
@@ -165,9 +165,7 @@ class ElectrolyzerPlant(ComponentBase):
                 self.stacks_on,
             )
         # Update the user
-        self.logger.info(
-            f"Initialized ElectrolyzerPlant with {self.n_stacks} stacks"
-        )
+        self.logger.info(f"Initialized ElectrolyzerPlant with {self.n_stacks} stacks")
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["H2_output"] = self.H2_output
@@ -176,8 +174,6 @@ class ElectrolyzerPlant(ComponentBase):
         h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
         h_dict[self.component_name]["power"] = -self.power_used_kw
         h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
-
-
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -217,7 +213,7 @@ class ElectrolyzerPlant(ComponentBase):
                 - power_input_kw: Power input to electrolyzer [kW]
         """
         # Gather inputs
-        local_power = h_dict["plant"]["locally_generated_power"] # kW
+        local_power = h_dict["plant"]["locally_generated_power"]  # kW
         if "electrolyzer_signal" in h_dict[self.component_name].keys():
             power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
         elif not self.allow_grid_power_consumption:

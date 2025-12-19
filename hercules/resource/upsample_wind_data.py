@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import utm
+from hercules.utilities import hercules_float_type
 from scipy.interpolate import CloughTocher2DInterpolator
 from shapely.geometry import MultiPoint
 
@@ -41,7 +42,7 @@ def _spatially_interpolate_wind_data(
 
     N = len(wind_values)
 
-    wind_interp_values = np.zeros((len(x_locs_interp), N))
+    wind_interp_values = np.zeros((len(x_locs_interp), N), dtype=hercules_float_type)
 
     points = list(zip(x_locs_orig, y_locs_orig))
 
@@ -78,7 +79,7 @@ def _upsample_Nyquist(
     num_points = np.size(base_values, 0)
     N = np.size(base_values, 1)
 
-    upsampled_values = np.zeros((num_points, up_factor * N))
+    upsampled_values = np.zeros((num_points, up_factor * N), dtype=hercules_float_type)
 
     for i in range(num_points):
         x = base_values[i, :]
@@ -88,7 +89,7 @@ def _upsample_Nyquist(
             [
                 xf[: N // 2],
                 xf[N // 2] / 2,
-                np.zeros((up_factor - 1) * N - 1),
+                np.zeros((up_factor - 1) * N - 1, dtype=hercules_float_type),
                 xf[N // 2] / 2,
                 xf[-(N // 2 - 1) :],
             ]
@@ -148,7 +149,7 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
 
     freqs = np.arange(0.0, 0.5 * fs + 0.5 * fs / N_samples, fs / N_samples)  # Frequency array
 
-    freq_mat = np.zeros((N_points, N_samples), dtype=complex)  # Matrix of frequency components
+    freq_mat = np.zeros((N_points, N_samples), dtype=np.complex64)  # Matrix of frequency components
 
     # Add phases for uncorrelated components
     freq_mat[:, 1 : int(N_samples / 2 + 1)] = np.exp(
@@ -171,10 +172,10 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
     freq_mat *= scale_const_total
 
     # Perform ifft to get time series
-    ws_mat = np.zeros((N_points, N_samples))
+    ws_mat = np.zeros((N_points, N_samples), dtype=hercules_float_type)
 
     for i in range(N_points):
-        ws_mat[i, :] = np.real(np.fft.ifft(freq_mat[i, :]))
+        ws_mat[i, :] = np.real(np.fft.ifft(freq_mat[i, :])).astype(hercules_float_type)
 
     return ws_mat
 
@@ -412,11 +413,13 @@ def upsample_wind_data(
     else:
         df_upsample["wd_mean"] = wd_interp_upsample_mean
 
-    # downcast to smallest float type
+    # Convert numeric columns to float32 for memory efficiency
     for c in df_upsample.columns:
-        df_upsample[c] = pd.to_numeric(df_upsample[c], downcast="float")
+        df_upsample[c] = df_upsample[c].astype(hercules_float_type)
 
-    df_upsample["time"] = np.arange(0.0, N_samples_upsample * timestep_upsample, timestep_upsample)
+    df_upsample["time"] = np.arange(
+        0.0, N_samples_upsample * timestep_upsample, timestep_upsample, dtype=hercules_float_type
+    )
     df_upsample["time_utc"] = pd.date_range(
         df_ws["time_index"][0],
         df_ws.iloc[-1]["time_index"] + pd.Timedelta(seconds=timestep_orig - timestep_upsample),

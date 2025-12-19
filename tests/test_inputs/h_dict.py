@@ -97,12 +97,12 @@ lib_battery = {
 }
 
 electrolyzer = {
-    "component_type": 'ElectrolyzerPlant',  
-    "initial_conditions": { 
+    "component_type": "ElectrolyzerPlant",
+    "initial_conditions": {
         "power_available_kW": 3000,
     },
     "log_channels": ["power"],
-    "electrolyzer":{
+    "electrolyzer": {
         "initialize": True,
         "initial_power_kW": 3000,
         "supervisor": {
@@ -136,14 +136,14 @@ electrolyzer = {
                 "max_current_density": 2,
                 "p_anode": 1.01325,
                 "p_cathode": 30,
-                "alpha_a":2,
-                "alpha_c":0.5,
-                "i_0_a":2.0e-7,
-                "i_0_c":2.0e-3,
-                "e_m":0.02,
-                "R_ohmic_elec":50.0e-3,
-                "f_1":250,
-                "f_2":0.996,
+                "alpha_a": 2,
+                "alpha_c": 0.5,
+                "i_0_a": 2.0e-7,
+                "i_0_c": 2.0e-3,
+                "e_m": 0.02,
+                "R_ohmic_elec": 50.0e-3,
+                "f_1": 250,
+                "f_2": 0.996,
             },
         },
         "degradation": {

@@ -2,8 +2,8 @@
 WTK, NSRDB, and Open-Meteo Data Downloader
 
 This script provides functions to download weather data from multiple sources:
-- NREL's Wind Toolkit (WTK) for high-resolution wind data
-- NREL's National Solar Radiation Database (NSRDB) for solar irradiance data
+- NLR's Wind Toolkit (WTK) for high-resolution wind data
+- NLR's National Solar Radiation Database (NSRDB) for solar irradiance data
 - Open-Meteo API for historical weather data with global coverage
 
 All three data sources provide consistent output formats (feather files) for easy integration
@@ -27,6 +27,7 @@ import numpy as np
 import openmeteo_requests
 import pandas as pd
 import requests_cache
+from hercules.utilities import hercules_float_type
 from retry_requests import retry
 from rex import ResourceX
 from scipy.interpolate import griddata
@@ -38,7 +39,7 @@ def download_nsrdb_data(
     year: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    variables: List[str] = ["ghi", "dni", "dhi"],
+    variables: List[str] = ["ghi", "dni", "dhi", "wind_speed", "air_temperature"],
     nsrdb_dataset_path="/nrel/nsrdb/GOES/conus/v4.0.0",
     nsrdb_filename_prefix="nsrdb_conus",
     coord_delta: float = 0.1,
@@ -49,7 +50,7 @@ def download_nsrdb_data(
 ) -> dict:
     """Download NSRDB solar irradiance data for a specified location and time period.
 
-    This function requires an NREL API key, which can be obtained by visiting
+    This function requires an NLR API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
     file at ~/.hscfg containing the following:
 
@@ -68,7 +69,7 @@ def download_nsrdb_data(
         end_date (str, optional): End date in format 'YYYY-MM-DD' (if using date range
             approach).
         variables (List[str], optional): List of variables to download.
-            Defaults to ['ghi', 'dni', 'dhi'].
+            Defaults to ['ghi', 'dni', 'dhi', 'wind_speed', 'air_temperature'].
         nsrdb_dataset_path (str, optional): Path name of NSRDB dataset. Available datasets at
             https://developer.nrel.gov/docs/solar/nsrdb/.
             Defaults to "/nrel/nsrdb/GOES/conus/v4.0.0".
@@ -173,6 +174,14 @@ def download_nsrdb_data(
                 print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
                 data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
 
+                # Convert numeric columns to float32 for memory efficiency
+                for col in data_dict[var].columns:
+                    if pd.api.types.is_numeric_dtype(data_dict[var][col]):
+                        data_dict[var][col] = data_dict[var][col].astype(hercules_float_type)
+
+                # Clear intermediate DataFrames to free memory
+                all_dataframes[var].clear()
+
                 # Save to feather format
                 output_file = os.path.join(
                     output_dir, f"{filename_prefix}_{var}_{time_suffix}.feather"
@@ -230,7 +239,7 @@ def download_wtk_data(
 ) -> dict:
     """Download WTK wind data for a specified location and time period.
 
-    This function requires an NREL API key, which can be obtained by visiting
+    This function requires an NLR API key, which can be obtained by visiting
     https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
     file at ~/.hscfg containing the following:
 
@@ -347,6 +356,14 @@ def download_wtk_data(
             if all_dataframes[var]:
                 print(f"Concatenating {var} data across {len(all_dataframes[var])} years...")
                 data_dict[var] = pd.concat(all_dataframes[var], axis=0).sort_index()
+
+                # Convert numeric columns to float32 for memory efficiency
+                for col in data_dict[var].columns:
+                    if pd.api.types.is_numeric_dtype(data_dict[var][col]):
+                        data_dict[var][col] = data_dict[var][col].astype(hercules_float_type)
+
+                # Clear intermediate DataFrames to free memory
+                all_dataframes[var].clear()
 
                 # Save to feather format
                 output_file = os.path.join(
@@ -591,7 +608,10 @@ def download_openmeteo_data(
                 var_data = minutely_15.Variables(i).ValuesAsNumpy()
 
                 # Create DataFrame with same structure as WTK/NSRDB (datetime index, gid columns)
-                df_var = pd.DataFrame(var_data, index=date_range, columns=[gid])
+                # Convert to float32 for memory efficiency
+                df_var = pd.DataFrame(
+                    var_data.astype(hercules_float_type), index=date_range, columns=[gid]
+                )
                 df_var.index.name = "time_index"
 
                 data_dict[var_name] = pd.concat([data_dict[var_name], df_var], axis=1)

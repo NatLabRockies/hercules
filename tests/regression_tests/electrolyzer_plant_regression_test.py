@@ -12,12 +12,12 @@ test_h_dict = {
     "verbose": False,
     "general": {"verbose": False},
     "electrolyzer": {
-        "component_type": 'ElectrolyzerPlant',  
-        "initial_conditions": { 
+        "component_type": "ElectrolyzerPlant",
+        "initial_conditions": {
             "power_available_kW": 3000,
         },
         "log_channels": ["power"],
-        "electrolyzer":{
+        "electrolyzer": {
             "initialize": True,
             "initial_power_kW": 3000,
             "supervisor": {
@@ -51,14 +51,14 @@ test_h_dict = {
                     "max_current_density": 2,
                     "p_anode": 1.01325,
                     "p_cathode": 30,
-                    "alpha_a":2,
-                    "alpha_c":0.5,
-                    "i_0_a":2.0e-7,
-                    "i_0_c":2.0e-3,
-                    "e_m":0.02,
-                    "R_ohmic_elec":50.0e-3,
-                    "f_1":250,
-                    "f_2":0.996,
+                    "alpha_a": 2,
+                    "alpha_c": 0.5,
+                    "i_0_a": 2.0e-7,
+                    "i_0_c": 2.0e-3,
+                    "e_m": 0.02,
+                    "R_ohmic_elec": 50.0e-3,
+                    "f_1": 250,
+                    "f_2": 0.996,
                 },
             },
             "degradation": {
@@ -112,8 +112,34 @@ H2_output_base = np.array(
     ]
 )
 
-stacks_on_base = np.array([7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0,
-                           7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0])
+stacks_on_base = np.array(
+    [
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+        7.0,
+    ]
+)
 
 H2_mfr_base = np.array(
     [
@@ -144,6 +170,7 @@ H2_mfr_base = np.array(
     ]
 )
 
+
 def test_ElectrolyzerPlant_regression_():
     electrolyzer = ElectrolyzerPlant(test_h_dict)
 
@@ -156,7 +183,7 @@ def test_ElectrolyzerPlant_regression_():
         out = electrolyzer.step(
             {
                 "time": t,
-                "plant":{
+                "plant": {
                     "locally_generated_power": locally_generated_power_test[i],
                 },
                 "electrolyzer": {

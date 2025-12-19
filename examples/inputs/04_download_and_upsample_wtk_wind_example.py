@@ -2,7 +2,7 @@
 Example using the real WTK downloader to download and and spatially and temporally upsample wind
 speed and direction data.
 
-Note that this example uses the download_wtk_data function, which requires an NREL API key that
+Note that this example uses the download_wtk_data function, which requires an NLR API key that
 can be obtained by visiting https://developer.nrel.gov/signup/. After receiving your API key, you
 must make a configuration file at ~/.hscfg containing the following:
 
@@ -158,7 +158,7 @@ def run_small_example():
 
 
 if __name__ == "__main__":
-    print("Running small example with real NREL Wind Toolkit data...")
+    print("Running small example with real NLR Wind Toolkit data...")
     print("This will download a small sample and create plots.")
     print("Next, the WTK data will be upsampled at 6 wind turbine locations.")
     print("Examples of the upsampled and original wind speed time series will be plotted.")
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     if success:
         print("\n✓ Small example completed successfully!")
         print("\nThe script has demonstrated:")
-        print("  - Real NREL WTK data download (both wind speed and direction)")
+        print("  - Real NLR WTK data download (both wind speed and direction)")
         print("  - Time-series plotting")
         print("  - Spatial map plotting")
         print("  - Data saving in feather format")

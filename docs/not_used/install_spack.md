@@ -1,5 +1,5 @@
 # Spack installation of AMR Wind code
-This document outlines the process for installing the high-fidelity wind portion of Hercules onto NREL's Kestrel HPC system using spack package manager. For more information on Spack, see (https://spack.io/)
+This document outlines the process for installing the high-fidelity wind portion of Hercules onto NLR's Kestrel HPC system using spack package manager. For more information on Spack, see (https://spack.io/)
 
 ## Initial steps
 1. Log into Kestrel
