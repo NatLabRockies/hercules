@@ -290,7 +290,7 @@ class TurbineFilterModelVectorizedSCADA:
 
         Args:
             dt (float): Time step for the simulation in seconds.
-            initial_scada_powers (np.ndarray): Initial wind speeds in m/s for all turbines
+            initial_scada_powers (np.ndarray): Initial SCADA power values in kW for all turbines
                 to initialize the simulation.
         """
         # Save the time step
