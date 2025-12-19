@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import utm
-from hercules.utilities import hercules_float_type
+from hercules.utilities import hercules_complex_type, hercules_float_type
 from scipy.interpolate import CloughTocher2DInterpolator
 from shapely.geometry import MultiPoint
 
@@ -149,7 +149,7 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
 
     freqs = np.arange(0.0, 0.5 * fs + 0.5 * fs / N_samples, fs / N_samples)  # Frequency array
 
-    freq_mat = np.zeros((N_points, N_samples), dtype=np.complex64)  # Matrix of frequency components
+    freq_mat = np.zeros((N_points, N_samples), dtype=hercules_complex_type)  # Matrix of frequencies
 
     # Add phases for uncorrelated components
     freq_mat[:, 1 : int(N_samples / 2 + 1)] = np.exp(
@@ -157,7 +157,7 @@ def _generate_uncorrelated_kaimal_stochastic_turbulence(
     )
 
     # Simply add phase component of 1 for the Nyquist frequency
-    freq_mat[:, int(N_samples / 2 + 1)] = np.ones(N_points, dtype=hercules_float_type)
+    freq_mat[:, int(N_samples / 2 + 1)] = np.ones(N_points, dtype=hercules_complex_type)
 
     # Add magnitude of spectrum
     psd_1side = _psd_kaimal(freqs, turbulence_Uhub, ws_std, turbulence_L)

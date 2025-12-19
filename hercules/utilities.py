@@ -13,6 +13,7 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
+hercules_complex_type = np.csingle
 
 
 def get_available_component_names():
