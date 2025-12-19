@@ -2,7 +2,7 @@
 # Learn more at https://jupyterbook.org/customize/config.html
 
 title: HERCULES
-author: National Renewable Energy Laboratory
+author: National Laboratory of the Rockies
 logo: herc.png
 copyright: '2025'
 only_build_toc_files: false

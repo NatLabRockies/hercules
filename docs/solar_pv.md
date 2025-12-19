@@ -1,6 +1,6 @@
 # Solar PV
 
-The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Renewable Energy Laboratory's System Advisor Model (SAM) to predict the power output of the solar PV plant.
+The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) package for the National Laboratory of the Rockies's System Advisor Model (SAM) to predict the power output of the solar PV plant.
 
 Presently only one solar simulator is available
 
@@ -69,7 +69,7 @@ Although the pysam model `SolarPySAMPVWatts` model, technically includes efficie
 
 The example folder `03_wind_and_solar` specifies:
 - use of the `SolarPySAMPVWatts` model with `component_type: "SolarPySAMPVWatts"`
-- weather conditions on May 10, 2018 measured at NREL's Flatirons Campus
+- weather conditions on May 10, 2018 measured at NLR's Flatirons Campus
 - latitude, longitude, and elevation of Golden, CO
 - system design information for a 100 MW single-axis PV tracking system (with backtracking)
 - inverter efficiency of 99.5% and system losses of 0%
@@ -80,4 +80,4 @@ For examples using the detailed `SolarPySAMPVSam` model, see the test files in t
 
 
 ## References
-PySAM. National Renewable Energy Laboratory. Golden, CO. https://github.com/nrel/pysam
+PySAM. National Laboratory of the Rockies. Golden, CO. https://github.com/nrel/pysam

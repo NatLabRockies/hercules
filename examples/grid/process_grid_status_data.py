@@ -1,9 +1,9 @@
 # Process the results of the grid status download
 # using generate_locational_marginal_price_dataframe.
 # The output dataframe is formatted for use as external data in Hercules and includes convenient
-# forward hours of day ahead for certain WHOC applications.
+# forward hours of day ahead for certain Hycon applications.
 # See the documentation for more details of this example:
-# https://nrel.github.io/hercules/gridstatus_download.html#combining-real-time-and-day-ahead-data-for-whoc
+# https://nrel.github.io/hercules/gridstatus_download.html#combining-real-time-and-day-ahead-data-for-hycon
 
 import pandas as pd
 from hercules.grid.grid_utilities import (

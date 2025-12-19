@@ -1,6 +1,6 @@
 # Electrolyzer Plant
 
-The hydrogen electrolyzer modules use the [electrolyzer](https://github.com/NREL/electrolyzer) package developed by the National Renewable Energy Laboratory to predict hydrogen output of hydrogen electrolyzer plants. This repo contains models for PEM and Alkaline electrolyzer cell types.
+The hydrogen electrolyzer modules use the [electrolyzer](https://github.com/NREL/electrolyzer) package developed by the National Laboratory of the Rockies to predict hydrogen output of hydrogen electrolyzer plants. This repo contains models for PEM and Alkaline electrolyzer cell types.
 
 To create a hydrogen electrolyzer plant, set `component_type` = `ElectrolyzerPlant` in the input dictionary (.yaml file).
 
