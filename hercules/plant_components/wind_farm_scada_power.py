@@ -189,7 +189,7 @@ class WindFarmSCADAPower(ComponentBase):
         self.capacity = self.n_turbines * self.rated_turbine_power
 
         self.logger.info(f"Inferred rated turbine power: {self.rated_turbine_power}")
-        self.logger.info(f"Inferred capacity: {self.capacity/1E3} MW")
+        self.logger.info(f"Inferred capacity: {self.capacity / 1e3} MW")
 
         # Initialize the turbine array
         self.turbine_array = TurbineFilterModelVectorizedSCADA(self.dt, self.scada_powers[0, :])

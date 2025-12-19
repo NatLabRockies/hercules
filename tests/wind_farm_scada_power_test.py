@@ -117,9 +117,9 @@ def test_wind_farm_scada_power_power_setpoint_applies():
     power_setpoints = [100.0, 200.0, 300.0]
 
     for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoints)):
-        assert (
-            power <= setpoint + 1e-6
-        ), f"Turbine {i} power {power} exceeds power setpoint {setpoint}"
+        assert power <= setpoint + 1e-6, (
+            f"Turbine {i} power {power} exceeds power setpoint {setpoint}"
+        )
 
 
 def test_wind_farm_scada_power_power_setpoint_zero():
@@ -226,9 +226,9 @@ def test_wind_farm_scada_power_time_utc_handling():
         actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values
-        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
-            tzinfo=None
-        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
+            f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        )
 
     finally:
         # Clean up temporary file
