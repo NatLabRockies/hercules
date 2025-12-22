@@ -314,6 +314,9 @@ class CombustionTurbineSimple(ComponentBase):
                 return 0.0
 
             return shutdown_power
+        
+        else:
+            raise ValueError(f"Unexpected state_num in _control: {self.state_num}")  
 
     def _apply_on_constraints(self, power_setpoint):
         """Apply power and ramp rate constraints when unit is on.
