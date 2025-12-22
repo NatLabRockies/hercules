@@ -19,7 +19,7 @@ plant:
 combustion_turbine:
   component_type: CombustionTurbineSimple
   rated_capacity: 100000  # kW (100 MW)
-  min_stable_load: 0.2  # 20% minimum operating point
+  min_stable_load_fraction: 0.2  # 20% minimum operating point
   heat_rate: 10000  # kJ/kWh at rated load
   ramp_rate_up: 500  # kW/s
   ramp_rate_down: 500  # kW/s

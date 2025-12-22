@@ -99,7 +99,7 @@ lib_battery = {
 combustion_turbine = {
     "component_type": "CombustionTurbineSimple",
     "rated_capacity": 50000,  # kW (50 MW)
-    "min_stable_load": 0.30,  # 30% minimum operating point
+    "min_stable_load_fraction": 0.30,  # 30% minimum operating point
     "heat_rate": 10000,  # kJ/kWh at rated load
     "ramp_rate_up": 500,  # kW/s
     "ramp_rate_down": 500,  # kW/s
@@ -110,7 +110,7 @@ combustion_turbine = {
 combustion_turbine_on = {
     "component_type": "CombustionTurbineSimple",
     "rated_capacity": 50000,  # kW (50 MW)
-    "min_stable_load": 0.30,  # 30% minimum operating point
+    "min_stable_load_fraction": 0.30,  # 30% minimum operating point
     "heat_rate": 10000,  # kJ/kWh at rated load
     "ramp_rate_up": 500,  # kW/s
     "ramp_rate_down": 500,  # kW/s

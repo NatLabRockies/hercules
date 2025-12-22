@@ -60,12 +60,12 @@ class CombustionTurbineSimple(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
                 - rated_capacity: Maximum power output in kW
-                - min_stable_load: Minimum operating point as fraction (0-1)
+                - min_stable_load_fraction: Minimum operating point as fraction (0-1)
                 - heat_rate: Fuel consumption rate at rated load in kJ/kWh
                 - ramp_rate_up: Maximum rate of power increase in kW/s
                 - ramp_rate_down: Maximum rate of power decrease in kW/s
                 - initial_conditions: Dictionary with initial power and state_num
-                - startup_time: Optional, time to reach min_stable_load from off in s.
+                - startup_time: Optional, time to reach min_stable_load_fraction from off in s.
                     Default: 3600.0 (1 hour)
                 - shutdown_time: Optional, time to shut down in s. Default: 3600.0 (1 hour)
                 - min_up_time: Optional, minimum time unit must remain on in s.
@@ -86,7 +86,7 @@ class CombustionTurbineSimple(ComponentBase):
 
         # Extract required parameters
         self.rated_capacity = h_dict[self.component_name]["rated_capacity"]  # kW
-        self.min_stable_load_fraction = h_dict[self.component_name]["min_stable_load"]
+        self.min_stable_load_fraction = h_dict[self.component_name]["min_stable_load_fraction"]
         self.heat_rate = h_dict[self.component_name]["heat_rate"]  # kJ/kWh
         self.ramp_rate_up = h_dict[self.component_name]["ramp_rate_up"]  # kW/s
         self.ramp_rate_down = h_dict[self.component_name]["ramp_rate_down"]  # kW/s
@@ -149,7 +149,7 @@ class CombustionTurbineSimple(ComponentBase):
 
         self.logger.info(
             "Initialized CombustionTurbineSimple: rated_capacity=%.1f kW, "
-            "min_stable_load=%.1f%%, heat_rate=%.1f kJ/kWh",
+            "min_stable_load_fraction=%.1f%%, heat_rate=%.1f kJ/kWh",
             self.rated_capacity,
             self.min_stable_load_fraction * 100,
             self.heat_rate,
@@ -381,7 +381,7 @@ class CombustionTurbineSimple(ComponentBase):
         # At min load: heat_rate * part_load_factor
         load_fraction = power_output / self.rated_capacity
 
-        # Avoid division by zero if min_stable_load is 1.0
+        # Avoid division by zero if min_stable_load_fraction is 1.0
         if self.min_stable_load_fraction >= 1.0:
             return self.heat_rate
 
