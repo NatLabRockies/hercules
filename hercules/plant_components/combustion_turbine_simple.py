@@ -188,7 +188,6 @@ class CombustionTurbineSimple(ComponentBase):
             dict: Updated h_dict with combustion turbine outputs:
                 - power: Actual power output [kW]
                 - state_num: Operating state number (0=off, 1=starting, 2=on, 3=stopping)
-                - state_name: Operating state string ("off", "starting", "on", "stopping")
                 - fuel_consumption: Fuel consumed this timestep [kJ]
                 - heat_rate: Current heat rate [kJ/kWh]
         """
@@ -207,7 +206,6 @@ class CombustionTurbineSimple(ComponentBase):
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         h_dict[self.component_name]["state_num"] = self.state_num
-        # h_dict[self.component_name]["state_name"] = self.state_name
         h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
         h_dict[self.component_name]["heat_rate"] = self.current_heat_rate
 
