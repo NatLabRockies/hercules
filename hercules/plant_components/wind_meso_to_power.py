@@ -68,6 +68,11 @@ class Wind_MesoToPower(ComponentBase):
         else:
             raise ValueError("Wind input file must be a .csv or .p, .f or .ftr file")
 
+        # Convert numeric columns to float32 for memory efficiency
+        for col in df_wi.columns:
+            if col not in ["time", "time_utc"] and pd.api.types.is_numeric_dtype(df_wi[col]):
+                df_wi[col] = df_wi[col].astype(hercules_float_type)
+
         # Make sure the df_wi contains a column called "time_utc"
         if "time_utc" not in df_wi.columns:
             raise ValueError("Wind input file must contain a column called 'time_utc'")

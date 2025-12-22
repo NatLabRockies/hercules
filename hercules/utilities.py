@@ -13,6 +13,7 @@ from scipy.interpolate import interp1d, RegularGridInterpolator
 
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
+hercules_complex_type = np.csingle
 
 
 def get_available_component_names():
@@ -550,8 +551,10 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
             time_values = col_data["time"].to_numpy()
             col_values = col_data[col].to_numpy()
 
-            # Linear interpolation
-            interpolated_values = np.interp(new_time, time_values, col_values)
+            # Linear interpolation with float32 precision
+            interpolated_values = np.interp(new_time, time_values, col_values).astype(
+                hercules_float_type
+            )
 
             # Add interpolated column to result
             result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
@@ -565,7 +568,7 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
         # Convert datetime to timestamps for interpolation
         datetime_values = col_data[col].to_pandas().astype("int64").values / 10**9
 
-        # Interpolate timestamps
+        # Interpolate timestamps (datetime precision doesn't need float32 constraint)
         interpolated_timestamps = np.interp(new_time, time_values, datetime_values)
 
         # Convert back to datetime and add to result
