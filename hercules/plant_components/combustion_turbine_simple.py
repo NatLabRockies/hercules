@@ -112,7 +112,9 @@ class CombustionTurbineSimple(ComponentBase):
 
         # Check that initial conditions are valid
         if self.power_output < 0 or self.power_output > self.rated_capacity:
-            raise ValueError("power_output must be between 0 and rated_capacity (inclusive)")
+            raise ValueError(  
+                "initial_conditions['power'] (initial power) must be between 0 and rated_capacity (inclusive)"  
+            )  
         if self.state_num < 0 or self.state_num > 3:
             raise ValueError("state_num must be between 0 and 3 (inclusive)")
         if self.state_num not in self.STATE_NAMES:
