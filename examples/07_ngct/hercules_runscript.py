@@ -20,14 +20,14 @@ hmodel = HerculesModel("hercules_input.yaml")
 
 
 class ControllerNGCT:
-    """Controller implementing the NGCT schedule described in the module docstring.  
+    """Controller implementing the NGCT schedule described in the module docstring.
 
-    The turbine starts off, then:  
-    - At 60 minutes, it is commanded to 100% of rated capacity.  
-    - At 120 minutes, it is reduced to 50% of rated capacity.  
-    - At 180 minutes, it is reduced to 10% of rated capacity.  
-    - At 210 minutes, it is increased back to 100% of rated capacity.  
-    - At 240 minutes, it is commanded off.  
+    The turbine starts off, then:
+    - At 60 minutes, it is commanded to 100% of rated capacity.
+    - At 120 minutes, it is reduced to 50% of rated capacity.
+    - At 180 minutes, it is reduced to 10% of rated capacity.
+    - At 210 minutes, it is increased back to 100% of rated capacity.
+    - At 240 minutes, it is commanded off.
     """
 
     def __init__(self, h_dict):

@@ -112,15 +112,15 @@ class CombustionTurbineSimple(ComponentBase):
 
         # Check that initial conditions are valid
         if self.power_output < 0 or self.power_output > self.rated_capacity:
-            raise ValueError(  
-                "initial_conditions['power'] (initial power) must be between 0 and rated_capacity (inclusive)"  
-            )  
+            raise ValueError(
+                "initial_conditions['power'] (initial power) must be between 0 and rated_capacity (inclusive)"
+            )
 
         if self.state_num not in self.STATE_NAMES:
-            valid_states = ", ".join(  
-                f"{state} ({name})" for state, name in self.STATE_NAMES.items()  
-            )  
-            raise ValueError(f"state_num must be one of the following: {valid_states}")  
+            valid_states = ", ".join(
+                f"{state} ({name})" for state, name in self.STATE_NAMES.items()
+            )
+            raise ValueError(f"state_num must be one of the following: {valid_states}")
 
         # Extract optional parameters with defaults
         # TODO: Based on [1] could differentiate hot start versus cold start
@@ -314,9 +314,9 @@ class CombustionTurbineSimple(ComponentBase):
                 return 0.0
 
             return shutdown_power
-        
+
         else:
-            raise ValueError(f"Unexpected state_num in _control: {self.state_num}")  
+            raise ValueError(f"Unexpected state_num in _control: {self.state_num}")
 
     def _apply_on_constraints(self, power_setpoint):
         """Apply power and ramp rate constraints when unit is on.
