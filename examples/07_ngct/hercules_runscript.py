@@ -4,7 +4,8 @@ This example demonstrates a simple combustion turbine (natural gas peaker) that:
 - Starts off (state=0, power=0)
 - At 60 minutes, receives a turn-on command with a setpoint of 100% of rated capacity
 - At 120 minutes, receives a command to reduce power to 50% of rated capacity
-- At 180 minutes, receives a command to reduce power to 10% of rated capacity (note this is below the minimum stable load)
+- At 180 minutes, receives a command to reduce power to 10% of rated capacity
+        (note this is below the minimum stable load)
 - At 210 minutes, receives a command to increase power to 100% of rated capacity
 - At 240 minutes (4 hours), receives a shutdown command
 - Simulation runs for 6 hours total with 1 minute time steps
