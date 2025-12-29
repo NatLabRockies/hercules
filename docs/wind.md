@@ -13,7 +13,7 @@ Wind_MesoToPower is a comprehensive wind farm simulator that computes wake effec
 
 ## Wind_MesoToPowerPrecomFloris (Precomputed Wake Model)
 
-Wind_MesoToPowerPrecomFloris is an optimized variant that pre-computes all FLORIS wake deficits at initialization for improved simulation performance. This approach provides significant speed improvements while conservatively assuming wakes are always based on nominal operation.
+Wind_MesoToPowerPrecomFloris is an optimized variant that pre-computes all FLORIS wake deficits at initialization for improved simulation speed. This approach provides significant speed improvements while conservatively assuming wakes are always based on nominal operation.
 
 **Use this model when:**
 - Not investigating wakes of derated turbines or wake losses can be conservatively estimated.
