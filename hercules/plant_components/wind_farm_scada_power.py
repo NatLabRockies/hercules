@@ -187,7 +187,7 @@ class WindFarmSCADAPower(ComponentBase):
         self.logger.info(f"Inferred capacity: {self.capacity / 1e3} MW")
 
         # Initialize the turbine array
-        self.turbine_array = TurbineFilterModelVectorizedSCADA(self.dt, self.scada_powers[0, :])
+        self.turbine_array = TurbineUpdateModelVectorizedSCADA(self.dt, self.scada_powers[0, :])
 
         # Initialize the turbine powers to the starting row
         self.turbine_powers = self.turbine_array.prev_powers.copy()
@@ -273,14 +273,12 @@ class WindFarmSCADAPower(ComponentBase):
         return h_dict
 
 
-class TurbineFilterModelVectorizedSCADA:
-    """Vectorized filter-based wind turbine model for power output simulation.
-
-    This model does not use a filter so that SCADA data can be used directly.
+class TurbineUpdateModelVectorizedSCADA:
+    """Vectorized wind turbine update model for power output simulation.
     """
 
     def __init__(self, dt, initial_scada_powers):
-        """Initialize the vectorized turbine filter model.
+        """Initialize the vectorized turbine model.
 
         Args:
             dt (float): Time step for the simulation in seconds.
@@ -300,9 +298,7 @@ class TurbineFilterModelVectorizedSCADA:
         """Simulate a single time step for all wind turbines simultaneously.
 
         This method calculates the power output of all wind turbines based on the
-        given wind speeds and power setpoints. The power outputs are
-        smoothed using an exponential moving average to simulate the turbines'
-        response to changing wind conditions.
+        given wind speeds and power setpoints.
 
         Args:
             scada_powers (np.ndarray): Current SCADA powers for all turbines.
@@ -310,7 +306,7 @@ class TurbineFilterModelVectorizedSCADA:
 
         Returns:
             np.ndarray: Calculated power outputs of all wind turbines, constrained
-                by the power setpoints and smoothed using the exponential moving average.
+                by the power setpoints.
         """
 
         # Vectorized limiting: current power not greater than power_setpoint
