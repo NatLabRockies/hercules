@@ -15,8 +15,8 @@ verbose: False
 plant:
   interconnect_limit: 30000.0 #kW
 
-wind_farm: # The name of the Wind_MesoToPower wind farm
-  component_type: Wind_MesoToPower
+wind_farm:
+  component_type: WindFarm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml

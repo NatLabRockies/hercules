@@ -1,4 +1,4 @@
-"""Tests for the WindFarm class in precomputed wake mode (Wind_MesoToPowerPrecomFloris)."""
+"""Tests for the WindFarm class in with precomputed wakes."""
 
 import copy
 import os
@@ -12,7 +12,7 @@ from hercules.utilities import hercules_float_type
 
 from tests.test_inputs.h_dict import h_dict_wind
 
-# Create a base test dictionary for Wind_MesoToPowerPrecomFloris
+# Create a base test dictionary for WindFarm with precomputed wakes
 h_dict_wind_precom_floris = copy.deepcopy(h_dict_wind)
 # Update component type
 h_dict_wind_precom_floris["wind_farm"]["component_type"] = "WindFarm"
@@ -20,7 +20,7 @@ h_dict_wind_precom_floris["wind_farm"]["wake_method"] = "precomputed"
 
 
 def test_wind_meso_to_power_precom_floris_initialization():
-    """Test that Wind_MesoToPowerPrecomFloris initializes correctly with valid inputs."""
+    """Test that WindFarm initializes correctly with valid inputs."""
     wind_sim = WindFarm(h_dict_wind_precom_floris)
 
     assert wind_sim.component_name == "wind_farm"
@@ -80,8 +80,7 @@ def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
     del test_h_dict["wind_farm"]["floris_update_time_s"]
 
     with pytest.raises(
-        ValueError,
-        match="floris_update_time_s must be specified for wake_method='precomputed'"
+        ValueError, match="floris_update_time_s must be specified for wake_method='precomputed'"
     ):
         WindFarm(test_h_dict)
 

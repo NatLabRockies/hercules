@@ -1,4 +1,4 @@
-"""Tests for the WindFarm class in direct wake mode (Wind_MesoToPowerNoAddedWakes)."""
+"""Tests for the WindFarm class in direct wake mode (WindFarm with no_added_wakes)."""
 
 import copy
 
@@ -8,26 +8,26 @@ from hercules.utilities import hercules_float_type
 
 from tests.test_inputs.h_dict import h_dict_wind
 
-# Create a base test dictionary for Wind_MesoToPowerNoAddedWakes
+# Create a base test dictionary for no_added_wakes
 h_dict_wind_direct = copy.deepcopy(h_dict_wind)
 # Update component type
-h_dict_wind_direct["wind_farm"]["component_type"] = "Wind_MesoToPowerNoAddedWakes"
+h_dict_wind_direct["wind_farm"]["wake_method"] = "no_added_wakes"
 
 
 def test_wind_farm_direct_initialization():
-    """Test that WindFarm initializes correctly with wake_model='no_added_wakes'."""
+    """Test that WindFarm initializes correctly with wake_method='no_added_wakes'."""
     wind_sim = WindFarm(h_dict_wind_direct)
 
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "Wind_MesoToPowerNoAddedWakes"
-    assert wind_sim.wake_model == "no_added_wakes"
+    assert wind_sim.component_type == "WindFarm"
+    assert wind_sim.wake_method == "no_added_wakes"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
     # No FLORIS calculations in direct mode
     assert wind_sim.num_floris_calcs == 0
-    assert wind_sim.floris_update_time_s == h_dict_wind_direct["wind_farm"]["floris_update_time_s"]
+    assert wind_sim.floris_update_time_s is None
 
 
 def test_wind_farm_direct_no_wakes():

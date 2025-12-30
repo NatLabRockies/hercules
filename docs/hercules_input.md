@@ -46,7 +46,8 @@ plant:
   interconnect_limit: 30000  # kW
 
 wind_farm:
-  component_type: Wind_MesoToPower
+  component_type: WindFarm
+  wake_method: dynamic
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
@@ -234,7 +235,8 @@ plant:
   interconnect_limit: 5000
 
 wind_farm:
-  component_type: Wind_MesoToPower
+  component_type: WindFarm
+  wake_method: dynamic
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml

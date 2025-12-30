@@ -70,8 +70,7 @@ def test_wind_meso_to_power_missing_floris_update_time():
     del test_h_dict["wind_farm"]["floris_update_time_s"]
 
     with pytest.raises(
-        ValueError,
-        match="floris_update_time_s must be specified for wake_method='dynamic'"
+        ValueError, match="floris_update_time_s must be specified for wake_method='dynamic'"
     ):
         WindFarm(test_h_dict)
 

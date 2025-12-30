@@ -15,7 +15,7 @@ verbose: False
 plant:
   interconnect_limit: 15000 # kW
 
-wind_farm: 
+wind_farm:
   component_type: WindFarm
   wake_method: dynamic
   floris_input_file: ../inputs/floris_input_small.yaml

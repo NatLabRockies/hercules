@@ -16,7 +16,8 @@ plant:
   interconnect_limit: 45000 # kW
 
 wind_farm:
-  component_type: Wind_MesoToPowerNoAddedWakes
+  component_type: WindFarm
+  wake_method: no_added_wakes
   floris_input_file: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
@@ -30,8 +31,6 @@ wind_farm:
     - wind_speeds_withwakes
     - wind_speeds_background
     - turbine_power_setpoints
-  floris_update_time_s: 300.0 # Not used but kept for interface consistency
-
 
 controller:
 

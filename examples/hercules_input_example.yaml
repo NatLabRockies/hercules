@@ -24,12 +24,13 @@ plant:
 
 # Wind farm configuration (comment out if not using wind)
 wind_farm:
-  component_type: Wind_MesoToPowerPrecomFloris  # Options: Wind_MesoToPower, Wind_MesoToPowerPrecomFloris, Wind_MesoToPowerNoAddedWakes
+  component_type: WindFarm  # Options: WindFarm, WindFarmSCADAPower
+  wake_method: dynamic  # Options: dynamic, precomputed, no_added_wakes
   floris_input_file: ../inputs/floris_input.yaml  # Path to FLORIS farm configuration file
   wind_input_filename: ../inputs/wind_input.ftr  # Path to wind resource data file (CSV, pickle, or feather format)
   turbine_file_name: ../inputs/turbine_filter_model.yaml  # Path to turbine model configuration file
   log_file_name: outputs/log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
-  floris_update_time_s: 300.0  # How often to update FLORIS wake calculations in seconds (for Wind_MesoToPower) or precomputation cadence (for Wind_MesoToPowerPrecomFloris)
+  floris_update_time_s: 300.0  # How often to update FLORIS wake calculations in seconds (for "dynamic" wake_method) or precomputation cadence (for "precomputed" wake_method)
   log_channels:  # List of output channels to log (power is always logged even if not specified)
     - power  # Total wind farm power output (kW) - always logged
     - wind_speed_mean_background  # Farm-average background wind speed (m/s)
@@ -45,7 +46,7 @@ wind_farm:
     # - turbine_powers.005  # Log turbine 5 power
     # - turbine_powers.010  # Log turbine 10 power
 
-# WindFarmSCADAPower configuration (alternative to Wind_MesoToPower variants, comment out if not using)
+# WindFarmSCADAPower configuration (alternative to WindFarm, comment out if not using)
 # Uses SCADA power data directly rather than computing power from wind speeds
 # wind_farm:
 #   component_type: WindFarmSCADAPower  # Uses SCADA power measurements directly

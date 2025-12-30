@@ -18,7 +18,7 @@ plant:
 
 wind_farm:
   
-  component_type: Wind_MesoToPowerPrecomFloris
+  component_type: WindFarm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml

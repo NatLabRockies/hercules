@@ -31,7 +31,7 @@ class WindFarm(ComponentBase):
        Use when all turbines operate uniformly (all on, all off, or uniform curtailment).
        More efficient but less flexible than dynamic.
 
-    3. **none**: No wake modeling - wind speeds are used directly.
+    3. **no_added_wakes**: No wake modeling - wind speeds are used directly.
        Use when wake effects are already included in the input data or when
        wake modeling is not needed.
 
@@ -51,7 +51,7 @@ class WindFarm(ComponentBase):
         self.component_name = "wind_farm"
 
         # Get the wake_method from h_dict
-        wake_method = self._assign_wake_method(h_dict)
+        wake_method = h_dict[self.component_name].get("wake_method", "dynamic")
 
         # Validate wake_method
         if wake_method not in ["dynamic", "precomputed", "no_added_wakes"]:
@@ -86,8 +86,7 @@ class WindFarm(ComponentBase):
         if wake_method in ["dynamic", "precomputed"]:
             if "floris_update_time_s" not in h_dict[self.component_name]:
                 raise ValueError(
-                    "floris_update_time_s must be specified for "
-                    f"wake_method='{self.wake_method}'"
+                    f"floris_update_time_s must be specified for wake_method='{self.wake_method}'"
                 )
             elif h_dict[self.component_name]["floris_update_time_s"] < 1:
                 raise ValueError("FLORIS update time must be at least 1 second")
@@ -215,7 +214,7 @@ class WindFarm(ComponentBase):
             ]
             self.use_vectorized_turbines = False
         else:
-            raise Exception("Turbine model type should be either filter_model or dof1_model")
+            raise ValueError("Turbine model type should be either filter_model or dof1_model")
 
         # Initialize the power array to the initial wind speeds
         if self.use_vectorized_turbines:
@@ -240,17 +239,6 @@ class WindFarm(ComponentBase):
             f"Initialized WindFarm with {self.n_turbines} turbines "
             f"(wake_method='{self.wake_method}')"
         )
-
-    def _assign_wake_method(self, h_dict):
-        """
-
-        Args:
-            h_dict (dict): Dictionary containing simulation parameters.
-
-        Returns:
-            str: Inferred wake_method ("dynamic", "precomputed", or "no_added_wakes").
-        """
-        return h_dict[self.component_name].get("wake_method", "dynamic")
 
     def _init_floris_precomputed(self, df_wi):
         """Initialize FLORIS with precomputed wake deficits.
@@ -643,7 +631,7 @@ class WindFarm(ComponentBase):
         self.floris_wake_deficits = velocities.max() - velocities
         self.num_floris_calcs += 1
 
-    def update_power_setpoints_buffer(self, turbine_power_setpoints):
+    def _update_power_setpoints_buffer(self, turbine_power_setpoints):
         """Update the power_setpoints buffer (dynamic mode only).
 
         This method stores the given power setpoint values in the current position of the
@@ -689,7 +677,7 @@ class WindFarm(ComponentBase):
         # Update wind speeds based on wake model
         if self.wake_method == "dynamic":
             # Update power setpoints buffer
-            self.update_power_setpoints_buffer(turbine_power_setpoints)
+            self._update_power_setpoints_buffer(turbine_power_setpoints)
 
             # Get the background wind speeds
             self.wind_speeds_background = self.ws_mat[step, :]
