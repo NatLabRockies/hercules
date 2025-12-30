@@ -52,9 +52,7 @@ def get_available_component_types():
     """
     return {
         "wind_farm": [
-            "Wind_MesoToPower",
-            "Wind_MesoToPowerPrecomFloris",
-            "Wind_MesoToPowerNoAddedWakes",
+            "WindFarm",
             "WindFarmSCADAPower",
         ],
         "solar_farm": ["SolarPySAMPVWatts"],

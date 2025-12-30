@@ -16,7 +16,6 @@ plant:
   interconnect_limit: 45000 # kW
 
 wind_farm:
-  
   component_type: Wind_MesoToPowerNoAddedWakes
   floris_input_file: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr

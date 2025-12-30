@@ -1,4 +1,4 @@
-"""Tests for the WindFarm class in dynamic wake mode (Wind_MesoToPower)."""
+"""Tests for the WindFarm class in dynamic wake mode."""
 
 import copy
 import os
@@ -18,7 +18,7 @@ def test_wind_meso_to_power_initialization():
     wind_sim = WindFarm(h_dict_wind)
 
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "Wind_MesoToPower"
+    assert wind_sim.component_type == "WindFarm"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
@@ -69,7 +69,10 @@ def test_wind_meso_to_power_missing_floris_update_time():
     test_h_dict = copy.deepcopy(h_dict_wind)
     del test_h_dict["wind_farm"]["floris_update_time_s"]
 
-    with pytest.raises(ValueError, match="floris_update_time_s must be in the h_dict"):
+    with pytest.raises(
+        ValueError,
+        match="floris_update_time_s must be specified for wake_method='dynamic'"
+    ):
         WindFarm(test_h_dict)
 
 
@@ -113,7 +116,7 @@ def test_wind_meso_to_power_time_utc_conversion():
     # Check that time_utc was converted to datetime type
     # The wind_sim should have successfully processed the CSV with time_utc column
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "Wind_MesoToPower"
+    assert wind_sim.component_type == "WindFarm"
     assert wind_sim.n_turbines == 3
 
     # Verify that the wind data was loaded correctly

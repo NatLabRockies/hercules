@@ -15,7 +15,8 @@ from tests.test_inputs.h_dict import h_dict_wind
 # Create a base test dictionary for Wind_MesoToPowerPrecomFloris
 h_dict_wind_precom_floris = copy.deepcopy(h_dict_wind)
 # Update component type
-h_dict_wind_precom_floris["wind_farm"]["component_type"] = "Wind_MesoToPowerPrecomFloris"
+h_dict_wind_precom_floris["wind_farm"]["component_type"] = "WindFarm"
+h_dict_wind_precom_floris["wind_farm"]["wake_method"] = "precomputed"
 
 
 def test_wind_meso_to_power_precom_floris_initialization():
@@ -23,7 +24,7 @@ def test_wind_meso_to_power_precom_floris_initialization():
     wind_sim = WindFarm(h_dict_wind_precom_floris)
 
     assert wind_sim.component_name == "wind_farm"
-    assert wind_sim.component_type == "Wind_MesoToPowerPrecomFloris"
+    assert wind_sim.component_type == "WindFarm"
     assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
@@ -78,7 +79,10 @@ def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
     del test_h_dict["wind_farm"]["floris_update_time_s"]
 
-    with pytest.raises(ValueError, match="floris_update_time_s must be in the h_dict"):
+    with pytest.raises(
+        ValueError,
+        match="floris_update_time_s must be specified for wake_method='precomputed'"
+    ):
         WindFarm(test_h_dict)
 
 

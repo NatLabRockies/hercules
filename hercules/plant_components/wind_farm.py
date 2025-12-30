@@ -38,33 +38,29 @@ class WindFarm(ComponentBase):
     All three strategies support detailed turbine dynamics (filter_model or dof1_model).
     """
 
-    def __init__(self, h_dict, wake_model=None):
+    def __init__(self, h_dict):
         """Initialize the WindFarm class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
-            wake_model (str, optional): Wake modeling strategy: "dynamic", "precomputed",
-                or "no_added_wakes". If None, infers from component_type for backward compatibility.
-                Defaults to None.
 
         Raises:
-            ValueError: If wake_model is invalid or required parameters are missing.
+            ValueError: If wake_method is invalid or required parameters are missing.
         """
         # Store the name of this component
         self.component_name = "wind_farm"
 
-        # Infer wake_model from component_type if not provided (backward compatibility)
-        if wake_model is None:
-            wake_model = self._infer_wake_model_from_component_type(h_dict)
+        # Get the wake_method from h_dict
+        wake_method = self._assign_wake_method(h_dict)
 
-        # Validate wake_model
-        if wake_model not in ["dynamic", "precomputed", "no_added_wakes"]:
+        # Validate wake_method
+        if wake_method not in ["dynamic", "precomputed", "no_added_wakes"]:
             raise ValueError(
-                f"wake_model must be 'dynamic', 'precomputed', or "
-                f"'no_added_wakes', got '{wake_model}'"
+                f"wake_method must be 'dynamic', 'precomputed', or "
+                f"'no_added_wakes', got '{wake_method}'"
             )
 
-        self.wake_model = wake_model
+        self.wake_method = wake_method
 
         # Store the type of this component (for backward compatibility)
         component_type = h_dict[self.component_name].get("component_type", "WindFarm")
@@ -73,7 +69,7 @@ class WindFarm(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        self.logger.info(f"Initializing WindFarm with wake_model='{self.wake_model}'")
+        self.logger.info(f"Initializing WindFarm with wake_method='{self.wake_method}'")
 
         # Track the number of FLORIS calculations
         self.num_floris_calcs = 0
@@ -84,11 +80,21 @@ class WindFarm(ComponentBase):
         self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
 
         # Require floris_update_time_s for interface consistency
-        if "floris_update_time_s" not in h_dict[self.component_name]:
-            raise ValueError("floris_update_time_s must be in the h_dict")
-        self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
-        if self.floris_update_time_s < 1:
-            raise ValueError("FLORIS update time must be at least 1 second")
+        # TODO: Why is there a minimum of 1 second?
+        # TODO: Consider adding option (e.g. floris_update_time_s = -1) to
+        # compute FLORIS at every time step (i.e. floris_update_time_s = dt)
+        if wake_method in ["dynamic", "precomputed"]:
+            if "floris_update_time_s" not in h_dict[self.component_name]:
+                raise ValueError(
+                    "floris_update_time_s must be specified for "
+                    f"wake_method='{self.wake_method}'"
+                )
+            elif h_dict[self.component_name]["floris_update_time_s"] < 1:
+                raise ValueError("FLORIS update time must be at least 1 second")
+            else:
+                self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
+        else:
+            self.floris_update_time_s = None
 
         self.logger.info("Reading in wind input file...")
 
@@ -179,11 +185,11 @@ class WindFarm(ComponentBase):
         df_wi = interpolate_df(df_wi, time_steps_all)
 
         # INITIALIZE FLORIS BASED ON WAKE MODEL
-        if self.wake_model == "precomputed":
+        if self.wake_method == "precomputed":
             self._init_floris_precomputed(df_wi)
-        elif self.wake_model == "dynamic":
+        elif self.wake_method == "dynamic":
             self._init_floris_dynamic(df_wi)
-        else:  # wake_model == "no_added_wakes"
+        else:  # wake_method == "no_added_wakes"
             self._init_floris_none(df_wi)
 
         # Common post-FLORIS initialization
@@ -231,29 +237,20 @@ class WindFarm(ComponentBase):
 
         # Update the user
         self.logger.info(
-            f"Initialized WindFarm with {self.n_turbines} turbines (wake_model='{self.wake_model}')"
+            f"Initialized WindFarm with {self.n_turbines} turbines "
+            f"(wake_method='{self.wake_method}')"
         )
 
-    def _infer_wake_model_from_component_type(self, h_dict):
-        """Infer wake_model from component_type for backward compatibility.
+    def _assign_wake_method(self, h_dict):
+        """
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
 
         Returns:
-            str: Inferred wake_model ("dynamic", "precomputed", or "no_added_wakes").
+            str: Inferred wake_method ("dynamic", "precomputed", or "no_added_wakes").
         """
-        component_type = h_dict[self.component_name].get("component_type", "WindFarm")
-
-        if component_type == "Wind_MesoToPower":
-            return "dynamic"
-        elif component_type == "Wind_MesoToPowerPrecomFloris":
-            return "precomputed"
-        elif component_type == "Wind_MesoToPowerNoAddedWakes":
-            return "no_added_wakes"
-        else:
-            # Default to dynamic for unknown types
-            return "dynamic"
+        return h_dict[self.component_name].get("wake_method", "dynamic")
 
     def _init_floris_precomputed(self, df_wi):
         """Initialize FLORIS with precomputed wake deficits.
@@ -527,7 +524,7 @@ class WindFarm(ComponentBase):
         self.n_turbines = self.fmodel.n_turbines
 
         # floris_update_steps not used but set for consistency
-        self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
+        # self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
 
         # Convert the wind directions and wind speeds and ti to numpy matrices
         if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
@@ -690,7 +687,7 @@ class WindFarm(ComponentBase):
         turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
 
         # Update wind speeds based on wake model
-        if self.wake_model == "dynamic":
+        if self.wake_method == "dynamic":
             # Update power setpoints buffer
             self.update_power_setpoints_buffer(turbine_power_setpoints)
 
@@ -704,13 +701,13 @@ class WindFarm(ComponentBase):
             # Compute withwakes wind speeds
             self.wind_speeds_withwakes = self.ws_mat[step, :] - self.floris_wake_deficits
 
-        elif self.wake_model == "precomputed":
+        elif self.wake_method == "precomputed":
             # Update all the wind speeds
             self.wind_speeds_background = self.ws_mat[step, :]
             self.wind_speeds_withwakes = self.wind_speeds_withwakes_all[step, :]
             self.floris_wake_deficits = self.wind_speeds_background - self.wind_speeds_withwakes
 
-        else:  # wake_model == "no_added_wakes"
+        else:  # wake_method == "no_added_wakes"
             # No wake modeling - use background speeds directly
             self.wind_speeds_background = self.ws_mat[step, :]
             self.wind_speeds_withwakes = self.wind_speeds_background.copy()

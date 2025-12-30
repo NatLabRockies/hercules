@@ -12,17 +12,11 @@ from hercules.utilities import (
 class WindFarmSCADAPower(ComponentBase):
     """Wind farm model that uses SCADA power data to simulate wind farm performance."""
 
-    def __init__(self, h_dict, wake_model=None):
+    def __init__(self, h_dict):
         """Initialize the WindFarm class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
-            wake_model (str, optional): Wake modeling strategy: "dynamic", "precomputed",
-                or "no_added_wakes". If None, infers from component_type for backward compatibility.
-                Defaults to None.
-
-        Raises:
-            ValueError: If wake_model is invalid or required parameters are missing.
         """
         # Store the name of this component
         self.component_name = "wind_farm"
