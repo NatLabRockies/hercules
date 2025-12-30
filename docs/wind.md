@@ -26,9 +26,7 @@ Wind_MesoToPowerNoAddedWakes assumes that wake effects are already included in t
 
 ## WindFarmSCADAPower (SCADA Power Data)
 
-WindFarmSCADAPower uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component applies a filter to the SCADA power data to simulate turbine response dynamics and respects power setpoint constraints.
-
-
+WindFarmSCADAPower uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component respects power setpoint constraints.
 
 ## Overview
 
@@ -70,7 +68,6 @@ Required parameters for Wind_MesoToPowerPrecomFloris:
 ### Wind_MesoToPowerNoAddedWakes Specific Parameters
 
 Required parameters for Wind_MesoToPowerNoAddedWakes:
-- `floris_update_time_s`: Required for interface consistency but not used (no FLORIS calculations performed)
 - `floris_input_file`: Still required to read turbine power curve and properties
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
@@ -97,7 +94,7 @@ The number of turbines and rated power are automatically inferred from the SCADA
 
 ## Turbine Models
 
-**Note:** WindFarmSCADAPower uses only the filter model for power smoothing, as power values come directly from SCADA data rather than being computed from wind speeds.
+**Note:** WindFarmSCADAPower does not use a filter model as power values come directly from SCADA data rather than being computed from wind speedes.
 
 ### Filter Model
 Simple first-order filter for power output smoothing with configurable time constants.
