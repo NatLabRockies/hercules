@@ -274,8 +274,7 @@ class WindFarmSCADAPower(ComponentBase):
 
 
 class TurbineUpdateModelVectorizedSCADA:
-    """Vectorized wind turbine update model for power output simulation.
-    """
+    """Vectorized wind turbine update model for power output simulation."""
 
     def __init__(self, dt, initial_scada_powers):
         """Initialize the vectorized turbine model.
@@ -293,6 +292,8 @@ class TurbineUpdateModelVectorizedSCADA:
 
         # Initialize the previous powers for all turbines
         self.prev_powers = initial_scada_powers.copy()
+
+        print("Filtering not yet implemented for SCADA-based turbine model. Use with caution.")
 
     def step(self, scada_powers, power_setpoints):
         """Simulate a single time step for all wind turbines simultaneously.
