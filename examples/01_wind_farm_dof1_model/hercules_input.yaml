@@ -19,7 +19,7 @@ wind_farm:
   
   component_type: Wind_MesoToPower
   floris_input_file: inputs/floris_input.yaml
-  wind_input_filename: inputs/wind_input.csv
+  wind_input_filename: ../inputs/wind_input_small.ftr
   turbine_file_name: inputs/turbine_dof_1.yaml
   log_file_name: outputs/log_wind_sim.log
   log_channels:
@@ -28,6 +28,9 @@ wind_farm:
     - wind_speed_mean_withwakes
     - wind_direction_mean
     - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
+    - turbine_power_setpoints
   floris_update_time_s: 30.0 # Update wakes every 30 seconds
 
 

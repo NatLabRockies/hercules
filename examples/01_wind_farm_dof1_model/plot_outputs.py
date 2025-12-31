@@ -40,15 +40,6 @@ for t_idx in range(3):
         color=colors[t_idx],
     )
 
-# Plot the FLORIS wind speed
-ax.plot(
-    df["time"],
-    df["wind_farm.wind_speed_mean"],
-    label="FLORIS",
-    color="black",
-    lw=2,
-)
-
 ax.grid(True)
 ax.legend()
 ax.set_ylabel("Wind Speed [m/s]")
@@ -68,7 +59,7 @@ for t_idx in range(3):
 for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.turbine_deratings.{t_idx:03}"],
+        df[f"wind_farm.turbine_power_setpoints.{t_idx:03}"],
         label=f"Derating {t_idx}",
         linestyle="--",
         color=colors[t_idx],

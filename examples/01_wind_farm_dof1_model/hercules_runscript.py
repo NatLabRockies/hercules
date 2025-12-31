@@ -1,7 +1,11 @@
+import numpy as np
 from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import prepare_output_directory
+from hercules.utilities_examples import ensure_example_inputs_exist, prepare_output_directory
 
 prepare_output_directory()
+
+# Ensure example inputs exist
+ensure_example_inputs_exist()
 
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")
@@ -22,7 +26,7 @@ class ControllerToggleTurbine000:
         Args:
             h_dict (dict): The hercules input dictionary.
         """
-        self.h_dict = h_dict
+        pass
 
     def step(self, h_dict):
         """Execute one control step.
@@ -34,12 +38,14 @@ class ControllerToggleTurbine000:
             dict: The updated hercules input dictionary.
         """
         # Set deratings to full rating
-        for t_idx in range(h_dict["wind_farm"]["n_turbines"]):
-            h_dict["wind_farm"][f"derating_{t_idx:03d}"] = 5000
+        h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
+            h_dict["wind_farm"]["n_turbines"]
+        )
 
-        # Lower t0 derating every other 100 seconds
+        # Lower t0 derating to 500 every other 100 seconds
         if h_dict["time"] % 200 < 100:
-            h_dict["wind_farm"]["derating_000"] = 500
+            h_dict["wind_farm"]["turbine_power_setpoints"][0] = 500
+
         return h_dict
 
 

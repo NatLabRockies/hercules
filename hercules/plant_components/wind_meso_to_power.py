@@ -15,6 +15,7 @@ from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
 
 RPM2RADperSec = 2 * np.pi / 60.0
+RAD2DEG = 180.0 / np.pi
 
 
 class Wind_MesoToPower(ComponentBase):
@@ -722,13 +723,13 @@ class Turbine1dofModel:
 
         # Save performance data functions
         perffile = turbine_dict["dof1_model"]["cq_table_file"]
-        self.perffuncs = load_perffile(perffile)
+        self.perffuncs = self.load_perffile(perffile)
 
         self.rho = self.turbine_dict["dof1_model"]["rho"]
         self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
         self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
         omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
-        pitch, gentq = self.simplecontroller(initial_wind_speed, omega0)
+        pitch, gentq = self.simplecontroller(omega0)
         tsr = self.rotor_radius * omega0 / initial_wind_speed
         prev_power = (
             self.perffuncs["Cp"]([tsr, pitch])
