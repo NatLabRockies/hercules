@@ -7,6 +7,7 @@ from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
+    load_perffile,
     load_yaml,
 )
 from scipy.interpolate import interp1d, RegularGridInterpolator
@@ -14,7 +15,6 @@ from scipy.optimize import minimize_scalar
 from scipy.stats import circmean
 
 RPM2RADperSec = 2 * np.pi / 60.0
-RAD2DEG = 180.0 / np.pi
 
 
 class Wind_MesoToPower(ComponentBase):
@@ -36,27 +36,6 @@ class Wind_MesoToPower(ComponentBase):
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)
-
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["turbine_powers", "turbine_power_setpoints"]
-
-        # If "log_extra_outputs" is in h_dict[self.component_name],
-        # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.component_name]:
-            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
-        else:
-            self.log_extra_outputs = False
-
-        # If log_extra_outputs is True, add the extra outputs to the log outputs
-        if self.log_extra_outputs:
-            self.log_outputs = self.log_outputs + [
-                "floris_wind_speed",
-                "floris_wind_direction",
-                "floris_ti",
-                "unwaked_velocities",
-                "waked_velocities",
-            ]
 
         # Track the number of FLORIS calculations
         self.num_floris_calcs = 0
@@ -88,35 +67,64 @@ class Wind_MesoToPower(ComponentBase):
         else:
             raise ValueError("Wind input file must be a .csv or .p, .f or .ftr file")
 
-        # Make sure the df_wi contains a column called "time"
-        if "time" not in df_wi.columns:
-            raise ValueError("Wind input file must contain a column called 'time'")
+        # Convert numeric columns to float32 for memory efficiency
+        for col in df_wi.columns:
+            if col not in ["time", "time_utc"] and pd.api.types.is_numeric_dtype(df_wi[col]):
+                df_wi[col] = df_wi[col].astype(hercules_float_type)
 
-        # Make sure that both starttime and endtime are in the df_wi
-        if not (df_wi["time"].min() <= self.starttime <= df_wi["time"].max()):
+        # Make sure the df_wi contains a column called "time_utc"
+        if "time_utc" not in df_wi.columns:
+            raise ValueError("Wind input file must contain a column called 'time_utc'")
+
+        # Convert time_utc to datetime if it's not already
+        if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
+            # Strip whitespace from time_utc values to handle CSV formatting issues
+            df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
+            try:
+                df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], format="ISO8601", utc=True)
+            except (ValueError, TypeError):
+                # If ISO8601 format fails, try parsing without specifying format
+                df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
+
+        # Ensure time_utc is timezone-aware (UTC)
+        if not isinstance(df_wi["time_utc"].dtype, pd.DatetimeTZDtype):
+            df_wi["time_utc"] = df_wi["time_utc"].dt.tz_localize("UTC")
+
+        # Get starttime_utc and endtime_utc from h_dict
+        starttime_utc = h_dict["starttime_utc"]
+        endtime_utc = h_dict["endtime_utc"]
+
+        # Ensure starttime_utc is timezone-aware (UTC)
+        if not isinstance(starttime_utc, pd.Timestamp):
+            starttime_utc = pd.to_datetime(starttime_utc, utc=True)
+        elif starttime_utc.tz is None:
+            starttime_utc = starttime_utc.tz_localize("UTC")
+
+        # Ensure endtime_utc is timezone-aware (UTC)
+        if not isinstance(endtime_utc, pd.Timestamp):
+            endtime_utc = pd.to_datetime(endtime_utc, utc=True)
+        elif endtime_utc.tz is None:
+            endtime_utc = endtime_utc.tz_localize("UTC")
+
+        # Generate time column internally: time = 0 corresponds to starttime_utc
+        df_wi["time"] = (df_wi["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Validate that starttime_utc and endtime_utc are within the time_utc range
+        if df_wi["time_utc"].min() > starttime_utc:
+            min_time = df_wi["time_utc"].min()
             raise ValueError(
-                f"Start time {self.starttime} is not in the range of the wind input file"
+                f"Start time UTC {starttime_utc} is before the earliest time "
+                f"in the wind input file ({min_time})"
             )
-        if not (df_wi["time"].min() <= self.endtime - self.dt <= df_wi["time"].max()):
+        if df_wi["time_utc"].max() < endtime_utc:
+            max_time = df_wi["time_utc"].max()
             raise ValueError(
-                f"End time {self.endtime} - {self.dt} is not in the range of the wind input file"
+                f"End time UTC {endtime_utc} is after the latest time "
+                f"in the wind input file ({max_time})"
             )
 
-        # If time_utc is in the file, convert it to a datetime if it's not already
-        if "time_utc" in df_wi.columns:
-            if not pd.api.types.is_datetime64_any_dtype(df_wi["time_utc"]):
-                # Strip whitespace from time_utc values to handle CSV formatting issues
-                df_wi["time_utc"] = df_wi["time_utc"].astype(str).str.strip()
-                try:
-                    df_wi["time_utc"] = pd.to_datetime(
-                        df_wi["time_utc"], format="ISO8601", utc=True
-                    )
-                except (ValueError, TypeError):
-                    # If ISO8601 format fails, try parsing without specifying format
-                    df_wi["time_utc"] = pd.to_datetime(df_wi["time_utc"], utc=True)
-
-            # Log the value of time_utc that corresponds to time == 0
-            self.start_time_utc = df_wi["time_utc"][df_wi["time"] == 0].values[0]
+        # Set starttime_utc (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        self.starttime_utc = starttime_utc
 
         # Determine the dt implied by the weather file
         self.dt_wi = df_wi["time"][1] - df_wi["time"][0]
@@ -160,16 +168,21 @@ class Wind_MesoToPower(ComponentBase):
 
         # Convert the wind directions and wind speeds and ti to simply numpy matrices
         # Starting with wind speeds
-
-        self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
-            dtype=hercules_float_type
-        )
+        if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
+            self.ws_mat = np.tile(
+                df_wi["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
+                (1, self.n_turbines),
+            )
+        else:
+            self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
 
         self.initial_wind_speeds = self.ws_mat[0, :]
-        self.floris_wind_speed = self.ws_mat_mean[0]
+        self.wind_speed_mean_background = self.ws_mat_mean[0]
 
         # For now require "wd_mean" to be in the df_wi
         if "wd_mean" not in df_wi.columns:
@@ -223,15 +236,15 @@ class Wind_MesoToPower(ComponentBase):
         # Initialize the turbine powers to nan
         self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
-        # Get the initial unwaked velocities
+        # Get the initial background wind speeds
         # TODO: This is more a debugging thing, not really necessary
-        self.unwaked_velocities = self.ws_mat[0, :]
+        self.wind_speeds_background = self.ws_mat[0, :]
 
-        # # Compute the initial waked velocities
+        # # Compute the initial waked wind speeds
         self.update_wake_deficits(step=0)
 
-        # Compute waked velocities
-        self.waked_velocities = self.ws_mat[0, :] - self.floris_wake_deficits
+        # Compute withwakes wind speeds
+        self.wind_speeds_withwakes = self.ws_mat[0, :] - self.floris_wake_deficits
 
         # Get the turbine information
         self.turbine_dict = load_yaml(self.turbine_file_name)
@@ -241,13 +254,13 @@ class Wind_MesoToPower(ComponentBase):
         if self.turbine_model_type == "filter_model":
             # Use vectorized implementation for improved performance
             self.turbine_array = TurbineFilterModelVectorized(
-                self.turbine_dict, self.dt, self.fmodel, self.waked_velocities
+                self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes
             )
             self.use_vectorized_turbines = True
         elif self.turbine_model_type == "dof1_model":
             self.turbine_array = [
                 Turbine1dofModel(
-                    self.turbine_dict, self.dt, self.fmodel, self.waked_velocities[t_idx]
+                    self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes[t_idx]
                 )
                 for t_idx in range(self.n_turbines)
             ]
@@ -290,14 +303,14 @@ class Wind_MesoToPower(ComponentBase):
         h_dict["wind_farm"]["n_turbines"] = self.n_turbines
         h_dict["wind_farm"]["capacity"] = self.capacity
         h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
-        h_dict["wind_farm"]["wind_direction"] = self.wd_mat_mean[0]
-        h_dict["wind_farm"]["wind_speed"] = self.ws_mat_mean[0]
+        h_dict["wind_farm"]["wind_direction_mean"] = self.wd_mat_mean[0]
+        h_dict["wind_farm"]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
         h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
 
         # Log the start time UTC if available
-        if hasattr(self, "start_time_utc"):
-            h_dict["wind_farm"]["start_time_utc"] = self.start_time_utc
+        if hasattr(self, "starttime_utc"):
+            h_dict["wind_farm"]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 
@@ -391,52 +404,47 @@ class Wind_MesoToPower(ComponentBase):
         turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
         self.update_power_setpoints_buffer(turbine_power_setpoints)
 
-        # Get the unwaked velocities
+        # Get the background wind speeds
         # TODO: This is more a debugging thing, not really necessary
-        self.unwaked_velocities = self.ws_mat[step, :]
+        self.wind_speeds_background = self.ws_mat[step, :]
 
-        # Check if it is time to update the waked velocities
+        # Check if it is time to update the withwakes wind speeds
         if step % self.floris_update_steps == 0:
             self.update_wake_deficits(step)
 
-        # Compute waked velocities
-        self.waked_velocities = self.ws_mat[step, :] - self.floris_wake_deficits
+        # Compute withwakes wind speeds
+        self.wind_speeds_withwakes = self.ws_mat[step, :] - self.floris_wake_deficits
 
         # Update the turbine powers
         if self.use_vectorized_turbines:
             # Vectorized calculation for all turbines at once
             self.turbine_powers = self.turbine_array.step(
-                self.waked_velocities,
+                self.wind_speeds_withwakes,
                 turbine_power_setpoints,
             )
         else:
             # Original loop-based calculation
             for t_idx in range(self.n_turbines):
                 self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
-                    self.waked_velocities[t_idx],
+                    self.wind_speeds_withwakes[t_idx],
                     power_setpoint=turbine_power_setpoints[t_idx],
                 )
 
         # Update instantaneous wind direction and wind speed
-        self.wind_direction = self.wd_mat_mean[step]
-        self.wind_speed = self.ws_mat_mean[step]
+        self.wind_direction_mean = self.wd_mat_mean[step]
+        self.wind_speed_mean_background = self.ws_mat_mean[step]
 
         # Update the h_dict with outputs
-        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["wind_direction"] = self.wind_direction
-        h_dict[self.component_name]["wind_speed"] = self.wind_speed
-
-        # If log_extra_outputs is True, add the extra outputs to the h_dict
-        h_dict[self.component_name]["floris_wind_speed"] = self.floris_wind_speed
-        h_dict[self.component_name]["floris_wind_direction"] = self.floris_wind_direction
-        h_dict[self.component_name]["floris_ti"] = self.floris_ti
-        h_dict[self.component_name]["floris_turbine_power_setpoints"] = (
-            self.floris_turbine_power_setpoints
+        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
+        h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
+        h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
+        h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
+            self.wind_speeds_withwakes, dtype=hercules_float_type
         )
-        h_dict[self.component_name]["unwaked_velocities"] = self.unwaked_velocities
-        h_dict[self.component_name]["waked_velocities"] = self.waked_velocities
-
+        h_dict[self.component_name]["wind_speeds_withwakes"] = self.wind_speeds_withwakes
+        h_dict[self.component_name]["wind_speeds_background"] = self.wind_speeds_background
         return h_dict
 
 
@@ -700,7 +708,9 @@ class Turbine1dofModel:
         )
 
         # Set filter parameter for rotor speed
-        self.filteralpha = np.exp(-self.dt * self.filterfreq_rotor_speed)
+        self.filteralpha = np.exp(
+            -self.dt * self.turbine_dict["dof1_model"]["filterfreq_rotor_speed"]
+        )
 
         # Initialize the integrated controller error to 0
         self.omegaferror_integrated = 0.0
@@ -711,20 +721,24 @@ class Turbine1dofModel:
         self.rotor_area = np.pi * self.rotor_radius**2
 
         # Save performance data functions
-        self.perffuncs = self.load_perffile(self.perffile)
+        perffile = turbine_dict["dof1_model"]["cq_table_file"]
+        self.perffuncs = load_perffile(perffile)
 
-        omega0 = self.initial_rpm * RPM2RADperSec
-        pitch, gentq = self.simplecontroller(omega0)
+        self.rho = self.turbine_dict["dof1_model"]["rho"]
+        self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
+        self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
+        omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
+        pitch, gentq = self.simplecontroller(initial_wind_speed, omega0)
         tsr = self.rotor_radius * omega0 / initial_wind_speed
         prev_power = (
-            self.perffuncs["Cp"]([tsr, pitch])[0]
+            self.perffuncs["Cp"]([tsr, pitch])
             * 0.5
             * self.rho
             * self.rotor_area
             * initial_wind_speed**3
             * self.gen_efficiency
         )
-        self.prev_power = np.array(prev_power / 1000.0, dtype=hercules_float_type)
+        self.prev_power = np.array(prev_power[0] / 1000.0, dtype=hercules_float_type)
         self.prev_omega = omega0
         self.prev_omegaf = omega0
         self.prev_aerotq = (
@@ -747,11 +761,10 @@ class Turbine1dofModel:
         return self.rated_power / 1000
 
     def step(self, wind_speed, power_setpoint):
-        """Simulate a single time step for the 1-DOF wind turbine model.
+        """Execute one simulation step for the 1-DOF turbine model.
 
         Simulates turbine dynamics including rotor speed, pitch angle, and
-        generator torque while respecting rate limits and power_setpoint 
-        constraints.
+        generator torque while respecting rate limits and power_setpoint constraints.
 
         Args:
             wind_speed (float): Current wind speed in m/s.

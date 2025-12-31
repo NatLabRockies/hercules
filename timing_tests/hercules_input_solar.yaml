@@ -4,12 +4,12 @@
 name: example_00
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Solar Farm Only
 
 dt: 1.0
-starttime: 0.0
-endtime: 43200.0
+starttime_utc: "2020-03-01T05:00:00Z" # Mar 1, 2020 05:00 UTC (Zulu time)
+endtime_utc: "2020-03-01T17:00:00Z" # 12 hours later (17:00 UTC)
 verbose: False
 
 plant:
@@ -21,12 +21,19 @@ solar_farm:
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_system_capacity: 100000
-  target_dc_ac_ratio: 1.33
+  system_capacity: 100000  # kW (100 MW)
+  tilt: 0  # degrees
+  losses: 0
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
+
 
   initial_conditions:
     power: 100000 # kW
     dni: 1000
     poa: 1000
 
-controller: 
+controller:

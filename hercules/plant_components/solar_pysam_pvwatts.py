@@ -3,6 +3,7 @@
 import numpy as np
 import PySAM.Pvwattsv8 as pvwatts
 from hercules.plant_components.solar_pysam_base import SolarPySAMBase
+from hercules.utilities import hercules_float_type
 
 
 class SolarPySAMPVWatts(SolarPySAMBase):
@@ -35,31 +36,30 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
+        # Set location parameters
+        self.elev = h_dict[self.component_name]["elev"]
+        self.lat = h_dict[self.component_name]["lat"]
+        self.lon = h_dict[self.component_name]["lon"]
+
+        # Use PVWatts system_capacity directly as documented
+        # This represents the DC system capacity under Standard Test Conditions
+        system_capacity = h_dict[self.component_name]["system_capacity"]  # (in kW)
+
         sys_design = {
             "ModelParams": {
                 "SystemDesign": {
                     "array_type": 3.0,  # single axis backtracking
                     "azimuth": 180.0,
-                    "dc_ac_ratio": h_dict[self.component_name]["target_dc_ac_ratio"],
-                    "gcr": 0.29999999999999999,
-                    "inv_eff": 96,
-                    "losses": 14.075660688264469,
-                    "module_type": 2.0,
-                    "system_capacity": h_dict[self.component_name]["target_system_capacity"],
-                    "tilt": 0.0,
+                    "dc_ac_ratio": 1.0,  # Force to 1.0
+                    "losses": h_dict[self.component_name]["losses"],
+                    "module_type": 0.0,  # standard crystalline silicon (hardcoded)
+                    "system_capacity": system_capacity,
+                    "tilt": h_dict[self.component_name]["tilt"],
                 },
-            },
-            "Other": {
-                "lat": h_dict[self.component_name]["lat"],
-                "lon": h_dict[self.component_name]["lon"],
-                "elev": h_dict[self.component_name]["elev"],
             },
         }
 
         self.model_params = sys_design["ModelParams"]
-        self.elev = sys_design["Other"]["elev"]
-        self.lat = sys_design["Other"]["lat"]
-        self.lon = sys_design["Other"]["lon"]
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -100,15 +100,18 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Execute the model once for all time steps
         self.system_model.execute()
 
-        # Store the pre-computed power array (in kW)
-        self.power_uncurtailed = np.array(self.system_model.Outputs.gen)
+        # Store the pre-computed power array (convert from W to kW)
+        # Use DC power output directly from PVWatts
+        self.power_uncurtailed = (
+            np.array(self.system_model.Outputs.dc, dtype=hercules_float_type) / 1000.0
+        )
 
         # Store other outputs as arrays for efficient access
-        self.dni_array_output = np.array(self.system_model.Outputs.dn)
-        self.dhi_array_output = np.array(self.system_model.Outputs.df)
-        self.ghi_array_output = np.array(self.system_model.Outputs.gh)
-        self.aoi_array_output = np.array(self.system_model.Outputs.aoi)
-        self.poa_array_output = np.array(self.system_model.Outputs.poa)
+        self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
+        self.dhi_array_output = np.array(self.system_model.Outputs.df, dtype=hercules_float_type)
+        self.ghi_array_output = np.array(self.system_model.Outputs.gh, dtype=hercules_float_type)
+        self.aoi_array_output = np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type)
+        self.poa_array_output = np.array(self.system_model.Outputs.poa, dtype=hercules_float_type)
 
     def _get_step_outputs(self, step):
         """Get the outputs for a specific step from pre-computed arrays.

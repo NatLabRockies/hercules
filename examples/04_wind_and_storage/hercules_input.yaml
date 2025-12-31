@@ -4,35 +4,41 @@
 name: example_03
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Wind and solar
 
 dt: 1.0
-starttime: 0.0
-endtime: 950.0
+starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
+endtime_utc: "2024-06-26T16:59:00Z" # ≈48 hours later (Jun 26, 2024 16:59:00 UTC)
 verbose: False
 
 
 plant:
-  interconnect_limit: 5000 # kW
+  interconnect_limit: 45000 # kW
 
 
 wind_farm: # The name of the Wind_MesoToPower wind farm
-  component_type: Wind_MesoToPower
-  floris_input_file: inputs/floris_input.yaml
-  wind_input_filename: inputs/wind_input.p
-  turbine_file_name: inputs/turbine_filter_model.yaml
+  component_type: Wind_MesoToPowerPrecomFloris
+  floris_input_file: ../inputs/floris_input_large.yaml
+  wind_input_filename: ../inputs/wind_input_large.ftr
+  turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
+  log_channels:
+    - power
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
 
 battery:
   component_type: BatterySimple
-  size: 20000  # kW size of the battery (20 MW)
+  size: 10000  # kW size of the battery (10 MW)
   energy_capacity: 10000 # total capacity of the battery in kWh (10 MWh)
-  charge_rate: 2000 # charge rate in kW (2 MW)
-  discharge_rate: 2000 # discharge rate in kW (2 MW)
+  charge_rate: 10000 # charge rate in kW (10 MW)
+  discharge_rate: 10000 # discharge rate in kW (10 MW)
   max_SOC: 0.9
   min_SOC: 0.1
+  log_channels:
+    - power
+    - soc
+    - power_setpoint
   allow_grid_power_consumption: False
   initial_conditions:
     SOC: 0.5

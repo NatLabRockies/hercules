@@ -109,10 +109,6 @@ class BatterySimple(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["soc", "power_setpoint"]
-
         # size = h_dict[self.component_name]["size"]
         self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
         initial_conditions = h_dict[self.component_name]["initial_conditions"]

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hercules"
-version = "2.0"
+version = "2"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -35,11 +35,19 @@ dependencies = [
 "rainflow~=3.2",
 "tqdm~=4.66",
 "polars~=1.0",
+"pyarrow",
+"h5py~=3.10",
+"NREL-rex[hsds]",
+"utm",
+"cartopy",
+"openmeteo_requests",
+"requests_cache",
+"retry_requests"
 ]
 
 [project.optional-dependencies]
 docs = [
-    "jupyter-book",
+    "jupyter-book==1.0.4",
     "sphinx-book-theme"
 ]
 develop = [

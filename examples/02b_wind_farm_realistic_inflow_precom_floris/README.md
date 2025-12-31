@@ -3,7 +3,9 @@
 ## Description
 
 This example is identical to `02_wind_farm_realistic_inflow` with the exception that the `Wind_MesoToPowerPrecomFloris`
-class is used to speed up the simulation.  Note the caveats to using this class from the docs:
+class is used to speed up the simulation. This example automatically generates the necessary input files in the centralized `examples/inputs/` folder when first run.
+
+Note the caveats to using this class from the docs:
 
 
 > In contrast to the Wind_MesoToPower class, this class pre-computes the FLORIS wake

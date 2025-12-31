@@ -4,10 +4,12 @@ import os
 import tempfile
 
 import yaml
+from hercules.utilities_examples import generate_example_inputs
 from test_example_utilities import (
     copy_example_files,
     generate_input_data,
     run_simulation,
+    update_input_file_paths,
 )
 
 ## Parameters
@@ -103,17 +105,23 @@ def test_example_00b_precom_floris_limited_time_regression():
     component type and run for only a few time steps. It verifies that the final
     outputs are reasonable and consistent.
     """
+    # Ensure centralized example inputs exist
+    generate_example_inputs()
+
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy the example files to the temp directory
         example_dir_abs = os.path.join(os.getcwd(), EXAMPLE_DIR)
         copy_example_files(example_dir_abs, temp_dir, INPUT_FILE, INPUTS_DIR, NOTEBOOK_FILE)
 
-        # Generate input data if needed
-        generate_input_data(temp_dir, NOTEBOOK_FILE)
+        # Update input file paths to use centralized inputs
+        update_input_file_paths(temp_dir, INPUT_FILE)
 
         # Modify the input file to use precomputed FLORIS
         modify_input_file_for_precom_floris(temp_dir, INPUT_FILE)
+
+        # Generate input data if needed (skip for centralized input system)
+        # generate_input_data(temp_dir, NOTEBOOK_FILE)
 
         # Create outputs directory
         os.makedirs(f"{temp_dir}/{OUTPUTS_DIR}", exist_ok=True)

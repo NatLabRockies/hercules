@@ -1,0 +1,116 @@
+# Input YAML for hercules
+
+# Name
+name: example_06
+
+###
+# Describe this simulation setup
+description: Wind and hydrogen 
+
+dt: 1.0
+starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
+endtime_utc: "2024-06-24T18:59:00Z" # ≈2 hours later (Jun 26, 2024 16:59:00 UTC)
+# endtime_utc: "2024-06-26T16:59:00Z" # ≈48 hours later (Jun 26, 2024 16:59:00 UTC)
+verbose: False
+
+
+plant:
+  interconnect_limit: 45000 # kW
+
+
+wind_farm: # The name of the Wind_MesoToPower wind farm
+  component_type: Wind_MesoToPowerPrecomFloris
+  floris_input_file: ../inputs/floris_input_large.yaml
+  wind_input_filename: ../inputs/wind_input_large.ftr
+  turbine_file_name: ../inputs/turbine_filter_model.yaml
+  log_file_name: outputs/log_wind_sim.log
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
+    - turbine_power_setpoints
+  floris_update_time_s: 300.0 # Update wakes every 5 minutes
+
+# Electrolyzer plant input file
+electrolyzer: # The name of the py_sim object
+
+  component_type: ElectrolyzerPlant
+  general: 
+    verbose: True # default
+  initial_conditions:
+    # Initial power input to electrolyzer 
+    power_available_kw: 20000    
+  electrolyzer:
+    initialize: True 
+    initial_power_kW: 20000
+    supervisor:
+      n_stacks: 40
+      system_rating_MW: 40
+    stack: 
+      cell_type: PEM
+      # Maximum current of Stack (A)
+      max_current: 2000
+      # Stack operating temperature (degC)
+      temperature: 60
+      # Number of Cells per Stack
+      n_cells: 100
+      # Stack rated power
+      stack_rating_kW: 1000
+      # Determines whether degradation is applied to the Stack operation
+      include_degradation_penalty: False
+      # hydrogen_degradation_penalty: True
+    # cell_params:
+    #   cell_type: PEM
+      # max_current_density: 2 
+      # PEM_params:
+          # cell_area: 1000
+          # turndown_ratio: 0.1
+          # max_current_density: 2.0
+          # p_anode: 1.01325
+          # p_cathode: 30
+          # alpha_a: 2
+          # alpha_c: 0.5
+          # i_0_a: 2.0e-7
+          # i_0_c: 2.0e-3
+          # e_m: 0.02
+          # R_ohmic_elec: 50.0e-3
+          # f_1: 250
+          # f_2: 0.996
+    # degradation:
+    #   eol_eff_percent_loss: 20
+    #   PEM_params:
+    #     rate_steady: 1.42e-10
+    #     rate_fatigue: 3.33e-07
+    #     rate_onoff: 1.47e-04
+    controller:
+      # Controller type for electrolyzer plant operation
+      control_type: PowerSharingRotation
+      # policy: 
+      #   eager_on: False
+      #   eager_off: False
+      #   sequential: False
+      #   even_dist: False
+      #   baseline: True
+    # costs:
+  log_channels:
+    - power
+    - H2_output
+    - H2_mfr
+    - power_input_kw
+
+
+controller:
+  num_turbines: 9 # Should match AMR-Wind! Ideally, would come from AMR-wind
+  nominal_plant_power_kW: 45000 # Plant power in kW
+  nominal_hydrogen_rate_kgps: 0.208 # in kg/s [kg per day/24/3600 * stack number]
+  hydrogen_controller_gain: 1
+
+external_data_file: inputs/hydrogen_ref_signal.csv
+
+
+
+

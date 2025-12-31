@@ -4,9 +4,9 @@
 
 Example of a wind and storage hybrid plant where the storage is constrained to charge only using power produced by the wind farm.  
 
-## Pre setup
+## Setup
 
-1. Copy `wind_input.p` from the `example_case_folders/02_wind_farm_realistic_inflow/inputs/` folder to `inputs/`
+No manual setup is required. The example automatically generates the necessary input files (wind data, FLORIS configuration, and turbine model) in the centralized `examples/inputs/` folder when first run.
 
 
 ## Running

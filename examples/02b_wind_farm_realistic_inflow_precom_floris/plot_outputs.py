@@ -1,15 +1,21 @@
 # Plot the outputs of the simulation
 
 import matplotlib.pyplot as plt
-import pandas as pd
+from hercules import HerculesOutput
 
-# Read the Hercules output file
-df = pd.read_feather("outputs/hercules_output.feather")
+# Read the Hercules output file using HerculesOutput
+ho = HerculesOutput("outputs/hercules_output.h5")
+
+# Print metadata information
+print("Simulation Metadata:")
+ho.print_metadata()
+print()
+
+# Create a shortcut to the dataframe
+df = ho.df
 
 # Limit to the first 4 hours
 df = df.iloc[: 3600 * 4]
-
-print(df["wind_farm.floris_wind_direction"].head())
 
 # Set number of turbines
 turbines_to_plot = [0, 8]
@@ -34,14 +40,14 @@ ax = axarr[0]
 for t_idx in turbines_to_plot:
     ax.plot(
         df["time"],
-        df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_background.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
 for t_idx in turbines_to_plot:
     ax.plot(
         df["time"],
-        df[f"wind_farm.waked_velocities.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
         color=colors[t_idx],
@@ -50,8 +56,8 @@ for t_idx in turbines_to_plot:
 # Plot the FLORIS wind speed
 ax.plot(
     df["time"],
-    df["wind_farm.floris_wind_speed"],
-    label="FLORIS",
+    df["wind_farm.wind_speed_mean_background"],
+    label="Mean Unwaked Wind Speed",
     color="black",
     lw=2,
 )

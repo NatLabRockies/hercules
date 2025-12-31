@@ -1,5 +1,6 @@
 """Tests for the Wind_MesoToPower class."""
 
+import copy
 import os
 import tempfile
 
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from hercules.plant_components.wind_meso_to_power import TurbineFilterModel, Wind_MesoToPower
+from hercules.utilities import hercules_float_type
 
 from tests.test_inputs.h_dict import h_dict_wind
 
@@ -25,9 +27,46 @@ def test_wind_meso_to_power_initialization():
     assert wind_sim.floris_update_time_s == 30.0
 
 
+def test_wind_meso_to_power_precom_floris_ws_mean():
+    """Test that invalid component_type raises ValueError."""
+
+    current_dir = os.path.dirname(__file__)
+
+    df_input = pd.read_csv(current_dir + "/test_inputs/wind_input.csv")
+    df_input["ws_mean"] = 10.0
+    df_input.to_csv(current_dir + "/test_inputs/wind_input_temp.csv")
+
+    test_h_dict = copy.deepcopy(h_dict_wind)
+    test_h_dict["wind_farm"]["wind_input_filename"] = "tests/test_inputs/wind_input_temp.csv"
+
+    # Test that, since individual speed are specified, ws_mean is ignored
+    # Note that h_dict_wind specifies an end time of 10.
+    wind_sim = Wind_MesoToPower(test_h_dict)
+    assert (
+        wind_sim.ws_mat[:, 0] == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
+    ).all()
+    assert np.allclose(
+        wind_sim.ws_mat_mean,
+        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(dtype=hercules_float_type)[
+            :10
+        ],
+    )
+
+    # Drop individual speeds and test that ws_mean is used instead
+    df_input = df_input.drop(columns=["ws_000", "ws_001", "ws_002"])
+    df_input.to_csv(current_dir + "/test_inputs/wind_input_temp.csv")
+
+    wind_sim = Wind_MesoToPower(test_h_dict)
+    assert (wind_sim.ws_mat_mean == 10.0).all()
+    assert (wind_sim.ws_mat[:, :] == 10.0).all()
+
+    # Delete temp file
+    os.remove(current_dir + "/test_inputs/wind_input_temp.csv")
+
+
 def test_wind_meso_to_power_missing_floris_update_time():
     """Test that missing floris_update_time_s raises ValueError."""
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
     del test_h_dict["wind_farm"]["floris_update_time_s"]
 
     with pytest.raises(ValueError, match="floris_update_time_s must be in the h_dict"):
@@ -36,7 +75,7 @@ def test_wind_meso_to_power_missing_floris_update_time():
 
 def test_wind_meso_to_power_invalid_update_time():
     """Test that invalid update time raises ValueError."""
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5  # Less than 1 second
 
     with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
@@ -45,7 +84,7 @@ def test_wind_meso_to_power_invalid_update_time():
 
 def test_wind_meso_to_power_step():
     """Test that the step method updates outputs correctly."""
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
     # Set a shorter update time for testing
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
@@ -142,7 +181,7 @@ def test_wind_meso_to_power_time_utc_conversion():
 
 def test_wind_meso_to_power_power_setpoint_too_high():
     """Test that turbine powers are below power setpoint when setpoint is very high."""
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
     wind_sim = Wind_MesoToPower(test_h_dict)
@@ -165,7 +204,7 @@ def test_wind_meso_to_power_power_setpoint_too_high():
 
 def test_wind_meso_to_power_power_setpoint_applies():
     """Test that turbine powers equal power setpoint when setpoint is very low."""
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
 
     wind_sim = Wind_MesoToPower(test_h_dict)
@@ -193,7 +232,7 @@ def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
     wind_sim = Wind_MesoToPower(h_dict_wind)
 
     # Create a copy of the input h_dict to avoid modifying the original
-    test_h_dict = h_dict_wind.copy()
+    test_h_dict = copy.deepcopy(h_dict_wind)
 
     # Call the method
     result = wind_sim.get_initial_conditions_and_meta_data(test_h_dict)
@@ -205,16 +244,16 @@ def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
     assert "n_turbines" in result["wind_farm"]
     assert "capacity" in result["wind_farm"]
     assert "rated_turbine_power" in result["wind_farm"]
-    assert "wind_direction" in result["wind_farm"]
-    assert "wind_speed" in result["wind_farm"]
+    assert "wind_direction_mean" in result["wind_farm"]
+    assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
     assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
     assert result["wind_farm"]["capacity"] == wind_sim.capacity
     assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
-    assert result["wind_farm"]["wind_direction"] == wind_sim.wd_mat_mean[0]
-    assert result["wind_farm"]["wind_speed"] == wind_sim.ws_mat_mean[0]
+    assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
+    assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 
     # Verify turbine_powers is a numpy array with correct length
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
@@ -237,6 +276,14 @@ def test_wind_meso_to_power_regular_floris_updates():
     # Create a temporary wind input file with constant conditions
     wind_data = {
         "time": [0, 1, 2, 3, 4, 5],
+        "time_utc": [
+            "2018-05-10 12:31:00",
+            "2018-05-10 12:31:01",
+            "2018-05-10 12:31:02",
+            "2018-05-10 12:31:03",
+            "2018-05-10 12:31:04",
+            "2018-05-10 12:31:05",
+        ],
         "wd_mean": [270.0, 270.0, 270.0, 270.0, 270.0, 270.0],  # Constant wind direction
         "ws_000": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],  # Constant wind speed
         "ws_001": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],  # Constant wind speed
@@ -251,20 +298,22 @@ def test_wind_meso_to_power_regular_floris_updates():
 
     try:
         # Create test h_dict with the temporary wind file
-        test_h_dict = h_dict_wind.copy()
+        test_h_dict = copy.deepcopy(h_dict_wind)
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
         test_h_dict["wind_farm"]["floris_update_time_s"] = 2.0  # Update every 2 seconds
         test_h_dict["starttime"] = 0.0
-        test_h_dict["endtime"] = 6.0  # 6 steps (0, 1, 2, 3, 4, 5)
+        test_h_dict["endtime"] = 5.0  # 5 steps (0, 1, 2, 3, 4)
+        test_h_dict["starttime_utc"] = "2018-05-10 12:31:00"
+        test_h_dict["endtime_utc"] = "2018-05-10 12:31:05"
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
         wind_sim = Wind_MesoToPower(test_h_dict)
 
-        # Run 6 steps with constant power setpoints
+        # Run 5 steps with constant power setpoints
         floris_calc_counts = []
 
-        for step in range(6):
+        for step in range(5):
             test_h_dict = {"step": step}
             test_h_dict["wind_farm"] = {
                 "turbine_power_setpoints": np.array([5000.0, 5000.0, 5000.0]),
@@ -275,7 +324,7 @@ def test_wind_meso_to_power_regular_floris_updates():
 
         # Verify that FLORIS calculations happen at regular intervals
         # Should have initial calculation + updates at steps 0, 2, 4 (every 2 seconds)
-        expected_calcs = [2, 2, 3, 3, 4, 4]  # Initial + updates at steps 0, 2, 4
+        expected_calcs = [2, 2, 3, 3, 4]  # Initial + updates at steps 0, 2, 4
         assert floris_calc_counts == expected_calcs
 
     finally:
@@ -289,6 +338,14 @@ def test_wind_meso_to_power_power_setpoints_buffer():
     # Create a temporary wind input file with constant conditions
     wind_data = {
         "time": [0, 1, 2, 3, 4, 5],
+        "time_utc": [
+            "2018-05-10 12:31:00",
+            "2018-05-10 12:31:01",
+            "2018-05-10 12:31:02",
+            "2018-05-10 12:31:03",
+            "2018-05-10 12:31:04",
+            "2018-05-10 12:31:05",
+        ],
         "wd_mean": [270.0, 270.0, 270.0, 270.0, 270.0, 270.0],
         "ws_000": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],
         "ws_001": [10.0, 10.0, 10.0, 10.0, 10.0, 10.0],
@@ -303,18 +360,20 @@ def test_wind_meso_to_power_power_setpoints_buffer():
 
     try:
         # Create test h_dict with the temporary wind file
-        test_h_dict = h_dict_wind.copy()
+        test_h_dict = copy.deepcopy(h_dict_wind)
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
         test_h_dict["wind_farm"]["floris_update_time_s"] = 3.0  # 3-second buffer
         test_h_dict["starttime"] = 0.0
-        test_h_dict["endtime"] = 6.0
+        test_h_dict["endtime"] = 5.0  # 5 steps (0, 1, 2, 3, 4)
+        test_h_dict["starttime_utc"] = "2018-05-10 12:31:00"
+        test_h_dict["endtime_utc"] = "2018-05-10 12:31:05"
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
         wind_sim = Wind_MesoToPower(test_h_dict)
 
         # Run steps with varying power setpoints
-        for step in range(6):
+        for step in range(5):
             test_h_dict = {"step": step}
             # Use different power setpoints for each step
             power_setpoints = np.array(
@@ -327,9 +386,9 @@ def test_wind_meso_to_power_power_setpoints_buffer():
             test_h_dict = wind_sim.step(test_h_dict)
 
         # Verify that the buffer is working correctly
-        # The buffer should contain the last 3 power setpoint values
+        # The buffer should contain the last 3 power setpoint values (steps 2, 3, 4)
         assert wind_sim.turbine_power_setpoints_buffer.shape == (3, 3)  # 3 steps, 3 turbines
-        assert wind_sim.turbine_power_setpoints_buffer_idx == 0  # Should wrap around
+        assert wind_sim.turbine_power_setpoints_buffer_idx == 2  # After 5 steps with buffer size 3
 
     finally:
         # Clean up temporary file

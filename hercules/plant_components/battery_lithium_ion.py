@@ -113,10 +113,6 @@ class BatteryLithiumIon(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs + ["soc", "power_setpoint"]
-
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
@@ -230,7 +226,7 @@ class BatteryLithiumIon(ComponentBase):
             dtype=hercules_float_type,
         )
 
-        # initial state of battery outputs for hercules emulator
+        # initial state of battery outputs for hercules
         self.power_kw = 0
         self.P_reject = 0
         self.P_charge = 0

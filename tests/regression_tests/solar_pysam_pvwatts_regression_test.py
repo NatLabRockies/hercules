@@ -3,33 +3,33 @@
 import os
 
 import numpy as np
-import pytest
+import pandas as pd
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 
 PRINT_VALUES = True
 
 powers_base_no_control = np.array(
     [
-        13751.39824276,
-        13762.28230574,
-        13773.16638954,
-        13784.0501833,
-        13794.93394526,
-        13805.81761126,
-        13816.70114304,
-        13827.58454415,
-        13838.4678379,
-        13849.35112479,
+        16528.82749492729,
+        16541.958599140045,
+        16555.08955834377,
+        16568.220372741496,
+        16581.35104253094,
+        16594.481567904546,
+        16607.61194537151,
+        16620.74217922295,
+        16633.872269119838,
+        16647.002215233784,
     ]
 )
 
 powers_base_control = np.array(
     [
-        13751.39824276,
-        13762.28230574,
-        13773.16638954,
-        13784.0501833,
-        13794.93394526,
+        13800.0,
+        13800.0,
+        13800.0,
+        13800.0,
+        13800.0,
         13800.0,
         13800.0,
         13800.0,
@@ -56,15 +56,15 @@ dni_base_no_control = np.array(
 aoi_base_no_control = np.array(
     [
         67.82689268,
-        67.82689265,
-        67.8268924,
-        67.82689242,
-        67.8268923,
-        67.82689214,
-        67.826892,
-        67.82689188,
-        67.82689174,
-        67.82689143,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
+        67.82689268,
     ]
 )
 
@@ -85,27 +85,32 @@ def get_solar_params():
             "lat": 39.7442,
             "lon": -105.1778,
             "elev": 1829,
-            "target_system_capacity": 100002.58266599999,
-            "target_dc_ac_ratio": 1.33,
+            "system_capacity": 100000.0,  # kW (100 MW)
+            "tilt": 0,  # degrees
+            "losses": 0,
             "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
             "verbose": False,
         },
     }
 
+    # Derive starttime_utc and endtime_utc from the input file to satisfy model requirements
+    df = pd.read_csv(solar_dict["solar_farm"]["solar_input_filename"])
+    if "time_utc" not in df.columns:
+        raise ValueError("Test input solar_pysam_data.csv must include a 'time_utc' column")
+    if not pd.api.types.is_datetime64_any_dtype(df["time_utc"]):
+        df["time_utc"] = pd.to_datetime(df["time_utc"], format="ISO8601", utc=True)
+    start_ts = df["time_utc"].min()
+    solar_dict["starttime_utc"] = start_ts.isoformat()
+    end_ts = start_ts + pd.to_timedelta(solar_dict["endtime"], unit="s")
+    solar_dict["endtime_utc"] = end_ts.isoformat()
+
     return solar_dict
 
 
-def create_solar_pysam():
+def test_SolarPySAM_regression_control():
     solar_dict = get_solar_params()
-    return SolarPySAMPVWatts(solar_dict)
+    SPS = SolarPySAMPVWatts(solar_dict)
 
-
-@pytest.fixture
-def SPS():
-    return create_solar_pysam()
-
-
-def test_SolarPySAM_regression_control(SPS: SolarPySAMPVWatts):
     power_setpoint = 13800.0  # Slightly below most of the base outputs.
 
     times_test = np.arange(0, 5, SPS.dt)

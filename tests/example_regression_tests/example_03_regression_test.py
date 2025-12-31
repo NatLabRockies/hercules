@@ -1,11 +1,11 @@
 """Regression tests for example cases."""
 
 import os
-import pickle
 import tempfile
 
 import numpy as np
 import pandas as pd
+from hercules.utilities_examples import generate_example_inputs
 from test_example_utilities import (
     copy_example_files,
     run_simulation,
@@ -21,9 +21,9 @@ EXAMPLE_DESCRIPTION = "Wind and Solar"
 
 # Test configuration
 NUM_TIME_STEPS = 5
-EXPECTED_FINAL_WIND_POWER = 3229  # Updated after wind model changes
-EXPECTED_FINAL_SOLAR_POWER = 1735  # Updated after running print_expected_values
-EXPECTED_FINAL_PLANT_POWER = 4964  # Updated after wind model changes (3229 + 1735)
+EXPECTED_FINAL_WIND_POWER = 14322  # Updated for 9 turbines with large config
+EXPECTED_FINAL_SOLAR_POWER = 20912  # Expected final solar farm power output (kW)
+EXPECTED_FINAL_PLANT_POWER = 35234  # Wind + Solar (14322 + 20912)
 
 # File names
 INPUT_FILE = "hercules_input.yaml"
@@ -40,26 +40,33 @@ def create_test_input_files(temp_dir):
     Args:
         temp_dir (str): Path to the temporary directory.
     """
-    # Create inputs directory
-    inputs_dir = f"{temp_dir}/{INPUTS_DIR}"
-    os.makedirs(inputs_dir, exist_ok=True)
+    # Create a temporary inputs directory within the test directory
+    test_inputs_dir = os.path.join(temp_dir, "test_inputs")
+    os.makedirs(test_inputs_dir, exist_ok=True)
 
-    # Create wind input data (5 time steps) - pickle format like example_03
-    # We need 3 turbines (ws_000, ws_001, ws_002) with wind speeds and directions
+    # Load starttime_utc from the copied example input to build time_utc
+    import yaml
+
+    with open(os.path.join(temp_dir, INPUT_FILE), "r") as f:
+        _h = yaml.safe_load(f)
+    starttime_utc = pd.to_datetime(_h["starttime_utc"], utc=True)
+
+    # Create wind input data (5 time steps) - feather format for test
+    # We need 9 turbines (ws_000 through ws_008) with wind speeds and directions for large config
     wind_data = {
         "time": np.arange(0, NUM_TIME_STEPS, 1),
-        "ws_000": np.array([8.0, 8.1, 7.9, 8.2, 8.0]),  # Wind speed for turbine 0
-        "ws_001": np.array([8.0, 8.1, 7.9, 8.2, 8.0]),  # Wind speed for turbine 1
-        "ws_002": np.array([8.0, 8.1, 7.9, 8.2, 8.0]),  # Wind speed for turbine 2
+        "time_utc": pd.date_range(start=starttime_utc, periods=NUM_TIME_STEPS, freq="1s", tz="UTC"),
         "wd_mean": np.array([270.0, 270.0, 270.0, 270.0, 270.0]),  # Wind direction
     }
 
-    # Create solar input data (5 time steps) - pickle format like example_03
+    # Add wind speed data for all 9 turbines
+    for i in range(9):
+        wind_data[f"ws_{i:03d}"] = np.array([8.0, 8.1, 7.9, 8.2, 8.0])  # Wind speed for turbine i
+
+    # Create solar input data (5 time steps) - feather format for test
     solar_data = {
         "time": np.arange(0, NUM_TIME_STEPS, 1),
-        "time_utc": pd.date_range(
-            "2024-06-24 17:00:00", periods=NUM_TIME_STEPS, freq="1s", tz="UTC"
-        ),
+        "time_utc": pd.date_range(start=starttime_utc, periods=NUM_TIME_STEPS, freq="1s", tz="UTC"),
         # GHI (daytime - realistic values from actual data ~735 W/m²)
         "SRRL BMS Global Horizontal Irradiance (W/m²_irr)": np.array(
             [735.0, 737.0, 732.0, 739.0, 735.0]
@@ -81,15 +88,76 @@ def create_test_input_files(temp_dir):
         "Peak Wind Speed @ 10m [m/s]": np.array([2.5, 2.6, 2.4, 2.7, 2.5]),  # Peak wind speed 10m
     }
 
-    # Save wind input file as pickle
+    # Save wind input file as feather in test directory (not overwriting centralized files)
     wind_df = pd.DataFrame(wind_data)
-    with open(f"{inputs_dir}/wind_input.p", "wb") as f:
-        pickle.dump(wind_df, f)
+    wind_df.to_feather(f"{test_inputs_dir}/wind_input_large.ftr")
 
-    # Save solar input file as pickle
+    # Save solar input file as feather in test directory (not overwriting centralized files)
     solar_df = pd.DataFrame(solar_data)
-    with open(f"{inputs_dir}/solar_input.p", "wb") as f:
-        pickle.dump(solar_df, f)
+    solar_df.to_feather(f"{test_inputs_dir}/solar_input.ftr")
+
+    return test_inputs_dir
+
+
+def update_input_file_paths_for_test(temp_dir, input_file, test_inputs_dir):
+    """Update the hercules input file to use test-specific input files.
+
+    Args:
+        temp_dir (str): Path to the temporary directory.
+        input_file (str): Name of the input file.
+        test_inputs_dir (str): Path to the test inputs directory.
+    """
+    import yaml
+
+    input_file_path = f"{temp_dir}/{input_file}"
+
+    # Read the input file
+    with open(input_file_path, "r") as f:
+        h_dict = yaml.safe_load(f)
+
+    # Update paths in wind_farm section to use test inputs
+    if "wind_farm" in h_dict:
+        if "floris_input_file" in h_dict["wind_farm"]:
+            # Use absolute path to centralized FLORIS config (it's not modified by tests)
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            centralized_inputs_dir = os.path.join(repo_root, "examples", "inputs")
+            filename = os.path.basename(h_dict["wind_farm"]["floris_input_file"])
+            h_dict["wind_farm"]["floris_input_file"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+        if "wind_input_filename" in h_dict["wind_farm"]:
+            # Use test wind input file
+            filename = os.path.basename(h_dict["wind_farm"]["wind_input_filename"])
+            h_dict["wind_farm"]["wind_input_filename"] = os.path.join(test_inputs_dir, filename)
+
+        if "turbine_file_name" in h_dict["wind_farm"]:
+            # Use absolute path to centralized turbine config (it's not modified by tests)
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            centralized_inputs_dir = os.path.join(repo_root, "examples", "inputs")
+            filename = os.path.basename(h_dict["wind_farm"]["turbine_file_name"])
+            h_dict["wind_farm"]["turbine_file_name"] = os.path.join(
+                centralized_inputs_dir, filename
+            )
+
+    # Update paths in solar_farm section to use test inputs
+    if "solar_farm" in h_dict:
+        if "solar_input_filename" in h_dict["solar_farm"]:
+            # Use test solar input file
+            filename = os.path.basename(h_dict["solar_farm"]["solar_input_filename"])
+            h_dict["solar_farm"]["solar_input_filename"] = os.path.join(test_inputs_dir, filename)
+
+    # Also adjust endtime_utc to match the shortened test duration
+    if "starttime_utc" in h_dict:
+        start_ts = pd.to_datetime(h_dict["starttime_utc"], utc=True)
+        # For NUM_TIME_STEPS time steps (0, 1, 2, ..., NUM_TIME_STEPS-1),
+        # the end time should be at starttime + (NUM_TIME_STEPS - 1) seconds
+        new_end = start_ts + pd.to_timedelta(NUM_TIME_STEPS - 1, unit="s")
+        h_dict["endtime_utc"] = new_end.isoformat().replace("+00:00", "Z")
+
+    # Write the updated input file
+    with open(input_file_path, "w") as f:
+        yaml.dump(h_dict, f, default_flow_style=False)
 
 
 def print_expected_values():
@@ -107,8 +175,11 @@ def print_expected_values():
         example_dir_abs = os.path.join(os.getcwd(), EXAMPLE_DIR)
         copy_example_files(example_dir_abs, temp_dir, INPUT_FILE, INPUTS_DIR, NOTEBOOK_FILE)
 
-        # Create test input files
-        create_test_input_files(temp_dir)
+        # Create test input files in a separate test directory
+        test_inputs_dir = create_test_input_files(temp_dir)
+
+        # Update input file paths to use test-specific inputs
+        update_input_file_paths_for_test(temp_dir, INPUT_FILE, test_inputs_dir)
 
         # Skip notebook execution since we're creating our own input files
         # generate_input_data(temp_dir, NOTEBOOK_FILE)
@@ -143,14 +214,20 @@ def test_example_03_limited_time_regression():
     This test modifies the example 03 configuration to run for only a few time steps
     and verifies that the final outputs are reasonable and consistent.
     """
+    # Ensure centralized example inputs exist
+    generate_example_inputs()
+
     # Create a temporary directory for this test
     with tempfile.TemporaryDirectory() as temp_dir:
         # Copy the example files to the temp directory
         example_dir_abs = os.path.join(os.getcwd(), EXAMPLE_DIR)
         copy_example_files(example_dir_abs, temp_dir, INPUT_FILE, INPUTS_DIR, NOTEBOOK_FILE)
 
-        # Create test input files
-        create_test_input_files(temp_dir)
+        # Create test input files in a separate test directory
+        test_inputs_dir = create_test_input_files(temp_dir)
+
+        # Update input file paths to use test-specific inputs (not centralized ones)
+        update_input_file_paths_for_test(temp_dir, INPUT_FILE, test_inputs_dir)
 
         # Skip notebook execution since we're creating our own input files
         # generate_input_data(temp_dir, NOTEBOOK_FILE)

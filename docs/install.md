@@ -5,7 +5,7 @@
 
 ## Root Directory
 
-It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as the Wind Hybrid Open Controller (WHOC) and the Electrolyzer.
+It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.
 
 ```bash
 mkdir -p hercules_root
@@ -40,16 +40,21 @@ uv venv
 source .venv/bin/activate
 ```
 
+See https://docs.astral.sh/uv/getting-started/installation/ for information in installing uv.
+
+Note, `uvx` is used for in running the gridstatus_download.py script.  So you will need to install if using the gridstatus_download.py script.
+See (Grid Status Data Download)[gridstatus_download.md] for more information.
+
 ## PIP Install
 
 Install Hercules in editible mode into the active virtual environment.
 
-#### Just Hercules
+### Just Hercules
 ```bash
 pip install -e .
 ```
 
-#### With Developer and Documentation Dependencies
+### With Developer and Documentation Dependencies
 
 ```bash
 pip install -e .[develop,docs]
@@ -57,16 +62,16 @@ pip install -e .[develop,docs]
 
 ## Setting branch
 
-Can optionally switch to the develop or v2 branch.
+Can optionally switch to the v2 branch for the latest stable version.
 
 ```bash
 git fetch --all
-git switch develop
+git switch v2
 ```
 
-## Wind Hybrid Open Controller (WHOC)
+## Hycon
 
-NREL's Wind Hybrid Open Controller (WHOC) software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform. 
+NLR's Hycon software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.
 
 
 To install:
@@ -74,15 +79,15 @@ Go back to root
 
 ```bash
 cd ..
-git clone git@github.com:NREL/wind-hybrid-open-controller.git
-cd wind-hybrid-open-controller
+git clone git@github.com:NREL/hycon.git
+cd hycon
 git fetch --all
 pip install -e .
 ```
 
 ## Electrolyzer
 
-A python electrolyzer model is also required for hercules. To install 
+A python electrolyzer model is also required for hercules. To install
 the electrolyzer, use
 
 ```bash
@@ -90,9 +95,5 @@ cd ..
 git clone git@github.com:NREL/electrolyzer.git
 cd electrolyzer
 git fetch --all
-git switch develop
+git switch main
 ```
-
-
-
-

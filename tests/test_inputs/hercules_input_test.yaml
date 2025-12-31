@@ -4,12 +4,12 @@
 name: test_input
 
 ###
-# Describe this emulator setup
+# Describe this simulation setup
 description: Test input file
 
 dt: 1.0
-starttime: 0.0
-endtime: 30.0
+starttime_utc: "2020-03-01T05:00:00Z" # Mar 1, 2020 05:00:00 UTC (Zulu time)
+endtime_utc: "2020-03-01T05:00:30Z" # 30 seconds later
 verbose: False
 
 plant:
@@ -21,6 +21,13 @@ wind_farm: # The name of the Wind_MesoToPower wind farm
   wind_input_filename: inputs/wind_input.p
   turbine_file_name: inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
+  log_channels:
+    - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+  floris_update_time_s: 30.0
 
 solar_farm: # The name of component object 1
   component_type: SolarPySAMPVWatts
@@ -29,7 +36,11 @@ solar_farm: # The name of component object 1
   lat: 39.7442
   lon: -105.1778
   elev: 1829
-  target_dc_ac_ratio: 1.33
+  log_channels:
+    - power
+    - dni
+    - poa
+    - aoi
 
   initial_conditions:
 
@@ -39,7 +50,3 @@ solar_farm: # The name of component object 1
 
 
 controller:
-
-
-
-

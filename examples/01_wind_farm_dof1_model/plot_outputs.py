@@ -1,10 +1,18 @@
 # Plot the outputs of the simulation
 
 import matplotlib.pyplot as plt
-import pandas as pd
+from hercules import HerculesOutput
 
-# Read the Hercules output file
-df = pd.read_feather("outputs/hercules_output.feather")
+# Read the Hercules output file using HerculesOutput
+ho = HerculesOutput("outputs/hercules_output.h5")
+
+# Print metadata information
+print("Simulation Metadata:")
+ho.print_metadata()
+print()
+
+# Create a shortcut to the dataframe
+df = ho.df
 
 # Set number of turbines
 n_turbines = 3
@@ -16,17 +24,17 @@ fig, axarr = plt.subplots(2, 1, sharex=True)
 
 # Plot the wind speeds
 ax = axarr[0]
-for t_idx in range(n_turbines):
+for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.unwaked_velocities.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_background.{t_idx:03}"],
         label=f"Unwaked {t_idx}",
         color=colors[t_idx],
     )
-for t_idx in range(n_turbines):
+for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.waked_velocities.{t_idx:03}"],
+        df[f"wind_farm.wind_speeds_withwakes.{t_idx:03}"],
         label=f"Waked {t_idx}",
         linestyle="--",
         color=colors[t_idx],
@@ -35,7 +43,7 @@ for t_idx in range(n_turbines):
 # Plot the FLORIS wind speed
 ax.plot(
     df["time"],
-    df["wind_farm.floris_wind_speed"],
+    df["wind_farm.wind_speed_mean"],
     label="FLORIS",
     color="black",
     lw=2,
@@ -48,7 +56,7 @@ ax.set_ylabel("Wind Speed [m/s]")
 
 # Plot the power
 ax = axarr[1]
-for t_idx in range(n_turbines):
+for t_idx in range(3):
     ax.plot(
         df["time"],
         df[f"wind_farm.turbine_powers.{t_idx:03}"],
@@ -57,11 +65,11 @@ for t_idx in range(n_turbines):
     )
 
 # Check if derating columns exist and plot them if they do
-for t_idx in range(n_turbines):
+for t_idx in range(3):
     ax.plot(
         df["time"],
-        df[f"wind_farm.turbine_power_setpoints.{t_idx:03}"],
-        label=f"Power Setpoint {t_idx}",
+        df[f"wind_farm.turbine_deratings.{t_idx:03}"],
+        label=f"Derating {t_idx}",
         linestyle="--",
         color=colors[t_idx],
     )

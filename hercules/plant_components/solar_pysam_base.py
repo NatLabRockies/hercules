@@ -3,7 +3,9 @@
 import numpy as np
 import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
-from hercules.utilities import interpolate_df
+from hercules.utilities import (
+    interpolate_df,
+)
 
 
 class SolarPySAMBase(ComponentBase):
@@ -11,6 +13,8 @@ class SolarPySAMBase(ComponentBase):
 
     This class provides common functionality for both PVSam and PVWatts models,
     including weather data processing, solar resource assignment, and control logic.
+
+    Note PVSam is no longer supported in Hercules.
     """
 
     def __init__(self, h_dict):
@@ -25,33 +29,14 @@ class SolarPySAMBase(ComponentBase):
         # Call the base class init
         super().__init__(h_dict, self.component_name)
 
-        # Add to the log outputs with specific outputs
-        # Note that power is assumed in the base class
-        self.log_outputs = self.log_outputs
-
-        # If "log_extra_outputs" is in h_dict[self.component_name],
-        # Save this value to self.log_extra_outputs
-        if "log_extra_outputs" in h_dict[self.component_name]:
-            self.log_extra_outputs = h_dict[self.component_name]["log_extra_outputs"]
-        else:
-            self.log_extra_outputs = False
-
-        # If log_extra_outputs is True, add the extra outputs to the log outputs
-        if self.log_extra_outputs:
-            self.log_outputs = self.log_outputs + [
-                "dni",
-                "poa",
-                "aoi",
-            ]
-
         # Load and process solar data
         self._load_solar_data(h_dict)
 
-        # Save the system capacity
-        self.target_system_capacity = h_dict[self.component_name]["target_system_capacity"]
+        # Save the system capacity (in kW - PVWatts DC system capacity)
+        self.system_capacity = h_dict[self.component_name]["system_capacity"]
 
-        # Save the target dc/ac ratio
-        self.target_dc_ac_ratio = h_dict[self.component_name]["target_dc_ac_ratio"]
+        # Save the target dc/ac ratio (Force to 1.0)
+        self.target_dc_ac_ratio = 1.0
 
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
@@ -90,26 +75,53 @@ class SolarPySAMBase(ComponentBase):
         else:
             raise ValueError(f"Unsupported file format for solar input: {solar_input_filename}")
 
-        # Make sure the df_solar contains a column called "time"
-        if "time" not in df_solar.columns:
-            raise ValueError("Solar input file must contain a column called 'time'")
-
-        # Make sure that both starttime and endtime are in the df_solar
-        if not (df_solar["time"].min() <= self.starttime <= df_solar["time"].max()):
-            raise ValueError(
-                f"Start time {self.starttime} is not in the range of the solar input file"
-            )
-        if not (df_solar["time"].min() <= self.endtime <= df_solar["time"].max() + self.dt):
-            raise ValueError(
-                f"End time {self.endtime - self.dt} is not in the range of the solar input file"
-            )
-
-        # Solar data must contain time_utc since pysam requires time
+        # Make sure the df_solar contains a column called "time_utc"
         if "time_utc" not in df_solar.columns:
             raise ValueError("Solar input file must contain a column called 'time_utc'")
 
-        # Make sure time_utc is a datatime
-        df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
+        # Make sure time_utc is a datetime
+        if not pd.api.types.is_datetime64_any_dtype(df_solar["time_utc"]):
+            df_solar["time_utc"] = pd.to_datetime(df_solar["time_utc"], format="ISO8601", utc=True)
+
+        # Ensure time_utc is timezone-aware (UTC)
+        if not isinstance(df_solar["time_utc"].dtype, pd.DatetimeTZDtype):
+            df_solar["time_utc"] = df_solar["time_utc"].dt.tz_localize("UTC")
+
+        # Get starttime_utc and endtime_utc from h_dict
+        starttime_utc = h_dict["starttime_utc"]
+        endtime_utc = h_dict["endtime_utc"]
+
+        # Ensure starttime_utc is timezone-aware (UTC)
+        if not isinstance(starttime_utc, pd.Timestamp):
+            starttime_utc = pd.to_datetime(starttime_utc, utc=True)
+        elif starttime_utc.tz is None:
+            starttime_utc = starttime_utc.tz_localize("UTC")
+
+        # Ensure endtime_utc is timezone-aware (UTC)
+        if not isinstance(endtime_utc, pd.Timestamp):
+            endtime_utc = pd.to_datetime(endtime_utc, utc=True)
+        elif endtime_utc.tz is None:
+            endtime_utc = endtime_utc.tz_localize("UTC")
+
+        # Generate time column internally: time = 0 corresponds to starttime_utc
+        df_solar["time"] = (df_solar["time_utc"] - starttime_utc).dt.total_seconds()
+
+        # Validate that starttime_utc and endtime_utc are within the time_utc range
+        if df_solar["time_utc"].min() > starttime_utc:
+            min_time = df_solar["time_utc"].min()
+            raise ValueError(
+                f"Start time UTC {starttime_utc} is before the earliest time "
+                f"in the solar input file ({min_time})"
+            )
+        if df_solar["time_utc"].max() < endtime_utc:
+            max_time = df_solar["time_utc"].max()
+            raise ValueError(
+                f"End time UTC {endtime_utc} is after the latest time "
+                f"in the solar input file ({max_time})"
+            )
+
+        # Set starttime_utc (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
+        self.starttime_utc = starttime_utc
 
         # Interpolate df_solar on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
@@ -155,12 +167,16 @@ class SolarPySAMBase(ComponentBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
         # This is a bit of a hack but need this to exist
-        h_dict["solar_farm"]["capacity"] = self.target_system_capacity
+        h_dict["solar_farm"]["capacity"] = self.system_capacity
         h_dict["solar_farm"]["power"] = self.power
         h_dict["solar_farm"]["dc_power"] = self.dc_power
         h_dict["solar_farm"]["dni"] = self.dni
         h_dict["solar_farm"]["poa"] = self.poa
         h_dict["solar_farm"]["aoi"] = self.aoi
+
+        # Log the start time UTC if available
+        if hasattr(self, "starttime_utc"):
+            h_dict["solar_farm"]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 
@@ -233,7 +249,7 @@ class SolarPySAMBase(ComponentBase):
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
-        # Get the pre-computed uncurtailed power for this step
+        # Get the pre-computed uncurtailed power for this step (already in kW)
         self.power = self.power_uncurtailed[step]
 
         # Apply control

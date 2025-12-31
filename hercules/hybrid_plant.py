@@ -3,7 +3,6 @@ import numpy as np
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
-from hercules.plant_components.solar_pysam_pvsam import SolarPySAMPVSam
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.wind_meso_to_power import Wind_MesoToPower
 from hercules.plant_components.wind_meso_to_power_precom_floris import Wind_MesoToPowerPrecomFloris
@@ -11,7 +10,7 @@ from hercules.utilities import get_available_component_names, get_available_gene
 
 
 class HybridPlant:
-    """Manages hybrid plant components for the Hercules emulator.
+    """Manages hybrid plant components for Hercules.
 
     This class handles the initialization, execution, and coordination of various
     plant components including wind farms, solar panels, batteries,
@@ -101,9 +100,6 @@ class HybridPlant:
 
         if h_dict[component_name]["component_type"] == "Wind_MesoToPowerPrecomFloris":
             return Wind_MesoToPowerPrecomFloris(h_dict)
-
-        if h_dict[component_name]["component_type"] == "SolarPySAMPVSam":
-            return SolarPySAMPVSam(h_dict)
 
         if h_dict[component_name]["component_type"] == "SolarPySAMPVWatts":
             return SolarPySAMPVWatts(h_dict)
