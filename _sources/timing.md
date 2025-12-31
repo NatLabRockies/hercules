@@ -195,7 +195,7 @@ plant:
   interconnect_limit: 50000  # kW
 
 wind_farm:
-  component_type: Wind_MesoToPower
+  component_type: WindFarm
   wind_input_filename: inputs/wind_data.ftr
   # wind_data.ftr must have time_utc column covering the simulation period
   ...

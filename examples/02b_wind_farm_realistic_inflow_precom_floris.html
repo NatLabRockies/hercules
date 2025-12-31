@@ -464,11 +464,10 @@ document.write(`
 <h1>Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)<a class="headerlink" href="#example-02b-wind-farm-realistic-inflow-precomputed-floris" title="Link to this heading">#</a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>This example is identical to <code class="docutils literal notranslate"><span class="pre">02_wind_farm_realistic_inflow</span></code> with the exception that the <code class="docutils literal notranslate"><span class="pre">Wind_MesoToPowerPrecomFloris</span></code>
-class is used to speed up the simulation. This example automatically generates the necessary input files in the centralized <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder when first run.</p>
+<p>This example is identical to <code class="docutils literal notranslate"><span class="pre">02_wind_farm_realistic_inflow</span></code> with the exception that the <code class="docutils literal notranslate"><span class="pre">precomputed</span></code> wake method of the <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> class is used to speed up the simulation. This example automatically generates the necessary input files in the centralized <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder when first run.</p>
 <p>Note the caveats to using this class from the docs:</p>
 <blockquote>
-<div><p>In contrast to the Wind_MesoToPower class, this class pre-computes the FLORIS wake
+<div><p>In contrast to <code class="docutils literal notranslate"><span class="pre">wake_method=&quot;dynamic&quot;</span></code>, this class pre-computes the FLORIS wake
 deficits for all possible wind speeds and power setpoints. This is done by running for
 all wind speeds and wind directions (but not over all power setpoints).  This is valid
 for cases where the wind farm is operating:
@@ -479,9 +478,8 @@ for cases where the wind farm is operating:
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>It is in practice conservative with respect to the wake deficits, but it is more efficient
 than running FLORIS for each condition.  In cases where turbines are:
     - partially derated below the curtailment level
-    - not uniformly curtailed or     some turbines are off
-
-This is not an appropriate model and the more general Wind_MesoToPower class should be used.
+    - not uniformly curtailed or some turbines are off
+this is not an appropriate model and the more general `wake_method=&quot;dynamic&quot;` version should be used.
 </pre></div>
 </div>
 </section>

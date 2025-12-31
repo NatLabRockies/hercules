@@ -446,16 +446,15 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopower">Wind_MesoToPower</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopowerprecomfloris">Wind_MesoToPowerPrecomFloris</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#precomputed-floris-approach">Precomputed FLORIS Approach</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-dynamic-wake-method">WindFarm (with Dynamic wake method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-precomputed-wake-method">WindFarm (with Precomputed wake method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-no-added-wakes-method">WindFarm (with No Added Wakes method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-scada-power-data">WindFarmSCADAPower (SCADA Power Data)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-required-parameters">Common Required Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopower-specific-parameters">Wind_MesoToPower Specific Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopowerprecomfloris-specific-parameters">Wind_MesoToPowerPrecomFloris Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-specific-parameters">WindFarm Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-specific-parameters">WindFarmSCADAPower Specific Parameters</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#turbine-models">Turbine Models</a><ul class="nav section-nav flex-column">
@@ -486,28 +485,37 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="wind-farm-components">
 <h1>Wind Farm Components<a class="headerlink" href="#wind-farm-components" title="Link to this heading">#</a></h1>
-<section id="wind-mesotopower">
-<h2>Wind_MesoToPower<a class="headerlink" href="#wind-mesotopower" title="Link to this heading">#</a></h2>
-<p>Wind_MesoToPower is a comprehensive wind farm simulator that focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. It combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.</p>
-</section>
-<section id="wind-mesotopowerprecomfloris">
-<h2>Wind_MesoToPowerPrecomFloris<a class="headerlink" href="#wind-mesotopowerprecomfloris" title="Link to this heading">#</a></h2>
-<p>Wind_MesoToPowerPrecomFloris is an optimized variant of Wind_MesoToPower that pre-computes FLORIS wake deficits for improved simulation performance. This approach trades some accuracy for significant speed improvements in specific operating scenarios.</p>
-</section>
+<p>Hercules provides four wind farm simulation components that differ in their approach to wake modeling and data sources. The first three components support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics, while the fourth component uses SCADA power data directly.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>Both wind farm components integrate FLORIS for wake effects with individual turbine models to simulate wind farm behavior over extended periods. They support both simple filter-based turbine models and 1-degree-of-freedom (1-DOF) turbine dynamics.</p>
-<section id="precomputed-floris-approach">
-<h3>Precomputed FLORIS Approach<a class="headerlink" href="#precomputed-floris-approach" title="Link to this heading">#</a></h3>
-<p>Wind_MesoToPowerPrecomFloris pre-computes wake deficits using a fixed cadence determined by <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>. At initialization, FLORIS is evaluated at that cadence using right-aligned time-window averages of wind speed, wind direction, and turbulence intensity. The resulting wake deficits are then held constant between evaluations and applied to the per-turbine inflow time series.</p>
-<p>This approach is valid when the wind farm operates under these conditions:</p>
-<ul class="simple">
-<li><p>All turbines operating normally</p></li>
-<li><p>All turbines off</p></li>
-<li><p>Following a wind-farm wide derating level</p></li>
-</ul>
-<p>Important: This model is not appropriate when turbines are partially derated below the curtailment level or not uniformly curtailed. In such cases, use the standard Wind_MesoToPower class instead.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> component applies wind speed time signals to turbine models to simulate wind farm behavior over extended periods. This is available with different methods for how wakes are applies, as described below. The <code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code> component uses a fundamentally different approach by using actual SCADA power measurements as input.</p>
 </section>
+<section id="windfarm-with-dynamic-wake-method">
+<h2>WindFarm (with Dynamic wake method)<a class="headerlink" href="#windfarm-with-dynamic-wake-method" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> is a comprehensive wind farm simulator. When <code class="docutils literal notranslate"><span class="pre">wake_method=&quot;dynamic&quot;</span></code> (the default), <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> computes wake effects dynamically at each time step (or at intervals specified by <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>). It focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. This model combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.</p>
+<p><strong>Use this model when:</strong></p>
+<ul class="simple">
+<li><p>Turbines have individual power setpoints or non-uniform operation</p></li>
+<li><p>Precise wake modeling is required for each control action</p></li>
+<li><p>Turbines may be partially derated or individually controlled</p></li>
+</ul>
+</section>
+<section id="windfarm-with-precomputed-wake-method">
+<h2>WindFarm (with Precomputed wake method)<a class="headerlink" href="#windfarm-with-precomputed-wake-method" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> with <code class="docutils literal notranslate"><span class="pre">wake_method=&quot;precomputed&quot;</span></code> is an optimized variant that pre-computes all FLORIS wake deficits at initialization for improved simulation speed. This approach provides significant speed improvements while conservatively assuming wakes are always based on nominal operation.</p>
+<p><strong>Use this model when:</strong></p>
+<ul class="simple">
+<li><p>Not investigating wakes of derated turbines or wake losses can be conservatively estimated.</p></li>
+</ul>
+</section>
+<section id="windfarm-with-no-added-wakes-method">
+<h2>WindFarm (with No Added Wakes method)<a class="headerlink" href="#windfarm-with-no-added-wakes-method" title="Link to this heading">#</a></h2>
+<p>Using <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> with <code class="docutils literal notranslate"><span class="pre">wake_method=&quot;no_added_wakes&quot;</span></code> assumes that wake effects are already included in the input wind data and performs no wake modeling during simulation. This model is appropriate for using SCADA data of operational farm since wake losses already included in data.</p>
+</section>
+<section id="windfarmscadapower-scada-power-data">
+<h2>WindFarmSCADAPower (SCADA Power Data)<a class="headerlink" href="#windfarmscadapower-scada-power-data" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code> uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component applies a filter to the SCADA power data to simulate turbine response dynamics and respects power setpoint constraints.</p>
+<p><em>This model is a beta feature and is not yet fully tested.</em></p>
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
@@ -517,42 +525,59 @@ document.write(`
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_input_file</span></code>: FLORIS farm configuration</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_input_filename</span></code>: Wind resource data file</p></li>
+</ul>
+</section>
+<section id="windfarm-specific-parameters">
+<h3>WindFarm Specific Parameters<a class="headerlink" href="#windfarm-specific-parameters" title="Link to this heading">#</a></h3>
+<p>Required parameters for WindFarm:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">wake_method</span></code>: One of <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;precomputed&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;no_added_wakes&quot;</span></code> (defaults to <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: How often to update FLORIS (the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged as input). Required for <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;precomputed&quot;</span></code> wake methods; for <code class="docutils literal notranslate"><span class="pre">&quot;no_added_wakes&quot;</span></code>, this parameter is not required and ignored if provided.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">turbine_file_name</span></code>: Turbine model configuration</p></li>
-</ul>
-</section>
-<section id="wind-mesotopower-specific-parameters">
-<h3>Wind_MesoToPower Specific Parameters<a class="headerlink" href="#wind-mesotopower-specific-parameters" title="Link to this heading">#</a></h3>
-<p>Required parameters for Wind_MesoToPower:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: How often to update FLORIS (the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged as input)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#wind-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 </section>
-<section id="wind-mesotopowerprecomfloris-specific-parameters">
-<h3>Wind_MesoToPowerPrecomFloris Specific Parameters<a class="headerlink" href="#wind-mesotopowerprecomfloris-specific-parameters" title="Link to this heading">#</a></h3>
-<p>Required parameters for Wind_MesoToPowerPrecomFloris:</p>
+<section id="windfarmscadapower-specific-parameters">
+<h3>WindFarmSCADAPower Specific Parameters<a class="headerlink" href="#windfarmscadapower-specific-parameters" title="Link to this heading">#</a></h3>
+<p>Required parameters for WindFarmSCADAPower:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: Determines the cadence of wake precomputation. At each cadence tick, the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged and used to evaluate FLORIS. The computed wake deficits are then applied until the next cadence tick.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#wind-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> section below for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scada_filename</span></code>: Path to SCADA data file (CSV, pickle, or feather format)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_file_name</span></code>: Turbine model configuration (for filter parameters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
+<p><strong>SCADA File Format:</strong></p>
+<p>The SCADA file must contain the following columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wd_mean</span></code>: Mean wind direction in degrees</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pow_###</span></code>: Power output for each turbine (e.g., <code class="docutils literal notranslate"><span class="pre">pow_000</span></code>, <code class="docutils literal notranslate"><span class="pre">pow_001</span></code>, <code class="docutils literal notranslate"><span class="pre">pow_002</span></code>)</p></li>
+</ul>
+<p>Optional columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ws_###</span></code>: Wind speed for each turbine (e.g., <code class="docutils literal notranslate"><span class="pre">ws_000</span></code>, <code class="docutils literal notranslate"><span class="pre">ws_001</span></code>, <code class="docutils literal notranslate"><span class="pre">ws_002</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ws_mean</span></code>: Mean wind speed (used if individual turbine speeds not provided)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ti_###</span></code>: Turbulence intensity for each turbine (defaults to 0.08 if not provided)</p></li>
+</ul>
+<p>The number of turbines and rated power are automatically inferred from the SCADA data.</p>
 </section>
 </section>
 <section id="turbine-models">
 <h2>Turbine Models<a class="headerlink" href="#turbine-models" title="Link to this heading">#</a></h2>
+<p><strong>Note:</strong> WindFarmSCADAPower does not use a filter model as power values come directly from SCADA data rather than being computed from wind speedes.</p>
 <section id="filter-model">
 <h3>Filter Model<a class="headerlink" href="#filter-model" title="Link to this heading">#</a></h3>
 <p>Simple first-order filter for power output smoothing with configurable time constants.</p>
 </section>
 <section id="dof-model">
 <h3>1-DOF Model<a class="headerlink" href="#dof-model" title="Link to this heading">#</a></h3>
-<p>Advanced model with rotor dynamics, pitch control, and generator torque control.</p>
+<p>Advanced model with rotor dynamics, pitch control, and generator torque control. Not applicable to WindFarmSCADAPower.</p>
 </section>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
 <section id="common-outputs">
 <h3>Common Outputs<a class="headerlink" href="#common-outputs" title="Link to this heading">#</a></h3>
-<p>Both components provide these outputs in the h_dict at each simulation step:</p>
+<p>All four components provide these outputs in the h_dict at each simulation step:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power (kW)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Individual turbine power outputs (array, kW)</p></li>
@@ -563,6 +588,7 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code>: Per-turbine background wind speeds (array, m/s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code>: Per-turbine with-wakes wind speeds (array, m/s)</p></li>
 </ul>
+<p><strong>Note for WindFarm with no_added_wakes and WindFarmSCADAPower:</strong> In these models (no wake modeling), <code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code> equals <code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code> and <code class="docutils literal notranslate"><span class="pre">wind_speed_mean_withwakes</span></code> equals <code class="docutils literal notranslate"><span class="pre">wind_speed_mean_background</span></code>.</p>
 </section>
 </section>
 <section id="logging-configuration">
@@ -700,16 +726,15 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopower">Wind_MesoToPower</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopowerprecomfloris">Wind_MesoToPowerPrecomFloris</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#precomputed-floris-approach">Precomputed FLORIS Approach</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-dynamic-wake-method">WindFarm (with Dynamic wake method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-precomputed-wake-method">WindFarm (with Precomputed wake method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-no-added-wakes-method">WindFarm (with No Added Wakes method)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-scada-power-data">WindFarmSCADAPower (SCADA Power Data)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-required-parameters">Common Required Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopower-specific-parameters">Wind_MesoToPower Specific Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-mesotopowerprecomfloris-specific-parameters">Wind_MesoToPowerPrecomFloris Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-specific-parameters">WindFarm Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-specific-parameters">WindFarmSCADAPower Specific Parameters</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#turbine-models">Turbine Models</a><ul class="nav section-nav flex-column">

@@ -31,7 +31,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **Hybrid Plant Components** |
 
 ### Wind Farm (`wind_farm`)
-| `component_type` | str | Must be "Wind_MesoToPower" or "Wind_MesoToPowerPrecomFloris" |
+| `component_type` | str | Must be "WindFarm" or "WindFarmSCADAPower" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_file_name` | str | Turbine configuration file |
