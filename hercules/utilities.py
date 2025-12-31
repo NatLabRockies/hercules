@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import yaml
-from scipy.interpolate import interp1d, RegularGridInterpolator
+from scipy.interpolate import interp1d
 
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
