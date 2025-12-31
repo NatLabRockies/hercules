@@ -20,7 +20,7 @@ wind_farm:
   wake_method: dynamic # If not specified, default is 'dynamic'
   floris_input_file: ../inputs/floris_input_small.yaml
   wind_input_filename: ../inputs/wind_input_small.ftr
-  turbine_file_name: ../inputs/turbine_dof_1.yaml
+  turbine_file_name: ../inputs/turbine_1dof_model.yaml
   log_file_name: outputs/log_wind_sim.log
   log_channels:
     - power
