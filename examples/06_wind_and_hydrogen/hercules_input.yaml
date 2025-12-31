@@ -18,8 +18,9 @@ plant:
   interconnect_limit: 45000 # kW
 
 
-wind_farm: # The name of the Wind_MesoToPower wind farm
-  component_type: Wind_MesoToPowerPrecomFloris
+wind_farm:
+  component_type: WindFarm
+  wake_method: precomputed
   floris_input_file: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml

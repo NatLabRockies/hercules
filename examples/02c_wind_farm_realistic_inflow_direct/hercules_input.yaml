@@ -1,25 +1,25 @@
 # Input YAML for hercules
 
 # Name
-name: example_00
+name: example_02c
 
 ###
 # Describe this simulation setup
-description: Wind Farm Only, Logging All Turbine Data
+description: Wind Only Realistic Inflow (Direct - No Wake Modeling)
 
 dt: 1.0
-starttime_utc: "2020-01-01T00:00:00Z" # Midnight Jan 1, 2020 UTC (Zulu time)
-endtime_utc: "2020-01-01T00:15:50Z" # 15 minutes 50 seconds later
+starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
+endtime_utc: "2024-06-26T16:59:00Z" # ≈48 hours later (Jun 26, 2024 16:59:00 UTC)
 verbose: False
 
 plant:
-  interconnect_limit: 15000 # kW
+  interconnect_limit: 45000 # kW
 
 wind_farm:
   component_type: WindFarm
-  wake_method: dynamic
-  floris_input_file: ../inputs/floris_input_small.yaml
-  wind_input_filename: ../inputs/wind_input_small.ftr
+  wake_method: no_added_wakes
+  floris_input_file: ../inputs/floris_input_large.yaml
+  wind_input_filename: ../inputs/wind_input_large.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
   log_channels:
@@ -30,12 +30,9 @@ wind_farm:
     - turbine_powers
     - wind_speeds_withwakes
     - wind_speeds_background
-  floris_update_time_s: 30.0 # Update wakes every 30 seconds
-
+    - turbine_power_setpoints
 
 controller:
-
-
 
 
 

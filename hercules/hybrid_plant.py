@@ -4,8 +4,8 @@ from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
-from hercules.plant_components.wind_meso_to_power import Wind_MesoToPower
-from hercules.plant_components.wind_meso_to_power_precom_floris import Wind_MesoToPowerPrecomFloris
+from hercules.plant_components.wind_farm import WindFarm
+from hercules.plant_components.wind_farm_scada_power import WindFarmSCADAPower
 from hercules.utilities import get_available_component_names, get_available_generator_names
 
 
@@ -95,25 +95,28 @@ class HybridPlant:
         Raises:
             Exception: If the component_type is not recognized.
         """
-        if h_dict[component_name]["component_type"] == "Wind_MesoToPower":
-            return Wind_MesoToPower(h_dict)
+        component_type = h_dict[component_name]["component_type"]
 
-        if h_dict[component_name]["component_type"] == "Wind_MesoToPowerPrecomFloris":
-            return Wind_MesoToPowerPrecomFloris(h_dict)
+        # Handle wind farm component types with unified WindFarm class
+        if component_type == "WindFarm":
+            return WindFarm(h_dict)
 
-        if h_dict[component_name]["component_type"] == "SolarPySAMPVWatts":
+        if component_type == "WindFarmSCADAPower":
+            return WindFarmSCADAPower(h_dict)
+
+        if component_type == "SolarPySAMPVWatts":
             return SolarPySAMPVWatts(h_dict)
 
-        if h_dict[component_name]["component_type"] == "BatteryLithiumIon":
+        if component_type == "BatteryLithiumIon":
             return BatteryLithiumIon(h_dict)
 
-        if h_dict[component_name]["component_type"] == "BatterySimple":
+        if component_type == "BatterySimple":
             return BatterySimple(h_dict)
 
-        if h_dict[component_name]["component_type"] == "ElectrolyzerPlant":
+        if component_type == "ElectrolyzerPlant":
             return ElectrolyzerPlant(h_dict)
 
-        raise Exception("Unknown component_type: ", h_dict[component_name]["component_type"])
+        raise Exception("Unknown component_type: ", component_type)
 
     def step(self, h_dict):
         """Execute one simulation step for all plant components.
