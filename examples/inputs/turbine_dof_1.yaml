@@ -9,7 +9,7 @@ dof1_model:
   rotor_inertia: 38677052         # [Kg m^2]
   rated_rotor_speed: 1.267        # [rad/sec]
   rated_torque: 43093.55          # [N-m]
-  cq_table_file: inputs/Cp_Ct_Cq_NREL5MW.txt # Can be obtained using ccblade
+  cq_table_file: ../inputs/Cp_Ct_Cq_NREL5MW.txt # Can be obtained using ccblade
 
   # Optional parameters
   rho: 1.225                      # [Kg/m^3] (Optional, default = 1.225)
