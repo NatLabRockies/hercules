@@ -7,7 +7,6 @@ from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
-    load_perffile,
     load_yaml,
 )
 from scipy.interpolate import interp1d, RegularGridInterpolator
@@ -826,7 +825,7 @@ class Turbine1dofModel:
     def simplecontroller(self, omegaf):
         """Simple controller to command pitch and generator torque.
 
-        Region-2 controller: 
+        Region-2 controller:
         - sets blade pitch to 0
         - sets generator torque using a K$\\omega^2$ controller
         region-3 controller:
@@ -868,7 +867,7 @@ class Turbine1dofModel:
         This function reads a performance file containing wind turbine coefficient data
         including power coefficients (Cp), thrust coefficients (Ct), and torque coefficients (Cq)
         as functions of tip speed ratio (TSR) and blade pitch angle.
-        It also outputs a function to calculate optimal pitch for a given TSR and reqired Cp 
+        It also outputs a function to calculate optimal pitch for a given TSR and reqired Cp
         for faster calculation of derated operations.
         The data is converted into RegularGridInterpolator objects for efficient interpolation
         during simulation.
