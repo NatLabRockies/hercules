@@ -58,7 +58,6 @@ def ensure_example_inputs_exist():
     ]
 
     if not all(p.exists() for p in expected_files):
-        print("GO!")
         generate_example_inputs()
 
 
