@@ -117,7 +117,6 @@ df["pow_000"] = pow_000
 df["pow_001"] = pow_001
 df["pow_002"] = pow_002
 
-fig.suptitle("Turbine wind powers")
 df.to_feather("scada_input.ftr")
 
 if show_plots:
