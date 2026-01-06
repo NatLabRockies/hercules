@@ -122,5 +122,3 @@ df.to_feather("scada_input.ftr")
 
 if show_plots:
     plt.show()
-
-
