@@ -15,7 +15,7 @@ cd hercules_root
 ## Clone Hercules
 
 ```bash
-git clone https://github.com/NREL/hercules
+git clone https://github.com/NatLabRockies/hercules
 cd hercules
 ```
 

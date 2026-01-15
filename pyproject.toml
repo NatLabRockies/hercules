@@ -15,7 +15,7 @@ authors = [
     { name = "Brooke Stanislawski", email = "Brooke.Stanislawski@nrel.gov" },
 ]
 license = { file = "LICENSE.txt" }
-urls = { "Homepage" = "https://github.com/NREL/hercules" }
+urls = { "Homepage" = "https://github.com/NatLabRockies/hercules" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

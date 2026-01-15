@@ -2,9 +2,9 @@
 # Download 2 days of data for the OKGE.FRONTIER location
 # Download both real time and day ahead data
 # See the documentation for more details of this example:
-# https://nrel.github.io/hercules/gridstatus_download.html
+# https://natlabrockies.github.io/hercules/gridstatus_download.html
 # Note api key is required, see the documentation for more details:
-# https://nrel.github.io/hercules/gridstatus_download.html#api-key-setup
+# https://natlabrockies.github.io/hercules/gridstatus_download.html#api-key-setup
 
 # Run using uvx --with gridstatusio --with pyarrow python grid_status_download_example.py
 
