@@ -98,25 +98,20 @@ lib_battery = {
 
 combustion_turbine = {
     "component_type": "CombustionTurbineSimple",
-    "rated_capacity": 50000,  # kW (50 MW)
-    "min_stable_load_fraction": 0.30,  # 30% minimum operating point
+    "rated_capacity": 1000,  # kW (1 MW)
+    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
     "heat_rate": 10000,  # kJ/kWh at rated load
     "ramp_rate_up": 500,  # kW/s
     "ramp_rate_down": 500,  # kW/s
+    "startup_time": 2.0,  # s
+    "shutdown_time": 2.0,  # s
+    "min_up_time": 2.0,  # s
+    "min_down_time": 2.0,  # s
+    "part_load_factor": 1.0,
     "log_channels": ["power", "fuel_consumption", "state_num"],
-    "initial_conditions": {"power": 0, "state_num": 0},  # 0 = off
+    "initial_conditions": {"power": 1000, "state_num": 2},  # 2 = on
 }
 
-combustion_turbine_on = {
-    "component_type": "CombustionTurbineSimple",
-    "rated_capacity": 50000,  # kW (50 MW)
-    "min_stable_load_fraction": 0.30,  # 30% minimum operating point
-    "heat_rate": 10000,  # kJ/kWh at rated load
-    "ramp_rate_up": 500,  # kW/s
-    "ramp_rate_down": 500,  # kW/s
-    "log_channels": ["power", "fuel_consumption", "state_num"],
-    "initial_conditions": {"power": 25000, "state_num": 2},  # 2 = on
-}
 
 electrolyzer = {
     "component_type": "ElectrolyzerPlant",
@@ -331,18 +326,4 @@ h_dict_combustion_turbine = {
     "time": 0.0,
     "plant": plant,
     "combustion_turbine": combustion_turbine,
-}
-
-# h_dict with combustion_turbine initially on
-h_dict_combustion_turbine_on = {
-    "dt": 1.0,
-    "starttime": 0.0,
-    "endtime": 10.0,
-    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
-    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
-    "verbose": False,
-    "step": 0,
-    "time": 0.0,
-    "plant": plant,
-    "combustion_turbine": combustion_turbine_on,
 }
