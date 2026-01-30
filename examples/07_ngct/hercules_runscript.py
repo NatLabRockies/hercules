@@ -53,8 +53,8 @@ class ControllerNGCT:
         current_time = h_dict["time"]
 
         # Determine power setpoint based on time
-        if current_time < 60 * 60:  # 60 minutes in seconds
-            # Before 60 minutes: keep turbine off
+        if current_time < 70 * 60:  # 70 minutes in seconds
+            # Before 70 minutes: keep turbine off
             power_setpoint = 0.0
         elif current_time < 120 * 60:  # 120 minutes in seconds
             # Between 60 and 120 minutes: run at full capacity

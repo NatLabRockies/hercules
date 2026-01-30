@@ -14,8 +14,8 @@ Demonstrates the `CombustionTurbineSimple` component with a 6-hour simulation (1
 
 | Time (min) | Setpoint |
 |------------|----------|
-| 0–60 | Off |
-| 60–120 | 100% |
+| 70 | Off |
+| 70–120 | 100% |
 | 120–180 | 50% |
 | 180–210 | 10% (below min stable load) |
 | 210–240 | 100% |

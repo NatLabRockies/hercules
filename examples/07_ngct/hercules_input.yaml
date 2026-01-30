@@ -34,7 +34,7 @@ combustion_turbine:
     - fuel_consumption
     - state_num
     - heat_rate
-    - power_setpoint
+    - power_setpoint 
   initial_conditions:
     power: 0
     state_num: 0  # 0 = off
