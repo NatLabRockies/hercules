@@ -5,7 +5,7 @@ Demonstrates the `CombustionTurbineSimple` component with a 6-hour simulation (1
 ## Turbine Configuration
 
 - **Capacity**: 100 MW
-- **Minimum stable load**: 20%
+- **Minimum stable load fraction**: 20%
 - **Heat rate**: 10,000 kJ/kWh
 - **Ramp rates**: 500 kW/s (up/down)
 - **Startup/shutdown time**: 1 hour each (default)
