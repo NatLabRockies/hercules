@@ -33,7 +33,7 @@ PLOT_SCRIPT_FILE = "plot_outputs.py"
 
 
 def modify_input_file_for_precom_floris(temp_dir, input_file):
-    """Modify the input file to use Wind_MesoToPowerPrecomFloris component.
+    """Modify the input file to use WindFarm component.
 
     Args:
         temp_dir (str): Path to the temporary directory.
@@ -47,7 +47,8 @@ def modify_input_file_for_precom_floris(temp_dir, input_file):
 
     # Modify the wind farm component type and ensure floris_update_time_s is present
     if "wind_farm" in h_dict:
-        h_dict["wind_farm"]["component_type"] = "Wind_MesoToPowerPrecomFloris"
+        h_dict["wind_farm"]["component_type"] = "WindFarm"
+        h_dict["wind_farm"]["wake_method"] = "precomputed"
         # Ensure a reasonable floris_update_time_s value exists
         h_dict["wind_farm"]["floris_update_time_s"] = h_dict["wind_farm"].get(
             "floris_update_time_s", 300.0
@@ -101,7 +102,7 @@ def print_expected_values():
 def test_example_00b_precom_floris_limited_time_regression():
     """Test that example 00 with precomputed FLORIS runs correctly with limited time steps.
 
-    This test modifies the example 00 configuration to use Wind_MesoToPowerPrecomFloris
+    This test modifies the example 00 configuration to use the WindFarm
     component type and run for only a few time steps. It verifies that the final
     outputs are reasonable and consistent.
     """

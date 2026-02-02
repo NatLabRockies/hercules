@@ -9,13 +9,13 @@ description = "Hybrid plant emulation tool."
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
-     { name = "Genevieve Starke", email = "Genevieve.Starke@nrel.gov" },
-    { name = "Michael (Misha) Sinner", email = "Michael.Sinner@nrel.gov" },
-    { name = "Paul Fleming", email = "paul.fleming@nrel.gov" },
-    { name = "Brooke Stanislawski", email = "Brooke.Stanislawski@nrel.gov" },
+     { name = "Genevieve Starke", email = "Genevieve.Starke@nlr.gov" },
+    { name = "Michael (Misha) Sinner", email = "Michael.Sinner@nlr.gov" },
+    { name = "Paul Fleming", email = "Paul.Fleming@nlr.gov" },
+    { name = "Brooke Stanislawski", email = "Brooke.Stanislawski@nlr.gov" },
 ]
 license = { file = "LICENSE.txt" }
-urls = { "Homepage" = "https://github.com/NREL/hercules" }
+urls = { "Homepage" = "https://github.com/NatLabRockies/hercules" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

@@ -25,7 +25,7 @@ bibtex_bibfiles:
 
 # Information about where the book exists on the web
 repository:
-  url: https://github.com/NREL/hercules
+  url: https://github.com/NatLabRockies/hercules
   path_to_book: docs
   branch: develop
 

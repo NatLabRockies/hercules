@@ -1,0 +1,27 @@
+# Input YAML for turbine model
+
+# Name
+name: NREL 5MW - DOF1 Model
+
+turbine_model_type: dof1_model    # Can be filter_model or dof1_model
+
+dof1_model:
+  rotor_inertia: 38677052         # [Kg m^2]
+  rated_rotor_speed: 1.267        # [rad/sec]
+  rated_torque: 43093.55          # [N-m]
+  cq_table_file: ../inputs/Cp_Ct_Cq_NREL5MW.txt # Can be obtained using ccblade
+
+  # Optional parameters
+  rho: 1.225                      # [Kg/m^3] (Optional, default = 1.225)
+  filterfreq_rotor_speed: 1.5708  # [rad/sec] (Optional, default = 1.5708)
+  gearbox_ratio: 97               # [-] (Optional, default = 1.0)
+  gen_efficiency: 0.944           # [-] (Optiona, default = 1.0)
+  max_torque_rate: 15000          # [Nm/s] (Optional, default = infinity)
+  max_pitch_rate: 0.1745          # [rad/s] (Optional, default = infinity)
+  initial_rpm: 10                 # [RPM] (Optional, default = 10)
+  
+  controller:
+    r2_k_torque: 2.8533          # Torque constant in region-2 
+    # This is higher than published value as we ignore region 2.5 and match k*omega_gen^2 = rated_torque
+    kp_pitch: 0.01882681         # Proportional gain of blade pitch controller
+    ki_pitch: 0.008068634        # Integral gain of blade pitch controller

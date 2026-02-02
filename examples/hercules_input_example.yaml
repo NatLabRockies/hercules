@@ -1,0 +1,178 @@
+# Input YAML for Hercules simulation
+#
+# Configure this file for your specific scenario
+
+# Name and description
+name: example_scenario  # Simulation name identifier
+description: Example scenario configuration  # Description of the simulation setup
+
+# Simulation time parameters
+dt: 1.0  # Simulation time step (seconds)
+starttime_utc: "2020-01-01T00:00:00Z"  # Simulation start time in UTC (ISO 8601 format)
+endtime_utc: "2020-01-31T23:59:59Z"  # Simulation end time in UTC (ISO 8601 format)
+verbose: False  # Enable verbose console output (True/False)
+log_every_n: 10  # Log output every N time steps (positive integer, default: 1)
+
+# Output file configuration
+output_file: outputs/hercules_output.h5  # Output HDF5 file path (automatically adds .h5 extension if missing)
+output_use_compression: True  # Enable HDF5 compression (True/False, default: True)
+output_buffer_size: 50000  # Memory buffer size for writing data in rows (default: 50000)
+
+# Plant-level configuration
+plant:
+  interconnect_limit: 201300  # kW - grid interconnection capacity limit
+
+# Wind farm configuration (comment out if not using wind)
+wind_farm:
+  component_type: WindFarm  # Options: WindFarm, WindFarmSCADAPower
+  wake_method: dynamic  # Options: dynamic, precomputed, no_added_wakes
+  floris_input_file: ../inputs/floris_input.yaml  # Path to FLORIS farm configuration file
+  wind_input_filename: ../inputs/wind_input.ftr  # Path to wind resource data file (CSV, pickle, or feather format)
+  turbine_file_name: ../inputs/turbine_filter_model.yaml  # Path to turbine model configuration file
+  log_file_name: outputs/log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
+  floris_update_time_s: 300.0  # How often to update FLORIS wake calculations in seconds (for "dynamic" wake_method) or precomputation cadence (for "precomputed" wake_method)
+  log_channels:  # List of output channels to log (power is always logged even if not specified)
+    - power  # Total wind farm power output (kW) - always logged
+    - wind_speed_mean_background  # Farm-average background wind speed (m/s)
+    - wind_speed_mean_withwakes  # Farm-average with-wakes wind speed (m/s)
+    - wind_direction_mean  # Farm-average wind direction (degrees)
+    # Array channels (uncomment to log all turbines, or use selective logging below):
+    # - turbine_powers  # Power output for all turbines (creates datasets like wind_farm.turbine_powers.000, wind_farm.turbine_powers.001, etc.)
+    # - turbine_power_setpoints  # Power setpoints for all turbines
+    # - wind_speeds_background  # Background wind speeds for all turbines
+    # - wind_speeds_withwakes  # With-wakes wind speeds for all turbines
+    # Selective array element logging (log specific turbine indices):
+    # - turbine_powers.000  # Log turbine 0 power
+    # - turbine_powers.005  # Log turbine 5 power
+    # - turbine_powers.010  # Log turbine 10 power
+
+# WindFarmSCADAPower configuration (alternative to WindFarm, comment out if not using)
+# Uses SCADA power data directly rather than computing power from wind speeds
+# wind_farm:
+#   component_type: WindFarmSCADAPower  # Uses SCADA power measurements directly
+#   scada_filename: ../inputs/scada_data.ftr  # Path to SCADA data file (CSV, pickle, or feather format)
+#   log_file_name: outputs/log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
+#   log_channels:  # List of output channels to log (power is always logged even if not specified)
+#     - power  # Total wind farm power output (kW) - always logged
+#     - wind_speed_mean_background  # Farm-average background wind speed (m/s) - equals wind_speed_mean_withwakes for this model
+#     - wind_speed_mean_withwakes  # Farm-average with-wakes wind speed (m/s) - equals wind_speed_mean_background for this model
+#     - wind_direction_mean  # Farm-average wind direction (degrees)
+#     # Array channels (uncomment to log all turbines, or use selective logging below):
+#     # - turbine_powers  # Power output for all turbines (creates datasets like wind_farm.turbine_powers.000, wind_farm.turbine_powers.001, etc.)
+#     # - turbine_power_setpoints  # Power setpoints for all turbines
+#     # - wind_speeds_background  # Background wind speeds for all turbines (equals wind_speeds_withwakes for this model)
+#     # - wind_speeds_withwakes  # With-wakes wind speeds for all turbines (equals wind_speeds_background for this model)
+#     # Selective array element logging (log specific turbine indices):
+#     # - turbine_powers.000  # Log turbine 0 power
+#     # - turbine_powers.005  # Log turbine 5 power
+#     # - turbine_powers.010  # Log turbine 10 power
+
+# Solar farm configuration (comment out if not using solar)
+# solar_farm:
+#   component_type: SolarPySAMPVWatts  # Currently only SolarPySAMPVWatts is available
+#   solar_input_filename: ../inputs/solar_input.ftr  # Path to solar resource data file (CSV, pickle, or feather format)
+#   lat: 39.7442  # Latitude in degrees (required)
+#   lon: -105.1778  # Longitude in degrees (required)
+#   elev: 1829  # Elevation in meters (required)
+#   system_capacity: 100000  # DC system capacity in kW under Standard Test Conditions (required)
+#   tilt: 0  # Array tilt angle in degrees (required)
+#   losses: 0  # System losses as a percentage (0-100, default: 0)
+#   log_file_name: outputs/log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
+#   log_channels:  # List of output channels to log (power is always logged even if not specified)
+#     - power  # DC power output in kW (always logged)
+#     - poa  # Plane-of-array irradiance in W/m²
+#     - dni  # Direct normal irradiance in W/m²
+#     - aoi  # Angle of incidence in degrees
+#   initial_conditions:  # Initial conditions for solar farm
+#     power: 10000  # Initial power in kW
+#     dni: 1000  # Initial direct normal irradiance in W/m²
+#     poa: 1000  # Initial plane-of-array irradiance in W/m²
+
+# Battery storage configuration (comment out if not using storage)
+# battery:
+#   component_type: BatterySimple  # Options: BatterySimple, BatteryLithiumIon
+#   energy_capacity: 200000  # Total energy capacity in kWh (required)
+#   charge_rate: 50000  # Maximum charge rate in kW (required)
+#   discharge_rate: 50000  # Maximum discharge rate in kW (required)
+#   max_SOC: 0.9  # Maximum state of charge (0-1, required)
+#   min_SOC: 0.1  # Minimum state of charge (0-1, required)
+#   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
+#   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
+#   log_channels:  # List of output channels to log (power is always logged even if not specified)
+#     - power  # Actual battery power output in kW (always logged, positive=discharge, negative=charge)
+#     - soc  # State of charge (0-1)
+#     - power_setpoint  # Requested power setpoint in kW
+#   initial_conditions:  # Initial conditions for battery
+#     SOC: 0.5  # Initial state of charge (between min_SOC and max_SOC, required)
+#   # BatterySimple-specific optional parameters:
+#   # roundtrip_efficiency: 0.95  # Roundtrip efficiency (0-1, default: 1.0, BatterySimple only)
+#   # self_discharge_time_constant: inf  # Self-discharge time constant in seconds (default: inf, BatterySimple only)
+#   # track_usage: False  # Enable usage tracking for degradation modeling (True/False, default: False, BatterySimple only)
+#   # usage_calc_interval: 100  # Interval for usage calculations in seconds (default: 100, BatterySimple only)
+#   # usage_lifetime: 20.0  # Battery lifetime in years for time-based degradation (BatterySimple only)
+#   # usage_cycles: 10000  # Number of cycles until replacement for cycle-based degradation (BatterySimple only)
+
+# BatteryLithiumIon example (alternative to BatterySimple):
+# battery:
+#   component_type: BatteryLithiumIon  # Detailed lithium-ion battery model
+#   energy_capacity: 200000  # Total energy capacity in kWh (required)
+#   charge_rate: 50000  # Maximum charge rate in kW (required)
+#   discharge_rate: 50000  # Maximum discharge rate in kW (required)
+#   max_SOC: 0.9  # Maximum state of charge (0-1, required)
+#   min_SOC: 0.1  # Minimum state of charge (0-1, required)
+#   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
+#   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
+#   log_channels:  # List of output channels to log (power is always logged even if not specified)
+#     - power  # Actual battery power output in kW (always logged, positive=discharge, negative=charge)
+#     - soc  # State of charge (0-1)
+#     - power_setpoint  # Requested power setpoint in kW
+#   initial_conditions:  # Initial conditions for battery
+#     SOC: 0.5  # Initial state of charge (between min_SOC and max_SOC, required)
+
+# Electrolyzer configuration (comment out if not using electrolyzer)
+# electrolyzer:
+#   component_type: ElectrolyzerPlant  # Currently only ElectrolyzerPlant is available
+#   initialize: True  # Initialize electrolyzer (True/False, required)
+#   initial_power_kW: 3000  # Initial power in kW (required)
+#   allow_grid_power_consumption: False  # Allow electrolyzer to consume grid power (True/False, default: False)
+#   log_file_name: outputs/log_electrolyzer.log  # Path to electrolyzer log file (default: outputs/log_electrolyzer.log)
+#   log_channels:  # List of output channels to log (power is always logged even if not specified)
+#     - power  # Electrolyzer power consumption in kW (always logged)
+#   supervisor:  # Supervisor configuration (required)
+#     n_stacks: 10  # Number of electrolyzer stacks
+#   stack:  # Stack configuration (required)
+#     cell_type: PEM  # Cell type (e.g., PEM)
+#     cell_area: 1000.0  # Cell area in cm²
+#     max_current: 2000  # Maximum current in A
+#     temperature: 60  # Operating temperature in °C
+#     n_cells: 100  # Number of cells per stack
+#     min_power: 50  # Minimum power in kW
+#     stack_rating_kW: 500  # Stack rating in kW
+#     include_degradation_penalty: True  # Include degradation penalty (True/False)
+#   controller:  # Controller configuration (required)
+#     n_stacks: 10  # Number of stacks (must match supervisor.n_stacks)
+#     control_type: DecisionControl  # Control type
+#     policy:  # Control policy
+#       eager_on: False  # Eager turn-on behavior (True/False)
+#       eager_off: False  # Eager turn-off behavior (True/False)
+#       sequential: False  # Sequential control (True/False)
+#       even_dist: False  # Even distribution (True/False)
+#       baseline: True  # Baseline policy (True/False)
+#   costs: null  # Cost parameters (optional, can be null)
+#   cell_params:  # Cell parameters (required)
+#     cell_type: PEM  # Cell type (must match stack.cell_type)
+#     PEM_params:  # PEM-specific parameters
+#       cell_area: 1000  # Cell area in cm²
+#       turndown_ratio: 0.1  # Turndown ratio
+#       max_current_density: 2  # Maximum current density in A/cm²
+#   degradation:  # Degradation parameters (required)
+#     PEM_params:  # PEM-specific degradation parameters
+#       rate_steady: 1.41737929e-10  # Steady-state degradation rate
+#       rate_fatigue: 3.33330244e-07  # Fatigue degradation rate
+#       rate_onoff: 1.47821515e-04  # On/off degradation rate
+
+# Controller configuration (optional)
+controller:
+  # Add controller parameters here if using WHOC or other controllers
+  # Example controller configuration would go here
+

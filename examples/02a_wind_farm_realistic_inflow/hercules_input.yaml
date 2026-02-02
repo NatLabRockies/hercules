@@ -1,50 +1,42 @@
 # Input YAML for hercules
 
 # Name
-name: example_03
+name: example_02
 
 ###
 # Describe this simulation setup
-description: Wind and solar
+description: Wind Only Realistic Inflow
 
 dt: 1.0
 starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
-endtime_utc: "2024-06-24T17:07:08Z" # 8 minutes later
+endtime_utc: "2024-06-26T16:59:00Z" # ≈48 hours later (Jun 26, 2024 16:59:00 UTC)
 verbose: False
-
 
 plant:
   interconnect_limit: 45000 # kW
 
-
 wind_farm:
   component_type: WindFarm
-  wake_method: precomputed
+  wake_method: dynamic
   floris_input_file: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr
   turbine_file_name: ../inputs/turbine_filter_model.yaml
   log_file_name: outputs/log_wind_sim.log
   log_channels:
     - power
+    - wind_speed_mean_background
+    - wind_speed_mean_withwakes
+    - wind_direction_mean
+    - turbine_powers
+    - wind_speeds_withwakes
+    - wind_speeds_background
+    - turbine_power_setpoints
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
-
-solar_farm: # The name of component object 1
-  component_type: SolarPySAMPVWatts
-  solar_input_filename: ../inputs/solar_input.ftr
-  lat: 39.7442
-  lon: -105.1778
-  elev: 1829
-  system_capacity: 30000  # kW (30 MW)
-  tilt: 0  # degrees
-  losses: 0
-  log_channels:
-    - power
-
-  initial_conditions:
-
-    power: 30000 # kW
-    dni: 1000
-    poa: 1000
 
 
 controller:
+
+
+
+
+

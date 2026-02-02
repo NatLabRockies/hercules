@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import yaml
-from scipy.interpolate import interp1d, RegularGridInterpolator
+from scipy.interpolate import interp1d
 
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
@@ -54,7 +54,10 @@ def get_available_component_types():
         dict: Component names mapped to available simulation types.
     """
     return {
-        "wind_farm": ["Wind_MesoToPower", "Wind_MesoToPowerPrecomFloris"],
+        "wind_farm": [
+            "WindFarm",
+            "WindFarmSCADAPower",
+        ],
         "solar_farm": ["SolarPySAMPVWatts"],
         "battery": ["BatterySimple", "BatteryLithiumIon"],
         "electrolyzer": ["ElectrolyzerPlant"],
@@ -674,82 +677,6 @@ def load_h_dict_from_text(filename):
         raise FileNotFoundError(f"Could not find file: {filename}")
     except (ValueError, SyntaxError, NameError) as e:
         raise ValueError(f"Could not parse dictionary from file {filename}: {str(e)}")
-
-
-def load_perffile(perffile):
-    """Load and parse a wind turbine performance file.
-
-    This function reads a performance file containing wind turbine coefficient data
-    including power coefficients (Cp), thrust coefficients (Ct), and torque coefficients (Cq)
-    as functions of tip speed ratio (TSR) and blade pitch angle. The data is converted
-    into RegularGridInterpolator objects for efficient interpolation during simulation.
-
-    Args:
-        perffile (str): Path to the performance file containing turbine coefficient data.
-
-    Returns:
-        dict: A dictionary containing RegularGridInterpolator objects for 'Cp', 'Ct', and 'Cq'
-            coefficients, keyed by coefficient name.
-    """
-    perffuncs = {}
-
-    with open(perffile) as pfile:
-        for line in pfile:
-            # Read Blade Pitch Angles (degrees)
-            if "Pitch angle" in line:
-                pitch_initial = np.array(
-                    [float(x) for x in pfile.readline().strip().split()], dtype=hercules_float_type
-                )
-                pitch_initial_rad = pitch_initial * np.deg2rad(
-                    1
-                )  # degrees to rad            -- should this be conditional?
-
-            # Read Tip Speed Ratios (rad)
-            if "TSR" in line:
-                TSR_initial = np.array(
-                    [float(x) for x in pfile.readline().strip().split()], dtype=hercules_float_type
-                )
-
-            # Read Power Coefficients
-            if "Power" in line:
-                pfile.readline()
-                Cp = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
-                for tsr_i in range(len(TSR_initial)):
-                    Cp[tsr_i] = np.array(
-                        [float(x) for x in pfile.readline().strip().split()],
-                        dtype=hercules_float_type,
-                    )
-                perffuncs["Cp"] = RegularGridInterpolator(
-                    (TSR_initial, pitch_initial_rad), Cp, bounds_error=False, fill_value=None
-                )
-
-            # Read Thrust Coefficients
-            if "Thrust" in line:
-                pfile.readline()
-                Ct = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
-                for tsr_i in range(len(TSR_initial)):
-                    Ct[tsr_i] = np.array(
-                        [float(x) for x in pfile.readline().strip().split()],
-                        dtype=hercules_float_type,
-                    )
-                perffuncs["Ct"] = RegularGridInterpolator(
-                    (TSR_initial, pitch_initial_rad), Ct, bounds_error=False, fill_value=None
-                )
-
-            # Read Torque Coefficients
-            if "Torque" in line:
-                pfile.readline()
-                Cq = np.empty((len(TSR_initial), len(pitch_initial)), dtype=hercules_float_type)
-                for tsr_i in range(len(TSR_initial)):
-                    Cq[tsr_i] = np.array(
-                        [float(x) for x in pfile.readline().strip().split()],
-                        dtype=hercules_float_type,
-                    )
-                perffuncs["Cq"] = RegularGridInterpolator(
-                    (TSR_initial, pitch_initial_rad), Cq, bounds_error=False, fill_value=None
-                )
-
-    return perffuncs
 
 
 def read_hercules_hdf5(filename):
