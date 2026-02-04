@@ -51,7 +51,7 @@ class ControllerNGCT:
             # Before 40 minutes: keep turbine off
             power_setpoint = 0.0
         elif current_time < 120 * 60:  # 120 minutes in seconds
-            # Between 60 and 120 minutes: run at full capacity
+            # Between 40 and 120 minutes: signal to run at full capacity
             power_setpoint = self.rated_capacity
         elif current_time < 180 * 60:  # 180 minutes in seconds
             # Between 120 and 180 minutes: reduce power to 50% of rated capacity
