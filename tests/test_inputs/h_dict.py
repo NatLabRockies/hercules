@@ -96,20 +96,37 @@ lib_battery = {
     "initial_conditions": {"SOC": 0.102},
 }
 
-combustion_turbine = {
-    "component_type": "CombustionTurbineSimple",
+
+thermal_component = {
+    "component_type": "ThermalComponentBase",
     "rated_capacity": 1000,  # kW (1 MW)
     "min_stable_load_fraction": 0.20,  # 20% minimum operating point
-    "heat_rate": 10000,  # kJ/kWh at rated load
-    "ramp_rate_up": 500,  # kW/s
-    "ramp_rate_down": 500,  # kW/s
-    "startup_time": 2.0,  # s
-    "shutdown_time": 2.0,  # s
-    "min_up_time": 2.0,  # s
-    "min_down_time": 2.0,  # s
+    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
+    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "hot_cold_cutoff_time": 120.0,  # s
+    "min_up_time": 10.0,  # s
+    "min_down_time": 10.0,  # s
+    "log_channels": ["power", "state_num"],
+    "initial_conditions": {"power": 1000, "state_num": 3},  # 3 = on
+}
+
+open_cycle_gas_turbine = {
+    "component_type": "OpenCycleGasTurbine",
+    "rated_capacity": 1000,  # kW (1 MW)
+    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
+    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
+    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "hot_cold_cutoff_time": 120.0,  # s
+    "min_up_time": 10.0,  # s
+    "min_down_time": 10.0,  # s
+    "log_channels": ["power", "state_num"],
+    "initial_conditions": {"power": 1000, "state_num": 3},  # 3 = on,
     "part_load_factor": 1.0,
-    "log_channels": ["power", "fuel_consumption", "state_num"],
-    "initial_conditions": {"power": 1000, "state_num": 2},  # 2 = on
+    "heat_rate_at_rated_load": 10000,  # kJ/kWh at rated load
 }
 
 
@@ -314,8 +331,9 @@ h_dict_electrolyzer = {
     "electrolyzer": electrolyzer,
 }
 
-# h_dict with combustion_turbine only (initially off)
-h_dict_combustion_turbine = {
+
+
+h_dict_thermal_component = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
@@ -325,5 +343,18 @@ h_dict_combustion_turbine = {
     "step": 0,
     "time": 0.0,
     "plant": plant,
-    "combustion_turbine": combustion_turbine,
+    "thermal_component": thermal_component,
+}
+
+h_dict_open_cycle_gas_turbine = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "open_cycle_gas_turbine": open_cycle_gas_turbine,
 }
