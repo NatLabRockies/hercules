@@ -214,6 +214,6 @@ class OpenCycleGasTurbine(ThermalComponentBase):
 
         # Update h_dict with outputs
         h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
-        h_dict[self.component_name]["heat_rate"] = self.current_heat_rate
+        h_dict[self.component_name]["heat_rate"] = self.heat_rate
 
         return h_dict
