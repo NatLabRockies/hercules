@@ -1,4 +1,4 @@
-# Plot the outputs of the simulation for the NGCT example
+# Plot the outputs of the simulation for the OCGT example
 
 import matplotlib.pyplot as plt
 from hercules import HerculesOutput
