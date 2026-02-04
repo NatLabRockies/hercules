@@ -1,8 +1,10 @@
-"""Example 07: Natural Gas Combustion Turbine (NGCT) simulation.
+"""Example 07: Open Cycle Gas Turbine (OCGT) simulation.
 
-This example demonstrates a simple combustion turbine (natural gas peaker) that:
+This example demonstrates a simple open cycle gas turbine (OCGT) that:
 - Starts off (state=0, power=0)
-- At 60 minutes, receives a turn-on command with a setpoint of 100% of rated capacity
+- At 40 minutes, receives a turn-on command with a setpoint of 100% of rated capacity
+- At 60 minutes, 1 hour down-time minimum is reached and the turbine begins hot starting
+- At 67 minutes, hot start completes, continues ramping up to 100% of rated capacity
 - At 120 minutes, receives a command to reduce power to 50% of rated capacity
 - At 180 minutes, receives a command to reduce power to 10% of rated capacity
         (note this is below the minimum stable load)
@@ -21,15 +23,7 @@ hmodel = HerculesModel("hercules_input.yaml")
 
 
 class ControllerNGCT:
-    """Controller implementing the NGCT schedule described in the module docstring.
-
-    The turbine starts off, then:
-    - At 60 minutes, it is commanded to 100% of rated capacity.
-    - At 120 minutes, it is reduced to 50% of rated capacity.
-    - At 180 minutes, it is reduced to 10% of rated capacity.
-    - At 210 minutes, it is increased back to 100% of rated capacity.
-    - At 240 minutes, it is commanded off.
-    """
+    """Controller implementing the NGCT schedule described in the module docstring."""
 
     def __init__(self, h_dict):
         """Initialize the controller.
@@ -38,7 +32,7 @@ class ControllerNGCT:
             h_dict (dict): The hercules input dictionary.
 
         """
-        self.rated_capacity = h_dict["combustion_turbine"]["rated_capacity"]
+        self.rated_capacity = h_dict["open_cycle_gas_turbine"]["rated_capacity"]
 
     def step(self, h_dict):
         """Execute one control step.
@@ -53,8 +47,8 @@ class ControllerNGCT:
         current_time = h_dict["time"]
 
         # Determine power setpoint based on time
-        if current_time < 70 * 60:  # 70 minutes in seconds
-            # Before 70 minutes: keep turbine off
+        if current_time < 40 * 60:  # 40 minutes in seconds
+            # Before 40 minutes: keep turbine off
             power_setpoint = 0.0
         elif current_time < 120 * 60:  # 120 minutes in seconds
             # Between 60 and 120 minutes: run at full capacity
@@ -72,7 +66,7 @@ class ControllerNGCT:
             # After 240 minutes: shut down
             power_setpoint = 0.0
 
-        h_dict["combustion_turbine"]["power_setpoint"] = power_setpoint
+        h_dict["open_cycle_gas_turbine"]["power_setpoint"] = power_setpoint
 
         return h_dict
 

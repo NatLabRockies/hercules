@@ -1,11 +1,12 @@
 # Input YAML for hercules
+# Explicitly specify the parameters for demonstration purposes
 
 # Name
 name: example_07
 
 ###
 # Describe this simulation setup
-description: Natural Gas Combustion Turbine (NGCT) Example
+description: Open Cycle Gas Turbine (OCGT) Example
 
 dt: 60.0  # 1 minute time step
 starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
@@ -16,19 +17,19 @@ log_every_n: 1
 plant:
   interconnect_limit: 100000  # kW (100 MW)
 
-combustion_turbine:
-  component_type: CombustionTurbineSimple
+open_cycle_gas_turbine:
+  component_type: OpenCycleGasTurbine
   rated_capacity: 100000  # kW (100 MW)
   min_stable_load_fraction: 0.2  # 20% minimum operating point
-  heat_rate: 10000  # kJ/kWh at rated load
-  ramp_rate_up: 500  # kW/s
-  ramp_rate_down: 500  # kW/s
-  # Optional parameters use defaults:
-  # startup_time: 3600.0 s (1 hour)
-  # shutdown_time: 3600.0 s (1 hour)
-  # min_up_time: 3600.0 s (1 hour)
-  # min_down_time: 3600.0 s (1 hour)
-  # part_load_factor: 1.0
+  ramp_rate_fraction: 0.1  # 10%/min ramp rate
+  run_up_rate_fraction: 0.05  # 5%/min run up rate
+  hot_startup_time: 490.0  # 7 minutes
+  cold_startup_time: 580.0  # 8 minutes
+  hot_cold_cutoff_time: 28800  # 8 hours
+  min_up_time: 3600  # 1 hour
+  min_down_time: 3600  # 1 hour
+  part_load_factor: 1.25  # 1.0 (no penalty)
+  heat_rate_at_rated_load: 10000  # 10,000 kJ/kWh at rated load
   log_channels:
     - power
     - fuel_consumption
