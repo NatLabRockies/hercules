@@ -24,9 +24,8 @@ References:
 
 """
 
-from hercules.plant_components.thermal_component_base import ThermalComponentBase
-
 import numpy as np
+from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 
 class OpenCycleGasTurbine(ThermalComponentBase):
@@ -90,10 +89,12 @@ class OpenCycleGasTurbine(ThermalComponentBase):
             h_dict[self.component_name]["min_up_time"] = 2 * 60.0 * 60.0
         if "min_down_time" not in h_dict[self.component_name]:
             h_dict[self.component_name]["min_down_time"] = 2 * 60.0 * 60.0
-        
+
         # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
         if "run_up_rate_fraction" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["run_up_rate_fraction"] = h_dict[self.component_name]["ramp_rate_fraction"]
+            h_dict[self.component_name]["run_up_rate_fraction"] = h_dict[self.component_name][
+                "ramp_rate_fraction"
+            ]
 
         # Call the base class init
         super().__init__(h_dict)
@@ -195,13 +196,12 @@ class OpenCycleGasTurbine(ThermalComponentBase):
 
         return self.heat_rate_at_rated_load * efficiency_penalty
 
-
     # Overload _post_process to add OCGT specific post-processing
     def _post_process(self, h_dict):
-        """Post-process the OCGT simulation. 
-        
-        This is called by the base class after the control function.  
-        Computes the fuel consumption and heat rate.     
+        """Post-process the OCGT simulation.
+
+        This is called by the base class after the control function.
+        Computes the fuel consumption and heat rate.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.

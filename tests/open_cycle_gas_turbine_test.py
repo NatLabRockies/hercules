@@ -1,7 +1,6 @@
 import copy
 
 import pytest
-
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
 
 from .test_inputs.h_dict import (
@@ -13,6 +12,7 @@ def test_init_from_dict():
     """Test that ThermalComponentBase can be initialized from a dictionary."""
     ocgt = OpenCycleGasTurbine(copy.deepcopy(h_dict_open_cycle_gas_turbine))
     assert ocgt is not None
+
 
 def test_invalid_inputs():
     """Test that OpenCycleGasTurbine raises an error for invalid inputs."""
@@ -29,6 +29,7 @@ def test_invalid_inputs():
     with pytest.raises(ValueError):
         OpenCycleGasTurbine(h_dict)
 
+
 def test_default_inputs():
     """Test that OpenCycleGasTurbine uses default inputs when not provided."""
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
@@ -44,13 +45,13 @@ def test_default_inputs():
     # Test that the run_up_rate_fraction is 0.2
     assert ocgt.run_up_rate_fraction == 0.2
 
-    # Test that if the run_up_rate_fraction is not provided, 
+    # Test that if the run_up_rate_fraction is not provided,
     # it defaults to the ramp_rate_fraction
     del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction"]
     ocgt = OpenCycleGasTurbine(h_dict)
     assert ocgt.run_up_rate_fraction == ocgt.ramp_rate_fraction
 
-    # Now test that the default value of the ramp_rate_fraction is 
+    # Now test that the default value of the ramp_rate_fraction is
     # applied to both the ramp_rate_fraction and the run_up_rate_fraction
     # if they are both not provided
     del h_dict["open_cycle_gas_turbine"]["ramp_rate_fraction"]
@@ -63,7 +64,6 @@ def test_default_inputs():
     del h_dict["open_cycle_gas_turbine"]["min_stable_load_fraction"]
     ocgt = OpenCycleGasTurbine(h_dict)
     assert ocgt.min_stable_load_fraction == 0.2
-
 
     del h_dict["open_cycle_gas_turbine"]["cold_startup_time"]
     del h_dict["open_cycle_gas_turbine"]["hot_startup_time"]
@@ -82,4 +82,3 @@ def test_default_inputs():
     del h_dict["open_cycle_gas_turbine"]["min_down_time"]
     ocgt = OpenCycleGasTurbine(h_dict)
     assert ocgt.min_down_time == 2 * 60.0 * 60.0
-
