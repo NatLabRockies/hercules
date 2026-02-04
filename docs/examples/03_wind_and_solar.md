@@ -2,7 +2,7 @@
 
 ## Description
 
-In this setup, wind and solar are combined in a hybrid plant. A simple controller can be used to limit the solar power to keep the total power below the interconnect limit.
+In this setup, wind and solar are simulated together in a hybrid plant. A simple controller can be used to curtail the solar power to keep the total power below the interconnect limit.
 
 ## Setup
 

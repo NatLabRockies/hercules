@@ -2,7 +2,7 @@
 
 ## Description
 
-Example of a wind and hydrogen hybrid plant where power that the wind farm produces goes directly to hydrogen electrolysis.
+Example of a wind and hydrogen hybrid plant where power that the wind farm produces goes directly to hydrogen electrolysis. The hydrogen output is then controlled by controlling the wind farm power to follow a hydrogen production reference signal.
 
 ## Setup
 

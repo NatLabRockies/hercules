@@ -10,13 +10,13 @@ Note the caveats to using this method from the docs:
 > In contrast to `wake_method: dynamic`, this method pre-computes the FLORIS wake
     deficits for all possible wind speeds and power setpoints. This is done by running for
     all wind speeds and wind directions (but not over all power setpoints).  This is valid
-    for cases where the wind farm is operating:
-        - all turbines operating normally
+    for cases where the wind farm is operating in the following ways:
+        - all turbines operating normally (maximum power)
         - all turbines off
         - following a wind-farm wide derating level
 
     It is in practice conservative with respect to the wake deficits, but it is more efficient
-    than running FLORIS for each condition.  In cases where turbines are:
+    than running FLORIS for each condition at each time step.  In cases where turbines are:
         - partially derated below the curtailment level
         - not uniformly curtailed or some turbines are off
     this is not an appropriate model and the more general `wake_method: dynamic` should be used.
