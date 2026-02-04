@@ -28,6 +28,7 @@ def get_available_component_names():
         "battery",
         "electrolyzer",
         "combustion_turbine",
+        "thermal_component",
     ]
 
 
@@ -43,7 +44,7 @@ def get_available_generator_names():
     return [
         "wind_farm",
         "solar_farm",
-        "combustion_turbine",
+        "open_cycle_gas_turbine",
     ]
 
 
@@ -61,7 +62,7 @@ def get_available_component_types():
         "solar_farm": ["SolarPySAMPVWatts"],
         "battery": ["BatterySimple", "BatteryLithiumIon"],
         "electrolyzer": ["ElectrolyzerPlant"],
-        "combustion_turbine": ["CombustionTurbineSimple"],
+        "open_cycle_gas_turbine": ["OpenCycleGasTurbine"],
     }
 
 
