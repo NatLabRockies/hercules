@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="./" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Hybrid Plant Components &#8212; HERCULES</title>
+    <title>Example 05: Wind and storage with LMP-based control &#8212; HERCULES</title>
   
   
   
@@ -18,41 +18,41 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="_static/togglebutton.js?v=1ae7504c"></script>
+    <script src="../_static/togglebutton.js?v=1ae7504c"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -61,7 +61,7 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -70,11 +70,13 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'hybrid_plant';</script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="HerculesModel" href="hercules_model.html" />
-    <link rel="prev" title="H_Dict Structure" href="h_dict.html" />
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/05_wind_and_storage_with_lmp';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 06: Wind and hydrogen hybrid plant" href="06_wind_and_hydrogen.html" />
+    <link rel="prev" title="Example 04: Wind and storage hybrid plant" href="04_wind_and_storage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -106,7 +108,7 @@
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
 <form class="bd-search d-flex align-items-center"
-      action="search.html"
+      action="../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -155,7 +157,7 @@
     
   
 
-<a class="navbar-brand logo" href="index.html">
+<a class="navbar-brand logo" href="../index.html">
   
   
   
@@ -166,8 +168,8 @@
       
     
     
-    <img src="_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
-    <script>document.write(`<img src="_static/herc.png" class="logo__image only-dark" alt="HERCULES - Home"/>`);</script>
+    <img src="../_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
+    <script>document.write(`<img src="../_static/herc.png" class="logo__image only-dark" alt="HERCULES - Home"/>`);</script>
   
   
 </a></div>
@@ -187,56 +189,56 @@
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
-                <a class="reference internal" href="index.html">
+                <a class="reference internal" href="../index.html">
                     Hercules
                 </a>
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation instructions</a></li>
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../order_of_op.html">Order of Operations</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hybrid Plant Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hercules_model.html">HerculesModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../electrolyzer.html">Electrolyzer Plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gridstatus_download.html">Grid Status Data Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 05: Wind and storage with LMP-based control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
 </ul>
 
     </div>
@@ -308,7 +310,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/hybrid_plant.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/05_wind_and_storage_with_lmp.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -325,7 +327,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fhybrid_plant.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/05_wind_and_storage_with_lmp.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -355,7 +357,7 @@
       
       
       
-      <li><a href="_sources/hybrid_plant.md" target="_blank"
+      <li><a href="../_sources/examples/05_wind_and_storage_with_lmp.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -439,7 +441,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Hybrid Plant Components</h1>
+    <h1>Example 05: Wind and storage with LMP-based control</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -449,8 +451,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 </ul>
             </nav>
         </div>
@@ -462,50 +466,49 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="hybrid-plant-components">
-<h1>Hybrid Plant Components<a class="headerlink" href="#hybrid-plant-components" title="Link to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> class manages all plant components in Hercules. It handles initialization, execution, and coordination of individual components while computing plant-level outputs.</p>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>HybridPlant automatically detects and initializes components based on the <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict structure</span></a>. Each component is configured through its respective section in the h_dict (e.g., <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>).</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="example-05-wind-and-storage-with-lmp-based-control">
+<h1>Example 05: Wind and storage with LMP-based control<a class="headerlink" href="#example-05-wind-and-storage-with-lmp-based-control" title="Link to this heading">#</a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
+<p>Example of a wind and storage hybrid plant with a controller that responds to Locational Marginal Pricing (LMP) signals. The controller:</p>
+<ul class="simple">
+<li><p>Charges the battery when real-time LMP is below $15/MWh (low prices)</p></li>
+<li><p>Discharges the battery when real-time LMP is above $35/MWh (high prices)</p></li>
+<li><p>Keeps the battery idle for intermediate prices</p></li>
+</ul>
+<p>This example also demonstrates the new <strong>selective external data logging</strong> feature. Both <code class="docutils literal notranslate"><span class="pre">lmp_rt</span></code> and <code class="docutils literal notranslate"><span class="pre">lmp_da</span></code> are available to the controller via <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;external_signals&quot;]</span></code>, but only <code class="docutils literal notranslate"><span class="pre">lmp_rt</span></code> is logged to the HDF5 output file as specified in <code class="docutils literal notranslate"><span class="pre">log_channels</span></code>.</p>
 </section>
-<section id="available-components">
-<h2>Available Components<a class="headerlink" href="#available-components" title="Link to this heading">#</a></h2>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Component</p></th>
-<th class="head"><p>Component Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wind_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">WindFarm</span></code></p></td>
-<td><p>FLORIS-based wind farm simulation</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wind_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code></p></td>
-<td><p>Pass through wind farm SCADA</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">solar_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></p></td>
-<td><p>PySAM-based simplified solar simulation</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></p></td>
-<td><p>Basic battery storage model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></p></td>
-<td><p>Detailed lithium-ion battery model</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code></p></td>
-<td><p>Hydrogen production system</p></td>
-</tr>
-</tbody>
-</table>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
+<p>No manual setup is required. The example automatically generates the necessary input files (wind data, FLORIS configuration, turbine model, and LMP data) when first run.</p>
+</section>
+<section id="running">
+<h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
+<p>To run the example, execute the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
+</pre></div>
 </div>
+<p>The simulation runs for 4 hours with the following characteristics:</p>
+<ul class="simple">
+<li><p>Real-time LMP ramps from <span class="math notranslate nohighlight">\(0 to \)</span>50/MWh over 4 hours</p></li>
+<li><p>Day-ahead LMP remains constant at $10/MWh</p></li>
+<li><p>Only real-time LMP is logged to output (selective logging)</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>To plot the outputs, run the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
+</pre></div>
+</div>
+<p>The plot shows:</p>
+<ol class="arabic simple">
+<li><p>Wind and battery power with interconnect limits</p></li>
+<li><p>Battery state of charge (SOC)</p></li>
+<li><p>Battery power vs setpoint</p></li>
+<li><p>LMP prices and control thresholds</p></li>
+</ol>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">lmp_rt</span></code> appears in the HDF5 output file, but <code class="docutils literal notranslate"><span class="pre">lmp_da</span></code> does not (as specified in <code class="docutils literal notranslate"><span class="pre">log_channels</span></code>), even though both were available to the controller.</p>
 </section>
 </section>
 
@@ -522,7 +525,7 @@ document.write(`
         },
         kernelOptions: {
             name: "python3",
-            path: "./."
+            path: "./examples"
         },
         predefinedOutput: true
     }
@@ -540,20 +543,20 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="h_dict.html"
+       href="04_wind_and_storage.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">H_Dict Structure</p>
+        <p class="prev-next-title">Example 04: Wind and storage hybrid plant</p>
       </div>
     </a>
     <a class="right-next"
-       href="hercules_model.html"
+       href="06_wind_and_hydrogen.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">HerculesModel</p>
+        <p class="prev-next-title">Example 06: Wind and hydrogen hybrid plant</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -573,8 +576,10 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 </ul>
   </nav></div>
 
@@ -623,8 +628,8 @@ By National Laboratory of the Rockies
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
   <footer class="bd-footer">
   </footer>

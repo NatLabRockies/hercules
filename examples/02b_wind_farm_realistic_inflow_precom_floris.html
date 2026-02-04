@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
@@ -50,7 +50,7 @@
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/togglebutton.js?v=1ae7504c"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples/02b_wind_farm_realistic_inflow_precom_floris';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Example 03: Wind and solar hybrid plant" href="03_wind_and_solar.html" />
-    <link rel="prev" title="Example 02: Wind Farm Realistic Inflow" href="02_wind_farm_realistic_inflow.html" />
+    <link rel="next" title="Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)" href="02c_wind_farm_realistic_inflow_direct.html" />
+    <link rel="prev" title="Example 02a: Wind Farm Realistic Inflow" href="02a_wind_farm_realistic_inflow.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -230,10 +230,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../examples_overview.html">Examples Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="00_wind_farm_only.html">Example 00: Wind only</a></li>
 <li class="toctree-l1"><a class="reference internal" href="01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02_wind_farm_realistic_inflow.html">Example 02: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
 </ul>
 
     </div>
@@ -288,7 +291,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules" target="_blank"
    class="btn btn-sm btn-source-repository-button dropdown-item"
    title="Source repository"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -305,7 +308,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/edit/develop/docs/examples/02b_wind_farm_realistic_inflow_precom_floris.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/02b_wind_farm_realistic_inflow_precom_floris.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -322,7 +325,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/02b_wind_farm_realistic_inflow_precom_floris.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/02b_wind_farm_realistic_inflow_precom_floris.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -464,22 +467,22 @@ document.write(`
 <h1>Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)<a class="headerlink" href="#example-02b-wind-farm-realistic-inflow-precomputed-floris" title="Link to this heading">#</a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>This example is identical to <code class="docutils literal notranslate"><span class="pre">02_wind_farm_realistic_inflow</span></code> with the exception that the <code class="docutils literal notranslate"><span class="pre">precomputed</span></code> wake method of the <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> class is used to speed up the simulation. This example automatically generates the necessary input files in the centralized <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder when first run.</p>
-<p>Note the caveats to using this class from the docs:</p>
+<p>This example is identical to <code class="docutils literal notranslate"><span class="pre">02a_wind_farm_realistic_inflow</span></code> with the exception that the <code class="docutils literal notranslate"><span class="pre">precomputed</span></code> wake method is used to speed up the simulation. The configuration sets <code class="docutils literal notranslate"><span class="pre">wake_method:</span> <span class="pre">precomputed</span></code> in the <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code> component. This example automatically generates the necessary input files in the centralized <code class="docutils literal notranslate"><span class="pre">examples/inputs/</span></code> folder when first run.</p>
+<p>Note the caveats to using this method from the docs:</p>
 <blockquote>
-<div><p>In contrast to <code class="docutils literal notranslate"><span class="pre">wake_method=&quot;dynamic&quot;</span></code>, this class pre-computes the FLORIS wake
+<div><p>In contrast to <code class="docutils literal notranslate"><span class="pre">wake_method:</span> <span class="pre">dynamic</span></code>, this method pre-computes the FLORIS wake
 deficits for all possible wind speeds and power setpoints. This is done by running for
 all wind speeds and wind directions (but not over all power setpoints).  This is valid
-for cases where the wind farm is operating:
-- all turbines operating normally
+for cases where the wind farm is operating in the following ways:
+- all turbines operating normally (maximum power)
 - all turbines off
 - following a wind-farm wide derating level</p>
 </div></blockquote>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>It is in practice conservative with respect to the wake deficits, but it is more efficient
-than running FLORIS for each condition.  In cases where turbines are:
+than running FLORIS for each condition at each time step.  In cases where turbines are:
     - partially derated below the curtailment level
-    - not uniformly curtailed or some turbines are off
-this is not an appropriate model and the more general `wake_method=&quot;dynamic&quot;` version should be used.
+    - some, but not all, turbines are off
+this is not an appropriate model and the more general `wake_method: dynamic` should be used.
 </pre></div>
 </div>
 </section>
@@ -492,7 +495,7 @@ this is not an appropriate model and the more general `wake_method=&quot;dynamic
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>To plot the outputs run the following command in the terminal:</p>
+<p>To plot the outputs, run the following command in the terminal:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
 </pre></div>
 </div>
@@ -530,20 +533,20 @@ this is not an appropriate model and the more general `wake_method=&quot;dynamic
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="02_wind_farm_realistic_inflow.html"
+       href="02a_wind_farm_realistic_inflow.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Example 02: Wind Farm Realistic Inflow</p>
+        <p class="prev-next-title">Example 02a: Wind Farm Realistic Inflow</p>
       </div>
     </a>
     <a class="right-next"
-       href="03_wind_and_solar.html"
+       href="02c_wind_farm_realistic_inflow_direct.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Example 03: Wind and solar hybrid plant</p>
+        <p class="prev-next-title">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
