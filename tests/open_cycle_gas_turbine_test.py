@@ -82,3 +82,12 @@ def test_default_inputs():
     del h_dict["open_cycle_gas_turbine"]["min_down_time"]
     ocgt = OpenCycleGasTurbine(h_dict)
     assert ocgt.min_down_time == 2 * 60.0 * 60.0
+
+
+# TODO: Someone familiar with heat rate and fuel consumption please add tests based
+# on first principles for the heat rate and fuel consumption.
+def test_post_process():
+    """Test that OpenCycleGasTurbine post-processes correctly."""
+    h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
+    ocgt = OpenCycleGasTurbine(h_dict)
+    h_dict = ocgt._post_process(h_dict)
