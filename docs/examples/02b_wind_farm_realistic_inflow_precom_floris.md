@@ -18,7 +18,7 @@ Note the caveats to using this method from the docs:
     It is in practice conservative with respect to the wake deficits, but it is more efficient
     than running FLORIS for each condition at each time step.  In cases where turbines are:
         - partially derated below the curtailment level
-        - not uniformly curtailed or some turbines are off
+        - some, but not all, turbines are off
     this is not an appropriate model and the more general `wake_method: dynamic` should be used.
 
 ## Running
