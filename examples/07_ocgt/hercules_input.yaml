@@ -23,8 +23,8 @@ open_cycle_gas_turbine:
   min_stable_load_fraction: 0.2  # 20% minimum operating point
   ramp_rate_fraction: 0.1  # 10%/min ramp rate
   run_up_rate_fraction: 0.05  # 5%/min run up rate
-  hot_startup_time: 490.0  # 7 minutes
-  cold_startup_time: 580.0  # 8 minutes
+  hot_startup_time: 420.0  # 7 minutes
+  cold_startup_time: 480.0  # 8 minutes
   hot_cold_cutoff_time: 28800  # 8 hours
   min_up_time: 3600  # 1 hour
   min_down_time: 3600  # 1 hour
