@@ -1,78 +1,114 @@
-# Gitignore file
+# =============================================================================
+# Python
+# =============================================================================
 *.pyc
-*.log
-*.egg-info
-data.db
+__pycache__/
+*.egg-info/
 *.python-version
-*.DS_Store
-*.conda
-*.sqlite
-slices
 
-# macOS files
+# =============================================================================
+# macOS
+# =============================================================================
 .DS_Store
+__MACOSX/
 
-# ide settings and files
-.idea
-.vscode
+# =============================================================================
+# IDE/Editor Settings
+# =============================================================================
+.idea/
+.vscode/
+.cursor/rules/
 
-# Some c++ stuff
-a.out
-*.plist
-test_client.dSYM
+# =============================================================================
+# Jupyter Notebooks
+# =============================================================================
 *checkpoint.ipynb
-hercules/sampling00000.nc
-hercules/front_end.db
-hercules/control_center.db
-hercules/test_client_cpp/test_client
-hercules/df_flow.p
-hercules/flow_data.p
+*.nbconvert.ipynb
+.ipynb_checkpoints/
 
-t_*.txt
-hercules/sample_copy.nc
-hercules/t_0*
-hercules/local_amr_wind_demo/sample_copy.nc
-
-#Ignore csv files
+# =============================================================================
+# Data Files (large/generated)
+# =============================================================================
+# CSV files (except test inputs)
 *.csv
 !tests/test_inputs/*.csv
+
+# Binary data formats
+*.h5
+*.hdf5
+*.feather
+*.ftr
+*.parquet
+
+# Pickle files (generated input data)
+*.p
+*.pkl
+
+# Large wind resource data
+wind_resource_rex/
+
+# =============================================================================
+# Hercules Simulation Outputs
+# =============================================================================
+# Output directories contain generated results
+outputs/
+
+# Log files (generated during simulation)
+*.log
+
+# H_dict echo files (simulation state dumps)
+*.echo
+
+# =============================================================================
+# Documentation Build Artifacts
+# =============================================================================
+docs/_build/
+
+# =============================================================================
+# Testing/CI Artifacts
+# =============================================================================
+.pytest_cache/
+.ruff_cache/
+
+# =============================================================================
+# LEGACY HERCULES - May remove in future cleanup
+# =============================================================================
+# Old example folder path (renamed to examples/)
 !example_case_folders/00_wind_farm_only/inputs/floris_standin_data.csv
 !example_case_folders/00_wind_farm_only/inputs/wind_power_reference_data.csv
 
-# h5 files
-*.h5
-*.hdf5
+# C++ build artifacts (from old AMR-Wind integration)
+a.out
+*.plist
+test_client.dSYM
+hercules/test_client_cpp/test_client
 
-# Larger wind input file
-wind_resource_rex
+# NetCDF files (from old AMR-Wind demos)
+hercules/sampling00000.nc
+hercules/sample_copy.nc
+hercules/local_amr_wind_demo/sample_copy.nc
 
-# Wind input pickle files
-wind_input.p
+# Database files (from old front-end/control center)
+data.db
+*.sqlite
+*.conda
+hercules/front_end.db
+hercules/control_center.db
 
-# Solar input pickle files
-solar_input.p
+# Old data/flow pickle files
+hercules/df_flow.p
+hercules/flow_data.p
 
-# Intermediate notebook files
-*.nbconvert.ipynb
-*.ipynb_checkpoints
-
-# Some output files to ignore
+# AMR-Wind time step outputs
+t_*.txt
+hercules/t_0*
 t_00*
+slices
+
+# Old log file patterns (now covered by *.log)
 logdummy
 loghelics
 loghercules*
 logstandin*
 logfloris*
-*echo
 *out-example.json
-
-.vscode/*
-
-# Doc builds
-docs/_build
-docs/examples
-
-.cursor/rules/
-*.feather
-*.ftr
-*.parquet
