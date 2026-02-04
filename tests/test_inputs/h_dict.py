@@ -332,7 +332,6 @@ h_dict_electrolyzer = {
 }
 
 
-
 h_dict_thermal_component = {
     "dt": 1.0,
     "starttime": 0.0,
