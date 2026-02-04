@@ -27,8 +27,7 @@ def get_available_component_names():
         "solar_farm",
         "battery",
         "electrolyzer",
-        "combustion_turbine",
-        "thermal_component",
+        "open_cycle_gas_turbine",
     ]
 
 
