@@ -120,7 +120,9 @@ class HybridPlant:
         if component_type == "OpenCycleGasTurbine":
             return OpenCycleGasTurbine(h_dict)
 
-        raise Exception("Unknown component_type: ", h_dict[component_name]["component_type"])
+        raise Exception(
+            f"Unknown component_type '{component_type}' for component '{component_name}'"
+        )
 
     def step(self, h_dict):
         """Execute one simulation step for all plant components.
