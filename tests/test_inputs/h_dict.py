@@ -104,12 +104,12 @@ thermal_component = {
     "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
     "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
     "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "hot_cold_cutoff_time": 120.0,  # s
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
     "log_channels": ["power", "state_num"],
-    "initial_conditions": {"power": 1000, "state_num": 3},  # 3 = on
+    "initial_conditions": {"power": 1000, "state_num": 4},  # 4 = on
 }
 
 open_cycle_gas_turbine = {
@@ -119,12 +119,12 @@ open_cycle_gas_turbine = {
     "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
     "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
     "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "hot_cold_cutoff_time": 120.0,  # s
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
     "log_channels": ["power", "state_num"],
-    "initial_conditions": {"power": 1000, "state_num": 3},  # 3 = on,
+    "initial_conditions": {"power": 1000, "state_num": 4},  # 4 = on,
     "part_load_factor": 1.0,
     "heat_rate_at_rated_load": 10000,  # kJ/kWh at rated load
 }

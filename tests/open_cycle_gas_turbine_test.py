@@ -61,27 +61,25 @@ def test_default_inputs():
     assert ocgt.run_up_rate_fraction == 0.1
 
     # Test the remaining default values
+    # Delete startup times first, since changing min_stable_load_fraction and
+    # ramp rates affects ramp_time validation against startup times
+    del h_dict["open_cycle_gas_turbine"]["cold_startup_time"]
+    del h_dict["open_cycle_gas_turbine"]["warm_startup_time"]
+    del h_dict["open_cycle_gas_turbine"]["hot_startup_time"]
     del h_dict["open_cycle_gas_turbine"]["min_stable_load_fraction"]
     ocgt = OpenCycleGasTurbine(h_dict)
-    assert ocgt.min_stable_load_fraction == 0.2
-
-    del h_dict["open_cycle_gas_turbine"]["cold_startup_time"]
-    del h_dict["open_cycle_gas_turbine"]["hot_startup_time"]
-    ocgt = OpenCycleGasTurbine(h_dict)
+    assert ocgt.min_stable_load_fraction == 0.40
     assert ocgt.hot_startup_time == 7 * 60.0
+    assert ocgt.warm_startup_time == 8 * 60.0
     assert ocgt.cold_startup_time == 8 * 60.0
-
-    del h_dict["open_cycle_gas_turbine"]["hot_cold_cutoff_time"]
-    ocgt = OpenCycleGasTurbine(h_dict)
-    assert ocgt.hot_cold_cutoff_time == 8 * 60.0 * 60.0
 
     del h_dict["open_cycle_gas_turbine"]["min_up_time"]
     ocgt = OpenCycleGasTurbine(h_dict)
-    assert ocgt.min_up_time == 2 * 60.0 * 60.0
+    assert ocgt.min_up_time == 30 * 60.0
 
     del h_dict["open_cycle_gas_turbine"]["min_down_time"]
     ocgt = OpenCycleGasTurbine(h_dict)
-    assert ocgt.min_down_time == 2 * 60.0 * 60.0
+    assert ocgt.min_down_time == 60 * 60.0
 
 
 # TODO: Someone familiar with heat rate and fuel consumption please add tests based

@@ -15,18 +15,18 @@ In addition to the base class parameters, the OCGT model includes parameters for
 
 ## Default Parameter Values
 
-The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-3]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
+The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
-| `min_stable_load_fraction` | 0.20 (20%) | [1], [2], [3] |
+| `min_stable_load_fraction` | 0.40 (40%) | [4] |
 | `ramp_rate_fraction` | 0.10 (10%/min) | [1] |
 | `run_up_rate_fraction` | Same as `ramp_rate_fraction` | — |
-| `hot_startup_time` | 420 s (7 minutes) | [1] |
-| `cold_startup_time` | 480 s (8 minutes) | [1] |
-| `hot_cold_cutoff_time` | 28800 s (8 hours) | [1], [2], [3] |
-| `min_up_time` | 7200 s (2 hours) |  [2], [3] |
-| `min_down_time` | 7200 s (2 hours) | [2], [3] |
+| `hot_startup_time` | 420 s (7 minutes) | [1], [5] |
+| `warm_startup_time` | 480 s (8 minutes) | [1], [5] |
+| `cold_startup_time` | 480 s (8 minutes) | [1], [5] |
+| `min_up_time` | 1800 s (30 minutes) | [4] |
+| `min_down_time` | 3600 s (1 hour) | [4] |
 
 ## OCGT-Specific Outputs
 
@@ -76,13 +76,13 @@ All parameters explicitly specified:
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
   rated_capacity: 100000  # kW (100 MW)
-  min_stable_load_fraction: 0.2  # 20% minimum operating point
+  min_stable_load_fraction: 0.4  # 40% minimum operating point
   ramp_rate_fraction: 0.1  # 10%/min ramp rate
   run_up_rate_fraction: 0.05  # 5%/min run up rate
   hot_startup_time: 420.0  # 7 minutes
+  warm_startup_time: 480.0  # 8 minutes
   cold_startup_time: 480.0  # 8 minutes
-  hot_cold_cutoff_time: 28800  # 8 hours
-  min_up_time: 3600  # 1 hour
+  min_up_time: 1800  # 30 minutes
   min_down_time: 3600  # 1 hour
   part_load_factor: 1.25  # 25% heat rate penalty at min load
   heat_rate_at_rated_load: 10000  # kJ/kWh at rated load
@@ -103,7 +103,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
-- `state_num`: Operating state number (0-4)
+- `state_num`: Operating state number (0-5)
 - `fuel_consumption`: Fuel consumed per timestep in kJ
 - `heat_rate`: Current heat rate in kJ/kWh
 - `power_setpoint`: Requested power setpoint in kW
@@ -115,3 +115,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 2. "Impact of Detailed Parameter Modeling of Open-Cycle Gas Turbines on Production Cost Simulation", NREL/CP-6A40-87554, National Renewable Energy Laboratory, 2024.
 
 3. Deane, J.P., G. Drayton, and B.P. Ó Gallachóir. "The Impact of Sub-Hourly Modelling in Power Systems with Significant Levels of Renewable Generation." Applied Energy 113 (January 2014): 152–58. https://doi.org/10.1016/j.apenergy.2013.07.027.
+
+4. IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants, International Renewable Energy Agency, Abu Dhabi.
+
+5. M. Oakes, M. Turner, "Cost and Performance Baseline for Fossil Energy Plants, Volume 5: Natural Gas Electricity Generating Units for Flexible Operation," National Energy Technology Laboratory, Pittsburgh, May 5, 2023.

@@ -2,10 +2,10 @@
 Open Cycle Gas Turbine Class.
 
 Open cycle gas turbine (OCGT) model is a subclass of the ThermalComponentBase class.
-It implements the model as presented in [1], [2] and [3].
+It implements the model as presented in [1], [2], [3] and [4].
 
 Like other subclasses of ThermalComponentBase, it inherits the main control functions,
-and adds defaults for many variables based on [1], [2] and [3].
+and adds defaults for many variables based on [1], [2], [3] and [4].
 
 Finally the subclass implements several OCGT specific functions be called by the overloaded
 _post_process() function.
@@ -21,7 +21,11 @@ References:
     Modelling in Power Systems with Significant Levels of Renewable Generation.”
      Applied Energy 113 (January 2014): 152–58.
      https://doi.org/10.1016/j.apenergy.2013.07.027.
-
+[4] IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants,
+    International Renewable Energy Agency, Abu Dhabi.
+[5] M. Oakes, M. Turner, " Cost and Performance Baseline for Fossil Energy Plants, Volume 5:
+    Natural Gas Electricity Generating Units for Flexible Operation," National Energy
+    Technology Laboratory, Pittsburgh, May 5, 2023.
 """
 
 import numpy as np
@@ -43,23 +47,24 @@ class OpenCycleGasTurbine(ThermalComponentBase):
             h_dict (dict): Dictionary containing simulation parameters including:
                 - rated_capacity: Maximum power output in kW
                 - min_stable_load_fraction: Optional, minimum operating point as fraction (0-1).
-                    Default: 0.20 (20%)
+                    Default: 0.40 (40%) [4]
                 - ramp_rate_fraction: Optional, maximum rate of power increase/decrease
                     as fraction of rated capacity per minute. Default: 0.1 (10%)
                 - run_up_rate_fraction: Optional, maximum rate of power increase during startup
                     as fraction of rated capacity per minute. Default: ramp_rate_fraction
                 - hot_startup_time: Optional, time to reach min_stable_load_fraction from off
                     in s. Includes both readying time and ramping time.
-                    Default: 420.0 s (7 minutes)
+                    Default: 420.0 s (7 minutes) [1, 5]
+                - warm_startup_time: Optional, time to reach min_stable_load_fraction from off
+                    in s. Includes both readying time and ramping time.
+                    Default: 480.0 s (8 minutes) [1, 5]
                 - cold_startup_time: Optional, time to reach min_stable_load_fraction from off
                     in s. Includes both readying time and ramping time.
-                    Default: 480.0 s (8 minutes)
-                - hot_cold_cutoff_time: Optional, time in off after which cold starting is
-                    implied in s. Default: 28800.0 s (8 hours)
+                    Default: 480.0 s (8 minutes) [1, 5]
                 - min_up_time: Optional, minimum time unit must remain on in s.
-                    Default: 7200.0 s (2 hours)
+                    Default: 1800.0 s (30 minutes) [4]
                 - min_down_time: Optional, minimum time unit must remain off in s.
-                    Default: 7200.0 s (2 hours)
+                    Default: 3600.0 s (1 hour) [4]
                 - initial_conditions: Dictionary with initial power and state_num
                 - part_load_factor: Optional, heat rate penalty at min load.
                     Default: 1.0 (no penalty)
@@ -76,19 +81,19 @@ class OpenCycleGasTurbine(ThermalComponentBase):
         # Apply fixeddefault parameters based on [1], [2] and [3]
         # back into the h_dict if they are not provided
         if "min_stable_load_fraction" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_stable_load_fraction"] = 0.20
+            h_dict[self.component_name]["min_stable_load_fraction"] = 0.40
         if "ramp_rate_fraction" not in h_dict[self.component_name]:
             h_dict[self.component_name]["ramp_rate_fraction"] = 0.1
         if "hot_startup_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["hot_startup_time"] = 7 * 60.0
+            h_dict[self.component_name]["hot_startup_time"] = 420.0
+        if "warm_startup_time" not in h_dict[self.component_name]:
+            h_dict[self.component_name]["warm_startup_time"] = 480.0
         if "cold_startup_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["cold_startup_time"] = 8 * 60.0
-        if "hot_cold_cutoff_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["hot_cold_cutoff_time"] = 8 * 60.0 * 60.0
+            h_dict[self.component_name]["cold_startup_time"] = 480.0
         if "min_up_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_up_time"] = 2 * 60.0 * 60.0
+            h_dict[self.component_name]["min_up_time"] = 1800.0
         if "min_down_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_down_time"] = 2 * 60.0 * 60.0
+            h_dict[self.component_name]["min_down_time"] = 3600.0
 
         # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
         if "run_up_rate_fraction" not in h_dict[self.component_name]:

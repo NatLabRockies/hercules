@@ -80,8 +80,9 @@ def test_invalid_inputs():
     h_dict["thermal_component"]["min_stable_load_fraction"] = 0.2
     h_dict["thermal_component"]["run_up_rate_fraction"] = 0.2
 
-    # Lower hot startup time to 60 seconds
+    # Lower hot and warm startup times to 60 seconds
     h_dict["thermal_component"]["hot_startup_time"] = 60
+    h_dict["thermal_component"]["warm_startup_time"] = 60
 
     # The above implies a ramp_time of 60s
     h_dict["thermal_component"]["cold_startup_time"] = 59
@@ -110,10 +111,10 @@ def test_initial_conditions():
     """Test that the initial conditions are set correctly."""
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 3
+    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4
     tcb = ThermalComponentBase(h_dict)
     assert tcb.power_output == 1000
-    assert tcb.state_num == 3
+    assert tcb.state_num == 4
 
     # Test that the initial state maps to on
     assert tcb.state_name == "on"
@@ -131,7 +132,7 @@ def test_initial_conditions():
     ThermalComponentBase(h_dict)
 
     # Check that state_num is valid
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 5
+    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 6
     with pytest.raises(ValueError):
         ThermalComponentBase(h_dict)
 
@@ -148,7 +149,7 @@ def test_power_setpoint_in_normal_operation():
 
     # Set the initial conditions to be 500 kW in the on state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 3
+    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4  # 4 = on
 
     tcb = ThermalComponentBase(h_dict)
 
@@ -196,7 +197,7 @@ def test_power_setpoint_in_normal_operation():
     # Test that setting power setpoint to a negative number triggers the shutdown sequence
     h_dict["thermal_component"]["power_setpoint"] = -1
     out = tcb.step(copy.deepcopy(h_dict))
-    assert out["thermal_component"]["state_num"] == 4
+    assert out["thermal_component"]["state_num"] == 5  # 5 = stopping
 
 
 def test_transition_on_to_off():
@@ -211,7 +212,7 @@ def test_transition_on_to_off():
 
     # Set the initial conditions to be 500 kW in the on state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 3
+    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4
 
     # Set the min_up_time to 5s
     h_dict["thermal_component"]["min_up_time"] = 5
@@ -288,17 +289,13 @@ def test_transition_off_to_on():
 
     # Set the initial conditions to be 0 kW in the off state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 0
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 0
+    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 0  # 0 = off
 
     # Set the min_down_time to 3
     h_dict["thermal_component"]["min_down_time"] = 3
 
     # Set the min_stable_load_fraction to be 0.2 (200 kW)
     h_dict["thermal_component"]["min_stable_load_fraction"] = 0.2
-
-    # Set the hot_cold_cutoff_time to be 100s to ensure that hot starting is implied
-    # in this test
-    h_dict["thermal_component"]["hot_cold_cutoff_time"] = 100
 
     # Set the hot_startup_time to be 7s
     h_dict["thermal_component"]["hot_startup_time"] = 7

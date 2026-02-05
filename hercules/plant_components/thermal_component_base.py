@@ -16,6 +16,11 @@ References:
     Modelling in Power Systems with Significant Levels of Renewable Generation.”
      Applied Energy 113 (January 2014): 152–58.
      https://doi.org/10.1016/j.apenergy.2013.07.027.
+[4] IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants,
+    International Renewable Energy Agency, Abu Dhabi.
+[5] M. Oakes, M. Turner, " Cost and Performance Baseline for Fossil Energy Plants, Volume 5:
+    Natural Gas Electricity Generating Units for Flexible Operation," National Energy
+    Technology Laboratory, Pittsburgh, May 5, 2023.
 
 """
 
@@ -39,10 +44,12 @@ class ThermalComponentBase(ComponentBase):
         - 0: "off" - Thermal Component is off, no power output
         - 1: "hot starting" - Thermal Component is readying or ramping up to minimum
             stable load from off state (hot start)
-        - 2: "cold starting" - Thermal Component is readying or ramping up to minimum
+        - 2: "warm starting" - Thermal Component is readying or ramping up to minimum
+            stable load from off state (warm start)
+        - 3: "cold starting" - Thermal Component is readying or ramping up to minimum
             stable load from off state (cold start)
-        - 3: "on" - Thermal Component is operating normally
-        - 4: "stopping" - Thermal Component is ramping down to shutdown
+        - 4: "on" - Thermal Component is operating normally
+        - 5: "stopping" - Thermal Component is ramping down to shutdown
 
 
     """
@@ -50,14 +57,22 @@ class ThermalComponentBase(ComponentBase):
     # State constants
     STATE_OFF = 0
     STATE_HOT_STARTING = 1
-    STATE_COLD_STARTING = 2
-    STATE_ON = 3
-    STATE_STOPPING = 4
+    STATE_WARM_STARTING = 2
+    STATE_COLD_STARTING = 3
+    STATE_ON = 4
+    STATE_STOPPING = 5
+
+    # Time constants
+    #       Note the time definitions for cold versus warm versus hot starting are hard
+    #   coded and based on the values in [5].
+    HOT_START_TIME = 8 * 60 * 60  # 8 hours
+    WARM_START_TIME = 48 * 60 * 60  # 48 hours
 
     # Mapping from state number to state name
     STATE_NAMES = {
         STATE_OFF: "off",
         STATE_HOT_STARTING: "hot starting",
+        STATE_WARM_STARTING: "warm starting",
         STATE_COLD_STARTING: "cold starting",
         STATE_ON: "on",
         STATE_STOPPING: "stopping",
@@ -68,7 +83,7 @@ class ThermalComponentBase(ComponentBase):
         """Return the name of the current state.
 
         Returns:
-            str: Current state name ("off", "hot starting", "cold starting",
+            str: Current state name ("off", "hot starting", "warm starting", "cold starting",
                 "on", or "stopping").
         """
         return self.STATE_NAMES[self.state_num]
@@ -86,10 +101,10 @@ class ThermalComponentBase(ComponentBase):
                     as fraction of rated capacity per minute.
                 - hot_startup_time: Time to reach min_stable_load_fraction from off in s.
                     Includes both readying time and ramping time.
+                - warm_startup_time: Time to reach min_stable_load_fraction from off in s.
+                    Includes both readying time and ramping time.
                 - cold_startup_time: Time to reach min_stable_load_fraction from off in s.
                     Includes both readying time and ramping time.
-                - hot_cold_cutoff_time: Time in off after which cold starting is implied
-                    in s.
                 - min_up_time: Minimum time unit must remain on in s.
                 - min_down_time: Minimum time unit must remain off in s.
                 - initial_conditions: Dictionary with initial power and state_num
@@ -113,8 +128,8 @@ class ThermalComponentBase(ComponentBase):
         self.ramp_rate_fraction = component_dict["ramp_rate_fraction"]
         self.run_up_rate_fraction = component_dict["run_up_rate_fraction"]
         self.hot_startup_time = component_dict["hot_startup_time"]  # s
+        self.warm_startup_time = component_dict["warm_startup_time"]  # s
         self.cold_startup_time = component_dict["cold_startup_time"]  # s
-        self.hot_cold_cutoff_time = component_dict["hot_cold_cutoff_time"]  # s
         self.min_up_time = component_dict["min_up_time"]  # s
         self.min_down_time = component_dict["min_down_time"]  # s
 
@@ -129,10 +144,10 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("run_up_rate_fraction must be a number")
         if not isinstance(self.hot_startup_time, (int, float)):
             raise ValueError("hot_startup_time must be a number")
+        if not isinstance(self.warm_startup_time, (int, float)):
+            raise ValueError("warm_startup_time must be a number")
         if not isinstance(self.cold_startup_time, (int, float)):
             raise ValueError("cold_startup_time must be a number")
-        if not isinstance(self.hot_cold_cutoff_time, (int, float)):
-            raise ValueError("hot_cold_cutoff_time must be a number")
         if not isinstance(self.min_up_time, (int, float)):
             raise ValueError("min_up_time must be a number")
         if not isinstance(self.min_down_time, (int, float)):
@@ -149,10 +164,10 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("run_up_rate_fraction must be greater than 0")
         if self.hot_startup_time < 0:
             raise ValueError("hot_startup_time must be greater than or equal to 0")
+        if self.warm_startup_time < 0:
+            raise ValueError("warm_startup_time must be greater than or equal to 0")
         if self.cold_startup_time < 0:
             raise ValueError("cold_startup_time must be greater than or equal to 0")
-        if self.hot_cold_cutoff_time < 0:
-            raise ValueError("hot_cold_cutoff_time must be greater than or equal to 0")
         if self.min_up_time < 0:
             raise ValueError("min_up_time must be greater than or equal to 0")
         if self.min_down_time < 0:
@@ -174,12 +189,26 @@ class ThermalComponentBase(ComponentBase):
         if self.hot_startup_time < self.ramp_time:
             raise ValueError("hot_startup_time must be greater than or equal to the ramp_time")
 
-        # Check that the cold_startup_time is at least as long as the hot_startup_time
-        if self.cold_startup_time < self.hot_startup_time:
-            raise ValueError("cold_startup_time must be greater than or equal to hot_startup_time")
+        # Check that warm_startup_time is greater than or equal to the ramp_time
+        if self.warm_startup_time < self.ramp_time:
+            raise ValueError("warm_startup_time must be greater than or equal to the ramp_time")
 
-        # Compute the hot and cold readying times, which is the startup time minus the ramp_time
+        # Check that cold_startup_time is greater than or equal to the ramp_time
+        if self.cold_startup_time < self.ramp_time:
+            raise ValueError("cold_startup_time must be greater than or equal to the ramp_time")
+
+        # Check that the cold_startup_time is at least as long as the warm_startup_time
+        if self.cold_startup_time < self.warm_startup_time:
+            raise ValueError("cold_startup_time must be greater than or equal to warm_startup_time")
+
+        # Check that the warm_startup_time is at least as long as the hot_startup_time
+        if self.warm_startup_time < self.hot_startup_time:
+            raise ValueError("warm_startup_time must be greater than or equal to hot_startup_time")
+
+        # Compute the hot, warm, and cold readying times, which is the startup time minus
+        # the ramp_time
         self.hot_readying_time = self.hot_startup_time - self.ramp_time  # s
+        self.warm_readying_time = self.warm_startup_time - self.ramp_time  # s
         self.cold_readying_time = self.cold_startup_time - self.ramp_time  # s
 
         # Extract initial conditions
@@ -264,12 +293,17 @@ class ThermalComponentBase(ComponentBase):
         Handles state transitions, startup/shutdown ramps, and power constraints
         based on the current state (state_num) and time in that state.
 
+        Note the time definitions for cold versus warm versus hot starting are hard
+        coded and based on the values in [5].
+
         State Machine:
             STATE_OFF (0):
-                - If setpoint > 0 and min_down_time satisfied and hot_cold_cutoff_time
-                    not exceeded: begin HOT_STARTING
-                - If setpoint > 0 and min_down_time satisfied and hot_cold_cutoff_time
-                    exceeded: begin COLD_STARTING
+                - If setpoint > 0 and min_down_time satisfied and time_in_state < 8 hours:
+                  begin HOT_STARTING
+                - If setpoint > 0 and min_down_time satisfied and time_in_state >= 48 hours:
+                  begin COLD_STARTING
+                - If setpoint > 0 and min_down_time satisfied and time_in_state >= 8 hours
+                  and time_in_state < 48 hours: begin WARM_STARTING
                 - Otherwise: remain OFF, output 0
 
             STATE_HOT_STARTING (1):
@@ -278,17 +312,23 @@ class ThermalComponentBase(ComponentBase):
                 - After hot_readying_time, ramp up to P_min using run_up_rate
                 - When power output >= P_min: transition to STATE_ON
 
-            STATE_COLD_STARTING (2):
+            STATE_WARM_STARTING (2):
+                - If setpoint <= 0: abort startup, return to OFF
+                - If time in state is less than warm_readying_time output 0
+                - After warm_readying_time, ramp up to P_min using run_up_rate
+                - When power output >= P_min: transition to STATE_ON
+
+            STATE_COLD_STARTING (3):
                 - If setpoint <= 0: abort startup, return to OFF
                 - If time in state is less than cold_readying_time output 0
                 - After cold_readying_time, ramp up to P_min using run_up_rate
                 - When power output >= P_min: transition to STATE_ON
 
-            STATE_ON (3):
+            STATE_ON (4):
                 - If setpoint <= 0 and min_up_time satisfied: begin STOPPING
                 - Otherwise: apply power limits and ramp rate constraints
 
-            STATE_STOPPING (4):
+            STATE_STOPPING (5):
                 - Ramp to 0 using ramp_rate
                 - When power output <= 0: transition to STATE_OFF
 
@@ -306,9 +346,11 @@ class ThermalComponentBase(ComponentBase):
             can_start = self.time_in_state >= self.min_down_time
 
             if power_setpoint > 0 and can_start:
-                # Check if hot or cold starting is implied
-                if self.time_in_state < self.hot_cold_cutoff_time:
+                # Check if hot, warm, or cold starting is implied
+                if self.time_in_state < self.HOT_START_TIME:
                     self.state_num = self.STATE_HOT_STARTING
+                elif self.time_in_state < self.WARM_START_TIME:
+                    self.state_num = self.STATE_WARM_STARTING
                 else:
                     self.state_num = self.STATE_COLD_STARTING
                 self.time_in_state = 0.0
@@ -332,6 +374,32 @@ class ThermalComponentBase(ComponentBase):
 
             # Ramp up using run_up_rate
             startup_power = (self.time_in_state - self.hot_readying_time) * self.run_up_rate
+
+            # Check if ramping is complete
+            if startup_power >= self.P_min:
+                self.state_num = self.STATE_ON
+                self.time_in_state = 0.0
+                return startup_power
+
+            return startup_power
+
+        # ====================================================================
+        # STATE: WARM_STARTING
+        # ====================================================================
+        elif self.state_num == self.STATE_WARM_STARTING:
+            # Check if startup should be aborted
+            if power_setpoint <= 0:
+                self.state_num = self.STATE_OFF
+                self.time_in_state = 0.0
+                self.power_output = 0.0
+                return 0.0
+
+            # Check if readying time is complete
+            if self.time_in_state < self.warm_readying_time:
+                return 0.0
+
+            # Ramp up using run_up_rate
+            startup_power = (self.time_in_state - self.warm_readying_time) * self.run_up_rate
 
             # Check if ramping is complete
             if startup_power >= self.P_min:
