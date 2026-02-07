@@ -389,3 +389,54 @@ def test_transition_off_to_on():
     assert tcb.time_in_state == 1.0
     assert out["thermal_component"]["state_num"] == tcb.STATE_ON
     assert out["thermal_component"]["power"] == 300
+
+
+def test_efficiency_clamping():
+    """Test clamping behavior at efficiency table boundaries."""
+    h_dict = copy.deepcopy(h_dict_thermal_component)
+    # Set up efficiency table that doesn't cover full range
+    h_dict["thermal_component"]["efficiency_table"] = {
+        "power_fraction": [0.25, 0.50, 0.75, 0.9],
+        "efficiency": [0.30, 0.35, 0.38, 0.40],
+    }
+    tcb = ThermalComponentBase(h_dict)
+
+    # Test above highest power fraction (should clamp to 0.40)
+    # rated_capacity = 1000 kW, so 1000 kW = 100% load (above table max of 0.9)
+    eff_100 = tcb._calc_efficiency(1000)
+    assert eff_100 == 0.40
+
+    # Test as a value above 0 but below the lower defined power fraction (0.25)
+    eff_200 = tcb._calc_efficiency(200)  # 200 kW = 20% load (below table min of 0.25)
+    assert eff_200 == 0.30
+
+    # Test at zero power (should return first efficiency value)
+    eff_0 = tcb._calc_efficiency(0)
+    assert eff_0 == 0.30
+
+
+def test_efficiency_interpolation():
+    """Test efficiency interpolation at various power levels."""
+    import numpy as np
+
+    h_dict = copy.deepcopy(h_dict_thermal_component)
+    # Set up a simple efficiency table for testing
+    # power_fraction: [0.25, 0.50, 0.75, 1.0]
+    # efficiency:     [0.30, 0.35, 0.38, 0.40]
+    h_dict["thermal_component"]["efficiency_table"] = {
+        "power_fraction": [0.25, 0.50, 0.75, 1.0],
+        "efficiency": [0.30, 0.35, 0.38, 0.40],
+    }
+    tcb = ThermalComponentBase(h_dict)
+
+    # Test at table points (rated_capacity = 1000 kW)
+    assert tcb._calc_efficiency(1000) == 0.40  # 100% load
+    assert tcb._calc_efficiency(750) == 0.38  # 75% load
+    assert tcb._calc_efficiency(500) == 0.35  # 50% load
+    assert tcb._calc_efficiency(250) == 0.30  # 25% load
+
+    # Test interpolation between points
+    # At 625 kW (62.5%), should be between 0.35 and 0.38
+    eff_625 = tcb._calc_efficiency(625)
+    assert 0.35 < eff_625 < 0.38
+    np.testing.assert_allclose(eff_625, 0.365, rtol=1e-6)
