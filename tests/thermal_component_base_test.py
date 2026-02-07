@@ -16,7 +16,6 @@ def test_init_from_dict():
 
 def test_invalid_inputs():
     """Test that ThermalComponentBase raises an error for invalid inputs."""
-    h_dict = copy.deepcopy(h_dict_thermal_component)
 
     # Test input must be a number
     h_dict = copy.deepcopy(h_dict_thermal_component)
