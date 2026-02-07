@@ -453,6 +453,9 @@ class ThermalComponentBase(ComponentBase):
                 self.time_in_state = 0.0
                 return startup_power
 
+            # Limit to below P_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.P_max)
+
             return startup_power
 
         # ====================================================================
@@ -479,6 +482,9 @@ class ThermalComponentBase(ComponentBase):
                 self.time_in_state = 0.0
                 return startup_power
 
+            # Limit to below P_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.P_max)
+
             return startup_power
 
         # ====================================================================
@@ -504,6 +510,9 @@ class ThermalComponentBase(ComponentBase):
                 self.state_num = self.STATE_ON
                 self.time_in_state = 0.0
                 return startup_power
+
+            # Limit to below P_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.P_max)
 
             return startup_power
 
