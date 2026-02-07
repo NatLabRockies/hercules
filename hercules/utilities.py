@@ -34,7 +34,7 @@ def get_available_component_names():
 def get_available_generator_names():
     """Return available generator component names.
 
-    Returns power generators (wind_farm, solar_farm, combustion_turbine), excluding
+    Returns power generators (wind_farm, solar_farm, open_cycle_gas_turbine), excluding
     storage and conversion components.
 
     Returns:
