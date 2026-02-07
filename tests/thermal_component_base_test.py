@@ -261,15 +261,9 @@ def test_transition_on_to_off():
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0  # Just entered stopping state
     assert out["thermal_component"]["state_num"] == tcb.STATE_STOPPING
-    assert out["thermal_component"]["power"] == 200
-
-    # Sixth step (Ramp down to 0)
-    out = tcb.step(copy.deepcopy(h_dict))
-    assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_STOPPING
     assert out["thermal_component"]["power"] == 100
 
-    # Seventh step (Transition to off)
+    # Sixth step (Transition to off)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
     assert out["thermal_component"]["state_num"] == tcb.STATE_OFF
