@@ -22,8 +22,8 @@ prepare_output_directory()
 hmodel = HerculesModel("hercules_input.yaml")
 
 
-class ControllerNGCT:
-    """Controller implementing the NGCT schedule described in the module docstring."""
+class ControllerOCGT:
+    """Controller implementing the OCGT schedule described in the module docstring."""
 
     def __init__(self, h_dict):
         """Initialize the controller.
@@ -72,7 +72,7 @@ class ControllerNGCT:
 
 
 # Instantiate the controller and assign to the Hercules model
-hmodel.assign_controller(ControllerNGCT(hmodel.h_dict))
+hmodel.assign_controller(ControllerOCGT(hmodel.h_dict))
 
 # Run the simulation
 hmodel.run()
