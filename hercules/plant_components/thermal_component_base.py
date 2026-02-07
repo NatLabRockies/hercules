@@ -519,6 +519,17 @@ class ThermalComponentBase(ComponentBase):
                 self.state_num = self.STATE_STOPPING
                 self.time_in_state = 0.0
 
+                # Immediately apply stopping-state ramp-down behavior
+                shutdown_power = self.power_output - self.ramp_rate * self.dt
+
+                # Check if shutdown is complete in this timestep
+                if shutdown_power <= 0:
+                    self.state_num = self.STATE_OFF
+                    self.time_in_state = 0.0
+                    return 0.0
+
+                return shutdown_power
+
             # Apply constraints for on operation
             return self._apply_on_constraints(power_setpoint)
 
