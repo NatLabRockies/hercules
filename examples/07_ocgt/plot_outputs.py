@@ -62,25 +62,31 @@ ax.set_title(
 )
 ax.grid(True)
 
-# Plot the heat rate
+# Plot the efficiency
 ax = axarr[2]
-ax.plot(time_minutes, df["open_cycle_gas_turbine.heat_rate"], label="Heat Rate", color="g")
-ax.set_ylabel("Heat Rate [kJ/kWh]")
-ax.set_title("Heat Rate")
+ax.plot(
+    time_minutes,
+    df["open_cycle_gas_turbine.efficiency"] * 100,
+    label="Efficiency",
+    color="g",
+)
+ax.set_ylabel("Efficiency [%]")
+ax.set_title("Thermal Efficiency")
 ax.grid(True)
 
 # Plot the fuel consumption
 ax = axarr[3]
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.fuel_consumption"] / 1000,
+    df["open_cycle_gas_turbine.fuel_consumption"],
     label="Fuel Consumption",
     color="orange",
 )
-ax.set_ylabel("Fuel [MJ/timestep]")
+ax.set_ylabel("Fuel [m³/timestep]")
 ax.set_title("Fuel Consumption per Timestep")
 ax.grid(True)
 
+ax.set_xlabel("Time [minutes]")
 
 plt.tight_layout()
 plt.show()

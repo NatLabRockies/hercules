@@ -28,13 +28,27 @@ open_cycle_gas_turbine:
   cold_startup_time: 480.0  # 8 minutes
   min_up_time: 3600  # 1 hour
   min_down_time: 3600  # 1 hour
-  part_load_factor: 1.25  # 1.0 (no penalty)
-  heat_rate_at_rated_load: 10000  # 10,000 kJ/kWh at rated load
+  # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
+  # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
+  hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+  fuel_density: 0.768  # kg/m³ for natural gas [6]
+  efficiency_table:
+    power_fraction:
+      - 1.0
+      - 0.75
+      - 0.50
+      - 0.25
+    efficiency:  # fractions (0-1)
+      - 0.425
+      - 0.40
+      - 0.35
+      - 0.275
   log_channels:
     - power
     - fuel_consumption
+    - fuel_consumption_kg
     - state_num
-    - heat_rate
+    - efficiency
     - power_setpoint 
   initial_conditions:
     power: 0

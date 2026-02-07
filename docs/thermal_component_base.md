@@ -81,6 +81,9 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `min_down_time` | s | Minimum time unit must remain off before restart is allowed |
 | `initial_conditions.power` | kW | Initial power output |
 | `initial_conditions.state_num` | integer | Initial state (0=off, 1=hot starting, 2=warm starting, 3=cold starting, 4=on, 5=stopping) |
+| `hhv` | J/m³ | Higher heating value of fuel |
+| `fuel_density` | kg/m³ | Fuel density for mass calculations |
+| `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below) |
 
 ### Derived Parameters
 
@@ -123,6 +126,60 @@ During shutdown:
 - The unit ramps down to zero using `ramp_rate`
 - Once power reaches zero, the unit transitions to OFF
 
+## Efficiency and Fuel Consumption
+
+The base class calculates thermal efficiency and fuel consumption based on the `efficiency_table` and `hhv` parameters.
+
+### Efficiency Table Format
+
+The `efficiency_table` parameter specifies how efficiency varies with load:
+
+```yaml
+efficiency_table:
+  power_fraction:  # fraction of rated_capacity (0-1)
+    - 1.0
+    - 0.75
+    - 0.50
+    - 0.25
+  efficiency:  # fraction (0-1), e.g., 0.425 = 42.5%
+    - 0.425
+    - 0.40
+    - 0.35
+    - 0.275
+```
+
+Both arrays must have the same length and values must be in the range [0, 1]. The arrays are sorted by `power_fraction` internally.
+
+### Efficiency Interpolation
+
+Efficiency is calculated by linear interpolation from the table based on current power fraction (`power_output / rated_capacity`). Values outside the table range are clamped to the nearest endpoint.
+
+### Fuel Consumption Calculation
+
+Fuel consumption is calculated as:
+
+$$
+\text{fuel\_volume} = \frac{\text{power} \times \Delta t}{\text{efficiency} \times \text{hhv}}
+$$
+
+Where:
+- `power` is in W (converted from kW internally)
+- `Δt` is the timestep in seconds
+- `efficiency` is the interpolated efficiency (0-1)
+- `hhv` is the higher heating value in J/m³
+- Result is fuel volume in m³/timestep
+
+The fuel mass is then computed from the volume using the fuel density:
+
+$$
+\text{fuel\_mass} = \text{fuel\_volume} \times \text{fuel\_density}
+$$
+
+Where:
+- `fuel_volume` is in m³
+- `fuel_density` is in kg/m³
+- Result is fuel mass in kg/timestep
+
 ## Outputs
 
 The base class outputs are returned in `h_dict`:
@@ -131,8 +188,9 @@ The base class outputs are returned in `h_dict`:
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
 | `state_num` | integer | Current operating state (0-5) |
-
-Subclasses may add additional outputs (e.g., fuel consumption for gas turbines).
+| `efficiency` | fraction (0-1) | Current thermal efficiency |
+| `fuel_consumption` | m³ | Fuel consumed this timestep |
+| `fuel_consumption_kg` | kg | Fuel consumed this timestep (computed from volume using `fuel_density`) |
 
 ## References
 
@@ -145,3 +203,5 @@ Subclasses may add additional outputs (e.g., fuel consumption for gas turbines).
 4. IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants, International Renewable Energy Agency, Abu Dhabi.
 
 5. M. Oakes, M. Turner, "Cost and Performance Baseline for Fossil Energy Plants, Volume 5: Natural Gas Electricity Generating Units for Flexible Operation," National Energy Technology Laboratory, Pittsburgh, May 5, 2023.
+
+6. I. Staffell, "The Energy and Fuel Data Sheet," University of Birmingham, March 2011. https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf

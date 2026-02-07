@@ -12,8 +12,8 @@ References:
 [2] "Impact of Detailed Parameter Modeling of Open-Cycle Gas Turbines on
     Production Cost Simulation", NREL/CP-6A40-87554, National Renewable
     Energy Laboratory, 2024.
-[3] Deane, J.P., G. Drayton, and B.P. Ó Gallachóir. “The Impact of Sub-Hourly
-    Modelling in Power Systems with Significant Levels of Renewable Generation.”
+[3] Deane, J.P., G. Drayton, and B.P. Ó Gallachóir. "The Impact of Sub-Hourly
+    Modelling in Power Systems with Significant Levels of Renewable Generation."
      Applied Energy 113 (January 2014): 152–58.
      https://doi.org/10.1016/j.apenergy.2013.07.027.
 [4] IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants,
@@ -21,6 +21,8 @@ References:
 [5] M. Oakes, M. Turner, " Cost and Performance Baseline for Fossil Energy Plants, Volume 5:
     Natural Gas Electricity Generating Units for Flexible Operation," National Energy
     Technology Laboratory, Pittsburgh, May 5, 2023.
+[6] I. Staffell, "The Energy and Fuel Data Sheet," University of Birmingham, March 2011.
+    https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf
 
 """
 
@@ -108,6 +110,10 @@ class ThermalComponentBase(ComponentBase):
                 - min_up_time: Minimum time unit must remain on in s.
                 - min_down_time: Minimum time unit must remain off in s.
                 - initial_conditions: Dictionary with initial power and state_num
+                - hhv: Higher heating value of fuel in J/m³
+                - fuel_density: Fuel density in kg/m³
+                - efficiency_table: Dictionary with power_fraction and efficiency arrays
+                    (both as fractions 0-1)
         """
 
         # Both the component name and type are defined in the subclass
@@ -230,6 +236,63 @@ class ThermalComponentBase(ComponentBase):
         # State tracking
         self.time_in_state = 0.0  # s
 
+        # Extract efficiency table, HHV, and fuel density for fuel consumption calculations
+        self.hhv = component_dict["hhv"]  # J/m³
+        self.fuel_density = component_dict["fuel_density"]  # kg/m³
+        efficiency_table = component_dict["efficiency_table"]
+
+        # Validate hhv
+        if not isinstance(self.hhv, (int, float)):
+            raise ValueError("hhv must be a number")
+        if self.hhv <= 0:
+            raise ValueError("hhv must be greater than 0")
+
+        # Validate fuel_density
+        if not isinstance(self.fuel_density, (int, float)):
+            raise ValueError("fuel_density must be a number")
+        if self.fuel_density <= 0:
+            raise ValueError("fuel_density must be greater than 0")
+
+        # Validate efficiency_table structure
+        if not isinstance(efficiency_table, dict):
+            raise ValueError("efficiency_table must be a dictionary")
+        if "power_fraction" not in efficiency_table:
+            raise ValueError("efficiency_table must contain 'power_fraction'")
+        if "efficiency" not in efficiency_table:
+            raise ValueError("efficiency_table must contain 'efficiency'")
+
+        # Extract and convert to numpy arrays for interpolation
+        self.efficiency_power_fraction = np.array(efficiency_table["power_fraction"])
+        self.efficiency_values = np.array(efficiency_table["efficiency"])
+
+        # Validate array lengths match
+        if len(self.efficiency_power_fraction) != len(self.efficiency_values):
+            raise ValueError(
+                "efficiency_table power_fraction and efficiency arrays must have the same length"
+            )
+
+        # Validate array lengths are at least 1
+        if len(self.efficiency_power_fraction) < 1:
+            raise ValueError("efficiency_table must have at least one entry")
+
+        # Validate power_fraction values are in [0, 1]
+        if np.any(self.efficiency_power_fraction < 0) or np.any(self.efficiency_power_fraction > 1):
+            raise ValueError("efficiency_table power_fraction values must be between 0 and 1")
+
+        # Validate efficiency values are in (0, 1]
+        if np.any(self.efficiency_values <= 0) or np.any(self.efficiency_values > 1):
+            raise ValueError("efficiency_table efficiency values must be between 0 and 1")
+
+        # Sort arrays by power_fraction for proper interpolation
+        sort_idx = np.argsort(self.efficiency_power_fraction)
+        self.efficiency_power_fraction = self.efficiency_power_fraction[sort_idx]
+        self.efficiency_values = self.efficiency_values[sort_idx]
+
+        # Initialize efficiency and fuel consumption
+        self.efficiency = self._calc_efficiency(self.power_output)
+        self.fuel_consumption = 0.0  # m³/timestep
+        self.fuel_consumption_kg = 0.0  # kg/timestep
+
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
 
@@ -251,8 +314,8 @@ class ThermalComponentBase(ComponentBase):
     def step(self, h_dict):
         """Advance the thermal component simulation by one time step.
 
-        Updates the thermal component state including power output, state, and
-        based on the requested power setpoint.
+        Updates the thermal component state including power output, state,
+        efficiency, and fuel consumption based on the requested power setpoint.
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
@@ -262,7 +325,10 @@ class ThermalComponentBase(ComponentBase):
             dict: Updated h_dict with thermal component outputs:
                 - power: Actual power output [kW]
                 - state_num: Operating state number (0=off, 1=hot starting,
-                    2=cold starting, 3=on, 4=stopping)
+                    2=warm starting, 3=cold starting, 4=on, 5=stopping)
+                - efficiency: Current efficiency as fraction (0-1)
+                - fuel_consumption: Fuel consumed this timestep [m³]
+                - fuel_consumption_kg: Fuel consumed this timestep [kg]
 
         """
         # Get power setpoint from controller
@@ -278,12 +344,18 @@ class ThermalComponentBase(ComponentBase):
         # Determine actual power output based on constraints and state
         self.power_output = self._control(power_setpoint)
 
-        # Apply post-processing specific to the sub-class
-        h_dict = self._post_process(h_dict)
+        # Calculate efficiency and fuel consumption
+        self.efficiency = self._calc_efficiency(self.power_output)
+        self.fuel_consumption = self._calc_fuel_consumption(self.power_output)
+        # Compute fuel mass from volume using density [6]
+        self.fuel_consumption_kg = self.fuel_consumption * self.fuel_density
 
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         h_dict[self.component_name]["state_num"] = self.state_num
+        h_dict[self.component_name]["efficiency"] = self.efficiency
+        h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
+        h_dict[self.component_name]["fuel_consumption_kg"] = self.fuel_consumption_kg
 
         return h_dict
 
@@ -487,18 +559,50 @@ class ThermalComponentBase(ComponentBase):
 
         return P_constrained
 
-    # Define the _post_process as an abstract method that does nothing to be
-    # overridden by the subclass.  However don't raise an error if it is not overridden.
-    def _post_process(self, h_dict):
-        """Post-process the thermal component simulation.
+    def _calc_efficiency(self, power_output):
+        """Calculate efficiency based on current power output.
 
-        This is an abstract method that can be implemented by subclasses.  If not
-        overridden, the default behavior is to do nothing.
+        Uses linear interpolation from the efficiency table. Values outside the
+        table range are clamped to the nearest endpoint.
 
         Args:
-            h_dict (dict): Dictionary containing simulation state.
+            power_output (float): Current power output in kW.
 
         Returns:
-            dict: Updated dictionary with post-processed simulation state.
+            float: Efficiency as a fraction (0-1).
         """
-        return h_dict
+        if power_output <= 0:
+            # Return efficiency at lowest power fraction when off
+            return self.efficiency_values[0]
+
+        # Calculate power fraction
+        power_fraction = power_output / self.rated_capacity
+
+        # Interpolate efficiency (numpy.interp clamps to endpoints by default)
+        efficiency = np.interp(
+            power_fraction, self.efficiency_power_fraction, self.efficiency_values
+        )
+
+        return efficiency
+
+    def _calc_fuel_consumption(self, power_output):
+        """Calculate fuel consumption based on power output and efficiency.
+
+        Args:
+            power_output (float): Current power output in kW.
+
+        Returns:
+            float: Fuel consumed this timestep in m³.
+        """
+        if power_output <= 0:
+            return 0.0
+
+        # Calculate current efficiency
+        efficiency = self._calc_efficiency(power_output)
+
+        # Calculate fuel consumption
+        # fuel_volume (m³) = power (W) * dt (s) / (efficiency * hhv (J/m³))
+        # Convert power from kW to W (multiply by 1000)
+        fuel_m3 = (power_output * 1000.0) * self.dt / (efficiency * self.hhv)
+
+        return fuel_m3

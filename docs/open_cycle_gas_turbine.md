@@ -6,16 +6,18 @@ For details on the state machine, startup/shutdown behavior, and base parameters
 
 ## OCGT-Specific Parameters
 
-In addition to the base class parameters, the OCGT model includes parameters for fuel consumption tracking:
+The OCGT class provides default values for natural gas properties from [6]:
 
 | Parameter | Units | Default | Description |
 |-----------|-------|---------|-------------|
-| `part_load_factor` | dimensionless | 1.0 | Heat rate penalty at minimum load. Range: 1.0-2.0. A value of 1.0 means no penalty; higher values indicate decreased efficiency at part load |
-| `heat_rate_at_rated_load` | kJ/kWh | 10000 | Fuel consumption rate at rated load |
+| `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [6] |
+| `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [6] |
+
+The `efficiency_table` parameter is **required** and must be provided in the YAML configuration. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ## Default Parameter Values
 
-The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
+The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity`, `efficiency_table`, and `initial_conditions` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
@@ -27,42 +29,68 @@ The `OpenCycleGasTurbine` class provides default values for base class parameter
 | `cold_startup_time` | 480 s (8 minutes) | [1], [5] |
 | `min_up_time` | 1800 s (30 minutes) | [4] |
 | `min_down_time` | 3600 s (1 hour) | [4] |
+| `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [6] |
+| `fuel_density` | 0.768 kg/m³ | [6] |
 
-## OCGT-Specific Outputs
+## OCGT Outputs
 
-In addition to the base class outputs (`power`, `state_num`), the OCGT model provides:
+The OCGT model provides the following outputs (inherited from base class):
 
 | Output | Units | Description |
 |--------|-------|-------------|
-| `fuel_consumption` | kJ | Fuel consumed during the timestep |
-| `heat_rate` | kJ/kWh | Current heat rate (varies with load) |
+| `power` | kW | Actual power output |
+| `state_num` | integer | Operating state number (0-5) |
+| `efficiency` | fraction (0-1) | Current thermal efficiency |
+| `fuel_consumption` | m³ | Fuel consumed during the timestep |
+| `fuel_consumption_kg` | kg | Fuel consumed during the timestep (computed using `fuel_density` [6]) |
 
-### Heat Rate Calculation
+### Efficiency and Fuel Consumption
 
-The heat rate varies with load fraction to model part-load efficiency degradation:
-
-- At rated load: `heat_rate = heat_rate_at_rated_load`
-- At minimum load: `heat_rate = heat_rate_at_rated_load × part_load_factor`
-- Between: Linear interpolation
-
-Fuel consumption is calculated as:
+Efficiency varies with load based on the `efficiency_table`. The fuel consumption is calculated as:
 
 $$
-\text{fuel\_consumption} = \text{power} \times \text{heat\_rate} \times \frac{\Delta t}{3600}
+\text{fuel\_volume} = \frac{\text{power} \times \Delta t}{\text{efficiency} \times \text{hhv}}
 $$
 
-Where $\Delta t$ is the timestep in seconds.
+Where:
+- `power` is in W (converted from kW internally)
+- `Δt` is the timestep in seconds
+- `efficiency` is interpolated from the efficiency table
+- `hhv` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])
+- Result is fuel volume in m³/timestep
+
+The fuel mass is then computed from the volume using the fuel density [6]:
+
+$$
+\text{fuel\_mass} = \text{fuel\_volume} \times \text{fuel\_density}
+$$
+
+Where:
+- `fuel_volume` is in m³
+- `fuel_density` is in kg/m³ (default 0.768 kg/m³ for natural gas [6])
+- Result is fuel mass in kg/timestep
 
 ## YAML Configuration
 
 ### Minimal Configuration
 
-Only required parameters (uses all defaults):
+Required parameters only (uses defaults for `hhv` and other parameters):
 
 ```yaml
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
   rated_capacity: 100000  # kW (100 MW)
+  efficiency_table:
+    power_fraction:
+      - 1.0
+      - 0.75
+      - 0.50
+      - 0.25
+    efficiency:
+      - 0.425
+      - 0.40
+      - 0.35
+      - 0.275
   initial_conditions:
     power: 0
     state_num: 0  # 0 = off
@@ -84,13 +112,25 @@ open_cycle_gas_turbine:
   cold_startup_time: 480.0  # 8 minutes
   min_up_time: 1800  # 30 minutes
   min_down_time: 3600  # 1 hour
-  part_load_factor: 1.25  # 25% heat rate penalty at min load
-  heat_rate_at_rated_load: 10000  # kJ/kWh at rated load
+  hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+  fuel_density: 0.768  # kg/m³ for natural gas [6]
+  efficiency_table:
+    power_fraction:
+      - 1.0
+      - 0.75
+      - 0.50
+      - 0.25
+    efficiency:
+      - 0.425
+      - 0.40
+      - 0.35
+      - 0.275
   log_channels:
     - power
     - fuel_consumption
+    - fuel_consumption_kg
     - state_num
-    - heat_rate
+    - efficiency
     - power_setpoint
   initial_conditions:
     power: 0
@@ -104,8 +144,9 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
 - `state_num`: Operating state number (0-5)
-- `fuel_consumption`: Fuel consumed per timestep in kJ
-- `heat_rate`: Current heat rate in kJ/kWh
+- `fuel_consumption`: Fuel consumed per timestep in m³
+- `fuel_consumption_kg`: Fuel consumed per timestep in kg (computed using `fuel_density` [6])
+- `efficiency`: Current thermal efficiency (0-1)
 - `power_setpoint`: Requested power setpoint in kW
 
 ## References
@@ -119,3 +160,5 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 4. IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants, International Renewable Energy Agency, Abu Dhabi.
 
 5. M. Oakes, M. Turner, "Cost and Performance Baseline for Fossil Energy Plants, Volume 5: Natural Gas Electricity Generating Units for Flexible Operation," National Energy Technology Laboratory, Pittsburgh, May 5, 2023.
+
+6. I. Staffell, "The Energy and Fuel Data Sheet," University of Birmingham, March 2011. https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf
