@@ -85,4 +85,3 @@ def test_default_fuel_density():
     ocgt = OpenCycleGasTurbine(h_dict)
     # Default fuel density for natural gas is 0.768 kg/m³ from [6]
     assert ocgt.fuel_density == 0.768
-
