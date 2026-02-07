@@ -74,8 +74,9 @@ def test_invalid_inputs():
     h_dict["thermal_component"]["hot_startup_time"] = 60
     ThermalComponentBase(h_dict)
 
-    # Test cold_startup_time must be a number greater than the ramp_time
-    # determined by the ramp_rate_fraction
+    # Test cold_startup_time must be a number greater than or equal to the
+    # hot_startup_time (which in this setup equals the ramp_time determined
+    # by the run_up_rate_fraction)
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["min_stable_load_fraction"] = 0.2
     h_dict["thermal_component"]["run_up_rate_fraction"] = 0.2
