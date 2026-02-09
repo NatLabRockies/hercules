@@ -302,7 +302,7 @@ def test_transition_off_to_on():
 
     tcb = ThermalComponentBase(h_dict)
 
-    # First time step should be below min_up_time (2s)
+    # First time step should be below min_down_time (2s)
     assert tcb.state_num == tcb.STATE_OFF
     assert tcb.power_output == 0
 
