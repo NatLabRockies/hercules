@@ -116,7 +116,6 @@ def test_initial_conditions():
     tcb = ThermalComponentBase(h_dict)
     assert tcb.power_output == 1000
     assert tcb.state == ThermalComponentBase.STATES.ON
-    assert tcb.state_name == "on"
     # When ON, time_in_state should equal min_up_time (ready to stop)
     assert tcb.time_in_state == tcb.min_up_time
 
@@ -126,7 +125,6 @@ def test_initial_conditions():
     tcb = ThermalComponentBase(h_dict)
     assert tcb.power_output == 0
     assert tcb.state == ThermalComponentBase.STATES.OFF
-    assert tcb.state_name == "off"
     # When OFF, time_in_state should equal min_down_time (ready to start)
     assert tcb.time_in_state == tcb.min_down_time
 

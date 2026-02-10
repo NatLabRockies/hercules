@@ -77,26 +77,6 @@ class ThermalComponentBase(ComponentBase):
     HOT_START_TIME = 8 * 60 * 60  # 8 hours (less than 8 hours triggers a hot start)
     WARM_START_TIME = 48 * 60 * 60  # 48 hours (less than 48 hours triggers a warm start)
 
-    # Mapping from state enum to state name
-    STATE_NAMES = {
-        STATES.OFF: "off",
-        STATES.HOT_STARTING: "hot starting",
-        STATES.WARM_STARTING: "warm starting",
-        STATES.COLD_STARTING: "cold starting",
-        STATES.ON: "on",
-        STATES.STOPPING: "stopping",
-    }
-
-    @property
-    def state_name(self):
-        """Return the name of the current state.
-
-        Returns:
-            str: Current state name ("off", "hot starting", "warm starting", "cold starting",
-                "on", or "stopping").
-        """
-        return self.STATE_NAMES[self.state]
-
     def __init__(self, h_dict):
         """Initialize the ThermalComponentBase class.
 
