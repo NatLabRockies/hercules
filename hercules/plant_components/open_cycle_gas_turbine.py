@@ -63,7 +63,8 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     Default: 1800.0 s (30 minutes) [4]
                 - min_down_time: Optional, minimum time unit must remain off in s.
                     Default: 3600.0 s (1 hour) [4]
-                - initial_conditions: Dictionary with initial power and state
+                - initial_conditions: Dictionary with initial power (state is
+                    derived automatically: power > 0 means ON, power == 0 means OFF)
                 - hhv: Optional, higher heating value of natural gas in J/m³.
                     Default: 39050000 J/m³ (39.05 MJ/m³) [6]
                 - fuel_density: Optional, fuel density in kg/m³.

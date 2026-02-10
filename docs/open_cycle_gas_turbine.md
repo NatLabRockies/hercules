@@ -92,8 +92,7 @@ open_cycle_gas_turbine:
       - 0.35
       - 0.275
   initial_conditions:
-    power: 0
-    state: 0  # 0 = off (STATES.OFF)
+    power: 0  # 0 kW means OFF; power > 0 means ON
 ```
 
 ### Full Configuration
@@ -133,8 +132,7 @@ open_cycle_gas_turbine:
     - efficiency
     - power_setpoint
   initial_conditions:
-    power: 0
-    state: 0  # 0 = off (STATES.OFF)
+    power: 0  # 0 kW means OFF; power > 0 means ON
 ```
 
 ## Logging Configuration

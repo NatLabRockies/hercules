@@ -113,7 +113,8 @@ class ThermalComponentBase(ComponentBase):
                     Includes both readying time and ramping time.
                 - min_up_time: Minimum time unit must remain on in s.
                 - min_down_time: Minimum time unit must remain off in s.
-                - initial_conditions: Dictionary with initial power and state
+                - initial_conditions: Dictionary with initial power (state is
+                    derived automatically: power > 0 means ON, power == 0 means OFF)
                 - hhv: Higher heating value of fuel in J/m³
                 - fuel_density: Fuel density in kg/m³
                 - efficiency_table: Dictionary with power_fraction and efficiency arrays
@@ -224,7 +225,6 @@ class ThermalComponentBase(ComponentBase):
         # Extract initial conditions
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.power_output = initial_conditions["power"]  # kW
-        initial_state_value = initial_conditions["state"]
 
         # Check that initial conditions are valid
         if self.power_output < 0 or self.power_output > self.rated_capacity:
@@ -233,15 +233,15 @@ class ThermalComponentBase(ComponentBase):
                 "must be between 0 and rated_capacity (inclusive)"
             )
 
-        try:
-            # Convert the initial state value to a STATES enum member
-            self.state = self.STATES(initial_state_value)
-        except ValueError as exc:
-            valid_values = [state.value for state in self.STATES]
-            raise ValueError(f"initial_conditions['state'] must be one of {valid_values}") from exc
-
-        # State tracking
-        self.time_in_state = 0.0  # s
+        # Derive initial state from power: if power > 0 then ON, else OFF
+        if self.power_output > 0:
+            self.state = self.STATES.ON
+            # Set time_in_state so the unit is immediately ready to stop
+            self.time_in_state = float(self.min_up_time)  # s
+        else:
+            self.state = self.STATES.OFF
+            # Set time_in_state so the unit is immediately ready to start
+            self.time_in_state = float(self.min_down_time)  # s
 
         # Extract efficiency table, HHV, and fuel density for fuel consumption calculations
         self.hhv = component_dict["hhv"]  # J/m³

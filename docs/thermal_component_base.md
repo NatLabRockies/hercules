@@ -79,8 +79,7 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `cold_startup_time` | s | Time to reach P_min from off (cold start). Includes both readying time and ramping time |
 | `min_up_time` | s | Minimum time unit must remain on before shutdown is allowed |
 | `min_down_time` | s | Minimum time unit must remain off before restart is allowed |
-| `initial_conditions.power` | kW | Initial power output |
-| `initial_conditions.state` | integer | Initial state (0=off, 1=hot starting, 2=warm starting, 3=cold starting, 4=on, 5=stopping); corresponds to the `STATES` enum |
+| `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF. When ON, `time_in_state` = `min_up_time` (ready to stop). When OFF, `time_in_state` = `min_down_time` (ready to start). |
 | `hhv` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
 | `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below) |

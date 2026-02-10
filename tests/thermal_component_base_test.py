@@ -109,30 +109,33 @@ def test_compute_ramp_and_readying_times():
 
 def test_initial_conditions():
     """Test that the initial conditions are set correctly."""
+
+    # Test that power > 0 implies ON state
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
-    h_dict["thermal_component"]["initial_conditions"]["state"] = ThermalComponentBase.STATES.ON
     tcb = ThermalComponentBase(h_dict)
     assert tcb.power_output == 1000
     assert tcb.state == ThermalComponentBase.STATES.ON
-
-    # Test that the initial state maps to on
     assert tcb.state_name == "on"
+    # When ON, time_in_state should equal min_up_time (ready to stop)
+    assert tcb.time_in_state == tcb.min_up_time
 
-    # Check that initial conditions are valid
+    # Test that power == 0 implies OFF state
+    h_dict = copy.deepcopy(h_dict_thermal_component)
+    h_dict["thermal_component"]["initial_conditions"]["power"] = 0
+    tcb = ThermalComponentBase(h_dict)
+    assert tcb.power_output == 0
+    assert tcb.state == ThermalComponentBase.STATES.OFF
+    assert tcb.state_name == "off"
+    # When OFF, time_in_state should equal min_down_time (ready to start)
+    assert tcb.time_in_state == tcb.min_down_time
+
+    # Check that invalid power values are rejected
+    h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = -1
     with pytest.raises(ValueError):
         ThermalComponentBase(h_dict)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1100
-    with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
-
-    # Set back to valid values
-    h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
-    ThermalComponentBase(h_dict)
-
-    # Check that state is validated
-    h_dict["thermal_component"]["initial_conditions"]["state"] = 6
     with pytest.raises(ValueError):
         ThermalComponentBase(h_dict)
 
@@ -147,9 +150,8 @@ def test_power_setpoint_in_normal_operation():
     # 100 kW/s / 1000 kW * 60 = 6
     h_dict["thermal_component"]["ramp_rate_fraction"] = 6
 
-    # Set the initial conditions to be 500 kW in the on state
+    # Set the initial conditions to be 500 kW (implies ON state)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state"] = ThermalComponentBase.STATES.ON
 
     tcb = ThermalComponentBase(h_dict)
 
@@ -210,9 +212,8 @@ def test_transition_on_to_off():
     # 100 kW/s / 1000 kW * 60 = 6
     h_dict["thermal_component"]["ramp_rate_fraction"] = 6
 
-    # Set the initial conditions to be 500 kW in the on state
+    # Set the initial conditions to be 500 kW (implies ON state)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state"] = ThermalComponentBase.STATES.ON
 
     # Set the min_up_time to 5s
     h_dict["thermal_component"]["min_up_time"] = 5
@@ -222,9 +223,13 @@ def test_transition_on_to_off():
 
     tcb = ThermalComponentBase(h_dict)
 
-    # First time step should be below min_up_time (2s)
+    # Initial state: ON with time_in_state = min_up_time (5s, ready to stop)
     assert tcb.state == tcb.STATES.ON
     assert tcb.power_output == 500
+    assert tcb.time_in_state == 5.0
+
+    # Force time_in_state to 0 to test the min_up_time wait behavior
+    tcb.time_in_state = 0.0
 
     # Now assign power setpoint to 0, the expected behavior is that the
     # power will ramp_down at the ramp rate until it reaches P_min
@@ -281,9 +286,8 @@ def test_transition_off_to_on():
     # 100 kW/s / 1000 kW * 60 = 6
     h_dict["thermal_component"]["ramp_rate_fraction"] = 6
 
-    # Set the initial conditions to be 0 kW in the off state
+    # Set the initial conditions to be 0 kW (implies OFF state)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 0
-    h_dict["thermal_component"]["initial_conditions"]["state"] = ThermalComponentBase.STATES.OFF
 
     # Set the min_down_time to 3
     h_dict["thermal_component"]["min_down_time"] = 3
@@ -302,9 +306,13 @@ def test_transition_off_to_on():
 
     tcb = ThermalComponentBase(h_dict)
 
-    # First time step should be below min_down_time (2s)
+    # Initial state: OFF with time_in_state = min_down_time (3s, ready to start)
     assert tcb.state == tcb.STATES.OFF
     assert tcb.power_output == 0
+    assert tcb.time_in_state == 3.0
+
+    # Force time_in_state to 0 to test the min_down_time wait behavior
+    tcb.time_in_state = 0.0
 
     # Confirm that the hot readying time is 3 seconds
     assert tcb.hot_readying_time == 3
@@ -318,19 +326,19 @@ def test_transition_off_to_on():
     # Then the ramp will increase to the ramp rate (100 kW/s)
     h_dict["thermal_component"]["power_setpoint"] = 500
 
-    # First step
+    # First step (still waiting for min_down_time)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
     assert out["thermal_component"]["state"] == tcb.STATES.OFF
     assert out["thermal_component"]["power"] == 0
 
-    # Second step
+    # Second step (still waiting for min_down_time)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 2.0
     assert out["thermal_component"]["state"] == tcb.STATES.OFF
     assert out["thermal_component"]["power"] == 0
 
-    # Third step (Transition to hot starting)
+    # Third step (min_down_time satisfied, transition to hot starting)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
     assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING

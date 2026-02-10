@@ -1,10 +1,12 @@
 """Example 07: Open Cycle Gas Turbine (OCGT) simulation.
 
 This example demonstrates a simple open cycle gas turbine (OCGT) that:
-- Starts off (state=0, power=0)
+- Starts on at rated capacity (100 MW)
+- At 10 minutes, receives a shutdown command and begins ramping down
+- At ~20 minutes, reaches 0 MW and transitions to off
 - At 40 minutes, receives a turn-on command with a setpoint of 100% of rated capacity
-- At 60 minutes, 1 hour down-time minimum is reached and the turbine begins hot starting
-- At 67 minutes, hot start completes, continues ramping up to 100% of rated capacity
+- At ~80 minutes, 1 hour down-time minimum is reached and the turbine begins hot starting
+- At ~87 minutes, hot start completes, continues ramping up to 100% of rated capacity
 - At 120 minutes, receives a command to reduce power to 50% of rated capacity
 - At 180 minutes, receives a command to reduce power to 10% of rated capacity
         (note this is below the minimum stable load)
@@ -47,8 +49,11 @@ class ControllerOCGT:
         current_time = h_dict["time"]
 
         # Determine power setpoint based on time
-        if current_time < 40 * 60:  # 40 minutes in seconds
-            # Before 40 minutes: keep turbine off
+        if current_time < 10 * 60:  # 10 minutes in seconds
+            # Before 10 minutes: run at full capacity
+            power_setpoint = self.rated_capacity
+        elif current_time < 40 * 60:  # 40 minutes in seconds
+            # Between 10 and 40 minutes: shut down
             power_setpoint = 0.0
         elif current_time < 120 * 60:  # 120 minutes in seconds
             # Between 40 and 120 minutes: signal to run at full capacity
