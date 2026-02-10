@@ -277,7 +277,7 @@ class ThermalComponentBase(ComponentBase):
         self.efficiency_values = self.efficiency_values[sort_idx]
 
         # Initialize HHV net efficiency and fuel consumption rate
-        self.efficiency = self._calc_efficiency(self.power_output)
+        self.efficiency = self.calculate_efficiency(self.power_output)
         self.fuel_volume_rate = 0.0  # m³/s
         self.fuel_mass_rate = 0.0  # kg/s
 
@@ -331,8 +331,8 @@ class ThermalComponentBase(ComponentBase):
         self.power_output = self._control(power_setpoint)
 
         # Calculate HHV net efficiency and fuel consumption rate
-        self.efficiency = self._calc_efficiency(self.power_output)
-        self.fuel_volume_rate = self._calc_fuel_volume_rate(self.power_output)
+        self.efficiency = self.calculate_efficiency(self.power_output)
+        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power_output)
         # Compute fuel mass rate from volume rate using density [6]
         self.fuel_mass_rate = self.fuel_volume_rate * self.fuel_density
 
@@ -565,7 +565,7 @@ class ThermalComponentBase(ComponentBase):
 
         return P_constrained
 
-    def _calc_efficiency(self, power_output):
+    def calculate_efficiency(self, power_output):
         """Calculate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
@@ -591,7 +591,7 @@ class ThermalComponentBase(ComponentBase):
 
         return efficiency
 
-    def _calc_fuel_volume_rate(self, power_output):
+    def calculate_fuel_volume_rate(self, power_output):
         """Calculate fuel volume flow rate based on power output and HHV net efficiency.
 
         Args:
@@ -604,7 +604,7 @@ class ThermalComponentBase(ComponentBase):
             return 0.0
 
         # Calculate current HHV net efficiency
-        efficiency = self._calc_efficiency(power_output)
+        efficiency = self.calculate_efficiency(power_output)
 
         # Calculate fuel volume rate using HHV net efficiency
         # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
