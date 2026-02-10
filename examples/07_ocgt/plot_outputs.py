@@ -78,12 +78,12 @@ ax.grid(True)
 ax = axarr[3]
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.fuel_volume_consumption"],
-    label="Fuel Consumption",
+    df["open_cycle_gas_turbine.fuel_volume_rate"],
+    label="Fuel Volume Rate",
     color="orange",
 )
-ax.set_ylabel("Fuel [m³/timestep]")
-ax.set_title("Fuel Consumption per Timestep")
+ax.set_ylabel("Fuel [m³/s]")
+ax.set_title("Fuel Volume Rate")
 ax.grid(True)
 
 ax.set_xlabel("Time [minutes]")

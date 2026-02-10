@@ -45,8 +45,8 @@ open_cycle_gas_turbine:
       - 0.275
   log_channels:
     - power
-    - fuel_volume_consumption
-    - fuel_mass_consumption
+    - fuel_volume_rate
+    - fuel_mass_rate
     - state
     - efficiency
     - power_setpoint

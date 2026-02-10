@@ -153,31 +153,30 @@ Both arrays must have the same length and values must be in the range [0, 1]. Th
 
 Efficiency is calculated by linear interpolation from the table based on current power fraction (`power_output / rated_capacity`). Values outside the table range are clamped to the nearest endpoint.
 
-### Fuel Consumption Calculation
+### Fuel Rate Calculation
 
-Fuel consumption is calculated as:
+Fuel volume rate is calculated as:
 
 $$
-\text{fuel\_volume} = \frac{\text{power} \times \Delta t}{\text{efficiency} \times \text{hhv}}
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
 $$
 
 Where:
 - `power` is in W (converted from kW internally)
-- `Δt` is the timestep in seconds
 - `efficiency` is the interpolated efficiency (0-1)
 - `hhv` is the higher heating value in J/m³
-- Result is fuel volume in m³/timestep
+- Result is fuel volume rate in m³/s
 
-The fuel mass is then computed from the volume using the fuel density:
+The fuel mass rate is then computed from the volume rate using the fuel density:
 
 $$
-\text{fuel\_mass} = \text{fuel\_volume} \times \text{fuel\_density}
+\text{fuel\_mass\_rate} = \text{fuel\_volume\_rate} \times \text{fuel\_density}
 $$
 
 Where:
-- `fuel_volume` is in m³
+- `fuel_volume_rate` is in m³/s
 - `fuel_density` is in kg/m³
-- Result is fuel mass in kg/timestep
+- Result is fuel mass rate in kg/s
 
 ## Outputs
 
@@ -188,8 +187,8 @@ The base class outputs are returned in `h_dict`:
 | `power` | kW | Actual power output |
 | `state` | integer | Current operating state (0-5), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current thermal efficiency |
-| `fuel_volume_consumption` | m³ | Fuel consumed this timestep |
-| `fuel_mass_consumption` | kg | Fuel consumed this timestep (computed from volume using `fuel_density`) |
+| `fuel_volume_rate` | m³/s | Fuel volume flow rate |
+| `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed from volume rate using `fuel_density`) |
 
 ## References
 

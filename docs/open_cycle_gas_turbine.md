@@ -41,34 +41,33 @@ The OCGT model provides the following outputs (inherited from base class):
 | `power` | kW | Actual power output |
 | `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current thermal efficiency |
-| `fuel_volume_consumption` | m³ | Fuel consumed during the timestep |
-| `fuel_mass_consumption` | kg | Fuel consumed during the timestep (computed using `fuel_density` [6]) |
+| `fuel_volume_rate` | m³/s | Fuel volume flow rate |
+| `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` [6]) |
 
-### Efficiency and Fuel Consumption
+### Efficiency and Fuel Rate
 
-Efficiency varies with load based on the `efficiency_table`. The fuel consumption is calculated as:
+Efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
 
 $$
-\text{fuel\_volume} = \frac{\text{power} \times \Delta t}{\text{efficiency} \times \text{hhv}}
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
 $$
 
 Where:
 - `power` is in W (converted from kW internally)
-- `Δt` is the timestep in seconds
 - `efficiency` is interpolated from the efficiency table
 - `hhv` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])
-- Result is fuel volume in m³/timestep
+- Result is fuel volume rate in m³/s
 
-The fuel mass is then computed from the volume using the fuel density [6]:
+The fuel mass rate is then computed from the volume rate using the fuel density [6]:
 
 $$
-\text{fuel\_mass} = \text{fuel\_volume} \times \text{fuel\_density}
+\text{fuel\_mass\_rate} = \text{fuel\_volume\_rate} \times \text{fuel\_density}
 $$
 
 Where:
-- `fuel_volume` is in m³
+- `fuel_volume_rate` is in m³/s
 - `fuel_density` is in kg/m³ (default 0.768 kg/m³ for natural gas [6])
-- Result is fuel mass in kg/timestep
+- Result is fuel mass rate in kg/s
 
 ## YAML Configuration
 
@@ -126,8 +125,8 @@ open_cycle_gas_turbine:
       - 0.275
   log_channels:
     - power
-    - fuel_volume_consumption
-    - fuel_mass_consumption
+    - fuel_volume_rate
+    - fuel_mass_rate
     - state
     - efficiency
     - power_setpoint
@@ -142,8 +141,8 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
 - `state`: Operating state number (0-5), corresponding to the `STATES` enum
-- `fuel_volume_consumption`: Fuel consumed per timestep in m³
-- `fuel_mass_consumption`: Fuel consumed per timestep in kg (computed using `fuel_density` [6])
+- `fuel_volume_rate`: Fuel volume flow rate in m³/s
+- `fuel_mass_rate`: Fuel mass flow rate in kg/s (computed using `fuel_density` [6])
 - `efficiency`: Current thermal efficiency (0-1)
 - `power_setpoint`: Requested power setpoint in kW
 

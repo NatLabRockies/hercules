@@ -295,10 +295,10 @@ class ThermalComponentBase(ComponentBase):
         self.efficiency_power_fraction = self.efficiency_power_fraction[sort_idx]
         self.efficiency_values = self.efficiency_values[sort_idx]
 
-        # Initialize efficiency and fuel consumption
+        # Initialize efficiency and fuel consumption rate
         self.efficiency = self._calc_efficiency(self.power_output)
-        self.fuel_volume_consumption = 0.0  # m³/timestep
-        self.fuel_mass_consumption = 0.0  # kg/timestep
+        self.fuel_volume_rate = 0.0  # m³/s
+        self.fuel_mass_rate = 0.0  # kg/s
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -334,8 +334,8 @@ class ThermalComponentBase(ComponentBase):
                 - state: Operating state number (0=off, 1=hot starting,
                     2=warm starting, 3=cold starting, 4=on, 5=stopping)
                 - efficiency: Current efficiency as fraction (0-1)
-                - fuel_volume_consumption: Fuel consumed this timestep [m³]
-                - fuel_mass_consumption: Fuel consumed this timestep [kg]
+                - fuel_volume_rate: Fuel volume flow rate [m³/s]
+                - fuel_mass_rate: Fuel mass flow rate [kg/s]
 
         """
         # Get power setpoint from controller
@@ -351,18 +351,18 @@ class ThermalComponentBase(ComponentBase):
         # Determine actual power output based on constraints and state
         self.power_output = self._control(power_setpoint)
 
-        # Calculate efficiency and fuel consumption
+        # Calculate efficiency and fuel consumption rate
         self.efficiency = self._calc_efficiency(self.power_output)
-        self.fuel_volume_consumption = self._calc_fuel_consumption(self.power_output)
-        # Compute fuel mass from volume using density [6]
-        self.fuel_mass_consumption = self.fuel_volume_consumption * self.fuel_density
+        self.fuel_volume_rate = self._calc_fuel_volume_rate(self.power_output)
+        # Compute fuel mass rate from volume rate using density [6]
+        self.fuel_mass_rate = self.fuel_volume_rate * self.fuel_density
 
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
-        h_dict[self.component_name]["fuel_volume_consumption"] = self.fuel_volume_consumption
-        h_dict[self.component_name]["fuel_mass_consumption"] = self.fuel_mass_consumption
+        h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
+        h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
 
         return h_dict
 
@@ -612,14 +612,14 @@ class ThermalComponentBase(ComponentBase):
 
         return efficiency
 
-    def _calc_fuel_consumption(self, power_output):
-        """Calculate fuel consumption based on power output and efficiency.
+    def _calc_fuel_volume_rate(self, power_output):
+        """Calculate fuel volume flow rate based on power output and efficiency.
 
         Args:
             power_output (float): Current power output in kW.
 
         Returns:
-            float: Fuel consumed this timestep in m³.
+            float: Fuel volume flow rate in m³/s.
         """
         if power_output <= 0:
             return 0.0
@@ -627,9 +627,9 @@ class ThermalComponentBase(ComponentBase):
         # Calculate current efficiency
         efficiency = self._calc_efficiency(power_output)
 
-        # Calculate fuel consumption
-        # fuel_volume (m³) = power (W) * dt (s) / (efficiency * hhv (J/m³))
+        # Calculate fuel volume rate
+        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
         # Convert power from kW to W (multiply by 1000)
-        fuel_m3 = (power_output * 1000.0) * self.dt / (efficiency * self.hhv)
+        fuel_m3_per_s = (power_output * 1000.0) / (efficiency * self.hhv)
 
-        return fuel_m3
+        return fuel_m3_per_s

@@ -112,8 +112,8 @@ thermal_component = {
         "power",
         "state",
         "efficiency",
-        "fuel_volume_consumption",
-        "fuel_mass_consumption",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
     ],
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
     "hhv": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
@@ -139,8 +139,8 @@ open_cycle_gas_turbine = {
         "power",
         "state",
         "efficiency",
-        "fuel_volume_consumption",
-        "fuel_mass_consumption",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
     ],
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
     "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
