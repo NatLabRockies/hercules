@@ -129,19 +129,3 @@ class OpenCycleGasTurbine(ThermalComponentBase):
 
         # Call the base class init
         super().__init__(h_dict)
-
-    def get_initial_conditions_and_meta_data(self, h_dict):
-        """Add initial conditions and meta data to the h_dict.
-
-        Args:
-            h_dict (dict): Dictionary containing simulation parameters.
-
-        Returns:
-            dict: Updated dictionary with initial conditions and meta data.
-        """
-        h_dict[self.component_name]["power"] = self.power_output
-        h_dict[self.component_name]["state"] = self.state.value
-        h_dict[self.component_name]["efficiency"] = self.efficiency
-        h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
-        h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
-        return h_dict
