@@ -43,6 +43,9 @@ class OpenCycleGasTurbine(ThermalComponentBase):
     All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
     """
 
+    component_name = "open_cycle_gas_turbine"
+    component_type = "OpenCycleGasTurbine"
+
     def __init__(self, h_dict):
         """Initialize the OpenCycleGasTurbine class.
 
@@ -81,12 +84,6 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     power_fraction = [1.0, 0.75, 0.50, 0.25],
                     efficiency = [0.39, 0.37, 0.325, 0.245].
         """
-
-        # Store the name of this component
-        self.component_name = "open_cycle_gas_turbine"
-
-        # Store the type of this component
-        self.component_type = "OpenCycleGasTurbine"
 
         # Apply fixed default parameters based on [1], [2] and [3]
         # back into the h_dict if they are not provided

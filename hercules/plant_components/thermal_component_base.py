@@ -61,6 +61,10 @@ class ThermalComponentBase(ComponentBase):
 
     """
 
+    # Default component name and type; subclasses override these as class attributes
+    component_name = "thermal_component"
+    component_type = "ThermalComponentBase"
+
     class STATES(IntEnum):
         """Enumeration of thermal component operating states."""
 
@@ -104,14 +108,6 @@ class ThermalComponentBase(ComponentBase):
                     (both as fractions 0-1). Efficiency values must be HHV net plant
                     efficiencies.
         """
-
-        # Both the component name and type are defined in the subclass
-        # But for testing purposes, we need to set the component name here
-        # if not defined in the subclass
-        if not hasattr(self, "component_name"):
-            self.component_name = "thermal_component"
-        if not hasattr(self, "component_type"):
-            self.component_type = "ThermalComponentBase"
 
         # Call the base class init
         super().__init__(h_dict, self.component_name)
