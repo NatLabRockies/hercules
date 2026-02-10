@@ -26,6 +26,8 @@ References:
 
 """
 
+from enum import IntEnum
+
 import numpy as np
 from hercules.plant_components.component_base import ComponentBase
 
@@ -42,42 +44,44 @@ class ThermalComponentBase(ComponentBase):
     Subclasses must provide these in the h_dict.
 
     State Machine:
-        state_num values and their meanings:
-        - 0: "off" - Thermal Component is off, no power output
-        - 1: "hot starting" - Thermal Component is readying or ramping up to minimum
+        state values (IntEnum) and their meanings:
+        - 0 (OFF): Thermal Component is off, no power output
+        - 1 (HOT_STARTING): Thermal Component is readying or ramping up to minimum
             stable load from off state (hot start)
-        - 2: "warm starting" - Thermal Component is readying or ramping up to minimum
+        - 2 (WARM_STARTING): Thermal Component is readying or ramping up to minimum
             stable load from off state (warm start)
-        - 3: "cold starting" - Thermal Component is readying or ramping up to minimum
+        - 3 (COLD_STARTING): Thermal Component is readying or ramping up to minimum
             stable load from off state (cold start)
-        - 4: "on" - Thermal Component is operating normally
-        - 5: "stopping" - Thermal Component is ramping down to shutdown
+        - 4 (ON): Thermal Component is operating normally
+        - 5 (STOPPING): Thermal Component is ramping down to shutdown
 
 
     """
 
-    # State constants
-    STATE_OFF = 0
-    STATE_HOT_STARTING = 1
-    STATE_WARM_STARTING = 2
-    STATE_COLD_STARTING = 3
-    STATE_ON = 4
-    STATE_STOPPING = 5
+    class STATES(IntEnum):
+        """Enumeration of thermal component operating states."""
+
+        OFF = 0
+        HOT_STARTING = 1
+        WARM_STARTING = 2
+        COLD_STARTING = 3
+        ON = 4
+        STOPPING = 5
 
     # Time constants
     #       Note the time definitions for cold versus warm versus hot starting are hard
     #   coded and based on the values in [5].
-    HOT_START_TIME = 8 * 60 * 60  # 8 hours
-    WARM_START_TIME = 48 * 60 * 60  # 48 hours
+    HOT_START_TIME = 8 * 60 * 60  # 8 hours (less than 8 hours triggers a hot start)
+    WARM_START_TIME = 48 * 60 * 60  # 48 hours (less than 48 hours triggers a warm start)
 
-    # Mapping from state number to state name
+    # Mapping from state enum to state name
     STATE_NAMES = {
-        STATE_OFF: "off",
-        STATE_HOT_STARTING: "hot starting",
-        STATE_WARM_STARTING: "warm starting",
-        STATE_COLD_STARTING: "cold starting",
-        STATE_ON: "on",
-        STATE_STOPPING: "stopping",
+        STATES.OFF: "off",
+        STATES.HOT_STARTING: "hot starting",
+        STATES.WARM_STARTING: "warm starting",
+        STATES.COLD_STARTING: "cold starting",
+        STATES.ON: "on",
+        STATES.STOPPING: "stopping",
     }
 
     @property
@@ -88,7 +92,7 @@ class ThermalComponentBase(ComponentBase):
             str: Current state name ("off", "hot starting", "warm starting", "cold starting",
                 "on", or "stopping").
         """
-        return self.STATE_NAMES[self.state_num]
+        return self.STATE_NAMES[self.state]
 
     def __init__(self, h_dict):
         """Initialize the ThermalComponentBase class.
@@ -109,7 +113,7 @@ class ThermalComponentBase(ComponentBase):
                     Includes both readying time and ramping time.
                 - min_up_time: Minimum time unit must remain on in s.
                 - min_down_time: Minimum time unit must remain off in s.
-                - initial_conditions: Dictionary with initial power and state_num
+                - initial_conditions: Dictionary with initial power and state
                 - hhv: Higher heating value of fuel in J/m³
                 - fuel_density: Fuel density in kg/m³
                 - efficiency_table: Dictionary with power_fraction and efficiency arrays
@@ -220,7 +224,7 @@ class ThermalComponentBase(ComponentBase):
         # Extract initial conditions
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.power_output = initial_conditions["power"]  # kW
-        self.state_num = initial_conditions["state_num"]
+        initial_state_value = initial_conditions["state"]
 
         # Check that initial conditions are valid
         if self.power_output < 0 or self.power_output > self.rated_capacity:
@@ -228,10 +232,13 @@ class ThermalComponentBase(ComponentBase):
                 "initial_conditions['power'] (initial power) "
                 "must be between 0 and rated_capacity (inclusive)"
             )
-        if self.state_num not in self.STATE_NAMES:
-            raise ValueError(
-                f"initial_conditions['state_num'] must be one of {list(self.STATE_NAMES.keys())}"
-            )
+
+        try:
+            # Convert the initial state value to a STATES enum member
+            self.state = self.STATES(initial_state_value)
+        except ValueError as exc:
+            valid_values = [state.value for state in self.STATES]
+            raise ValueError(f"initial_conditions['state'] must be one of {valid_values}") from exc
 
         # State tracking
         self.time_in_state = 0.0  # s
@@ -324,7 +331,7 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             dict: Updated h_dict with thermal component outputs:
                 - power: Actual power output [kW]
-                - state_num: Operating state number (0=off, 1=hot starting,
+                - state: Operating state number (0=off, 1=hot starting,
                     2=warm starting, 3=cold starting, 4=on, 5=stopping)
                 - efficiency: Current efficiency as fraction (0-1)
                 - fuel_consumption: Fuel consumed this timestep [m³]
@@ -352,7 +359,7 @@ class ThermalComponentBase(ComponentBase):
 
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
-        h_dict[self.component_name]["state_num"] = self.state_num
+        h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
         h_dict[self.component_name]["fuel_consumption_kg"] = self.fuel_consumption_kg
@@ -363,7 +370,7 @@ class ThermalComponentBase(ComponentBase):
         """State machine for thermal component control.
 
         Handles state transitions, startup/shutdown ramps, and power constraints
-        based on the current state (state_num) and time in that state.
+        based on the current state (state) and time in that state.
 
         Note the time definitions for cold versus warm versus hot starting are hard
         coded and based on the values in [5].
@@ -413,18 +420,18 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: OFF
         # ====================================================================
-        if self.state_num == self.STATE_OFF:
+        if self.state == self.STATES.OFF:
             # Check if we can start (min_down_time satisfied)
             can_start = self.time_in_state >= self.min_down_time
 
             if power_setpoint > 0 and can_start:
                 # Check if hot, warm, or cold starting is implied
                 if self.time_in_state < self.HOT_START_TIME:
-                    self.state_num = self.STATE_HOT_STARTING
+                    self.state = self.STATES.HOT_STARTING
                 elif self.time_in_state < self.WARM_START_TIME:
-                    self.state_num = self.STATE_WARM_STARTING
+                    self.state = self.STATES.WARM_STARTING
                 else:
-                    self.state_num = self.STATE_COLD_STARTING
+                    self.state = self.STATES.COLD_STARTING
                 self.time_in_state = 0.0
 
             return 0.0  # Power is always 0 when off
@@ -432,10 +439,10 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: HOT_STARTING
         # ====================================================================
-        elif self.state_num == self.STATE_HOT_STARTING:
+        elif self.state == self.STATES.HOT_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state_num = self.STATE_OFF
+                self.state = self.STATES.OFF
                 self.time_in_state = 0.0
                 self.power_output = 0.0
                 return 0.0
@@ -449,7 +456,7 @@ class ThermalComponentBase(ComponentBase):
 
             # Check if ramping is complete
             if startup_power >= self.P_min:
-                self.state_num = self.STATE_ON
+                self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 return startup_power
 
@@ -461,10 +468,10 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: WARM_STARTING
         # ====================================================================
-        elif self.state_num == self.STATE_WARM_STARTING:
+        elif self.state == self.STATES.WARM_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state_num = self.STATE_OFF
+                self.state = self.STATES.OFF
                 self.time_in_state = 0.0
                 self.power_output = 0.0
                 return 0.0
@@ -478,7 +485,7 @@ class ThermalComponentBase(ComponentBase):
 
             # Check if ramping is complete
             if startup_power >= self.P_min:
-                self.state_num = self.STATE_ON
+                self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 return startup_power
 
@@ -490,10 +497,10 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: COLD_STARTING
         # ====================================================================
-        elif self.state_num == self.STATE_COLD_STARTING:
+        elif self.state == self.STATES.COLD_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state_num = self.STATE_OFF
+                self.state = self.STATES.OFF
                 self.time_in_state = 0.0
                 self.power_output = 0.0
                 return 0.0
@@ -507,7 +514,7 @@ class ThermalComponentBase(ComponentBase):
 
             # Check if ramping is complete
             if startup_power >= self.P_min:
-                self.state_num = self.STATE_ON
+                self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 return startup_power
 
@@ -519,13 +526,13 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: ON
         # ====================================================================
-        elif self.state_num == self.STATE_ON:
+        elif self.state == self.STATES.ON:
             # Check if we can shut down (min_up_time satisfied)
             can_shutdown = self.time_in_state >= self.min_up_time
 
             if power_setpoint <= 0 and can_shutdown:
                 # Transition to shutdown sequence
-                self.state_num = self.STATE_STOPPING
+                self.state = self.STATES.STOPPING
                 self.time_in_state = 0.0
 
                 # Immediately apply stopping-state ramp-down behavior
@@ -533,7 +540,7 @@ class ThermalComponentBase(ComponentBase):
 
                 # Check if shutdown is complete in this timestep
                 if shutdown_power <= 0:
-                    self.state_num = self.STATE_OFF
+                    self.state = self.STATES.OFF
                     self.time_in_state = 0.0
                     return 0.0
 
@@ -545,20 +552,20 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         # STATE: STOPPING
         # ====================================================================
-        elif self.state_num == self.STATE_STOPPING:
+        elif self.state == self.STATES.STOPPING:
             # Ramp the power output down using ramp_rate
             shutdown_power = self.power_output - self.ramp_rate * self.dt
 
             # Check if shutdown is complete
             if shutdown_power <= 0:
-                self.state_num = self.STATE_OFF
+                self.state = self.STATES.OFF
                 self.time_in_state = 0.0
                 return 0.0
 
             return shutdown_power
 
         else:
-            raise ValueError(f"Unexpected state_num in _control: {self.state_num}")
+            raise ValueError(f"Unexpected state in _control: {self.state}")
 
     def _apply_on_constraints(self, power_setpoint):
         """Apply power and ramp rate constraints when unit is on.

@@ -53,7 +53,7 @@ ax.grid(True)
 
 # Plot the state
 ax = axarr[1]
-ax.plot(time_minutes, df["open_cycle_gas_turbine.state_num"], label="State Number", color="k")
+ax.plot(time_minutes, df["open_cycle_gas_turbine.state"], label="State", color="k")
 ax.set_ylabel("State")
 ax.set_yticks([0, 1, 2, 3, 4, 5])
 ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])

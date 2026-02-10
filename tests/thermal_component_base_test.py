@@ -111,10 +111,12 @@ def test_initial_conditions():
     """Test that the initial conditions are set correctly."""
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4
+    h_dict["thermal_component"]["initial_conditions"]["state"] = (
+        ThermalComponentBase.STATES.ON.value
+    )
     tcb = ThermalComponentBase(h_dict)
     assert tcb.power_output == 1000
-    assert tcb.state_num == 4
+    assert tcb.state == ThermalComponentBase.STATES.ON
 
     # Test that the initial state maps to on
     assert tcb.state_name == "on"
@@ -131,8 +133,8 @@ def test_initial_conditions():
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
     ThermalComponentBase(h_dict)
 
-    # Check that state_num is valid
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 6
+    # Check that state is validated
+    h_dict["thermal_component"]["initial_conditions"]["state"] = 6
     with pytest.raises(ValueError):
         ThermalComponentBase(h_dict)
 
@@ -149,7 +151,9 @@ def test_power_setpoint_in_normal_operation():
 
     # Set the initial conditions to be 500 kW in the on state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4  # 4 = on
+    h_dict["thermal_component"]["initial_conditions"]["state"] = (
+        ThermalComponentBase.STATES.ON.value
+    )  # on
 
     tcb = ThermalComponentBase(h_dict)
 
@@ -197,7 +201,7 @@ def test_power_setpoint_in_normal_operation():
     # Test that setting power setpoint to a negative number triggers the shutdown sequence
     h_dict["thermal_component"]["power_setpoint"] = -1
     out = tcb.step(copy.deepcopy(h_dict))
-    assert out["thermal_component"]["state_num"] == 5  # 5 = stopping
+    assert out["thermal_component"]["state"] == ThermalComponentBase.STATES.STOPPING.value
 
 
 def test_transition_on_to_off():
@@ -212,7 +216,9 @@ def test_transition_on_to_off():
 
     # Set the initial conditions to be 500 kW in the on state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 4
+    h_dict["thermal_component"]["initial_conditions"]["state"] = (
+        ThermalComponentBase.STATES.ON.value
+    )
 
     # Set the min_up_time to 5s
     h_dict["thermal_component"]["min_up_time"] = 5
@@ -223,7 +229,7 @@ def test_transition_on_to_off():
     tcb = ThermalComponentBase(h_dict)
 
     # First time step should be below min_up_time (2s)
-    assert tcb.state_num == tcb.STATE_ON
+    assert tcb.state == tcb.STATES.ON
     assert tcb.power_output == 500
 
     # Now assign power setpoint to 0, the expected behavior is that the
@@ -236,37 +242,37 @@ def test_transition_on_to_off():
     # First step
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 400
 
     # Second step
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 2.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 300
 
     # Third step
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 3.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 200
 
     # Fourth step (Saturate at P_min)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 4.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 200
 
     # Fifth step (Satisfy min_up_time, transition to stopping)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0  # Just entered stopping state
-    assert out["thermal_component"]["state_num"] == tcb.STATE_STOPPING
+    assert out["thermal_component"]["state"] == tcb.STATES.STOPPING.value
     assert out["thermal_component"]["power"] == 100
 
     # Sixth step (Transition to off)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF.value
     assert out["thermal_component"]["power"] == 0
 
 
@@ -283,7 +289,9 @@ def test_transition_off_to_on():
 
     # Set the initial conditions to be 0 kW in the off state
     h_dict["thermal_component"]["initial_conditions"]["power"] = 0
-    h_dict["thermal_component"]["initial_conditions"]["state_num"] = 0  # 0 = off
+    h_dict["thermal_component"]["initial_conditions"]["state"] = (
+        ThermalComponentBase.STATES.OFF.value
+    )  # off
 
     # Set the min_down_time to 3
     h_dict["thermal_component"]["min_down_time"] = 3
@@ -303,7 +311,7 @@ def test_transition_off_to_on():
     tcb = ThermalComponentBase(h_dict)
 
     # First time step should be below min_down_time (2s)
-    assert tcb.state_num == tcb.STATE_OFF
+    assert tcb.state == tcb.STATES.OFF
     assert tcb.power_output == 0
 
     # Confirm that the hot readying time is 3 seconds
@@ -321,67 +329,67 @@ def test_transition_off_to_on():
     # First step
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF.value
     assert out["thermal_component"]["power"] == 0
 
     # Second step
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 2.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF.value
     assert out["thermal_component"]["power"] == 0
 
     # Third step (Transition to hot starting)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 0
 
     # Fourth step (HOT START READYING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 0
 
     # Fifth step (HOT START READYING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 2.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 0
 
     # Sixth step (HOT START RAMPING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 3.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 0
 
     # Seventh step (HOT START RAMPING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 4.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 50
 
     # Eighth step (HOT START RAMPING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 5.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 100
 
     # Ninth step (HOT START RAMPING)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 6.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_HOT_STARTING
+    assert out["thermal_component"]["state"] == tcb.STATES.HOT_STARTING.value
     assert out["thermal_component"]["power"] == 150
 
     # Tenth step (Transition to on)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 200
 
     # Eleventh step (Ramping in on state)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state_num"] == tcb.STATE_ON
+    assert out["thermal_component"]["state"] == tcb.STATES.ON.value
     assert out["thermal_component"]["power"] == 300
 
 

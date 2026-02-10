@@ -63,7 +63,7 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     Default: 1800.0 s (30 minutes) [4]
                 - min_down_time: Optional, minimum time unit must remain off in s.
                     Default: 3600.0 s (1 hour) [4]
-                - initial_conditions: Dictionary with initial power and state_num
+                - initial_conditions: Dictionary with initial power and state
                 - hhv: Optional, higher heating value of natural gas in J/m³.
                     Default: 39050000 J/m³ (39.05 MJ/m³) [6]
                 - fuel_density: Optional, fuel density in kg/m³.
@@ -122,7 +122,7 @@ class OpenCycleGasTurbine(ThermalComponentBase):
             dict: Updated dictionary with initial conditions and meta data.
         """
         h_dict[self.component_name]["power"] = self.power_output
-        h_dict[self.component_name]["state_num"] = self.state_num
+        h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
         h_dict[self.component_name]["fuel_consumption_kg"] = self.fuel_consumption_kg

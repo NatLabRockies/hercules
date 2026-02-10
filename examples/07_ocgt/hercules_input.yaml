@@ -47,12 +47,13 @@ open_cycle_gas_turbine:
     - power
     - fuel_consumption
     - fuel_consumption_kg
-    - state_num
+    - state
     - efficiency
     - power_setpoint
   initial_conditions:
     power: 0
-    state_num: 0  # 0 = off
+    # Use numeric code corresponding to STATES.OFF (0)
+    state: 0  # 0 = off
 
 controller:
 

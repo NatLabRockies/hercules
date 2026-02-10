@@ -80,7 +80,7 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `min_up_time` | s | Minimum time unit must remain on before shutdown is allowed |
 | `min_down_time` | s | Minimum time unit must remain off before restart is allowed |
 | `initial_conditions.power` | kW | Initial power output |
-| `initial_conditions.state_num` | integer | Initial state (0=off, 1=hot starting, 2=warm starting, 3=cold starting, 4=on, 5=stopping) |
+| `initial_conditions.state` | integer | Initial state (0=off, 1=hot starting, 2=warm starting, 3=cold starting, 4=on, 5=stopping); corresponds to the `STATES` enum |
 | `hhv` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
 | `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below) |
@@ -187,7 +187,7 @@ The base class outputs are returned in `h_dict`:
 | Output | Units | Description |
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
-| `state_num` | integer | Current operating state (0-5) |
+| `state` | integer | Current operating state (0-5), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current thermal efficiency |
 | `fuel_consumption` | m³ | Fuel consumed this timestep |
 | `fuel_consumption_kg` | kg | Fuel consumed this timestep (computed from volume using `fuel_density`) |

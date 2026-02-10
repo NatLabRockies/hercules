@@ -108,8 +108,8 @@ thermal_component = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
-    "log_channels": ["power", "state_num", "efficiency", "fuel_consumption", "fuel_consumption_kg"],
-    "initial_conditions": {"power": 1000, "state_num": 4},  # 4 = on
+    "log_channels": ["power", "state", "efficiency", "fuel_consumption", "fuel_consumption_kg"],
+    "initial_conditions": {"power": 1000, "state": 4},  # 4 = STATES.ON
     "hhv": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
     "fuel_density": 1.0,  # kg/m³ (made up round number for testing, NOT realistic)
     "efficiency_table": {
@@ -129,8 +129,8 @@ open_cycle_gas_turbine = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
-    "log_channels": ["power", "state_num", "efficiency", "fuel_consumption", "fuel_consumption_kg"],
-    "initial_conditions": {"power": 1000, "state_num": 4},  # 4 = on
+    "log_channels": ["power", "state", "efficiency", "fuel_consumption", "fuel_consumption_kg"],
+    "initial_conditions": {"power": 1000, "state": 4},  # 4 = STATES.ON
     "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
     "efficiency_table": {
         "power_fraction": [1.0, 0.75, 0.50, 0.25],

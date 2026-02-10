@@ -39,7 +39,7 @@ The OCGT model provides the following outputs (inherited from base class):
 | Output | Units | Description |
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
-| `state_num` | integer | Operating state number (0-5) |
+| `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current thermal efficiency |
 | `fuel_consumption` | m³ | Fuel consumed during the timestep |
 | `fuel_consumption_kg` | kg | Fuel consumed during the timestep (computed using `fuel_density` [6]) |
@@ -93,7 +93,7 @@ open_cycle_gas_turbine:
       - 0.275
   initial_conditions:
     power: 0
-    state_num: 0  # 0 = off
+    state: 0  # 0 = off (STATES.OFF)
 ```
 
 ### Full Configuration
@@ -129,12 +129,12 @@ open_cycle_gas_turbine:
     - power
     - fuel_consumption
     - fuel_consumption_kg
-    - state_num
+    - state
     - efficiency
     - power_setpoint
   initial_conditions:
     power: 0
-    state_num: 0  # 0 = off
+    state: 0  # 0 = off (STATES.OFF)
 ```
 
 ## Logging Configuration
@@ -143,7 +143,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
-- `state_num`: Operating state number (0-5)
+- `state`: Operating state number (0-5), corresponding to the `STATES` enum
 - `fuel_consumption`: Fuel consumed per timestep in m³
 - `fuel_consumption_kg`: Fuel consumed per timestep in kg (computed using `fuel_density` [6])
 - `efficiency`: Current thermal efficiency (0-1)
