@@ -38,11 +38,11 @@ open_cycle_gas_turbine:
       - 0.75
       - 0.50
       - 0.25
-    efficiency:  # fractions (0-1)
-      - 0.425
-      - 0.40
-      - 0.35
-      - 0.275
+    efficiency:  # HHV net plant efficiency, fractions (0-1), from SC1A in Exhibit ES-4 of [5]
+      - 0.39
+      - 0.37
+      - 0.325
+      - 0.245
   log_channels:
     - power
     - fuel_volume_rate

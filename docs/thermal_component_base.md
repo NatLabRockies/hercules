@@ -9,6 +9,8 @@ The `ThermalComponentBase` class provides common functionality for thermal power
 
 The parameterized model is based primarily on [1], with additional parameters and naming conventions from [2] and [3]. Table 1 on page 48 of [1] provides many of the default values used in subclasses.
 
+**Note:** All efficiency values throughout this module are **HHV (Higher Heating Value) net plant efficiencies**, consistent with the data in Exhibit ES-4 of [5].
+
 ## State Machine
 
 The thermal component operates as a state machine with six states:
@@ -82,7 +84,7 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF. When ON, `time_in_state` = `min_up_time` (ready to stop). When OFF, `time_in_state` = `min_down_time` (ready to start). |
 | `hhv` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
-| `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below) |
+| `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below). Efficiency values must be HHV net plant efficiencies. |
 
 ### Derived Parameters
 
@@ -127,11 +129,11 @@ During shutdown:
 
 ## Efficiency and Fuel Consumption
 
-The base class calculates thermal efficiency and fuel consumption based on the `efficiency_table` and `hhv` parameters.
+The base class calculates HHV net plant efficiency and fuel consumption based on the `efficiency_table` and `hhv` parameters.
 
 ### Efficiency Table Format
 
-The `efficiency_table` parameter specifies how efficiency varies with load:
+The `efficiency_table` parameter specifies how HHV net plant efficiency varies with load. All efficiency values must be HHV (Higher Heating Value) net plant efficiencies:
 
 ```yaml
 efficiency_table:
@@ -140,18 +142,18 @@ efficiency_table:
     - 0.75
     - 0.50
     - 0.25
-  efficiency:  # fraction (0-1), e.g., 0.425 = 42.5%
-    - 0.425
-    - 0.40
-    - 0.35
-    - 0.275
+  efficiency:  # HHV net plant efficiency, fraction (0-1), e.g., 0.39 = 39%
+    - 0.39
+    - 0.37
+    - 0.325
+    - 0.245
 ```
 
 Both arrays must have the same length and values must be in the range [0, 1]. The arrays are sorted by `power_fraction` internally.
 
 ### Efficiency Interpolation
 
-Efficiency is calculated by linear interpolation from the table based on current power fraction (`power_output / rated_capacity`). Values outside the table range are clamped to the nearest endpoint.
+HHV net efficiency is calculated by linear interpolation from the table based on current power fraction (`power_output / rated_capacity`). Values outside the table range are clamped to the nearest endpoint.
 
 ### Fuel Rate Calculation
 
@@ -163,7 +165,7 @@ $$
 
 Where:
 - `power` is in W (converted from kW internally)
-- `efficiency` is the interpolated efficiency (0-1)
+- `efficiency` is the interpolated HHV net efficiency (0-1)
 - `hhv` is the higher heating value in J/m³
 - Result is fuel volume rate in m³/s
 
@@ -186,7 +188,7 @@ The base class outputs are returned in `h_dict`:
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
 | `state` | integer | Current operating state (0-5), corresponding to the `STATES` enum |
-| `efficiency` | fraction (0-1) | Current thermal efficiency |
+| `efficiency` | fraction (0-1) | Current HHV net plant efficiency |
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed from volume rate using `fuel_density`) |
 

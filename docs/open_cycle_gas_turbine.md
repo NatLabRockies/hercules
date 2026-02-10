@@ -13,11 +13,11 @@ The OCGT class provides default values for natural gas properties from [6]:
 | `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [6] |
 | `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [6] |
 
-The `efficiency_table` parameter is **required** and must be provided in the YAML configuration. See {doc}`thermal_component_base` for details on the efficiency table format.
+The `efficiency_table` parameter is **optional**. If not provided, default values based on approximate readings from the SC1A curve in Exhibit ES-4 of [5] are used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ## Default Parameter Values
 
-The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity`, `efficiency_table`, and `initial_conditions` are required in the YAML configuration.
+The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
@@ -31,6 +31,18 @@ The `OpenCycleGasTurbine` class provides default values for base class parameter
 | `min_down_time` | 3600 s (1 hour) | [4] |
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [6] |
 | `fuel_density` | 0.768 kg/m³ | [6] |
+| `efficiency_table` | SC1A HHV net efficiency (see below) | Exhibit ES-4 of [5] |
+
+### Default Efficiency Table
+
+The default HHV net plant efficiency table is based on approximate readings from the SC1A (simple cycle) curve in Exhibit ES-4 of [5]:
+
+| Power Fraction | HHV Net Efficiency |
+|---------------|-------------------|
+| 1.00 | 0.39 (39%) |
+| 0.75 | 0.37 (37%) |
+| 0.50 | 0.325 (32.5%) |
+| 0.25 | 0.245 (24.5%) |
 
 ## OCGT Outputs
 
@@ -40,13 +52,13 @@ The OCGT model provides the following outputs (inherited from base class):
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
 | `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
-| `efficiency` | fraction (0-1) | Current thermal efficiency |
+| `efficiency` | fraction (0-1) | Current HHV net plant efficiency |
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` [6]) |
 
 ### Efficiency and Fuel Rate
 
-Efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
+HHV net plant efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
 
 $$
 \text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
@@ -54,7 +66,7 @@ $$
 
 Where:
 - `power` is in W (converted from kW internally)
-- `efficiency` is interpolated from the efficiency table
+- `efficiency` is the HHV net efficiency interpolated from the efficiency table
 - `hhv` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])
 - Result is fuel volume rate in m³/s
 
@@ -73,23 +85,12 @@ Where:
 
 ### Minimal Configuration
 
-Required parameters only (uses defaults for `hhv` and other parameters):
+Required parameters only (uses defaults for `hhv`, `efficiency_table`, and other parameters):
 
 ```yaml
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
   rated_capacity: 100000  # kW (100 MW)
-  efficiency_table:
-    power_fraction:
-      - 1.0
-      - 0.75
-      - 0.50
-      - 0.25
-    efficiency:
-      - 0.425
-      - 0.40
-      - 0.35
-      - 0.275
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
 ```
@@ -118,11 +119,11 @@ open_cycle_gas_turbine:
       - 0.75
       - 0.50
       - 0.25
-    efficiency:
-      - 0.425
-      - 0.40
-      - 0.35
-      - 0.275
+    efficiency:  # HHV net plant efficiency from SC1A in Exhibit ES-4 of [5]
+      - 0.39
+      - 0.37
+      - 0.325
+      - 0.245
   log_channels:
     - power
     - fuel_volume_rate
@@ -143,7 +144,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 - `state`: Operating state number (0-5), corresponding to the `STATES` enum
 - `fuel_volume_rate`: Fuel volume flow rate in m³/s
 - `fuel_mass_rate`: Fuel mass flow rate in kg/s (computed using `fuel_density` [6])
-- `efficiency`: Current thermal efficiency (0-1)
+- `efficiency`: Current HHV net plant efficiency (0-1)
 - `power_setpoint`: Requested power setpoint in kW
 
 ## References

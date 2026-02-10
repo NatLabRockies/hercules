@@ -5,6 +5,9 @@ A base class for thermal plant components.  Based primarily on the parameterized
 presented in [1] but using some names and parameters from [2] and [3].  Table 1
 on page 48 of [1] provides many of the default values for the parameters.
 
+Note: All efficiency values in this module are HHV (Higher Heating Value) net plant
+efficiencies, consistent with the data in Exhibit ES-4 of [5].
+
 References:
 
 [1] Agora Energiewende (2017): Flexibility in thermal power plants
@@ -118,7 +121,8 @@ class ThermalComponentBase(ComponentBase):
                 - hhv: Higher heating value of fuel in J/m³
                 - fuel_density: Fuel density in kg/m³
                 - efficiency_table: Dictionary with power_fraction and efficiency arrays
-                    (both as fractions 0-1)
+                    (both as fractions 0-1). Efficiency values must be HHV net plant
+                    efficiencies.
         """
 
         # Both the component name and type are defined in the subclass
@@ -243,7 +247,8 @@ class ThermalComponentBase(ComponentBase):
             # Set time_in_state so the unit is immediately ready to start
             self.time_in_state = float(self.min_down_time)  # s
 
-        # Extract efficiency table, HHV, and fuel density for fuel consumption calculations
+        # Extract efficiency table (HHV net efficiency), HHV, and fuel density
+        # for fuel consumption calculations
         self.hhv = component_dict["hhv"]  # J/m³
         self.fuel_density = component_dict["fuel_density"]  # kg/m³
         efficiency_table = component_dict["efficiency_table"]
@@ -295,7 +300,7 @@ class ThermalComponentBase(ComponentBase):
         self.efficiency_power_fraction = self.efficiency_power_fraction[sort_idx]
         self.efficiency_values = self.efficiency_values[sort_idx]
 
-        # Initialize efficiency and fuel consumption rate
+        # Initialize HHV net efficiency and fuel consumption rate
         self.efficiency = self._calc_efficiency(self.power_output)
         self.fuel_volume_rate = 0.0  # m³/s
         self.fuel_mass_rate = 0.0  # kg/s
@@ -322,7 +327,7 @@ class ThermalComponentBase(ComponentBase):
         """Advance the thermal component simulation by one time step.
 
         Updates the thermal component state including power output, state,
-        efficiency, and fuel consumption based on the requested power setpoint.
+        HHV net efficiency, and fuel consumption based on the requested power setpoint.
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
@@ -333,7 +338,7 @@ class ThermalComponentBase(ComponentBase):
                 - power: Actual power output [kW]
                 - state: Operating state number (0=off, 1=hot starting,
                     2=warm starting, 3=cold starting, 4=on, 5=stopping)
-                - efficiency: Current efficiency as fraction (0-1)
+                - efficiency: Current HHV net efficiency as fraction (0-1)
                 - fuel_volume_rate: Fuel volume flow rate [m³/s]
                 - fuel_mass_rate: Fuel mass flow rate [kg/s]
 
@@ -351,7 +356,7 @@ class ThermalComponentBase(ComponentBase):
         # Determine actual power output based on constraints and state
         self.power_output = self._control(power_setpoint)
 
-        # Calculate efficiency and fuel consumption rate
+        # Calculate HHV net efficiency and fuel consumption rate
         self.efficiency = self._calc_efficiency(self.power_output)
         self.fuel_volume_rate = self._calc_fuel_volume_rate(self.power_output)
         # Compute fuel mass rate from volume rate using density [6]
@@ -587,7 +592,7 @@ class ThermalComponentBase(ComponentBase):
         return P_constrained
 
     def _calc_efficiency(self, power_output):
-        """Calculate efficiency based on current power output.
+        """Calculate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
         table range are clamped to the nearest endpoint.
@@ -596,7 +601,7 @@ class ThermalComponentBase(ComponentBase):
             power_output (float): Current power output in kW.
 
         Returns:
-            float: Efficiency as a fraction (0-1).
+            float: HHV net efficiency as a fraction (0-1).
         """
         if power_output <= 0:
             # Return efficiency at lowest power fraction when off
@@ -613,7 +618,7 @@ class ThermalComponentBase(ComponentBase):
         return efficiency
 
     def _calc_fuel_volume_rate(self, power_output):
-        """Calculate fuel volume flow rate based on power output and efficiency.
+        """Calculate fuel volume flow rate based on power output and HHV net efficiency.
 
         Args:
             power_output (float): Current power output in kW.
@@ -624,10 +629,10 @@ class ThermalComponentBase(ComponentBase):
         if power_output <= 0:
             return 0.0
 
-        # Calculate current efficiency
+        # Calculate current HHV net efficiency
         efficiency = self._calc_efficiency(power_output)
 
-        # Calculate fuel volume rate
+        # Calculate fuel volume rate using HHV net efficiency
         # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
         # Convert power from kW to W (multiply by 1000)
         fuel_m3_per_s = (power_output * 1000.0) / (efficiency * self.hhv)

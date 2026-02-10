@@ -7,6 +7,9 @@ It implements the model as presented in [1], [2], [3], [4], [5] and [6].
 Like other subclasses of ThermalComponentBase, it inherits the main control functions,
 and adds defaults for many variables based on [1], [2], [3], [4], [5] and [6].
 
+Note: All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
+The default efficiency table is based on the SC1A curve from Exhibit ES-4 of [5].
+
 References:
 
 [1] Agora Energiewende (2017): Flexibility in thermal power plants
@@ -36,6 +39,8 @@ class OpenCycleGasTurbine(ThermalComponentBase):
     This model represents an open cycle gas turbine with state
     management, ramp rate constraints, minimum stable load, and fuel consumption
     tracking.  Note it is a subclass of the ThermalComponentBase class.
+
+    All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
     """
 
     def __init__(self, h_dict):
@@ -69,8 +74,12 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     Default: 39050000 J/m³ (39.05 MJ/m³) [6]
                 - fuel_density: Optional, fuel density in kg/m³.
                     Default: 0.768 kg/m³ [6]
-                - efficiency_table: Required, dictionary with power_fraction and efficiency
-                    arrays (both as fractions 0-1)
+                - efficiency_table: Optional, dictionary with power_fraction and
+                    efficiency arrays (both as fractions 0-1). Efficiency values must
+                    be HHV net plant efficiencies. Default values are approximate
+                    readings from the SC1A curve in Exhibit ES-4 of [5]:
+                    power_fraction = [1.0, 0.75, 0.50, 0.25],
+                    efficiency = [0.39, 0.37, 0.325, 0.245].
         """
 
         # Store the name of this component
@@ -109,6 +118,14 @@ class OpenCycleGasTurbine(ThermalComponentBase):
         # Default fuel density for natural gas (0.768 kg/m³) from [6]
         if "fuel_density" not in h_dict[self.component_name]:
             h_dict[self.component_name]["fuel_density"] = 0.768  # kg/m³
+
+        # Default HHV net plant efficiency table based on approximate readings from
+        # the SC1A curve in Exhibit ES-4 of [5]
+        if "efficiency_table" not in h_dict[self.component_name]:
+            h_dict[self.component_name]["efficiency_table"] = {
+                "power_fraction": [1.0, 0.75, 0.50, 0.25],
+                "efficiency": [0.39, 0.37, 0.325, 0.245],
+            }
 
         # Call the base class init
         super().__init__(h_dict)

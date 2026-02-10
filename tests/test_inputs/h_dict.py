@@ -118,6 +118,7 @@ thermal_component = {
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
     "hhv": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
     "fuel_density": 1.0,  # kg/m³ (made up round number for testing, NOT realistic)
+    # HHV net efficiency values (made up round numbers for testing, NOT realistic)
     "efficiency_table": {
         "power_fraction": [1.0, 0.75, 0.50, 0.25],
         "efficiency": [0.40, 0.38, 0.35, 0.30],
@@ -144,9 +145,10 @@ open_cycle_gas_turbine = {
     ],
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
     "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
+    # HHV net plant efficiency from SC1A curve in Exhibit ES-4 of [5]
     "efficiency_table": {
         "power_fraction": [1.0, 0.75, 0.50, 0.25],
-        "efficiency": [0.425, 0.40, 0.35, 0.275],
+        "efficiency": [0.39, 0.37, 0.325, 0.245],
     },
 }
 
