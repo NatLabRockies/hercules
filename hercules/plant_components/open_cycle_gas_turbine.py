@@ -125,6 +125,6 @@ class OpenCycleGasTurbine(ThermalComponentBase):
         h_dict[self.component_name]["power"] = self.power_output
         h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
-        h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
-        h_dict[self.component_name]["fuel_consumption_kg"] = self.fuel_consumption_kg
+        h_dict[self.component_name]["fuel_volume_consumption"] = self.fuel_volume_consumption
+        h_dict[self.component_name]["fuel_mass_consumption"] = self.fuel_mass_consumption
         return h_dict

@@ -297,8 +297,8 @@ class ThermalComponentBase(ComponentBase):
 
         # Initialize efficiency and fuel consumption
         self.efficiency = self._calc_efficiency(self.power_output)
-        self.fuel_consumption = 0.0  # m³/timestep
-        self.fuel_consumption_kg = 0.0  # kg/timestep
+        self.fuel_volume_consumption = 0.0  # m³/timestep
+        self.fuel_mass_consumption = 0.0  # kg/timestep
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -334,8 +334,8 @@ class ThermalComponentBase(ComponentBase):
                 - state: Operating state number (0=off, 1=hot starting,
                     2=warm starting, 3=cold starting, 4=on, 5=stopping)
                 - efficiency: Current efficiency as fraction (0-1)
-                - fuel_consumption: Fuel consumed this timestep [m³]
-                - fuel_consumption_kg: Fuel consumed this timestep [kg]
+                - fuel_volume_consumption: Fuel consumed this timestep [m³]
+                - fuel_mass_consumption: Fuel consumed this timestep [kg]
 
         """
         # Get power setpoint from controller
@@ -353,16 +353,16 @@ class ThermalComponentBase(ComponentBase):
 
         # Calculate efficiency and fuel consumption
         self.efficiency = self._calc_efficiency(self.power_output)
-        self.fuel_consumption = self._calc_fuel_consumption(self.power_output)
+        self.fuel_volume_consumption = self._calc_fuel_consumption(self.power_output)
         # Compute fuel mass from volume using density [6]
-        self.fuel_consumption_kg = self.fuel_consumption * self.fuel_density
+        self.fuel_mass_consumption = self.fuel_volume_consumption * self.fuel_density
 
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
-        h_dict[self.component_name]["fuel_consumption"] = self.fuel_consumption
-        h_dict[self.component_name]["fuel_consumption_kg"] = self.fuel_consumption_kg
+        h_dict[self.component_name]["fuel_volume_consumption"] = self.fuel_volume_consumption
+        h_dict[self.component_name]["fuel_mass_consumption"] = self.fuel_mass_consumption
 
         return h_dict
 

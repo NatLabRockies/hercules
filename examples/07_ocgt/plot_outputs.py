@@ -78,7 +78,7 @@ ax.grid(True)
 ax = axarr[3]
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.fuel_consumption"],
+    df["open_cycle_gas_turbine.fuel_volume_consumption"],
     label="Fuel Consumption",
     color="orange",
 )

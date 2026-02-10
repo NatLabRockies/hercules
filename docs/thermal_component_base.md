@@ -188,8 +188,8 @@ The base class outputs are returned in `h_dict`:
 | `power` | kW | Actual power output |
 | `state` | integer | Current operating state (0-5), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current thermal efficiency |
-| `fuel_consumption` | m³ | Fuel consumed this timestep |
-| `fuel_consumption_kg` | kg | Fuel consumed this timestep (computed from volume using `fuel_density`) |
+| `fuel_volume_consumption` | m³ | Fuel consumed this timestep |
+| `fuel_mass_consumption` | kg | Fuel consumed this timestep (computed from volume using `fuel_density`) |
 
 ## References
 
