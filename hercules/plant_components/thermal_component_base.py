@@ -306,22 +306,20 @@ class ThermalComponentBase(ComponentBase):
         self.fuel_mass_rate = 0.0  # kg/s
 
     def get_initial_conditions_and_meta_data(self, h_dict):
-        """Add any initial conditions or meta data to the h_dict.
-
-        This is an abstract method that must be implemented by subclasses.
+        """Add initial conditions and meta data to the h_dict.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
 
         Returns:
             dict: Updated dictionary with initial conditions and meta data.
-
-        Raises:
-            NotImplementedError: This method must be implemented by subclasses.
         """
-        raise NotImplementedError(
-            "Subclasses must implement get_initial_conditions_and_meta_data()"
-        )
+        h_dict[self.component_name]["power"] = self.power_output
+        h_dict[self.component_name]["state"] = self.state.value
+        h_dict[self.component_name]["efficiency"] = self.efficiency
+        h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
+        h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
+        return h_dict
 
     def step(self, h_dict):
         """Advance the thermal component simulation by one time step.
