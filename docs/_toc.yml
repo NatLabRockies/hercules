@@ -36,8 +36,9 @@ parts:
     - file: examples_overview
     - file: examples/00_wind_farm_only
     - file: examples/01_wind_farm_dof1_model
-    - file: examples/02_wind_farm_realistic_inflow
+    - file: examples/02a_wind_farm_realistic_inflow
     - file: examples/02b_wind_farm_realistic_inflow_precom_floris
+    - file: examples/02c_wind_farm_realistic_inflow_direct
     - file: examples/03_wind_and_solar
     - file: examples/04_wind_and_storage
     - file: examples/05_wind_and_storage_with_lmp

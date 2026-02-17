@@ -28,7 +28,7 @@ The simulation runs for 4 hours with the following characteristics:
 
 ## Outputs
 
-To plot the outputs run the following command in the terminal:
+To plot the outputs, run the following command in the terminal:
 
 ```bash
 python plot_outputs.py

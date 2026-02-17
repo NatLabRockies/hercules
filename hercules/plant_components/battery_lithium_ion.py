@@ -1,6 +1,6 @@
 """
 Battery models
-Author: Zack tully - zachary.tully@nrel.gov
+Author: Zack tully - zachary.tully@nlr.gov
 March 2024
 
 References:

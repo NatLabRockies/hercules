@@ -4,7 +4,7 @@
 
 This example demonstrates the `"no_added_wakes"` wake method, which assumes that wake effects are already included in the input wind data and performs no additional wake modeling. 
 
-In this example, the `WindFarm` component type uses `wake_method="no_added_wakes"`, which means:
+In this example, the `WindFarm` component uses `wake_method: no_added_wakes`, which means:
 - No FLORIS calculations are performed during the simulation (only at initialization to read turbine properties)
 - `wind_speeds_withwakes` equals `wind_speeds_background` at all times
 - Wake deficits are always zero
@@ -22,10 +22,8 @@ python hercules_runscript.py
 
 ## Outputs
 
-To plot the outputs run the following command in the terminal:
+To plot the outputs, run the following command in the terminal:
 
 ```bash
 python plot_outputs.py
 ```
-
-

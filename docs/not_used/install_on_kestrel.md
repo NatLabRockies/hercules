@@ -70,7 +70,7 @@ pip install -e SEAS
 Go back to herc_root
 
 ```
-git clone https://github.com/NREL/hercules
+git clone https://github.com/NatLabRockies/hercules
 pip install -e hercules
 ```
 
