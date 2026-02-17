@@ -10,7 +10,7 @@ and adds defaults for many variables based on [1], [2], [3], [4], [5] and [6].
 Note: All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
 The default efficiency table is based on the SC1A curve from Exhibit ES-4 of [5].
 
-Note: This class is based on aeroderivative open cycle gas turbines, 
+Note: This class is based on aeroderivative open cycle gas turbines,
 which are commonly used for flexible power generation.
 
 References:
