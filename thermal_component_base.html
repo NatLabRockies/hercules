@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Thermal Component Base &#8212; HERCULES</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=1ae7504c"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-3V1BDK8KEJ');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-3V1BDK8KEJ');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'thermal_component_base';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Open Cycle Gas Turbine" href="open_cycle_gas_turbine.html" />
+    <link rel="prev" title="Electrolyzer Plant" href="electrolyzer.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
+    <script>document.write(`<img src="_static/herc.png" class="logo__image only-dark" alt="HERCULES - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Hercules
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Thermal Component Base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/07_open_cycle_gas_turbine.html">Example 07: Open Cycle Gas Turbine (OCGT)</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/thermal_component_base.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fthermal_component_base.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/thermal_component_base.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Thermal Component Base</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-machine">State Machine</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-transitions">State Transitions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#derived-parameters">Derived Parameters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#startup-and-ramp-behavior">Startup and Ramp Behavior</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-fuel-consumption">Efficiency and Fuel Consumption</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-table-format">Efficiency Table Format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-interpolation">Efficiency Interpolation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-rate-calculation">Fuel Rate Calculation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="thermal-component-base">
+<h1>Thermal Component Base<a class="headerlink" href="#thermal-component-base" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">ThermalComponentBase</span></code> class provides common functionality for thermal power plant components in Hercules. It serves as a base class for multiple thermal plant types including:</p>
+<ul class="simple">
+<li><p>Reciprocating internal combustion engines (RICE)</p></li>
+<li><p>Open-cycle gas turbines (OCGT)</p></li>
+<li><p>Combined-cycle gas turbines (CCGT)</p></li>
+<li><p>Coal-fired power plants</p></li>
+</ul>
+<p>The parameterized model is based primarily on [1], with additional parameters and naming conventions from [2] and [3]. Table 1 on page 48 of [1] provides many of the default values used in subclasses.</p>
+<p><strong>Note:</strong> All efficiency values throughout this module are <strong>HHV (Higher Heating Value) net plant efficiencies</strong>, consistent with the data in Exhibit ES-4 of [5].</p>
+<section id="state-machine">
+<h2>State Machine<a class="headerlink" href="#state-machine" title="Link to this heading">#</a></h2>
+<p>The thermal component operates as a state machine with six states:</p>
+<section id="state-transitions">
+<h3>State Transitions<a class="headerlink" href="#state-transitions" title="Link to this heading">#</a></h3>
+<p>The decision between hot, warm, and cold starting is based on how long the unit has been off. The cutoff times are hardcoded based on reference [5]: less than 8 hours triggers a hot start, 8-48 hours triggers a warm start, and 48+ hours triggers a cold start.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>From State</p></th>
+<th class="head"><p>To State</p></th>
+<th class="head"><p>Diagram Label</p></th>
+<th class="head"><p>Condition</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>OFF (0)</p></td>
+<td><p>HOT STARTING (1)</p></td>
+<td><p>start (hot)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">min_down_time</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&lt;</span> <span class="pre">8</span> <span class="pre">hours</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>OFF (0)</p></td>
+<td><p>WARM STARTING (2)</p></td>
+<td><p>start (warm)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">min_down_time</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">8</span> <span class="pre">hours</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&lt;</span> <span class="pre">48</span> <span class="pre">hours</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>OFF (0)</p></td>
+<td><p>COLD STARTING (3)</p></td>
+<td><p>start (cold)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">min_down_time</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">48</span> <span class="pre">hours</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>HOT STARTING (1)</p></td>
+<td><p>OFF (0)</p></td>
+<td><p>abort</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>HOT STARTING (1)</p></td>
+<td><p>ON (4)</p></td>
+<td><p>P &gt;= P_min</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_output</span> <span class="pre">&gt;=</span> <span class="pre">P_min</span></code> (after <code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>WARM STARTING (2)</p></td>
+<td><p>OFF (0)</p></td>
+<td><p>abort</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>WARM STARTING (2)</p></td>
+<td><p>ON (4)</p></td>
+<td><p>P &gt;= P_min</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_output</span> <span class="pre">&gt;=</span> <span class="pre">P_min</span></code> (after <code class="docutils literal notranslate"><span class="pre">warm_startup_time</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>COLD STARTING (3)</p></td>
+<td><p>OFF (0)</p></td>
+<td><p>abort</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>COLD STARTING (3)</p></td>
+<td><p>ON (4)</p></td>
+<td><p>P &gt;= P_min</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_output</span> <span class="pre">&gt;=</span> <span class="pre">P_min</span></code> (after <code class="docutils literal notranslate"><span class="pre">cold_startup_time</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ON (4)</p></td>
+<td><p>STOPPING (5)</p></td>
+<td><p>shutdown</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code> AND <code class="docutils literal notranslate"><span class="pre">time_in_state</span> <span class="pre">&gt;=</span> <span class="pre">min_up_time</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>STOPPING (5)</p></td>
+<td><p>OFF (0)</p></td>
+<td><p>P = 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">power_output</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h2>
+<p>All parameters below are defined in the Hercules input YAML file. The base class does <strong>not</strong> provide default values—subclasses (such as <code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code>) supply defaults based on References [1-3].</p>
+<section id="required-parameters">
+<h3>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rated_capacity</span></code></p></td>
+<td><p>kW</p></td>
+<td><p>Maximum power output (P_max)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_stable_load_fraction</span></code></p></td>
+<td><p>fraction (0-1)</p></td>
+<td><p>Minimum operating point as fraction of rated capacity</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
+<td><p>fraction/min</p></td>
+<td><p>Maximum rate of power change during normal operation, as fraction of rated capacity per minute</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run_up_rate_fraction</span></code></p></td>
+<td><p>fraction/min</p></td>
+<td><p>Maximum rate of power increase during startup ramp, as fraction of rated capacity per minute</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code></p></td>
+<td><p>s</p></td>
+<td><p>Time to reach P_min from off (hot start). Includes both readying time and ramping time</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">warm_startup_time</span></code></p></td>
+<td><p>s</p></td>
+<td><p>Time to reach P_min from off (warm start). Includes both readying time and ramping time</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cold_startup_time</span></code></p></td>
+<td><p>s</p></td>
+<td><p>Time to reach P_min from off (cold start). Includes both readying time and ramping time</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_up_time</span></code></p></td>
+<td><p>s</p></td>
+<td><p>Minimum time unit must remain on before shutdown is allowed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_down_time</span></code></p></td>
+<td><p>s</p></td>
+<td><p>Minimum time unit must remain off before restart is allowed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">initial_conditions.power</span></code></p></td>
+<td><p>kW</p></td>
+<td><p>Initial power output. State is derived automatically: power &gt; 0 sets ON, power == 0 sets OFF. When ON, <code class="docutils literal notranslate"><span class="pre">time_in_state</span></code> = <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> (ready to stop). When OFF, <code class="docutils literal notranslate"><span class="pre">time_in_state</span></code> = <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> (ready to start).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code></p></td>
+<td><p>J/m³</p></td>
+<td><p>Higher heating value of fuel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code></p></td>
+<td><p>kg/m³</p></td>
+<td><p>Fuel density for mass calculations</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Dictionary containing <code class="docutils literal notranslate"><span class="pre">power_fraction</span></code> and <code class="docutils literal notranslate"><span class="pre">efficiency</span></code> arrays (see below). Efficiency values must be HHV net plant efficiencies.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="derived-parameters">
+<h3>Derived Parameters<a class="headerlink" href="#derived-parameters" title="Link to this heading">#</a></h3>
+<p>The following parameters are computed from the input parameters:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">P_max</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rated_capacity</span></code></p></td>
+<td><p>Maximum power output</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">P_min</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">min_stable_load_fraction</span> <span class="pre">×</span> <span class="pre">rated_capacity</span></code></p></td>
+<td><p>Minimum stable power output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span> <span class="pre">×</span> <span class="pre">rated_capacity</span> <span class="pre">/</span> <span class="pre">60</span></code></p></td>
+<td><p>Ramp rate in kW/s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run_up_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">run_up_rate_fraction</span> <span class="pre">×</span> <span class="pre">rated_capacity</span> <span class="pre">/</span> <span class="pre">60</span></code></p></td>
+<td><p>Run-up rate in kW/s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">P_min</span> <span class="pre">/</span> <span class="pre">run_up_rate</span></code></p></td>
+<td><p>Time to ramp from 0 to P_min</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_readying_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hot_startup_time</span> <span class="pre">-</span> <span class="pre">ramp_time</span></code></p></td>
+<td><p>Preparation time before hot start ramp begins</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">warm_readying_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">warm_startup_time</span> <span class="pre">-</span> <span class="pre">ramp_time</span></code></p></td>
+<td><p>Preparation time before warm start ramp begins</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cold_readying_time</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cold_startup_time</span> <span class="pre">-</span> <span class="pre">ramp_time</span></code></p></td>
+<td><p>Preparation time before cold start ramp begins</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="startup-and-ramp-behavior">
+<h2>Startup and Ramp Behavior<a class="headerlink" href="#startup-and-ramp-behavior" title="Link to this heading">#</a></h2>
+<p>The following diagram illustrates the startup sequence and ramp behavior, showing how the input and derived parameters relate to each other:</p>
+<a class="reference internal image-reference" href="_images/thermal_startup_ramp.svg"><img alt="Thermal component startup and ramp behavior" class="align-center" src="_images/thermal_startup_ramp.svg" style="width: 700px;" />
+</a>
+<p>During startup:</p>
+<ol class="arabic simple">
+<li><p>The unit receives a positive <code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code> while in the OFF state</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> is satisfied, the unit transitions to HOT STARTING, WARM STARTING, or COLD STARTING (depending on how long it has been off: &lt;8h = hot, 8-48h = warm, &gt;48h = cold)</p></li>
+<li><p>The unit remains at zero power during the readying time (<code class="docutils literal notranslate"><span class="pre">hot_readying_time</span></code>, <code class="docutils literal notranslate"><span class="pre">warm_readying_time</span></code>, or <code class="docutils literal notranslate"><span class="pre">cold_readying_time</span></code>)</p></li>
+<li><p>After readying, the unit ramps up to P_min using <code class="docutils literal notranslate"><span class="pre">run_up_rate</span></code></p></li>
+<li><p>Once P_min is reached, the unit transitions to ON state</p></li>
+</ol>
+<p>During normal operation (ON state):</p>
+<ul class="simple">
+<li><p>Power changes are constrained by <code class="docutils literal notranslate"><span class="pre">ramp_rate</span></code></p></li>
+<li><p>Power output is constrained between P_min and P_max</p></li>
+<li><p>The unit must remain on for at least <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> before shutdown is allowed</p></li>
+</ul>
+<p>During shutdown:</p>
+<ul class="simple">
+<li><p>The unit ramps down to zero using <code class="docutils literal notranslate"><span class="pre">ramp_rate</span></code></p></li>
+<li><p>Once power reaches zero, the unit transitions to OFF</p></li>
+</ul>
+</section>
+<section id="efficiency-and-fuel-consumption">
+<h2>Efficiency and Fuel Consumption<a class="headerlink" href="#efficiency-and-fuel-consumption" title="Link to this heading">#</a></h2>
+<p>The base class calculates HHV net plant efficiency and fuel consumption based on the <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> and <code class="docutils literal notranslate"><span class="pre">hhv</span></code> parameters.</p>
+<section id="efficiency-table-format">
+<h3>Efficiency Table Format<a class="headerlink" href="#efficiency-table-format" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> parameter specifies how HHV net plant efficiency varies with load. All efficiency values must be HHV (Higher Heating Value) net plant efficiencies:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">efficiency_table</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">power_fraction</span><span class="p">:</span><span class="w">  </span><span class="c1"># fraction of rated_capacity (0-1)</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.75</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.50</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
+<span class="w">  </span><span class="nt">efficiency</span><span class="p">:</span><span class="w">  </span><span class="c1"># HHV net plant efficiency, fraction (0-1), e.g., 0.39 = 39%</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.39</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.37</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.325</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.245</span>
+</pre></div>
+</div>
+<p>Both arrays must have the same length and values must be in the range [0, 1]. The arrays are sorted by <code class="docutils literal notranslate"><span class="pre">power_fraction</span></code> internally.</p>
+</section>
+<section id="efficiency-interpolation">
+<h3>Efficiency Interpolation<a class="headerlink" href="#efficiency-interpolation" title="Link to this heading">#</a></h3>
+<p>HHV net efficiency is calculated by linear interpolation from the table based on current power fraction (<code class="docutils literal notranslate"><span class="pre">power_output</span> <span class="pre">/</span> <span class="pre">rated_capacity</span></code>). Values outside the table range are clamped to the nearest endpoint.</p>
+</section>
+<section id="fuel-rate-calculation">
+<h3>Fuel Rate Calculation<a class="headerlink" href="#fuel-rate-calculation" title="Link to this heading">#</a></h3>
+<p>Fuel volume rate is calculated as:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
+\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code> is in W (converted from kW internally)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code> is the interpolated HHV net efficiency (0-1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code> is the higher heating value in J/m³</p></li>
+<li><p>Result is fuel volume rate in m³/s</p></li>
+</ul>
+<p>The fuel mass rate is then computed from the volume rate using the fuel density:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{fuel\_mass\_rate} = \text{fuel\_volume\_rate} \times \text{fuel\_density}
+\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel_volume_rate</span></code> is in m³/s</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> is in kg/m³</p></li>
+<li><p>Result is fuel mass rate in kg/s</p></li>
+</ul>
+</section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The base class outputs are returned in <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Output</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">power</span></code></p></td>
+<td><p>kW</p></td>
+<td><p>Actual power output</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
+<td><p>integer</p></td>
+<td><p>Current operating state (0-5), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code></p></td>
+<td><p>fraction (0-1)</p></td>
+<td><p>Current HHV net plant efficiency</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_volume_rate</span></code></p></td>
+<td><p>m³/s</p></td>
+<td><p>Fuel volume flow rate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_mass_rate</span></code></p></td>
+<td><p>kg/s</p></td>
+<td><p>Fuel mass flow rate (computed from volume rate using <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Agora Energiewende (2017): “Flexibility in thermal power plants - With a focus on existing coal-fired power plants.”</p></li>
+<li><p>“Impact of Detailed Parameter Modeling of Open-Cycle Gas Turbines on Production Cost Simulation”, NREL/CP-6A40-87554, National Renewable Energy Laboratory, 2024.</p></li>
+<li><p>Deane, J.P., G. Drayton, and B.P. Ó Gallachóir. “The Impact of Sub-Hourly Modelling in Power Systems with Significant Levels of Renewable Generation.” Applied Energy 113 (January 2014): 152–58. <a class="reference external" href="https://doi.org/10.1016/j.apenergy.2013.07.027">https://doi.org/10.1016/j.apenergy.2013.07.027</a>.</p></li>
+<li><p>IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants, International Renewable Energy Agency, Abu Dhabi.</p></li>
+<li><p>M. Oakes, M. Turner, “Cost and Performance Baseline for Fossil Energy Plants, Volume 5: Natural Gas Electricity Generating Units for Flexible Operation,” National Energy Technology Laboratory, Pittsburgh, May 5, 2023.</p></li>
+<li><p>I. Staffell, “The Energy and Fuel Data Sheet,” University of Birmingham, March 2011. <a class="reference external" href="https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf">https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf</a></p></li>
+</ol>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="electrolyzer.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Electrolyzer Plant</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="open_cycle_gas_turbine.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Open Cycle Gas Turbine</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-machine">State Machine</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-transitions">State Transitions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#derived-parameters">Derived Parameters</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#startup-and-ramp-behavior">Startup and Ramp Behavior</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-fuel-consumption">Efficiency and Fuel Consumption</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-table-format">Efficiency Table Format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-interpolation">Efficiency Interpolation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-rate-calculation">Fuel Rate Calculation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By National Laboratory of the Rockies
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
