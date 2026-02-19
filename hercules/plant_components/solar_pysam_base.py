@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
+    hercules_float_type,
     interpolate_df,
 )
 
@@ -124,7 +125,7 @@ class SolarPySAMBase(ComponentBase):
         self.starttime_utc = starttime_utc
 
         # Interpolate df_solar on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
         df_solar = interpolate_df(df_solar, time_steps_all)
 
         # Can now save the input data as simple columns
