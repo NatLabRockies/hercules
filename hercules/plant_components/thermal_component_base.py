@@ -33,6 +33,7 @@ from enum import IntEnum
 
 import numpy as np
 from hercules.plant_components.component_base import ComponentBase
+from hercules.utilities import hercules_float_type
 
 
 class ThermalComponentBase(ComponentBase):
@@ -250,8 +251,10 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("efficiency_table must contain 'efficiency'")
 
         # Extract and convert to numpy arrays for interpolation
-        self.efficiency_power_fraction = np.array(efficiency_table["power_fraction"])
-        self.efficiency_values = np.array(efficiency_table["efficiency"])
+        self.efficiency_power_fraction = np.array(
+            efficiency_table["power_fraction"], dtype=hercules_float_type
+        )
+        self.efficiency_values = np.array(efficiency_table["efficiency"], dtype=hercules_float_type)
 
         # Validate array lengths match
         if len(self.efficiency_power_fraction) != len(self.efficiency_values):
