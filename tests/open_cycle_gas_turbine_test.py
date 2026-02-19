@@ -1,6 +1,8 @@
 import copy
 
+import numpy as np
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
+from hercules.utilities import hercules_float_type
 
 from .test_inputs.h_dict import (
     h_dict_open_cycle_gas_turbine,
@@ -93,11 +95,15 @@ def test_default_efficiency_table():
     Default values are approximate readings from the SC1A curve in
     Exhibit ES-4 of [5].
     """
-    import numpy as np
-
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
     del h_dict["open_cycle_gas_turbine"]["efficiency_table"]
     ocgt = OpenCycleGasTurbine(h_dict)
     # Default HHV net plant efficiency from SC1A curve in Exhibit ES-4 of [5]
-    np.testing.assert_array_equal(ocgt.efficiency_power_fraction, np.array([0.25, 0.50, 0.75, 1.0]))
-    np.testing.assert_array_equal(ocgt.efficiency_values, np.array([0.245, 0.325, 0.37, 0.39]))
+    np.testing.assert_array_equal(
+        ocgt.efficiency_power_fraction,
+        np.array([0.25, 0.50, 0.75, 1.0], dtype=hercules_float_type),
+    )
+    np.testing.assert_array_equal(
+        ocgt.efficiency_values,
+        np.array([0.245, 0.325, 0.37, 0.39], dtype=hercules_float_type),
+    )
