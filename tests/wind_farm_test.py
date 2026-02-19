@@ -13,7 +13,7 @@ from hercules.utilities import hercules_float_type
 from tests.test_inputs.h_dict import h_dict_wind
 
 
-def test_wind_meso_to_power_initialization():
+def test_wind_farm_initialization():
     """Test that WindFarm initializes correctly with valid inputs (dynamic mode)."""
     wind_sim = WindFarm(h_dict_wind)
 
@@ -27,7 +27,7 @@ def test_wind_meso_to_power_initialization():
     assert wind_sim.floris_update_time_s == 30.0
 
 
-def test_wind_meso_to_power_precom_floris_ws_mean():
+def test_wind_farm_ws_mean():
     """Test that invalid component_type raises ValueError."""
 
     current_dir = os.path.dirname(__file__)
@@ -64,7 +64,7 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
     os.remove(current_dir + "/test_inputs/wind_input_temp.csv")
 
 
-def test_wind_meso_to_power_missing_floris_update_time():
+def test_wind_farm_missing_floris_update_time():
     """Test that missing floris_update_time_s raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     del test_h_dict["wind_farm"]["floris_update_time_s"]
@@ -75,7 +75,7 @@ def test_wind_meso_to_power_missing_floris_update_time():
         WindFarm(test_h_dict)
 
 
-def test_wind_meso_to_power_invalid_update_time():
+def test_wind_farm_invalid_update_time():
     """Test that invalid update time raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5  # Less than 1 second
@@ -84,7 +84,7 @@ def test_wind_meso_to_power_invalid_update_time():
         WindFarm(test_h_dict)
 
 
-def test_wind_meso_to_power_step():
+def test_wind_farm_step():
     """Test that the step method updates outputs correctly."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     # Set a shorter update time for testing
@@ -108,7 +108,7 @@ def test_wind_meso_to_power_step():
     assert isinstance(result["wind_farm"]["power"], (int, float))
 
 
-def test_wind_meso_to_power_time_utc_conversion():
+def test_wind_farm_time_utc_conversion():
     """Test that time_utc column is properly converted to datetime."""
     wind_sim = WindFarm(h_dict_wind)
 
@@ -124,7 +124,7 @@ def test_wind_meso_to_power_time_utc_conversion():
     assert wind_sim.ws_mat.shape[1] == 3  # 3 turbines
 
 
-def test_wind_meso_to_power_power_setpoint_too_high():
+def test_wind_farm_power_setpoint_too_high():
     """Test that turbine powers are below power setpoint when setpoint is very high."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
@@ -147,7 +147,7 @@ def test_wind_meso_to_power_power_setpoint_too_high():
         assert power <= setpoint, f"Turbine {i} power {power} exceeds power setpoint {setpoint}"
 
 
-def test_wind_meso_to_power_power_setpoint_applies():
+def test_wind_farm_power_setpoint_applies():
     """Test that turbine powers equal power setpoint when setpoint is very low."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
@@ -172,7 +172,7 @@ def test_wind_meso_to_power_power_setpoint_applies():
         )
 
 
-def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
+def test_wind_farm_get_initial_conditions_and_meta_data():
     """Test that get_initial_conditions_and_meta_data adds correct metadata to h_dict."""
     wind_sim = WindFarm(h_dict_wind)
 
@@ -212,7 +212,7 @@ def test_wind_meso_to_power_get_initial_conditions_and_meta_data():
     assert "plant" in result
 
 
-def test_wind_meso_to_power_regular_floris_updates():
+def test_wind_farm_regular_floris_updates():
     """Test that FLORIS updates occur at regular intervals.
 
     This test verifies that FLORIS calculations happen at the specified interval
@@ -278,7 +278,7 @@ def test_wind_meso_to_power_regular_floris_updates():
             os.unlink(temp_wind_file)
 
 
-def test_wind_meso_to_power_power_setpoints_buffer():
+def test_wind_farm_power_setpoints_buffer():
     """Test that power setpoints buffer works correctly over time."""
     # Create a temporary wind input file with constant conditions
     wind_data = {
