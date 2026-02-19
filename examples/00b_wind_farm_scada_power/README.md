@@ -2,13 +2,11 @@
 
 ## Description
 
-Demonstrate the use of `WindFarmSCADAPower` to simulate a wind farm using SCADA power data.  `WindFarmSCADAPower` is useful when the input available is not wind speeds but rather SCADA power data.
+Demonstrate the use of `WindFarmSCADAPower` to simulate a wind farm using SCADA power data.  `WindFarmSCADAPower` is primarily useful when the actual turbine powers are provided and we want to play back the pre-recorded power data.  Note there is no option to control the turbine powers, they are simply played back at the pre-recorded power levels.
 
 ## Setup
 
 As in example 00, the wind farm is a small 3 turbine farm and the input is automatically generated.  For `WindFarmSCADAPower` this input is a history of pre-recorded turbine power data in `inputs/scada_input.ftr`.
-
-  Also as in example 00, turbine 0's power is toggled every 100 seconds.  This means it will sometimes follow the pre-recorded power data and sometimes be curtailed below it.
 
 ## Running
 

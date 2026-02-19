@@ -11,14 +11,9 @@ ensure_example_inputs_exist()
 hmodel = HerculesModel("hercules_input.yaml")
 
 
-# Define a simple controller that sets all deratings to full rating
-# and then sets the derating of turbine 000 to 500, toggling every other 100 seconds.
-class ControllerToggleTurbine000:
-    """A simple controller that toggles the derating of turbine 000 every other 100 seconds.
-
-    This controller sets all turbines to full rating (5000) and then lowers
-    the derating of turbine 000 to 500 every other 100 seconds.
-    """
+# Define a controller that does nothing
+class ControllerPassThrough:
+    """A place holder controller that does nothing."""
 
     def __init__(self, h_dict):
         """Initialize the controller.
@@ -37,20 +32,12 @@ class ControllerToggleTurbine000:
         Returns:
             dict: The updated hercules input dictionary.
         """
-        # Set deratings to full rating
-        h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-            h_dict["wind_farm"]["n_turbines"]
-        )
-
-        # Lower t0 derating to 500 every other 100 seconds
-        if h_dict["time"] % 200 < 100:
-            h_dict["wind_farm"]["turbine_power_setpoints"][0] = 500
-
+        # Simply return the unmodified h_dict
         return h_dict
 
 
 # Instantiate the controller and assign to the Hercules model
-hmodel.assign_controller(ControllerToggleTurbine000(hmodel.h_dict))
+hmodel.assign_controller(ControllerPassThrough(hmodel.h_dict))
 
 # Run the simulation
 hmodel.run()

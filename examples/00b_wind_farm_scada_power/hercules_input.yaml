@@ -22,7 +22,6 @@ wind_farm:
   log_channels:
     - power
     - turbine_powers
-    - turbine_power_setpoints
 
 
 controller:
