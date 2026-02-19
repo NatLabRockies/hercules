@@ -17,7 +17,6 @@ h_dict_wind_scada = copy.deepcopy(h_dict_wind)
 # Update component type and remove unneeded parameters
 h_dict_wind_scada["wind_farm"]["component_type"] = "WindFarmSCADAPower"
 h_dict_wind_scada["wind_farm"]["scada_filename"] = "tests/test_inputs/scada_input.csv"
-# Keep turbine_file_name for filter model parameters
 # Remove FLORIS-specific parameters
 del h_dict_wind_scada["wind_farm"]["floris_input_file"]
 del h_dict_wind_scada["wind_farm"]["wind_input_filename"]
@@ -34,8 +33,6 @@ def test_wind_farm_scada_power_initialization():
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
-    # No FLORIS calculations in SCADA power mode
-    assert wind_sim.num_floris_calcs == 0
 
 
 def test_wind_farm_scada_power_infers_n_turbines():
@@ -71,11 +68,8 @@ def test_wind_farm_scada_power_step():
     """Test that the step method works correctly."""
     wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
 
-    # Add power setpoint values to the step h_dict
     step_h_dict = {"step": 1}
-    step_h_dict["wind_farm"] = {
-        "turbine_power_setpoints": np.array([5000.0, 5000.0, 5000.0]),
-    }
+    step_h_dict["wind_farm"] = {}
 
     result = wind_sim.step(step_h_dict)
 
@@ -84,8 +78,7 @@ def test_wind_farm_scada_power_step():
     assert "power" in result["wind_farm"]
     assert len(result["wind_farm"]["turbine_powers"]) == 3
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
-    assert "power" in result["wind_farm"]
-    assert isinstance(result["wind_farm"]["power"], (int, float))
+    assert isinstance(result["wind_farm"]["power"], (int, float, np.floating))
 
     # Verify no wake deficits applied
     assert np.all(wind_sim.floris_wake_deficits == 0.0)
@@ -97,45 +90,6 @@ def test_wind_farm_scada_power_step():
     # Verify turbine powers
     assert np.allclose(result["wind_farm"]["turbine_powers"], [3200.0, 3100.0, 3300.0])
     assert np.isclose(result["wind_farm"]["power"], 3200.0 + 3100.0 + 3300.0)
-
-
-def test_wind_farm_scada_power_power_setpoint_applies():
-    """Test that turbine powers are limited by power setpoint when setpoint is low."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
-
-    # Set very low power setpoint values that should definitely limit power output
-    # Run multiple steps to let filter settle (within available data range 0-9)
-    for step in range(wind_sim.n_steps):
-        step_h_dict = {"step": step}
-        step_h_dict["wind_farm"] = {
-            "turbine_power_setpoints": np.array([100.0, 200.0, 300.0]),  # Very low setpoints
-        }
-        result = wind_sim.step(step_h_dict)
-
-    # Verify that turbine powers are at or below power setpoint limits
-    turbine_powers = result["wind_farm"]["turbine_powers"]
-    power_setpoints = [100.0, 200.0, 300.0]
-
-    for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoints)):
-        assert power <= setpoint + 1e-6, (
-            f"Turbine {i} power {power} exceeds power setpoint {setpoint}"
-        )
-
-
-def test_wind_farm_scada_power_power_setpoint_zero():
-    """Test that turbine powers go to zero when setpoint is zero."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
-
-    # Run multiple steps with zero setpoint to ensure filter settles (within available data range)
-    for step in range(wind_sim.n_steps):
-        step_h_dict = {"step": step}
-        step_h_dict["wind_farm"] = {
-            "turbine_power_setpoints": np.zeros(3, dtype=hercules_float_type),
-        }
-        result = wind_sim.step(step_h_dict)
-
-    # After multiple steps, powers should be effectively zero
-    assert np.all(result["wind_farm"]["turbine_powers"] < 1.0)
 
 
 def test_wind_farm_scada_power_get_initial_conditions_and_meta_data():
@@ -369,9 +323,7 @@ def test_wind_farm_scada_power_output_consistency():
 
     # Run a step
     step_h_dict = {"step": 2}
-    step_h_dict["wind_farm"] = {
-        "turbine_power_setpoints": np.ones(3, dtype=hercules_float_type) * 5000.0,
-    }
+    step_h_dict["wind_farm"] = {}
 
     result = wind_sim.step(step_h_dict)
 
