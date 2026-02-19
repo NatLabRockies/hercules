@@ -26,6 +26,8 @@ parts:
     - file: solar_pv
     - file: battery
     - file: electrolyzer
+    - file: thermal_component_base
+    - file: open_cycle_gas_turbine
   - caption: Inputs
     chapters:
     - file: hercules_input
@@ -43,3 +45,4 @@ parts:
     - file: examples/04_wind_and_storage
     - file: examples/05_wind_and_storage_with_lmp
     - file: examples/06_wind_and_hydrogen
+    - file: examples/07_open_cycle_gas_turbine

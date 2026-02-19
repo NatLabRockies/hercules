@@ -27,14 +27,15 @@ def get_available_component_names():
         "solar_farm",
         "battery",
         "electrolyzer",
+        "open_cycle_gas_turbine",
     ]
 
 
 def get_available_generator_names():
     """Return available generator component names.
 
-    Returns power generators (wind_farm, solar_farm), excluding storage and conversion
-    components.
+    Returns power generators (wind_farm, solar_farm, open_cycle_gas_turbine), excluding
+    storage and conversion components.
 
     Returns:
         list: Available generator component names.
@@ -42,6 +43,7 @@ def get_available_generator_names():
     return [
         "wind_farm",
         "solar_farm",
+        "open_cycle_gas_turbine",
     ]
 
 
@@ -59,6 +61,7 @@ def get_available_component_types():
         "solar_farm": ["SolarPySAMPVWatts"],
         "battery": ["BatterySimple", "BatteryLithiumIon"],
         "electrolyzer": ["ElectrolyzerPlant"],
+        "open_cycle_gas_turbine": ["OpenCycleGasTurbine"],
     }
 
 

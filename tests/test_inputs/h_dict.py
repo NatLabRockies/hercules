@@ -96,6 +96,63 @@ lib_battery = {
     "initial_conditions": {"SOC": 0.102},
 }
 
+
+thermal_component = {
+    "component_type": "ThermalComponentBase",
+    "rated_capacity": 1000,  # kW (1 MW)
+    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
+    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
+    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "min_up_time": 10.0,  # s
+    "min_down_time": 10.0,  # s
+    "log_channels": [
+        "power",
+        "state",
+        "efficiency",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
+    ],
+    "initial_conditions": {"power": 1000},  # power > 0 implies ON state
+    "hhv": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
+    "fuel_density": 1.0,  # kg/m³ (made up round number for testing, NOT realistic)
+    # HHV net efficiency values (made up round numbers for testing, NOT realistic)
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.75, 0.50, 0.25],
+        "efficiency": [0.40, 0.38, 0.35, 0.30],
+    },
+}
+
+open_cycle_gas_turbine = {
+    "component_type": "OpenCycleGasTurbine",
+    "rated_capacity": 1000,  # kW (1 MW)
+    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
+    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
+    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
+    "min_up_time": 10.0,  # s
+    "min_down_time": 10.0,  # s
+    "log_channels": [
+        "power",
+        "state",
+        "efficiency",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
+    ],
+    "initial_conditions": {"power": 1000},  # power > 0 implies ON state
+    "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
+    # HHV net plant efficiency from SC1A curve in Exhibit ES-4 of [5]
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.75, 0.50, 0.25],
+        "efficiency": [0.39, 0.37, 0.325, 0.245],
+    },
+}
+
+
 electrolyzer = {
     "component_type": "ElectrolyzerPlant",
     "initial_conditions": {
@@ -295,4 +352,31 @@ h_dict_electrolyzer = {
     "time": 0.0,
     "plant": plant,
     "electrolyzer": electrolyzer,
+}
+
+
+h_dict_thermal_component = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "thermal_component": thermal_component,
+}
+
+h_dict_open_cycle_gas_turbine = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "open_cycle_gas_turbine": open_cycle_gas_turbine,
 }
