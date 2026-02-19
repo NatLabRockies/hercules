@@ -1,6 +1,6 @@
-# WindFarmSCADAPower is a wind farm model that uses SCADA 
+# WindFarmSCADAPower is a wind farm model that uses SCADA
 # power data to simulate wind farm performance.
-# Note it is limited to playing back the prerecorded wind turbine powers, 
+# Note it is limited to playing back the prerecorded wind turbine powers,
 # there is no option to control.
 
 import numpy as np
@@ -14,12 +14,12 @@ from hercules.utilities import (
 
 class WindFarmSCADAPower(ComponentBase):
     """Wind farm model that uses SCADA power data to simulate wind farm performance.
-    Note it is limited to playing back the prerecorded wind turbine powers, 
+    Note it is limited to playing back the prerecorded wind turbine powers,
     there is no option to control.
     """
 
     def __init__(self, h_dict):
-        """Initialize the WindFarm class.
+        """Initialize the WindFarmSCADAPower class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
@@ -33,9 +33,6 @@ class WindFarmSCADAPower(ComponentBase):
         super().__init__(h_dict, self.component_name)
 
         self.logger.info("Initializing WindFarmSCADAPower")
-
-        # Track the number of FLORIS calculations
-        self.num_floris_calcs = 0
 
         # Read in the input file names
         self.scada_filename = h_dict[self.component_name]["scada_filename"]
