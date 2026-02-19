@@ -404,15 +404,15 @@ def test_efficiency_clamping():
     # Test above highest power fraction (should clamp to 0.40)
     # rated_capacity = 1000 kW, so 1000 kW = 100% load (above table max of 0.9)
     eff_100 = tcb.calculate_efficiency(1000)
-    assert eff_100 == 0.40
+    assert eff_100 == pytest.approx(0.40)
 
     # Test as a value above 0 but below the lower defined power fraction (0.25)
     eff_200 = tcb.calculate_efficiency(200)  # 200 kW = 20% load (below table min of 0.25)
-    assert eff_200 == 0.30
+    assert eff_200 == pytest.approx(0.30)
 
     # Test at zero power (should return first efficiency value)
     eff_0 = tcb.calculate_efficiency(0)
-    assert eff_0 == 0.30
+    assert eff_0 == pytest.approx(0.30)
 
 
 def test_efficiency_interpolation():
@@ -430,10 +430,10 @@ def test_efficiency_interpolation():
     tcb = ThermalComponentBase(h_dict)
 
     # Test at table points (rated_capacity = 1000 kW)
-    assert tcb.calculate_efficiency(1000) == 0.40  # 100% load
-    assert tcb.calculate_efficiency(750) == 0.38  # 75% load
-    assert tcb.calculate_efficiency(500) == 0.35  # 50% load
-    assert tcb.calculate_efficiency(250) == 0.30  # 25% load
+    assert tcb.calculate_efficiency(1000) == pytest.approx(0.40)  # 100% load
+    assert tcb.calculate_efficiency(750) == pytest.approx(0.38)  # 75% load
+    assert tcb.calculate_efficiency(500) == pytest.approx(0.35)  # 50% load
+    assert tcb.calculate_efficiency(250) == pytest.approx(0.30)  # 25% load
 
     # Test interpolation between points
     # At 625 kW (62.5%), should be between 0.35 and 0.38
