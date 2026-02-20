@@ -488,6 +488,7 @@ class HerculesModel:
             external_signals_all = self.external_signals_all
             h_dict = self.h_dict
 
+
             # Set current time and run simulation through steps
             self.time = self.starttime
             last_progress_update = 0
