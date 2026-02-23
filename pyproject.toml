@@ -7,7 +7,7 @@ name = "hercules"
 version = "2"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
      { name = "Genevieve Starke", email = "Genevieve.Starke@nlr.gov" },
     { name = "Michael (Misha) Sinner", email = "Michael.Sinner@nlr.gov" },
