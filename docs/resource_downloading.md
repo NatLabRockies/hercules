@@ -110,19 +110,19 @@ Arguments to the `upsample_wind_data` function used to specify the upsampling ar
 - `turbulence_L`: The turbulence length scale to use for the Kaimal turbulence spectrum (m). Defaults to 340.2 m, the value specified in the IEC standard.
 - `TI_ref`: The reference TI that will be assigned at the reference wind speed `TI_ws_ref`. Defaults to 0.1.
 - `TI_ws_ref`: The reference wind speed at which the reference TI `TI_ref` is defined (m/s). Defaults to 8 m/s.
-- `save_individual_wds`: If `True`, upsampled wind directions will be saved in the output for each upsampled location. If `False`, only the mean wind direction over all locations will be saved. Defaults to `False`.
+- `save_individual_wds`: If `True`, upsampled wind directions for each individual location will be saved in the output in addition to the mean wind direction. If `False`, only the mean wind direction over all locations will be saved. Defaults to `False`.
 
 ### Output Format
 
-The function `upsample_wind_data` returns a pandas DataFrame containing the upsampled wind time series and saves the DataFrame as a `.feather` file. This DataFrame is in the format used for Hercules wind plant simulation inputs. An example illustrating the DataFrame columns is shown below for the case where `save_individual_wds` is `True`. Note that the suffixes "000", "001", etc. correspond to the locations specified in `x_locs_upsample` and `y_locs_upsample` (in order), and the `time` column contains the number of seconds from the start of the time series.
+The function `upsample_wind_data` returns a pandas DataFrame containing the upsampled wind time series and saves the DataFrame as a `.feather` file. This DataFrame is in the format used for Hercules wind plant simulation inputs. The mean wind direction `wd_mean` is always included in the output. An example illustrating the DataFrame columns is shown below for the case where `save_individual_wds` is `True`. Note that the suffixes "000", "001", etc. correspond to the locations specified in `x_locs_upsample` and `y_locs_upsample` (in order), and the `time` column contains the number of seconds from the start of the time series.
 
-| time | time_utc | ws_000 | wd_000 | ws_001 | wd_001 | ws_002 | ...
-|-----|-----|-----|-----|-----|-----|-----|-----|
-| 0.0 | 2020-01-01 00:00:00+00:00 | 5.7 | 256.2 | 5.7 | 256.0 | 6.4 | ... |
-| 1.0 | 2020-01-01 00:00:01+00:00 | 5.4 | 256.1 | 5.9 | 255.9 | 6.4 | ... |
-| 2.0 | 2020-01-01 00:00:02+00:00 | 5.7 | 256.0 | 5.8 | 255.8 | 5.7 | ... |
-| 3.0 | 2020-01-01 00:00:03+00:00 | 6.5 | 255.9 | 5.0 | 255.7 | 6.5 | ... |
-| ... | ... | ... | ... | ... | ... | ... | ... |
+| time | time_utc | wd_mean | ws_000 | wd_000 | ws_001 | wd_001 | ws_002 | ...
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| 0.0 | 2020-01-01 00:00:00+00:00 | 255.8 | 5.7 | 256.2 | 5.7 | 256.0 | 6.4 | ... |
+| 1.0 | 2020-01-01 00:00:01+00:00 | 255.8 | 5.4 | 256.1 | 5.9 | 255.9 | 6.4 | ... |
+| 2.0 | 2020-01-01 00:00:02+00:00 | 255.7 | 5.7 | 256.0 | 5.8 | 255.8 | 5.7 | ... |
+| 3.0 | 2020-01-01 00:00:03+00:00 | 255.6 | 6.5 | 255.9 | 5.0 | 255.7 | 6.5 | ... |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... |
 
 On the other hand, for the case where `save_individual_wds` is `False`, an example DataFrame is provided below.
 
