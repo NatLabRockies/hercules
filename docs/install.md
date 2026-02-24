@@ -36,7 +36,7 @@ conda activate hercules
 Alternatively, you can use uv to create a new environment for hercules.  This will create a new environment in the current directory.
 
 ```bash
-uv venv
+uv venv --python 3.13
 source .venv/bin/activate
 ```
 
