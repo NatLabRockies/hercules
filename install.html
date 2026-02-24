@@ -457,13 +457,13 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#root-directory">Root Directory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-hercules">Clone Hercules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-environment">Virtual environment</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda">CONDA</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda">Conda</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#uv">UV</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pip-install">PIP Install</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#just-hercules">Just Hercules</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#with-developer-and-documentation-dependencies">With Developer and Documentation Dependencies</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#with-developer-and-documentation-dependencies">With developer and documentation Dependencies</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
@@ -507,9 +507,9 @@ document.write(`
 <h2>Virtual environment<a class="headerlink" href="#virtual-environment" title="Link to this heading">#</a></h2>
 <p>It is recommended that you install Hercules into a virtual environment.</p>
 <section id="conda">
-<h3>CONDA<a class="headerlink" href="#conda" title="Link to this heading">#</a></h3>
+<h3>Conda<a class="headerlink" href="#conda" title="Link to this heading">#</a></h3>
 <p>To create a new conda environment for hercules:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>hercules<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>hercules<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.13
 conda<span class="w"> </span>activate<span class="w"> </span>hercules
 </pre></div>
 </div>
@@ -517,7 +517,7 @@ conda<span class="w"> </span>activate<span class="w"> </span>hercules
 <section id="uv">
 <h3>UV<a class="headerlink" href="#uv" title="Link to this heading">#</a></h3>
 <p>Alternatively, you can use uv to create a new environment for hercules.  This will create a new environment in the current directory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>venv
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>venv<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.13
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 </pre></div>
 </div>
@@ -536,7 +536,7 @@ See (Grid Status Data Download)[gridstatus_download.md] for more information.</p
 </div>
 </section>
 <section id="with-developer-and-documentation-dependencies">
-<h3>With Developer and Documentation Dependencies<a class="headerlink" href="#with-developer-and-documentation-dependencies" title="Link to this heading">#</a></h3>
+<h3>With developer and documentation Dependencies<a class="headerlink" href="#with-developer-and-documentation-dependencies" title="Link to this heading">#</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>develop,docs<span class="o">]</span>
 </pre></div>
 </div>
@@ -544,18 +544,17 @@ See (Grid Status Data Download)[gridstatus_download.md] for more information.</p
 </section>
 <section id="setting-branch">
 <h2>Setting branch<a class="headerlink" href="#setting-branch" title="Link to this heading">#</a></h2>
-<p>Can optionally switch to the v2 branch for the latest stable version.</p>
+<p>Users can simply remain on the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch. Developers should switch to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch to get the latest code changes. To change to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch, use</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>fetch<span class="w"> </span>--all
-git<span class="w"> </span>switch<span class="w"> </span>v2
+git<span class="w"> </span>switch<span class="w"> </span>develop
 </pre></div>
 </div>
 </section>
 <section id="hycon">
 <h2>Hycon<a class="headerlink" href="#hycon" title="Link to this heading">#</a></h2>
 <p>NLR’s Hycon software is used to implement controllers in the Hercules platform. This package is not essential to run Hercules by itself, but is needed to implement any controls in the platform.</p>
-<p>To install:
-Go back to root</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..
+<p>To install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># To hercules_root</span>
 git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/hycon.git
 <span class="nb">cd</span><span class="w"> </span>hycon
 git<span class="w"> </span>fetch<span class="w"> </span>--all
@@ -567,11 +566,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <h2>Electrolyzer<a class="headerlink" href="#electrolyzer" title="Link to this heading">#</a></h2>
 <p>A python electrolyzer model is also required for hercules. To install
 the electrolyzer, use</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># To hercules_root</span>
 git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/electrolyzer.git
-<span class="nb">cd</span><span class="w"> </span>electrolyzer
-git<span class="w"> </span>fetch<span class="w"> </span>--all
-git<span class="w"> </span>switch<span class="w"> </span>main
+pip<span class="w"> </span>install<span class="w"> </span>electrolyzer/
 </pre></div>
 </div>
 </section>
@@ -646,13 +643,13 @@ git<span class="w"> </span>switch<span class="w"> </span>main
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#root-directory">Root Directory</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-hercules">Clone Hercules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-environment">Virtual environment</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda">CONDA</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda">Conda</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#uv">UV</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pip-install">PIP Install</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#just-hercules">Just Hercules</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#with-developer-and-documentation-dependencies">With Developer and Documentation Dependencies</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#with-developer-and-documentation-dependencies">With developer and documentation Dependencies</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
