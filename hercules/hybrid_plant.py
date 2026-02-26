@@ -48,9 +48,7 @@ class HybridPlant:
         # This allows user-chosen instance names (e.g. "battery_unit_1") while
         # remaining backward compatible with conventional names (e.g. "battery").
         self.component_names = [
-            key
-            for key, val in h_dict.items()
-            if isinstance(val, dict) and "component_type" in val
+            key for key, val in h_dict.items() if isinstance(val, dict) and "component_type" in val
         ]
 
         # Add in the number of components
@@ -132,9 +130,7 @@ class HybridPlant:
         """
         # Collect the component objects
         for component_name in self.component_names:
-            is_battery = (
-                self.component_objects[component_name].component_category == "battery"
-            )
+            is_battery = self.component_objects[component_name].component_category == "battery"
 
             # Battery sign convention: negate setpoint before step, restore after
             if is_battery:

@@ -25,9 +25,7 @@ class ComponentBase:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "component_category"):
-            raise TypeError(
-                f"{cls.__name__} must define a class attribute 'component_category'"
-            )
+            raise TypeError(f"{cls.__name__} must define a class attribute 'component_category'")
 
     def __init__(self, h_dict, component_name):
         """Initialize the base component with a dictionary of parameters.
