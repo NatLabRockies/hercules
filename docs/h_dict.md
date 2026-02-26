@@ -30,7 +30,9 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
 
-### Wind Farm (`wind_farm`)
+Any top-level `h_dict` entry whose value is a dict containing a `component_type` key is auto-discovered as a plant component. The key is a user-chosen `component_name` (e.g. `wind_farm`, `battery_unit_1`) — it does not need to match the category name. See [Component Names, Types, and Categories](component_types.md) for details.
+
+### Wind Farm
 | `component_type` | str | Must be "WindFarm" or "WindFarmSCADAPower" |
 | `floris_input_file` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
@@ -39,7 +41,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `log_channels` | list | List of channels to log (e.g., ["power", "wind_speed_mean_background", "turbine_powers"]) |
 | `floris_update_time_s` | float | How often to update FLORIS wake calculations in seconds |
 
-### Solar Farm (`solar_farm`)
+### Solar Farm
 | `component_type` | str | "SolarPySAMPVWatts" |
 | **For SolarPySAMPVWatts:** |
 | `pysam_model` | str | "pvwatts" |
@@ -52,7 +54,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `log_channels` | list | List of channels to log (e.g., ["power", "dni", "poa", "aoi"]) |
 | `initial_conditions` | dict | Initial power, DNI, POA |
 
-### Battery (`battery`)
+### Battery
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
 | `component_type` | str | "BatterySimple" or "BatteryLithiumIon" | Required |
@@ -71,7 +73,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `usage_lifetime` | float | Battery lifetime in years (BatterySimple only) | - |
 | `usage_cycles` | int | Number of cycles until replacement (BatterySimple only) | - |
 
-### Electrolyzer (`electrolyzer`)
+### Electrolyzer
 | Key | Type | Description |
 |-----|------|-------------|
 | `initialize` | bool | Initialize electrolyzer |
@@ -82,6 +84,19 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `costs` | dict | Cost parameters |
 | `cell_params` | dict | Cell parameters |
 | `degradation` | dict | Degradation parameters |
+
+### Open Cycle Gas Turbine
+
+Set `component_type: OpenCycleGasTurbine`. See {doc}`open_cycle_gas_turbine` for the full parameter reference.
+
+| Key | Type | Description | Default |
+|-----|------|-------------|---------|
+| `component_type` | str | `"OpenCycleGasTurbine"` | Required |
+| `rated_capacity` | float | Rated power output in kW | Required |
+| `initial_conditions` | dict | Initial state (`power`, `state`) | Required |
+| `min_stable_load_fraction` | float | Minimum stable load as fraction of rated capacity | 0.40 |
+| `ramp_rate_fraction` | float | Ramp rate as fraction of rated capacity per minute | 0.10 |
+| `log_channels` | list | List of channels to log | `["power"]` |
 
 ### External Data (`external_data`)
 | Key | Type | Description | Default |

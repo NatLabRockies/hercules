@@ -12,7 +12,7 @@ for consistency with other components.  This inversion applies to power_setpoint
 
 ### Parameters
 
-Battery parameters are defined in the hercules input yaml file used to initialize `HerculesModel`.
+Battery parameters are defined in the hercules input yaml file used to initialize `HerculesModel`. The YAML section key is a user-chosen `component_name` (e.g. `battery`, `battery_unit_1`); the examples below use `battery` as a conventional choice. See [Component Names, Types, and Categories](component_types.md) for details.
 
 #### Required Parameters
 - `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`
