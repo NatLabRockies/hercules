@@ -11,7 +11,9 @@ from .test_inputs.h_dict import (
 
 def test_init_from_dict():
     """Test that OpenCycleGasTurbine can be initialized from a dictionary."""
-    ocgt = OpenCycleGasTurbine(copy.deepcopy(h_dict_open_cycle_gas_turbine), "open_cycle_gas_turbine")
+    ocgt = OpenCycleGasTurbine(
+        copy.deepcopy(h_dict_open_cycle_gas_turbine), "open_cycle_gas_turbine"
+    )
     assert ocgt is not None
 
 
