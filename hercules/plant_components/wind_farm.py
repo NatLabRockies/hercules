@@ -39,20 +39,21 @@ class WindFarm(ComponentBase):
     All three strategies support detailed turbine dynamics (filter_model or dof1_model).
     """
 
-    def __init__(self, h_dict):
+    component_category = "wind_farm"
+
+    def __init__(self, h_dict, component_name="wind_farm"):
         """Initialize the WindFarm class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
+            component_name (str): Unique name for this instance (the YAML top-level key).
+                Defaults to ``"wind_farm"`` for backward compatibility.
 
         Raises:
             ValueError: If wake_method is invalid or required parameters are missing.
         """
-        # Store the name of this component
-        self.component_name = "wind_farm"
-
-        # Get the wake_method from h_dict
-        wake_method = h_dict[self.component_name].get("wake_method", "dynamic")
+        # Get the wake_method from h_dict (use parameter before super sets self.component_name)
+        wake_method = h_dict[component_name].get("wake_method", "dynamic")
 
         # Validate wake_method
         if wake_method not in ["dynamic", "precomputed", "no_added_wakes"]:
@@ -63,12 +64,8 @@ class WindFarm(ComponentBase):
 
         self.wake_method = wake_method
 
-        # Store the type of this component (for backward compatibility)
-        component_type = h_dict[self.component_name].get("component_type", "WindFarm")
-        self.component_type = component_type
-
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         self.logger.info(f"Initializing WindFarm with wake_method='{self.wake_method}'")
 
