@@ -10,7 +10,7 @@ from .test_inputs.h_dict import (
 
 def test_init_from_dict():
     """Test that ThermalComponentBase can be initialized from a dictionary."""
-    tpb = ThermalComponentBase(copy.deepcopy(h_dict_thermal_component))
+    tpb = ThermalComponentBase(copy.deepcopy(h_dict_thermal_component), "thermal_component")
     assert tpb is not None
 
 
@@ -21,44 +21,44 @@ def test_invalid_inputs():
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["rated_capacity"] = "1000"
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test min_stable_load_fraction must be between 0 and 1
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["min_stable_load_fraction"] = 1.1
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["min_stable_load_fraction"] = -0.1
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test ramp_rate_fraction must be a number greater than 0
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["ramp_rate_fraction"] = 0
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test run_up_rate_fraction must be a number greater than 0
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["run_up_rate_fraction"] = 0
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test min_up_time must be a number greater than or equal to 0
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["min_up_time"] = 0
-    ThermalComponentBase(h_dict)
+    ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["min_up_time"] = -1
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test min_down_time must be a number greater than or equal to 0
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["min_down_time"] = 0
-    ThermalComponentBase(h_dict)
+    ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["min_down_time"] = -1
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
     # Test hot_startup_time must be a number greater than the ramp_time
     # determined by the run_up_rate_fraction
@@ -69,9 +69,9 @@ def test_invalid_inputs():
     # The above implies a ramp_time of 60s
     h_dict["thermal_component"]["hot_startup_time"] = 59
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["hot_startup_time"] = 60
-    ThermalComponentBase(h_dict)
+    ThermalComponentBase(h_dict, "thermal_component")
 
     # Test cold_startup_time must be a number greater than or equal to the
     # hot_startup_time (which in this setup equals the ramp_time determined
@@ -87,9 +87,9 @@ def test_invalid_inputs():
     # The above implies a ramp_time of 60s
     h_dict["thermal_component"]["cold_startup_time"] = 59
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["cold_startup_time"] = 60
-    ThermalComponentBase(h_dict)
+    ThermalComponentBase(h_dict, "thermal_component")
 
 
 def test_compute_ramp_and_readying_times():
@@ -101,7 +101,7 @@ def test_compute_ramp_and_readying_times():
     # The above implies a ramp_time of 60s
     h_dict["thermal_component"]["hot_startup_time"] = 60
     h_dict["thermal_component"]["cold_startup_time"] = 120
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
     assert tcb.ramp_time == 60
     assert tcb.hot_readying_time == 0
     assert tcb.cold_readying_time == 60
@@ -113,7 +113,7 @@ def test_initial_conditions():
     # Test that power > 0 implies ON state
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
     assert tcb.power_output == 1000
     assert tcb.state == ThermalComponentBase.STATES.ON
     # When ON, time_in_state should equal min_up_time (ready to stop)
@@ -122,7 +122,7 @@ def test_initial_conditions():
     # Test that power == 0 implies OFF state
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 0
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
     assert tcb.power_output == 0
     assert tcb.state == ThermalComponentBase.STATES.OFF
     # When OFF, time_in_state should equal min_down_time (ready to start)
@@ -132,10 +132,10 @@ def test_initial_conditions():
     h_dict = copy.deepcopy(h_dict_thermal_component)
     h_dict["thermal_component"]["initial_conditions"]["power"] = -1
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1100
     with pytest.raises(ValueError):
-        ThermalComponentBase(h_dict)
+        ThermalComponentBase(h_dict, "thermal_component")
 
 
 def test_power_setpoint_in_normal_operation():
@@ -151,7 +151,7 @@ def test_power_setpoint_in_normal_operation():
     # Set the initial conditions to be 500 kW (implies ON state)
     h_dict["thermal_component"]["initial_conditions"]["power"] = 500
 
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Set the power setpoint to the initial condition
     h_dict["thermal_component"]["power_setpoint"] = 500.0
@@ -219,7 +219,7 @@ def test_transition_on_to_off():
     # Set the min_stable_load_fraction to be 0.2 (200 kW)
     h_dict["thermal_component"]["min_stable_load_fraction"] = 0.2
 
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Initial state: ON with time_in_state = min_up_time (5s, ready to stop)
     assert tcb.state == tcb.STATES.ON
@@ -302,7 +302,7 @@ def test_transition_off_to_on():
     # This run up time and min_stable_load_fraction imply a ramp_time of 4 seconds
     # so the hot readying time should be 3 seconds
 
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Initial state: OFF with time_in_state = min_down_time (3s, ready to start)
     assert tcb.state == tcb.STATES.OFF
@@ -399,7 +399,7 @@ def test_efficiency_clamping():
         "power_fraction": [0.25, 0.50, 0.75, 0.9],
         "efficiency": [0.30, 0.35, 0.38, 0.40],
     }
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Test above highest power fraction (should clamp to 0.40)
     # rated_capacity = 1000 kW, so 1000 kW = 100% load (above table max of 0.9)
@@ -427,7 +427,7 @@ def test_efficiency_interpolation():
         "power_fraction": [0.25, 0.50, 0.75, 1.0],
         "efficiency": [0.30, 0.35, 0.38, 0.40],
     }
-    tcb = ThermalComponentBase(h_dict)
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Test at table points (rated_capacity = 1000 kW)
     assert tcb.calculate_efficiency(1000) == pytest.approx(0.40)  # 100% load

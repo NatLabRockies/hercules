@@ -109,7 +109,7 @@ def get_solar_params():
 
 def test_SolarPySAM_regression_control():
     solar_dict = get_solar_params()
-    SPS = SolarPySAMPVWatts(solar_dict)
+    SPS = SolarPySAMPVWatts(solar_dict, "solar_farm")
 
     power_setpoint = 13800.0  # Slightly below most of the base outputs.
 

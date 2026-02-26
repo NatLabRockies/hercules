@@ -14,7 +14,7 @@ from tests.test_inputs.h_dict import h_dict_solar_pvwatts
 def test_init():
     # testing the `init` function: reading the inputs from input dictionary
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
-    SPS = SolarPySAMPVWatts(test_h_dict)
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
     assert SPS.dt == test_h_dict["dt"]
     # Test that system_capacity is stored correctly
@@ -31,7 +31,7 @@ def test_return_outputs():
     # Note: Current SolarPySAMPVWatts doesn't have return_outputs method,
     # so we test the attributes directly
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
-    SPS = SolarPySAMPVWatts(test_h_dict)
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
     assert SPS.power == 25
     assert SPS.dni == 1000
@@ -53,7 +53,7 @@ def test_return_outputs():
 def test_step():
     # testing the `step` function: calculating power based on inputs at first timestep
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
-    SPS = SolarPySAMPVWatts(test_h_dict)
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": 1e9}}
 
@@ -70,7 +70,7 @@ def test_step():
 
 def test_control():
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
-    SPS = SolarPySAMPVWatts(test_h_dict)
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
     # Test curtailment - set power setpoint above uncurtailed power,
     # should get uncurtailed power

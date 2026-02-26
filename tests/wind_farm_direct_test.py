@@ -16,7 +16,7 @@ h_dict_wind_direct["wind_farm"]["wake_method"] = "no_added_wakes"
 
 def test_wind_farm_direct_initialization():
     """Test that WindFarm initializes correctly with wake_method='no_added_wakes'."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarm"
@@ -32,7 +32,7 @@ def test_wind_farm_direct_initialization():
 
 def test_wind_farm_direct_no_wakes():
     """Test that no wake deficits are applied in direct mode."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Verify initial wake deficits are zero
     assert np.all(wind_sim.floris_wake_deficits == 0.0)
@@ -43,7 +43,7 @@ def test_wind_farm_direct_no_wakes():
 
 def test_wind_farm_direct_step():
     """Test that the step method works correctly in direct mode."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Add power setpoint values to the step h_dict
     step_h_dict = {"step": 1}
@@ -71,7 +71,7 @@ def test_wind_farm_direct_step():
 
 def test_wind_farm_direct_no_wake_deficits_over_time():
     """Test that wake deficits remain zero throughout simulation."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Run multiple steps
     for step in range(5):
@@ -92,7 +92,7 @@ def test_wind_farm_direct_no_wake_deficits_over_time():
 
 def test_wind_farm_direct_turbine_dynamics():
     """Test that turbine dynamics still work in direct mode."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Run a step with very low power setpoint
     step_h_dict = {"step": 1}
@@ -108,7 +108,7 @@ def test_wind_farm_direct_turbine_dynamics():
 
 def test_wind_farm_direct_power_setpoint_zero():
     """Test that turbine powers go to zero when setpoint is zero."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Run multiple steps with zero setpoint to ensure filter settles
     for step in range(10):
@@ -124,7 +124,7 @@ def test_wind_farm_direct_power_setpoint_zero():
 
 def test_wind_farm_direct_initial_conditions():
     """Test that initial conditions are correctly set in h_dict."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     initial_h_dict = copy.deepcopy(h_dict_wind_direct)
     result_h_dict = wind_sim.get_initial_conditions_and_meta_data(initial_h_dict)
@@ -144,7 +144,7 @@ def test_wind_farm_direct_initial_conditions():
 
 def test_wind_farm_direct_output_consistency():
     """Test that outputs are consistent with no wake modeling."""
-    wind_sim = WindFarm(h_dict_wind_direct)
+    wind_sim = WindFarm(h_dict_wind_direct, "wind_farm")
 
     # Run a step
     step_h_dict = {"step": 2}
