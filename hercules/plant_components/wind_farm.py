@@ -47,7 +47,6 @@ class WindFarm(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"wind_farm"`` for backward compatibility.
 
         Raises:
             ValueError: If wake_method is invalid or required parameters are missing.

@@ -84,7 +84,6 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     power_fraction = [1.0, 0.75, 0.50, 0.25],
                     efficiency = [0.39, 0.37, 0.325, 0.245].
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"open_cycle_gas_turbine"`` for backward compatibility.
         """
 
         # Apply fixed default parameters based on [1], [2] and [3]

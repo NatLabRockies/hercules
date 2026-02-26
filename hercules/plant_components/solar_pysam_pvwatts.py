@@ -15,7 +15,6 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"solar_farm"`` for backward compatibility.
         """
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)

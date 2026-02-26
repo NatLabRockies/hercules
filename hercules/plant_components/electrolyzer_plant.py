@@ -90,7 +90,6 @@ class ElectrolyzerPlant(ComponentBase):
                         - discount_rate: Discount rate for financial calculations [%].
                         - install_factor: Installation factor for capital expenditure [0,1].
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"electrolyzer"`` for backward compatibility.
         """
 
         # Call the base class init (sets self.component_name and self.component_type)

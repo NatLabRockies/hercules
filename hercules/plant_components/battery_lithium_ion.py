@@ -105,7 +105,6 @@ class BatteryLithiumIon(ComponentBase):
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"battery"`` for backward compatibility.
         """
 
         # Call the base class init (sets self.component_name and self.component_type)

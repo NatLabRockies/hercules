@@ -102,7 +102,6 @@ class BatterySimple(ComponentBase):
                 - self_discharge_time_constant: Optional self-discharge time constant
                 - track_usage: Optional boolean to enable usage tracking
             component_name (str): Unique name for this instance (the YAML top-level key).
-                Defaults to ``"battery"`` for backward compatibility.
         """
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
