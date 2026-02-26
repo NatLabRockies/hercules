@@ -83,7 +83,7 @@ class BatterySimple(ComponentBase):
 
     component_category = "battery"
 
-    def __init__(self, h_dict, component_name="battery"):
+    def __init__(self, h_dict, component_name):
         """Initialize the BatterySimple class.
 
         This model represents a simple battery with energy storage and power constraints.

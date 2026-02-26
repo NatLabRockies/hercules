@@ -80,7 +80,7 @@ class ThermalComponentBase(ComponentBase):
     HOT_START_TIME = 8 * 60 * 60  # 8 hours (less than 8 hours triggers a hot start)
     WARM_START_TIME = 48 * 60 * 60  # 48 hours (less than 48 hours triggers a warm start)
 
-    def __init__(self, h_dict, component_name="thermal_component"):
+    def __init__(self, h_dict, component_name):
         """Initialize the ThermalComponentBase class.
 
         Args:

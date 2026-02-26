@@ -9,7 +9,7 @@ from hercules.utilities import hercules_float_type
 class SolarPySAMPVWatts(SolarPySAMBase):
     """Solar simulator using PySAM's simplified PV model (Pvwattsv8)."""
 
-    def __init__(self, h_dict, component_name="solar_farm"):
+    def __init__(self, h_dict, component_name):
         """Initialize the PVWatts solar simulator.
 
         Args:

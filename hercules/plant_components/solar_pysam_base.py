@@ -20,7 +20,7 @@ class SolarPySAMBase(ComponentBase):
 
     component_category = "solar_farm"
 
-    def __init__(self, h_dict, component_name="solar_farm"):
+    def __init__(self, h_dict, component_name):
         """Initialize the base solar PySAM simulator.
 
         Args:

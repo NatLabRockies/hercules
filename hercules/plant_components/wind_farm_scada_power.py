@@ -14,7 +14,7 @@ class WindFarmSCADAPower(ComponentBase):
 
     component_category = "wind_farm"
 
-    def __init__(self, h_dict, component_name="wind_farm"):
+    def __init__(self, h_dict, component_name):
         """Initialize the WindFarm class.
 
         Args:

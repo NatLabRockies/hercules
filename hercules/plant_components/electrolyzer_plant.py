@@ -16,7 +16,7 @@ class ElectrolyzerPlant(ComponentBase):
 
     component_category = "electrolyzer"
 
-    def __init__(self, h_dict, component_name="electrolyzer"):
+    def __init__(self, h_dict, component_name):
         """Initialize the ElectrolyzerPlant class.
 
         Args:

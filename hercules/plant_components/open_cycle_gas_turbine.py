@@ -46,7 +46,7 @@ class OpenCycleGasTurbine(ThermalComponentBase):
     All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
     """
 
-    def __init__(self, h_dict, component_name="open_cycle_gas_turbine"):
+    def __init__(self, h_dict, component_name):
         """Initialize the OpenCycleGasTurbine class.
 
         Args:
