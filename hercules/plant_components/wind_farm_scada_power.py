@@ -12,19 +12,18 @@ from hercules.utilities import (
 class WindFarmSCADAPower(ComponentBase):
     """Wind farm model that uses SCADA power data to simulate wind farm performance."""
 
-    def __init__(self, h_dict):
+    component_category = "wind_farm"
+
+    def __init__(self, h_dict, component_name="wind_farm"):
         """Initialize the WindFarm class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
+            component_name (str): Unique name for this instance (the YAML top-level key).
+                Defaults to ``"wind_farm"`` for backward compatibility.
         """
-        # Store the name of this component
-        self.component_name = "wind_farm"
-
-        self.component_type = "WindFarmSCADAPower"
-
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         self.logger.info("Initializing WindFarmSCADAPower")
 
