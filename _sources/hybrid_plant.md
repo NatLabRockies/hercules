@@ -11,7 +11,7 @@ HybridPlant automatically detects and initializes components based on the [h_dic
 | Component | Component Type | Description |
 |-----------|----------------|-------------|
 | `wind_farm` | `WindFarm` | FLORIS-based wind farm simulation |
-| `wind_farm` | `WindFarmSCADAPower` | Pass through wind farm SCADA |
+| `wind_farm` | `WindFarmSCADAPower` | Playback of pre-recorded SCADA turbine power data |
 | `solar_farm` | `SolarPySAMPVWatts` | PySAM-based simplified solar simulation |
 | `battery` | `BatterySimple` | Basic battery storage model |
 | `battery` | `BatteryLithiumIon` | Detailed lithium-ion battery model |

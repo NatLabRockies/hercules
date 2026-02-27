@@ -458,8 +458,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-no-added-wakes-method">WindFarm (with No Added Wakes method)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-scada-power-data">WindFarmSCADAPower (SCADA Power Data)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-required-parameters">Common Required Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-specific-parameters">WindFarm Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-required-parameters">WindFarm Required Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-specific-parameters">WindFarmSCADAPower Specific Parameters</a></li>
 </ul>
 </li>
@@ -470,6 +469,7 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-outputs">Common Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-only-outputs">WindFarm-Only Outputs</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a><ul class="nav section-nav flex-column">
@@ -520,23 +520,16 @@ document.write(`
 </section>
 <section id="windfarmscadapower-scada-power-data">
 <h2>WindFarmSCADAPower (SCADA Power Data)<a class="headerlink" href="#windfarmscadapower-scada-power-data" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code> uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component applies a filter to the SCADA power data to simulate turbine response dynamics and respects power setpoint constraints.</p>
-<p><em>This model is a beta feature and is not yet fully tested.</em></p>
+<p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code> plays back pre-recorded SCADA turbine power data directly rather than computing power from wind speeds and turbine models. There is no filtering or control – the turbine powers are simply replayed at the values present in the SCADA data file.</p>
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
-<section id="common-required-parameters">
-<h3>Common Required Parameters<a class="headerlink" href="#common-required-parameters" title="Link to this heading">#</a></h3>
-<p>Required parameters for both components in <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict</span></a> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time-related parameters):</p>
+<section id="windfarm-required-parameters">
+<h3>WindFarm Required Parameters<a class="headerlink" href="#windfarm-required-parameters" title="Link to this heading">#</a></h3>
+<p>Required parameters for WindFarm in <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict</span></a> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time-related parameters):</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_input_file</span></code>: FLORIS farm configuration</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_input_filename</span></code>: Wind resource data file</p></li>
-</ul>
-</section>
-<section id="windfarm-specific-parameters">
-<h3>WindFarm Specific Parameters<a class="headerlink" href="#windfarm-specific-parameters" title="Link to this heading">#</a></h3>
-<p>Required parameters for WindFarm:</p>
-<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">wake_method</span></code>: One of <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;precomputed&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;no_added_wakes&quot;</span></code> (defaults to <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code>: How often to update FLORIS (the last <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> seconds are averaged as input). Required for <code class="docutils literal notranslate"><span class="pre">&quot;dynamic&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;precomputed&quot;</span></code> wake methods; for <code class="docutils literal notranslate"><span class="pre">&quot;no_added_wakes&quot;</span></code>, this parameter is not required and ignored if provided.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">turbine_file_name</span></code>: Turbine model configuration</p></li>
@@ -548,7 +541,6 @@ document.write(`
 <p>Required parameters for WindFarmSCADAPower:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">scada_filename</span></code>: Path to SCADA data file (CSV, pickle, or feather format)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_file_name</span></code>: Turbine model configuration (for filter parameters)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log. See <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> section below for details.</p></li>
 </ul>
 <p><strong>SCADA File Format:</strong></p>
@@ -569,7 +561,7 @@ document.write(`
 </section>
 <section id="turbine-models">
 <h2>Turbine Models<a class="headerlink" href="#turbine-models" title="Link to this heading">#</a></h2>
-<p><strong>Note:</strong> WindFarmSCADAPower does not use a filter model as power values come directly from SCADA data rather than being computed from wind speedes.</p>
+<p><strong>Note:</strong> WindFarmSCADAPower does not use turbine models as power values come directly from SCADA data rather than being computed from wind speeds.</p>
 <section id="filter-model">
 <h3>Filter Model<a class="headerlink" href="#filter-model" title="Link to this heading">#</a></h3>
 <p>Simple first-order filter for power output smoothing with configurable time constants.</p>
@@ -587,12 +579,18 @@ document.write(`
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Total wind farm power (kW)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Individual turbine power outputs (array, kW)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Current power setpoint values (array, kW)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_background</span></code>: Farm-average background wind speed (m/s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speed_mean_withwakes</span></code>: Farm-average with-wakes wind speed (m/s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_direction_mean</span></code>: Farm-average wind direction (degrees)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code>: Per-turbine background wind speeds (array, m/s)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code>: Per-turbine with-wakes wind speeds (array, m/s)</p></li>
+</ul>
+</section>
+<section id="windfarm-only-outputs">
+<h3>WindFarm-Only Outputs<a class="headerlink" href="#windfarm-only-outputs" title="Link to this heading">#</a></h3>
+<p>The three <code class="docutils literal notranslate"><span class="pre">WindFarm</span></code> variants additionally provide:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Current power setpoint values (array, kW)</p></li>
 </ul>
 <p><strong>Note for WindFarm with no_added_wakes and WindFarmSCADAPower:</strong> In these models (no wake modeling), <code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code> equals <code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code> and <code class="docutils literal notranslate"><span class="pre">wind_speed_mean_withwakes</span></code> equals <code class="docutils literal notranslate"><span class="pre">wind_speed_mean_background</span></code>.</p>
 </section>
@@ -612,7 +610,7 @@ document.write(`
 <p><strong>Array Channels:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">turbine_powers</span></code>: Power output for all turbines (creates datasets like <code class="docutils literal notranslate"><span class="pre">wind_farm.turbine_powers.000</span></code>, <code class="docutils literal notranslate"><span class="pre">wind_farm.turbine_powers.001</span></code>, etc.)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Power setpoints for all turbines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">turbine_power_setpoints</span></code>: Power setpoints for all turbines (WindFarm only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_background</span></code>: Background wind speeds for all turbines</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wind_speeds_withwakes</span></code>: With-wakes wind speeds for all turbines</p></li>
 </ul>
@@ -738,8 +736,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-with-no-added-wakes-method">WindFarm (with No Added Wakes method)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-scada-power-data">WindFarmSCADAPower (SCADA Power Data)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-required-parameters">Common Required Parameters</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-specific-parameters">WindFarm Specific Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-required-parameters">WindFarm Required Parameters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarmscadapower-specific-parameters">WindFarmSCADAPower Specific Parameters</a></li>
 </ul>
 </li>
@@ -750,6 +747,7 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-outputs">Common Outputs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windfarm-only-outputs">WindFarm-Only Outputs</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a><ul class="nav section-nav flex-column">

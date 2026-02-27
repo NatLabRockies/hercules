@@ -31,21 +31,15 @@ Using `WindFarm` with `wake_method="no_added_wakes"` assumes that wake effects a
 
 ## WindFarmSCADAPower (SCADA Power Data)
 
-`WindFarmSCADAPower` uses SCADA power measurements directly rather than computing power from wind speeds and turbine models. This component applies a filter to the SCADA power data to simulate turbine response dynamics and respects power setpoint constraints.
-
-_This model is a beta feature and is not yet fully tested._
+`WindFarmSCADAPower` plays back pre-recorded SCADA turbine power data directly rather than computing power from wind speeds and turbine models. There is no filtering or control -- the turbine powers are simply replayed at the values present in the SCADA data file.
 
 ## Configuration
 
-### Common Required Parameters
+### WindFarm Required Parameters
 
-Required parameters for both components in [h_dict](h_dict.md) (see [timing](timing.md) for time-related parameters):
+Required parameters for WindFarm in [h_dict](h_dict.md) (see [timing](timing.md) for time-related parameters):
 - `floris_input_file`: FLORIS farm configuration
 - `wind_input_filename`: Wind resource data file
-
-### WindFarm Specific Parameters
-
-Required parameters for WindFarm:
 - `wake_method`: One of `"dynamic"`, `"precomputed"`, or `"no_added_wakes"` (defaults to `"dynamic"`)
 - `floris_update_time_s`: How often to update FLORIS (the last `floris_update_time_s` seconds are averaged as input). Required for `"dynamic"` and `"precomputed"` wake methods; for `"no_added_wakes"`, this parameter is not required and ignored if provided.
 - `turbine_file_name`: Turbine model configuration
@@ -55,7 +49,6 @@ Required parameters for WindFarm:
 
 Required parameters for WindFarmSCADAPower:
 - `scada_filename`: Path to SCADA data file (CSV, pickle, or feather format)
-- `turbine_file_name`: Turbine model configuration (for filter parameters)
 - `log_channels`: List of output channels to log. See [Logging Configuration](#logging-configuration) section below for details.
 
 **SCADA File Format:**
@@ -74,7 +67,7 @@ The number of turbines and rated power are automatically inferred from the SCADA
 
 ## Turbine Models
 
-**Note:** WindFarmSCADAPower does not use a filter model as power values come directly from SCADA data rather than being computed from wind speedes.
+**Note:** WindFarmSCADAPower does not use turbine models as power values come directly from SCADA data rather than being computed from wind speeds.
 
 ### Filter Model
 Simple first-order filter for power output smoothing with configurable time constants.
@@ -89,12 +82,16 @@ Advanced model with rotor dynamics, pitch control, and generator torque control.
 All four components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
-- `turbine_power_setpoints`: Current power setpoint values (array, kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
 - `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
+
+### WindFarm-Only Outputs
+
+The three `WindFarm` variants additionally provide:
+- `turbine_power_setpoints`: Current power setpoint values (array, kW)
 
 
 **Note for WindFarm with no_added_wakes and WindFarmSCADAPower:** In these models (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
@@ -114,7 +111,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Array Channels:**
 - `turbine_powers`: Power output for all turbines (creates datasets like `wind_farm.turbine_powers.000`, `wind_farm.turbine_powers.001`, etc.)
-- `turbine_power_setpoints`: Power setpoints for all turbines
+- `turbine_power_setpoints`: Power setpoints for all turbines (WindFarm only)
 - `wind_speeds_background`: Background wind speeds for all turbines
 - `wind_speeds_withwakes`: With-wakes wind speeds for all turbines
 
