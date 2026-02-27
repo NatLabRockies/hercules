@@ -11,15 +11,9 @@ import polars as pl
 import yaml
 from scipy.interpolate import interp1d
 
-from hercules.component_types import VALID_COMPONENT_TYPES
-
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
 hercules_complex_type = np.csingle
-
-
-# All component_type strings (class names) that can appear in a YAML component_type field.
-_VALID_COMPONENT_TYPES = list(VALID_COMPONENT_TYPES)
 
 
 class Loader(yaml.SafeLoader):
@@ -217,7 +211,10 @@ def load_hercules_input(filename):
 
     # Define valid keys
     required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
-    valid_component_types = _VALID_COMPONENT_TYPES
+    # Lazy import to avoid circular dependency
+    from hercules.hybrid_plant import VALID_COMPONENT_TYPES
+
+    valid_component_types = list(VALID_COMPONENT_TYPES)
     other_keys = [
         "name",
         "description",
