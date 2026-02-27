@@ -121,9 +121,9 @@ def test_component_category_attributes():
     """Test that component objects expose the correct component_category class attribute."""
     hp = hybrid_plant.HybridPlant(copy.deepcopy(h_dict_wind_solar_battery))
 
-    assert hp.component_objects["wind_farm"].component_category == "wind_farm"
-    assert hp.component_objects["solar_farm"].component_category == "solar_farm"
-    assert hp.component_objects["battery"].component_category == "battery"
+    assert hp.component_objects["wind_farm"].component_category == "generator"
+    assert hp.component_objects["solar_farm"].component_category == "generator"
+    assert hp.component_objects["battery"].component_category == "storage"
 
 
 def test_component_type_auto_set():
