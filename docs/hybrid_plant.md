@@ -25,3 +25,21 @@ The YAML key for each section is a user-chosen `component_name` and is not requi
 ## Generator Classification
 
 `HybridPlant` classifies components into generators and non-generators based on `component_category`. Components with `component_category == "generator"` have their power outputs summed into `h_dict["plant"]["locally_generated_power"]` each time step. Storage and load components are excluded from this sum.
+
+## Component Registry
+
+All available component types are defined in `COMPONENT_REGISTRY` at the top of `hercules/hybrid_plant.py`. This dictionary maps `component_type` strings to their Python classes:
+
+```python
+COMPONENT_REGISTRY = {
+    "WindFarm": WindFarm,
+    "WindFarmSCADAPower": WindFarmSCADAPower,
+    "SolarPySAMPVWatts": SolarPySAMPVWatts,
+    "BatterySimple": BatterySimple,
+    "BatteryLithiumIon": BatteryLithiumIon,
+    "ElectrolyzerPlant": ElectrolyzerPlant,
+    "OpenCycleGasTurbine": OpenCycleGasTurbine,
+}
+```
+
+When adding a new component type, it must be registered here. See [Adding Components](adding_components.md) for a complete guide.

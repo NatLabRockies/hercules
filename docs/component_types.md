@@ -57,6 +57,8 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 
 Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.
 
+For a guide on implementing new component types, see [Adding Components](adding_components.md).
+
 ---
 
 ## Multi-Instance Plants
