@@ -27,7 +27,8 @@ The **component type** is the string value of the `component_type` field inside 
 The **component category** is a class-level attribute defined in each component class. It is not read from YAML — it is part of the class definition itself.
 
 - **Source**: `component_category = "..."` class variable in the Python class
-- **Used by**: `HybridPlant` to classify components as generators vs. storage/conversion, and to apply the battery sign convention
+- **Valid values**: `"generator"`, `"load"`, or `"storage"`
+- **Used by**: `HybridPlant` to classify components as generators vs. load/storage, and to apply the storage sign convention
 - **Available as**: `self.component_category` on the component object (and `ComponentBase.component_category` as a class attribute)
 
 Every `ComponentBase` subclass **must** define `component_category`; a `TypeError` is raised at class-definition time if it is missing.
@@ -38,7 +39,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 |---|---|---|---|
 | `component_name` | User (YAML key) | `"battery_unit_1"` | Accessing `h_dict[name]`; unique instance ID |
 | `component_type` | User (`component_type:` field) | `"BatterySimple"` | Registry lookup to select the Python class |
-| `component_category` | Developer (class variable) | `"battery"` | Generator classification; sign convention |
+| `component_category` | Developer (class variable) | `"storage"` | Generator classification; sign convention |
 
 ---
 
@@ -46,15 +47,15 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 
 | `component_type` | `component_category` | Generator? | Documentation |
 |---|---|---|---|
-| `WindFarm` | `wind_farm` | Yes | [Wind](wind.md) |
-| `WindFarmSCADAPower` | `wind_farm` | Yes | [Wind](wind.md) |
-| `SolarPySAMPVWatts` | `solar_farm` | Yes | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `battery` | No | [Battery](battery.md) |
-| `BatteryLithiumIon` | `battery` | No | [Battery](battery.md) |
-| `ElectrolyzerPlant` | `electrolyzer` | No | [Electrolyzer](electrolyzer.md) |
-| `OpenCycleGasTurbine` | `thermal` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `WindFarm` | `generator` | Yes | [Wind](wind.md) |
+| `WindFarmSCADAPower` | `generator` | Yes | [Wind](wind.md) |
+| `SolarPySAMPVWatts` | `generator` | Yes | [Solar PV](solar_pv.md) |
+| `BatterySimple` | `storage` | No | [Battery](battery.md) |
+| `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
+| `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
+| `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
 
-Components in the `wind_farm`, `solar_farm`, and `thermal` categories are classified as generators and contribute to `h_dict["plant"]["locally_generated_power"]`.
+Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.
 
 ---
 

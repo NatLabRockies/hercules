@@ -12,16 +12,16 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 
 | `component_type` | `component_category` | Generator? | Documentation |
 |---|---|---|---|
-| `WindFarm` | `wind_farm` | Yes | [Wind](wind.md) |
-| `WindFarmSCADAPower` | `wind_farm` | Yes | [Wind](wind.md) |
-| `SolarPySAMPVWatts` | `solar_farm` | Yes | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `battery` | No | [Battery](battery.md) |
-| `BatteryLithiumIon` | `battery` | No | [Battery](battery.md) |
-| `ElectrolyzerPlant` | `electrolyzer` | No | [Electrolyzer](electrolyzer.md) |
-| `OpenCycleGasTurbine` | `thermal` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `WindFarm` | `generator` | Yes | [Wind](wind.md) |
+| `WindFarmSCADAPower` | `generator` | Yes | [Wind](wind.md) |
+| `SolarPySAMPVWatts` | `generator` | Yes | [Solar PV](solar_pv.md) |
+| `BatterySimple` | `storage` | No | [Battery](battery.md) |
+| `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
+| `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
+| `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
 
 The YAML key for each section is a user-chosen `component_name` and is not required to match the category name. For example, a `BatterySimple` component could be named `battery`, `battery_unit_1`, or anything else.
 
 ## Generator Classification
 
-`HybridPlant` classifies components into generators and non-generators based on `component_category`. Components in the `wind_farm`, `solar_farm`, and `thermal` categories are generators; their power outputs are summed into `h_dict["plant"]["locally_generated_power"]` each time step. Batteries and electrolyzers are excluded from this sum.
+`HybridPlant` classifies components into generators and non-generators based on `component_category`. Components with `component_category == "generator"` have their power outputs summed into `h_dict["plant"]["locally_generated_power"]` each time step. Storage and load components are excluded from this sum.
