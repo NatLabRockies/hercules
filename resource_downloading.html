@@ -586,16 +586,17 @@ document.write(`
 <li><p><code class="docutils literal notranslate"><span class="pre">turbulence_L</span></code>: The turbulence length scale to use for the Kaimal turbulence spectrum (m). Defaults to 340.2 m, the value specified in the IEC standard.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">TI_ref</span></code>: The reference TI that will be assigned at the reference wind speed <code class="docutils literal notranslate"><span class="pre">TI_ws_ref</span></code>. Defaults to 0.1.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">TI_ws_ref</span></code>: The reference wind speed at which the reference TI <code class="docutils literal notranslate"><span class="pre">TI_ref</span></code> is defined (m/s). Defaults to 8 m/s.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">save_individual_wds</span></code>: If <code class="docutils literal notranslate"><span class="pre">True</span></code>, upsampled wind directions will be saved in the output for each upsampled location. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, only the mean wind direction over all locations will be saved. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_individual_wds</span></code>: If <code class="docutils literal notranslate"><span class="pre">True</span></code>, upsampled wind directions for each individual location will be saved in the output in addition to the mean wind direction. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, only the mean wind direction over all locations will be saved. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
 </ul>
 </section>
 <section id="id1">
 <h3>Output Format<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
-<p>The function <code class="docutils literal notranslate"><span class="pre">upsample_wind_data</span></code> returns a pandas DataFrame containing the upsampled wind time series and saves the DataFrame as a <code class="docutils literal notranslate"><span class="pre">.feather</span></code> file. This DataFrame is in the format used for Hercules wind plant simulation inputs. An example illustrating the DataFrame columns is shown below for the case where <code class="docutils literal notranslate"><span class="pre">save_individual_wds</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Note that the suffixes “000”, “001”, etc. correspond to the locations specified in <code class="docutils literal notranslate"><span class="pre">x_locs_upsample</span></code> and <code class="docutils literal notranslate"><span class="pre">y_locs_upsample</span></code> (in order), and the <code class="docutils literal notranslate"><span class="pre">time</span></code> column contains the number of seconds from the start of the time series.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">upsample_wind_data</span></code> returns a pandas DataFrame containing the upsampled wind time series and saves the DataFrame as a <code class="docutils literal notranslate"><span class="pre">.feather</span></code> file. This DataFrame is in the format used for Hercules wind plant simulation inputs. The mean wind direction <code class="docutils literal notranslate"><span class="pre">wd_mean</span></code> is always included in the output. An example illustrating the DataFrame columns is shown below for the case where <code class="docutils literal notranslate"><span class="pre">save_individual_wds</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Note that the suffixes “000”, “001”, etc. correspond to the locations specified in <code class="docutils literal notranslate"><span class="pre">x_locs_upsample</span></code> and <code class="docutils literal notranslate"><span class="pre">y_locs_upsample</span></code> (in order), and the <code class="docutils literal notranslate"><span class="pre">time</span></code> column contains the number of seconds from the start of the time series.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>time</p></th>
 <th class="head"><p>time_utc</p></th>
+<th class="head"><p>wd_mean</p></th>
 <th class="head"><p>ws_000</p></th>
 <th class="head"><p>wd_000</p></th>
 <th class="head"><p>ws_001</p></th>
@@ -607,6 +608,7 @@ document.write(`
 <tbody>
 <tr class="row-even"><td><p>0.0</p></td>
 <td><p>2020-01-01 00:00:00+00:00</p></td>
+<td><p>255.8</p></td>
 <td><p>5.7</p></td>
 <td><p>256.2</p></td>
 <td><p>5.7</p></td>
@@ -616,6 +618,7 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p>1.0</p></td>
 <td><p>2020-01-01 00:00:01+00:00</p></td>
+<td><p>255.8</p></td>
 <td><p>5.4</p></td>
 <td><p>256.1</p></td>
 <td><p>5.9</p></td>
@@ -625,6 +628,7 @@ document.write(`
 </tr>
 <tr class="row-even"><td><p>2.0</p></td>
 <td><p>2020-01-01 00:00:02+00:00</p></td>
+<td><p>255.7</p></td>
 <td><p>5.7</p></td>
 <td><p>256.0</p></td>
 <td><p>5.8</p></td>
@@ -634,6 +638,7 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p>3.0</p></td>
 <td><p>2020-01-01 00:00:03+00:00</p></td>
+<td><p>255.6</p></td>
 <td><p>6.5</p></td>
 <td><p>255.9</p></td>
 <td><p>5.0</p></td>
@@ -642,6 +647,7 @@ document.write(`
 <td><p>…</p></td>
 </tr>
 <tr class="row-even"><td><p>…</p></td>
+<td><p>…</p></td>
 <td><p>…</p></td>
 <td><p>…</p></td>
 <td><p>…</p></td>
