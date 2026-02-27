@@ -11,22 +11,15 @@ import polars as pl
 import yaml
 from scipy.interpolate import interp1d
 
+from hercules.component_types import VALID_COMPONENT_TYPES
+
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
 hercules_complex_type = np.csingle
 
 
 # All component_type strings (class names) that can appear in a YAML component_type field.
-# Keep this in sync with hybrid_plant._COMPONENT_REGISTRY.
-_VALID_COMPONENT_TYPES = [
-    "WindFarm",
-    "WindFarmSCADAPower",
-    "SolarPySAMPVWatts",
-    "BatterySimple",
-    "BatteryLithiumIon",
-    "ElectrolyzerPlant",
-    "OpenCycleGasTurbine",
-]
+_VALID_COMPONENT_TYPES = list(VALID_COMPONENT_TYPES)
 
 
 class Loader(yaml.SafeLoader):
