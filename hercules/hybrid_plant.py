@@ -1,5 +1,6 @@
 import numpy as np
 
+from hercules.component_types import VALID_COMPONENT_TYPES
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
@@ -19,6 +20,14 @@ _COMPONENT_REGISTRY = {
     "ElectrolyzerPlant": ElectrolyzerPlant,
     "OpenCycleGasTurbine": OpenCycleGasTurbine,
 }
+
+# Import-time safety check to prevent drift between this registry and VALID_COMPONENT_TYPES.
+if set(_COMPONENT_REGISTRY) != set(VALID_COMPONENT_TYPES):
+    raise RuntimeError(
+        "HybridPlant component registry keys are out of sync with VALID_COMPONENT_TYPES. "
+        f"Registry keys: {sorted(_COMPONENT_REGISTRY)}; "
+        f"VALID_COMPONENT_TYPES: {sorted(VALID_COMPONENT_TYPES)}"
+    )
 
 # component_category values that represent generators (vs. storage/conversion)
 _GENERATOR_CATEGORIES = {"wind_farm", "solar_farm", "thermal"}
