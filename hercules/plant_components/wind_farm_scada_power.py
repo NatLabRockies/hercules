@@ -1,4 +1,7 @@
-# Unified wind farm model for Hercules supporting multiple wake modeling strategies.
+# WindFarmSCADAPower is a wind farm model that uses SCADA
+# power data to simulate wind farm performance.
+# Note it is limited to playing back the prerecorded wind turbine powers,
+# there is no option to control.
 
 import numpy as np
 import pandas as pd
@@ -10,12 +13,16 @@ from hercules.utilities import (
 
 
 class WindFarmSCADAPower(ComponentBase):
-    """Wind farm model that uses SCADA power data to simulate wind farm performance."""
+    """Wind farm model that uses SCADA power data to simulate wind farm performance.
+    Note it is limited to playing back the prerecorded wind turbine powers,
+    there is no option to control.
+    """
 
     component_category = "wind_farm"
 
     def __init__(self, h_dict, component_name):
         """Initialize the WindFarm class.
+
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
@@ -25,9 +32,6 @@ class WindFarmSCADAPower(ComponentBase):
         super().__init__(h_dict, component_name)
 
         self.logger.info("Initializing WindFarmSCADAPower")
-
-        # Track the number of FLORIS calculations
-        self.num_floris_calcs = 0
 
         # Read in the input file names
         self.scada_filename = h_dict[self.component_name]["scada_filename"]
@@ -184,11 +188,8 @@ class WindFarmSCADAPower(ComponentBase):
         self.logger.info(f"Inferred rated turbine power: {self.rated_turbine_power}")
         self.logger.info(f"Inferred capacity: {self.capacity / 1e3} MW")
 
-        # Initialize the turbine array
-        self.turbine_array = TurbineUpdateModelVectorizedSCADA(self.dt, self.scada_powers[0, :])
-
         # Initialize the turbine powers to the starting row
-        self.turbine_powers = self.turbine_array.prev_powers.copy()
+        self.turbine_powers = self.scada_powers[0, :].copy()
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -224,7 +225,7 @@ class WindFarmSCADAPower(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing current simulation state including
-                step number and power_setpoint values for each turbine.
+                step number
 
         Returns:
             dict: Updated simulation dictionary with wind farm outputs including
@@ -235,9 +236,6 @@ class WindFarmSCADAPower(ComponentBase):
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
-        # Grab the instantaneous turbine power setpoint signal
-        turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
-
         # Update wind speeds based on wake model
 
         # No wake modeling - use background speeds directly
@@ -247,10 +245,7 @@ class WindFarmSCADAPower(ComponentBase):
 
         # Update the turbine powers (common for all wake models)
         # Vectorized calculation for all turbines at once
-        self.turbine_powers = self.turbine_array.step(
-            self.scada_powers[step, :],
-            turbine_power_setpoints,
-        )
+        self.turbine_powers = self.scada_powers[step, :].copy()
 
         # Update instantaneous wind direction and wind speed
         self.wind_direction_mean = self.wd_mat_mean[step]
@@ -259,7 +254,6 @@ class WindFarmSCADAPower(ComponentBase):
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
         h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
         h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
@@ -269,67 +263,3 @@ class WindFarmSCADAPower(ComponentBase):
         h_dict[self.component_name]["wind_speeds_background"] = self.wind_speeds_background
 
         return h_dict
-
-
-class TurbineUpdateModelVectorizedSCADA:
-    """Vectorized wind turbine update model for power output simulation."""
-
-    def __init__(self, dt, initial_scada_powers):
-        """Initialize the vectorized turbine model.
-
-        Args:
-            dt (float): Time step for the simulation in seconds.
-            initial_scada_powers (np.ndarray): Initial SCADA power values in kW for all turbines
-                to initialize the simulation.
-        """
-        # Save the time step
-        self.dt = dt
-
-        # Number of turbines
-        self.n_turbines = len(initial_scada_powers)
-
-        # Initialize the previous powers for all turbines
-        self.prev_powers = initial_scada_powers.copy()
-
-        print("Filtering not yet implemented for SCADA-based turbine model. Use with caution.")
-
-    def step(self, scada_powers, power_setpoints):
-        """Simulate a single time step for all wind turbines simultaneously.
-
-        This method calculates the power output of all wind turbines based on the
-        given wind speeds and power setpoints.
-
-        Args:
-            scada_powers (np.ndarray): Current SCADA powers for all turbines.
-            power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
-
-        Returns:
-            np.ndarray: Calculated power outputs of all wind turbines, constrained
-                by the power setpoints.
-        """
-
-        # Vectorized limiting: current power not greater than power_setpoint
-        instant_powers = np.minimum(scada_powers, power_setpoints)
-
-        # Vectorized limiting: instant power not less than 0
-        instant_powers = np.maximum(instant_powers, 0.0)
-
-        # Handle NaNs by replacing with previous power values
-        nan_mask = np.isnan(instant_powers)
-        if np.any(nan_mask):
-            instant_powers[nan_mask] = self.prev_powers[nan_mask]
-
-        # Simple update without any filtering
-        powers = instant_powers
-
-        # Vectorized limiting: power not greater than power_setpoint
-        powers = np.minimum(powers, power_setpoints)
-
-        # Vectorized limiting: power not less than 0
-        powers = np.maximum(powers, 0.0)
-
-        # Update the previous powers for all turbines
-        self.prev_powers = powers.copy()
-
-        # Return the powers
-        return powers

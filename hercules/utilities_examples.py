@@ -13,6 +13,7 @@ def generate_example_inputs():
     produced under `examples/inputs`:
 
     - examples/inputs/00_generate_wind_history_small.py -> wind_input_small.ftr
+        and scada_input.ftr
     - examples/inputs/01_generate_wind_history_large.py -> wind_input_large.ftr
     - examples/inputs/02_generate_solar_history.py -> solar_input.ftr
 
@@ -53,6 +54,7 @@ def ensure_example_inputs_exist():
         inputs_dir / "wind_input_small.ftr",
         inputs_dir / "wind_input_large.ftr",
         inputs_dir / "solar_input.ftr",
+        inputs_dir / "scada_input.ftr",
     ]
 
     if not all(p.exists() for p in expected_files):

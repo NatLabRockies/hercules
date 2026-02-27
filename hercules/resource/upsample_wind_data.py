@@ -263,9 +263,10 @@ def upsample_wind_data(
             (fraction). Defaults to 0.1.
         TI_ws_ref (float, optional): Reference wind speed at which the reference TI TI_ref is
             defined (m/s). Defaults to 8 m/s.
-        save_individual_wds (bool, optional): If True, upsampled wind directions will be saved
-            in the output for each upsampled location. If False, only the mean wind direction
-            over all locations will be saved. Defaults to False.
+        save_individual_wds (bool, optional): If True, upsampled wind directions for each
+            individual location will be saved in the output in addition to the mean wind
+            direction. If False, only the mean wind direction over all locations will be saved.
+            Defaults to False.
 
     Returns:
         pd.DataFrame: DataFrame containing the wind speeds and wind directions at each
@@ -408,12 +409,11 @@ def upsample_wind_data(
     ws_cols = [f"ws_{i:03}" for i in range(N_locs_upsample)]
     df_upsample = pd.DataFrame(ws_interp_upsample.T, columns=ws_cols)
 
-    # Either save wind directions for each location or mean wind direction over all locations
+    # Always save mean wind direction; optionally save individual wind directions per location
+    df_upsample["wd_mean"] = wd_interp_upsample_mean
     if save_individual_wds:
         wd_cols = [f"wd_{i:03}" for i in range(N_locs_upsample)]
         df_upsample[wd_cols] = wd_interp_upsample.T
-    else:
-        df_upsample["wd_mean"] = wd_interp_upsample_mean
 
     # Convert numeric columns to float32 for memory efficiency
     for c in df_upsample.columns:
@@ -431,7 +431,7 @@ def upsample_wind_data(
     # Order columns by location
     if save_individual_wds:
         df_upsample = df_upsample[
-            ["time", "time_utc"] + list(chain.from_iterable(zip(ws_cols, wd_cols)))
+            ["time", "time_utc", "wd_mean"] + list(chain.from_iterable(zip(ws_cols, wd_cols)))
         ]
     else:
         df_upsample = df_upsample[["time", "time_utc", "wd_mean"] + ws_cols]
