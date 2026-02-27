@@ -570,17 +570,17 @@ class WindFarm(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-        h_dict["wind_farm"]["n_turbines"] = self.n_turbines
-        h_dict["wind_farm"]["capacity"] = self.capacity
-        h_dict["wind_farm"]["rated_turbine_power"] = self.rated_turbine_power
-        h_dict["wind_farm"]["wind_direction_mean"] = self.wd_mat_mean[0]
-        h_dict["wind_farm"]["wind_speed_mean_background"] = self.ws_mat_mean[0]
-        h_dict["wind_farm"]["turbine_powers"] = self.turbine_powers
-        h_dict["wind_farm"]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["n_turbines"] = self.n_turbines
+        h_dict[self.component_name]["capacity"] = self.capacity
+        h_dict[self.component_name]["rated_turbine_power"] = self.rated_turbine_power
+        h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
+        h_dict[self.component_name]["wind_speed_mean_background"] = self.ws_mat_mean[0]
+        h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
 
         # Log the start time UTC if available
         if hasattr(self, "starttime_utc"):
-            h_dict["wind_farm"]["starttime_utc"] = self.starttime_utc
+            h_dict[self.component_name]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 
