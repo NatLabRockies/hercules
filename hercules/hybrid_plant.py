@@ -29,9 +29,6 @@ if set(_COMPONENT_REGISTRY) != set(VALID_COMPONENT_TYPES):
         f"VALID_COMPONENT_TYPES: {sorted(VALID_COMPONENT_TYPES)}"
     )
 
-# component_category values that represent generators (vs. storage/conversion)
-_GENERATOR_CATEGORIES = {"wind_farm", "solar_farm", "thermal"}
-
 
 class HybridPlant:
     """Manages hybrid plant components for Hercules.
@@ -78,7 +75,7 @@ class HybridPlant:
         self.generator_names = [
             name
             for name, obj in self.component_objects.items()
-            if obj.component_category in _GENERATOR_CATEGORIES
+            if obj.component_category == "generator"
         ]
 
     def add_plant_metadata_to_h_dict(self, h_dict):
@@ -139,16 +136,16 @@ class HybridPlant:
         """
         # Collect the component objects
         for component_name in self.component_names:
-            is_battery = self.component_objects[component_name].component_category == "battery"
+            is_storage = self.component_objects[component_name].component_category == "storage"
 
-            # Battery sign convention: negate setpoint before step, restore after
-            if is_battery:
+            # Storage sign convention: negate setpoint before step, restore after
+            if is_storage:
                 h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
 
             # Update h_dict by calling the step method of each component object
             h_dict = self.component_objects[component_name].step(h_dict)
 
-            if is_battery:
+            if is_storage:
                 h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
                 h_dict[component_name]["power"] = -h_dict[component_name]["power"]
 
