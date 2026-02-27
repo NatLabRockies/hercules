@@ -87,7 +87,7 @@ class BatteryLithiumIon(ComponentBase):
         Nov. 2021, doi: 10.1016/j.est.2021.103252.
     """
 
-    component_category = "battery"
+    component_category = "storage"
 
     def __init__(self, h_dict, component_name):
         """Initialize the BatteryLithiumIon class.

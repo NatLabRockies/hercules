@@ -81,7 +81,7 @@ class BatterySimple(ComponentBase):
         All power units are in kW and energy units are in kWh.
     """
 
-    component_category = "battery"
+    component_category = "storage"
 
     def __init__(self, h_dict, component_name):
         """Initialize the BatterySimple class.

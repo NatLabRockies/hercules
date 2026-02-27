@@ -14,7 +14,7 @@ class ElectrolyzerPlant(ComponentBase):
     The Electrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
     """
 
-    component_category = "electrolyzer"
+    component_category = "load"
 
     def __init__(self, h_dict, component_name):
         """Initialize the ElectrolyzerPlant class.

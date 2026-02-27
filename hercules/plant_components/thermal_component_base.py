@@ -62,7 +62,7 @@ class ThermalComponentBase(ComponentBase):
 
     """
 
-    component_category = "thermal"
+    component_category = "generator"
 
     class STATES(IntEnum):
         """Enumeration of thermal component operating states."""

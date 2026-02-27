@@ -18,7 +18,7 @@ class SolarPySAMBase(ComponentBase):
     Note PVSam is no longer supported in Hercules.
     """
 
-    component_category = "solar_farm"
+    component_category = "generator"
 
     def __init__(self, h_dict, component_name):
         """Initialize the base solar PySAM simulator.

@@ -12,14 +12,14 @@ class ComponentBase:
     Provides common functionality for all Hercules plant components including logging setup,
     time step management, and shared configuration parameters.
 
-    Subclasses must define the class attribute ``component_category`` (a short string
-    identifying the broad category, e.g. ``"battery"``, ``"wind_farm"``).  The per-instance
+    Subclasses must define the class attribute ``component_category`` with one of three
+    values: ``"generator"``, ``"load"``, or ``"storage"``.  The per-instance
     ``component_name`` (the unique YAML key chosen by the user) is passed into ``__init__``
     and may differ from the category when multiple instances of the same type are present.
     ``component_type`` is always set automatically to the concrete class name.
     """
 
-    # Subclasses must override this with the appropriate category string.
+    # Subclasses must override this with one of: "generator", "load", "storage"
     component_category: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs):

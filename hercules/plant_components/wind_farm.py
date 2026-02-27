@@ -39,7 +39,7 @@ class WindFarm(ComponentBase):
     All three strategies support detailed turbine dynamics (filter_model or dof1_model).
     """
 
-    component_category = "wind_farm"
+    component_category = "generator"
 
     def __init__(self, h_dict, component_name):
         """Initialize the WindFarm class.

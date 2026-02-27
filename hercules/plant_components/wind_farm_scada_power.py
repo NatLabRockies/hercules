@@ -18,7 +18,7 @@ class WindFarmSCADAPower(ComponentBase):
     there is no option to control.
     """
 
-    component_category = "wind_farm"
+    component_category = "generator"
 
     def __init__(self, h_dict, component_name):
         """Initialize the WindFarm class.
