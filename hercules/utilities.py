@@ -309,6 +309,7 @@ def load_hercules_input(filename):
                 f'"{key}" has an unrecognized component_type '
                 f'"{h_dict[key]["component_type"]}" in input file {filename}. '
                 f"Available types: {sorted(valid_component_types)}"
+                "(Did you forget to add a new component_type to the COMPONENT_REGISTRY)"
             )
 
     # Handle external_data structure normalization
