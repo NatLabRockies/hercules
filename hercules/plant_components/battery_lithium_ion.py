@@ -87,9 +87,7 @@ class BatteryLithiumIon(ComponentBase):
         Nov. 2021, doi: 10.1016/j.est.2021.103252.
     """
 
-    component_category = "storage"
-
-    def __init__(self, h_dict, component_name):
+    def __init__(self, h_dict):
         """Initialize the BatteryLithiumIon class.
 
         This model represents a detailed lithium-ion battery with diffusion transients
@@ -104,11 +102,16 @@ class BatteryLithiumIon(ComponentBase):
                 - min_SOC: Minimum state of charge (0-1)
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
-            component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
-        # Call the base class init (sets self.component_name and self.component_type)
-        super().__init__(h_dict, component_name)
+        # Store the name of this component
+        self.component_name = "battery"
+
+        # Store the type of this component
+        self.component_type = "BatteryLithiumIon"
+
+        # Call the base class init
+        super().__init__(h_dict, self.component_name)
 
         self.V_cell_nom = 3.3  # [V]
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
@@ -323,8 +326,7 @@ class BatteryLithiumIon(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - <component_name>.power_setpoint: Requested charging/discharging power [kW],
-                  where <component_name> is this battery's key (i.e. ``self.component_name``)
+                - battery.power_setpoint: Requested charging/discharging power [kW]
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
