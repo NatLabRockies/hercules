@@ -95,17 +95,8 @@ class MyComponent(ComponentBase):
 
 ## Step 2: Register the Component
 
-Add the component to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py`:
+Add the component to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py` (see [Hybrid Plant Components](hybrid_plant.md)).
 
-```python
-from hercules.plant_components.my_component import MyComponent
-
-COMPONENT_REGISTRY = {
-    "WindFarm": WindFarm,
-    # ... existing entries ...
-    "MyComponent": MyComponent,  # Add your component here
-}
-```
 
 The key string (e.g., `"MyComponent"`) is the `component_type` value users will specify in their YAML input files.
 
