@@ -306,7 +306,7 @@ def load_hercules_input(filename):
     for key in component_names:
         if h_dict[key]["component_type"] not in valid_component_types:
             raise ValueError(
-                f'"{key}" has an unrecognised component_type '
+                f'"{key}" has an unrecognized component_type '
                 f'"{h_dict[key]["component_type"]}" in input file {filename}. '
                 f"Available types: {sorted(valid_component_types)}"
             )
