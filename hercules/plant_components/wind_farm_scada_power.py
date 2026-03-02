@@ -130,7 +130,9 @@ class WindFarmSCADAPower(ComponentBase):
         self.logger.info(f"Inferred number of turbines: {self.n_turbines}")
 
         # Collect the turbine powers
-        self.scada_powers = df_scada[self.power_columns].to_numpy(dtype=hercules_float_type)
+        self.scada_powers = (
+            df_scada[self.power_columns].fillna(0.0).to_numpy(dtype=hercules_float_type)
+        )
 
         # Now get the wind speed and directions
 
