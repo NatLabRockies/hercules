@@ -103,6 +103,7 @@ class BatterySimple(ComponentBase):
                 - track_usage: Optional boolean to enable usage tracking
             component_name (str): Unique name for this instance (the YAML top-level key).
         """
+
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
 
@@ -233,12 +234,11 @@ class BatterySimple(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - <component_name>.power_setpoint: Requested charging/discharging power [kW],
-                  where <component_name> is this battery's key (i.e. ``self.component_name``)
+                - battery.power_setpoint: Requested charging/discharging power [kW]
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
-            dict: Updated h_dict with battery outputs:
+            dict: Updated h_dict with battery outputs stored under self.component_name:
                 - power: Actual charging/discharging power [kW]
                 - reject: Rejected power due to constraints [kW]
                 - soc: State of charge [0-1]

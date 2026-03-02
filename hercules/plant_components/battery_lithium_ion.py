@@ -323,8 +323,7 @@ class BatteryLithiumIon(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - <component_name>.power_setpoint: Requested charging/discharging power [kW],
-                  where <component_name> is this battery's key (i.e. ``self.component_name``)
+                - battery.power_setpoint: Requested charging/discharging power [kW]
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
