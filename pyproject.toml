@@ -42,7 +42,8 @@ dependencies = [
 "cartopy",
 "openmeteo_requests",
 "requests_cache",
-"retry_requests"
+"retry_requests",
+"electrolyzer"
 ]
 
 [project.optional-dependencies]
