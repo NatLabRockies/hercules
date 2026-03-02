@@ -22,10 +22,25 @@ class ComponentBase:
     # Subclasses must override this with one of: "generator", "load", "storage"
     component_category: ClassVar[str]
 
+    # Valid component categories
+    _ALLOWED_CATEGORIES = {"generator", "load", "storage"}
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "component_category"):
             raise TypeError(f"{cls.__name__} must define a class attribute 'component_category'")
+
+        value = cls.component_category
+        if not isinstance(value, str):
+            raise TypeError(
+                f"{cls.__name__}.component_category must be a string in "
+                f"{cls._ALLOWED_CATEGORIES}, got {type(value).__name__!r}: {value!r}"
+            )
+        if value not in cls._ALLOWED_CATEGORIES:
+            raise TypeError(
+                f"{cls.__name__}.component_category must be one of "
+                f"{cls._ALLOWED_CATEGORIES}, got {value!r}"
+            )
 
     def __init__(self, h_dict, component_name):
         """Initialize the base component with a dictionary of parameters.
