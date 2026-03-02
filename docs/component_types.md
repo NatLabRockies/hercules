@@ -45,15 +45,15 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 
 ## Complete Component Type Reference
 
-| `component_type` | `component_category` | Generator? | Documentation |
-|---|---|---|---|
-| `WindFarm` | `generator` | Yes | [Wind](wind.md) |
-| `WindFarmSCADAPower` | `generator` | Yes | [Wind](wind.md) |
-| `SolarPySAMPVWatts` | `generator` | Yes | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `storage` | No | [Battery](battery.md) |
-| `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
-| `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
-| `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `component_type` | `component_category` | Documentation |
+|---|---|---|
+| `WindFarm` | `generator` | [Wind](wind.md) |
+| `WindFarmSCADAPower` | `generator` | [Wind](wind.md) |
+| `SolarPySAMPVWatts` | `generator` | [Solar PV](solar_pv.md) |
+| `BatterySimple` | `storage` | [Battery](battery.md) |
+| `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
+| `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
+| `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
 
 Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.
 
