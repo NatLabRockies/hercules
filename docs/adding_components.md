@@ -141,7 +141,8 @@ pytest tests/my_component_test.py -v
 - [ ] Define `component_category` class attribute
 - [ ] Implement `__init__`, `step`, `get_initial_conditions_and_meta_data`
 - [ ] Import and add to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py`
+- [ ] Create tests in `tests/my_component_test.py`
 - [ ] Create `docs/my_component.md`
 - [ ] Add to `docs/_toc.yml`
 - [ ] Update reference tables in `hybrid_plant.md` and `component_types.md`
-- [ ] Create tests in `tests/my_component_test.py`
+
