@@ -1,8 +1,12 @@
 """Tests for the WindFarm class in direct wake mode (WindFarm with no_added_wakes)."""
 
 import copy
+import os
+import tempfile
 
 import numpy as np
+import pandas as pd
+import pytest
 from hercules.plant_components.wind_farm import WindFarm
 from hercules.utilities import hercules_float_type
 
@@ -163,3 +167,40 @@ def test_wind_farm_direct_output_consistency():
 
     # Total power should be sum of turbine powers
     assert np.isclose(result["wind_farm"]["power"], np.sum(result["wind_farm"]["turbine_powers"]))
+
+
+def test_wind_farm_raises_on_nan_in_wind_input():
+    """Test that WindFarm raises ValueError when wind input file contains NaN values."""
+    wind_data = {
+        "time_utc": [
+            "2018-05-10 12:31:00",
+            "2018-05-10 12:31:01",
+            "2018-05-10 12:31:02",
+            "2018-05-10 12:31:03",
+            "2018-05-10 12:31:04",
+            "2018-05-10 12:31:05",
+            "2018-05-10 12:31:06",
+            "2018-05-10 12:31:07",
+            "2018-05-10 12:31:08",
+            "2018-05-10 12:31:09",
+            "2018-05-10 12:31:10",
+        ],
+        "wd_mean": [180.5, 185.2, 190.8, 175.3, 170.1, 165.7, 160.4, 155.9, 150.2, 145.6, 140.3],
+        "ws_000": [8.2, np.nan, 7.8, 6.5, 10.2, 11.5, 9.8, 8.7, 7.3, 6.9, 8.4],
+        "ws_001": [8.1, 9.0, 7.7, 6.4, 10.1, 11.4, 9.7, 8.6, 7.2, 6.8, 8.3],
+        "ws_002": [8.3, 9.2, 7.9, 6.6, 10.3, 11.6, 9.9, 8.8, 7.4, 7.0, 8.5],
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        pd.DataFrame(wind_data).to_csv(f.name, index=False)
+        temp_wind_file = f.name
+
+    try:
+        test_h_dict = copy.deepcopy(h_dict_wind_direct)
+        test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
+
+        with pytest.raises(ValueError, match="wind input file contains NaN values"):
+            WindFarm(test_h_dict)
+    finally:
+        if os.path.exists(temp_wind_file):
+            os.unlink(temp_wind_file)
