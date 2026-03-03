@@ -89,9 +89,11 @@ class MyComponent(ComponentBase):
 
 ### Component Categories
 
-- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.
+- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.  Generator power should be positive signed to represent production.
 - **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant`.
-- **`load`**: Consumes power (electrolyzers).
+- **`load`**: Consumes power (electrolyzers).  Power of loads should be negative signed to represent consumption.
+
+While only generator power is included in `locally_generated_power`, all categories' power are combined into the total plant power in the `HybridPlant` class.
 
 ## Step 2: Register the Component
 
