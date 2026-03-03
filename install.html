@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
@@ -468,7 +468,6 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hycon">Hycon</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
 </ul>
 </li>
 </ul>
@@ -490,7 +489,7 @@ document.write(`
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
 <section id="root-directory">
 <h2>Root Directory<a class="headerlink" href="#root-directory" title="Link to this heading">#</a></h2>
-<p>It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.</p>
+<p>It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>hercules_root
 <span class="nb">cd</span><span class="w"> </span>hercules_root
 </pre></div>
@@ -559,16 +558,6 @@ git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/hyco
 <span class="nb">cd</span><span class="w"> </span>hycon
 git<span class="w"> </span>fetch<span class="w"> </span>--all
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</pre></div>
-</div>
-</section>
-<section id="electrolyzer">
-<h2>Electrolyzer<a class="headerlink" href="#electrolyzer" title="Link to this heading">#</a></h2>
-<p>A python electrolyzer model is also required for hercules. To install
-the electrolyzer, use</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># To hercules_root</span>
-git<span class="w"> </span>clone<span class="w"> </span>git@github.com:NREL/electrolyzer.git
-pip<span class="w"> </span>install<span class="w"> </span>electrolyzer/
 </pre></div>
 </div>
 </section>
@@ -654,7 +643,6 @@ pip<span class="w"> </span>install<span class="w"> </span>electrolyzer/
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-branch">Setting branch</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hycon">Hycon</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
 </ul>
 </li>
 </ul>

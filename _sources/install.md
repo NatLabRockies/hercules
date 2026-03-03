@@ -5,7 +5,7 @@
 
 ## Root Directory
 
-It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.
+It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon.
 
 ```bash
 mkdir -p hercules_root
@@ -82,15 +82,4 @@ git clone git@github.com:NREL/hycon.git
 cd hycon
 git fetch --all
 pip install -e .
-```
-
-## Electrolyzer
-
-A python electrolyzer model is also required for hercules. To install
-the electrolyzer, use
-
-```bash
-cd .. # To hercules_root
-git clone git@github.com:NREL/electrolyzer.git
-pip install electrolyzer/
 ```
