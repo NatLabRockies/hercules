@@ -90,7 +90,7 @@ class MyComponent(ComponentBase):
 ### Component Categories
 
 - **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.  Generator power should be positive signed to represent production.
-- **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant`.
+- **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant` in the following way.  It is assumed at the component model level, battery dischage is negatively signed.  At the plant level `HybridPlant` inverts the sign of the setpoint going into the battery component model, and inverts the power output coming out of the battery component model.  This way at the plant level, positive power represents discharge/production, consistent with the generator category.
 - **`load`**: Consumes power (electrolyzers).  Power of loads should be negative signed to represent consumption.
 
 While only generator power is included in `locally_generated_power`, all categories' power are combined into the total plant power in the `HybridPlant` class.
