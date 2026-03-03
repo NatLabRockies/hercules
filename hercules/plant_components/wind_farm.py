@@ -116,6 +116,14 @@ class WindFarm(ComponentBase):
             if col not in ["time", "time_utc"] and pd.api.types.is_numeric_dtype(df_wi[col]):
                 df_wi[col] = df_wi[col].astype(hercules_float_type)
 
+        # Check key columns for NaN values
+        ws_cols = sorted(col for col in df_wi.columns if col.startswith("ws_"))
+        nan_check_cols = [c for c in ["time_utc", "wd_mean"] + ws_cols if c in df_wi.columns]
+        if df_wi[nan_check_cols].isna().any().any():
+            raise ValueError(
+                "wind input file contains NaN values in required columns (time_utc, wd_mean, ws_*)"
+            )
+
         # Make sure the df_wi contains a column called "time_utc"
         if "time_utc" not in df_wi.columns:
             raise ValueError("Wind input file must contain a column called 'time_utc'")
