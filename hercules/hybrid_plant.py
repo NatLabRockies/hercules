@@ -2,6 +2,7 @@ import numpy as np
 
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
+from hercules.plant_components.combined_cycle_gas_turbine import CombinedCycleGasTurbine
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
@@ -119,6 +120,9 @@ class HybridPlant:
 
         if component_type == "OpenCycleGasTurbine":
             return OpenCycleGasTurbine(h_dict)
+
+        if component_type == "CombinedCycleGasTurbine":
+            return CombinedCycleGasTurbine(h_dict)
 
         raise Exception(
             f"Unknown component_type '{component_type}' for component '{component_name}'"

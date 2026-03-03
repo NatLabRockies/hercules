@@ -14,7 +14,9 @@ The simulation runs for 6 hours with 1-minute time steps. A controller commands 
 
 | Time (min) | Event Type | Setpoint | State | Description |
 |------------|------------|----------|-------|-------------|
-| 0 | Initial | 0 | OFF (0) | Turbine starts off, `time_in_state` begins counting |
+| 0 | Initial | 100 MW | ON (4) | Turbine starts at rated power |
+| 10 | Command + State | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` satisfied (initialized to be dispatchable), begins stopping sequence |
+| ~20 | State | 0 | → OFF (0) | Power reaches 0 (ramped down at 10 MW/min), turbine off |
 | 40 | Command | → 100 MW | OFF (0) | Setpoint changes to full power, but `min_down_time` (60 min) not yet satisfied—turbine remains off |
 | 60 | State | 100 MW | → HOT STARTING (1) | `min_down_time` satisfied, turbine begins hot starting sequence |
 | ~64 | State | 100 MW | HOT STARTING (1) | `hot_readying_time` (~4.2 min) complete, run-up ramp begins |

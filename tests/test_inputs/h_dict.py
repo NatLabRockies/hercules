@@ -125,6 +125,7 @@ thermal_component = {
     },
 }
 
+
 open_cycle_gas_turbine = {
     "component_type": "OpenCycleGasTurbine",
     "rated_capacity": 1000,  # kW (1 MW)
@@ -149,6 +150,34 @@ open_cycle_gas_turbine = {
     "efficiency_table": {
         "power_fraction": [1.0, 0.75, 0.50, 0.25],
         "efficiency": [0.39, 0.37, 0.325, 0.245],
+    },
+}
+
+
+combined_cycle_gas_turbine = {
+    "component_type": "CombinedCycleGasTurbine",
+    "rated_capacity": 1000,  # kW (1 MW)
+    "min_stable_load_fraction": 0.40,  # 40% minimum operating point
+    "ramp_rate_fraction": 0.10,  # 10% of rated capacity per minute
+    "run_up_rate_fraction": 0.05,  # 5% of rated capacity per minute
+    "hot_startup_time": 1200.0,  # s (must be >= run_up_rate_fraction of 60s)
+    "warm_startup_time": 1200.0,  # s (must be >= ramp_time of 60s)
+    "cold_startup_time": 1200.0,  # s (must be >= ramp_time of 60s)
+    "min_up_time": 10.0,  # s
+    "min_down_time": 10.0,  # s
+    "log_channels": [
+        "power",
+        "state",
+        "efficiency",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
+    ],
+    "initial_conditions": {"power": 1000},  # power > 0 implies ON state
+    "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
+    # HHV net plant efficiency from SC1A curve in Exhibit ES-4 of [5]
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.7, 0.65, 0.6, 0.55, 0.50, 0.4],
+        "efficiency": [0.53, 0.515, 0.52, 0.52, 0.52, 0.52, 0.52, 0.515, 0.505, 0.5, 0.49, 0.47],
     },
 }
 
@@ -379,4 +408,17 @@ h_dict_open_cycle_gas_turbine = {
     "time": 0.0,
     "plant": plant,
     "open_cycle_gas_turbine": open_cycle_gas_turbine,
+}
+
+h_dict_combined_cycle_gas_turbine = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "combined_cycle_gas_turbine": combined_cycle_gas_turbine,
 }

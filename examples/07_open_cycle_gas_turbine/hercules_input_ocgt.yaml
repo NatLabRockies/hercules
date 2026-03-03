@@ -10,9 +10,10 @@ description: Open Cycle Gas Turbine (OCGT) Example
 
 dt: 60.0  # 1 minute time step
 starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
-endtime_utc: "2020-01-01T06:00:00Z"  # 6 hours later
+endtime_utc: "2020-01-01T10:00:00Z"  # 6 hours later
 verbose: False
 log_every_n: 1
+output_file: "outputs/hercules_output_ocgt"
 
 plant:
   interconnect_limit: 100000  # kW (100 MW)
@@ -54,4 +55,3 @@ open_cycle_gas_turbine:
     power: 100000  # Start ON at rated capacity (100 MW)
 
 controller:
-
