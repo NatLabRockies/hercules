@@ -118,7 +118,9 @@ class WindFarm(ComponentBase):
 
         # Check key columns for NaN values
         ws_cols = sorted(col for col in df_wi.columns if col.startswith("ws_"))
-        nan_check_cols = [c for c in ["time_utc", "wd_mean"] + ws_cols if c in df_wi.columns]
+        nan_check_cols = [
+            c for c in ["time_utc", "wd_mean", "ws_mean"] + ws_cols if c in df_wi.columns
+        ]
         if df_wi[nan_check_cols].isna().any().any():
             raise ValueError(
                 "wind input file contains NaN values in required columns (time_utc, wd_mean, ws_*)"

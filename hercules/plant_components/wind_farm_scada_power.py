@@ -53,6 +53,10 @@ class WindFarmSCADAPower(ComponentBase):
 
         # Check key columns for NaN values
         pow_cols = sorted(col for col in df_scada.columns if col.startswith("pow_"))
+        if not pow_cols:
+            raise ValueError(
+                "SCADA file must contain at least one power column with name starting with 'pow_'."
+            )
         nan_check_cols = [c for c in ["time_utc"] + pow_cols if c in df_scada.columns]
         if df_scada[nan_check_cols].isna().any().any():
             raise ValueError("SCADA file contains NaN values in required columns (time_utc, pow_*)")
