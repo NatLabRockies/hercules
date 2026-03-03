@@ -100,6 +100,20 @@ Add the component to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py` (see [Hy
 
 The key string (e.g., `"MyComponent"`) is the `component_type` value users will specify in their YAML input files.
 
+## Testing
+
+Add unit tests in `tests/my_component_test.py`. Test at minimum:
+
+- Initialization with valid parameters
+- `step` method produces expected outputs
+- `get_initial_conditions_and_meta_data` sets initial state
+
+Run tests with:
+
+```bash
+pytest tests/my_component_test.py -v
+```
+
 ## Step 3: Document the Component
 
 1. **Create a docs page**: Add `docs/my_component.md` with usage examples and parameter reference.
@@ -119,19 +133,6 @@ The key string (e.g., `"MyComponent"`) is the `component_type` value users will 
    - [hybrid_plant.md](hybrid_plant.md) — Available Components table
    - [component_types.md](component_types.md) — Complete Component Type Reference table
 
-## Testing
-
-Add unit tests in `tests/my_component_test.py`. Test at minimum:
-
-- Initialization with valid parameters
-- `step` method produces expected outputs
-- `get_initial_conditions_and_meta_data` sets initial state
-
-Run tests with:
-
-```bash
-pytest tests/my_component_test.py -v
-```
 
 ## Summary Checklist
 
