@@ -68,10 +68,6 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         system_model.assign(self.model_params)
 
         system_model.AdjustmentFactors.adjust_constant = 0
-        try:
-            system_model.AdjustmentFactors.dc_adjust_constant = 0
-        except Exception:
-            pass
 
         # Save the system model
         self.system_model = system_model
@@ -98,10 +94,6 @@ class SolarPySAMPVWatts(SolarPySAMBase):
 
         # Assign the full solar resource data
         self.system_model.SolarResource.assign({"solar_resource_data": solar_resource_data})
-        try:
-            self.system_model.AdjustmentFactors.assign({"constant": 0})
-        except Exception:
-            pass
 
         # Execute the model once for all time steps
         self.system_model.execute()
