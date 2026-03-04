@@ -5,7 +5,7 @@
 
 ## Root Directory
 
-It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon and the Electrolyzer.
+It is recommended to install Hercules into a root directory.  This root directory can also contain other projects that are often used with Hercules such as Hycon.
 
 ```bash
 mkdir -p hercules_root
@@ -23,11 +23,11 @@ cd hercules
 
 It is recommended that you install Hercules into a virtual environment.
 
-### CONDA
+### Conda
 
 To create a new conda environment for hercules:
 ```bash
-conda create --name hercules python=3.11
+conda create --name hercules python=3.13
 conda activate hercules
 ```
 
@@ -36,7 +36,7 @@ conda activate hercules
 Alternatively, you can use uv to create a new environment for hercules.  This will create a new environment in the current directory.
 
 ```bash
-uv venv
+uv venv --python 3.13
 source .venv/bin/activate
 ```
 
@@ -54,7 +54,7 @@ Install Hercules in editible mode into the active virtual environment.
 pip install -e .
 ```
 
-### With Developer and Documentation Dependencies
+### With developer and documentation Dependencies
 
 ```bash
 pip install -e .[develop,docs]
@@ -62,11 +62,11 @@ pip install -e .[develop,docs]
 
 ## Setting branch
 
-Can optionally switch to the v2 branch for the latest stable version.
+Users can simply remain on the `main` branch. Developers should switch to the `develop` branch to get the latest code changes. To change to the `develop` branch, use
 
 ```bash
 git fetch --all
-git switch v2
+git switch develop
 ```
 
 ## Hycon
@@ -75,25 +75,11 @@ NLR's Hycon software is used to implement controllers in the Hercules platform. 
 
 
 To install:
-Go back to root
 
 ```bash
-cd ..
+cd .. # To hercules_root
 git clone git@github.com:NREL/hycon.git
 cd hycon
 git fetch --all
 pip install -e .
-```
-
-## Electrolyzer
-
-A python electrolyzer model is also required for hercules. To install
-the electrolyzer, use
-
-```bash
-cd ..
-git clone git@github.com:NREL/electrolyzer.git
-cd electrolyzer
-git fetch --all
-git switch main
 ```

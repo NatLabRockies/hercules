@@ -9,17 +9,15 @@ from hercules.utilities import hercules_float_type
 class SolarPySAMPVWatts(SolarPySAMBase):
     """Solar simulator using PySAM's simplified PV model (Pvwattsv8)."""
 
-    def __init__(self, h_dict):
+    def __init__(self, h_dict, component_name):
         """Initialize the PVWatts solar simulator.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
-        # Store the type of this component
-        self.component_type = "SolarPySAMPVWatts"
-
-        # Call the base class init
-        super().__init__(h_dict)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         # Set up PV system model parameters
         self._setup_model_parameters(h_dict)

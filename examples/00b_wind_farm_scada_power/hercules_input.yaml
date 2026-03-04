@@ -1,0 +1,34 @@
+# Input YAML for hercules
+
+# Name
+name: example_00b
+
+###
+# Describe this simulation setup
+description: Wind Farm SCADA Power, Logging All Turbine Data
+
+dt: 1.0
+starttime_utc: "2020-01-01T00:00:00Z" # Midnight Jan 1, 2020 UTC (Zulu time)
+endtime_utc: "2020-01-01T00:15:50Z" # 15 minutes 50 seconds later
+verbose: False
+
+plant:
+  interconnect_limit: 15000 # kW
+
+wind_farm:
+  component_type: WindFarmSCADAPower
+  scada_filename: ../inputs/scada_input.ftr
+  log_file_name: outputs/log_wind_sim.log
+  log_channels:
+    - power
+    - turbine_powers
+
+
+controller:
+
+
+
+
+
+
+

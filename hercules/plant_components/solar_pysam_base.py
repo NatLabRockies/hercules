@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
+    hercules_float_type,
     interpolate_df,
 )
 
@@ -17,17 +18,17 @@ class SolarPySAMBase(ComponentBase):
     Note PVSam is no longer supported in Hercules.
     """
 
-    def __init__(self, h_dict):
+    component_category = "generator"
+
+    def __init__(self, h_dict, component_name):
         """Initialize the base solar PySAM simulator.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
-        # Store the name of this component
-        self.component_name = "solar_farm"
-
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         # Load and process solar data
         self._load_solar_data(h_dict)
@@ -124,7 +125,7 @@ class SolarPySAMBase(ComponentBase):
         self.starttime_utc = starttime_utc
 
         # Interpolate df_solar on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
         df_solar = interpolate_df(df_solar, time_steps_all)
 
         # Can now save the input data as simple columns
@@ -167,16 +168,16 @@ class SolarPySAMBase(ComponentBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
         # This is a bit of a hack but need this to exist
-        h_dict["solar_farm"]["capacity"] = self.system_capacity
-        h_dict["solar_farm"]["power"] = self.power
-        h_dict["solar_farm"]["dc_power"] = self.dc_power
-        h_dict["solar_farm"]["dni"] = self.dni
-        h_dict["solar_farm"]["poa"] = self.poa
-        h_dict["solar_farm"]["aoi"] = self.aoi
+        h_dict[self.component_name]["capacity"] = self.system_capacity
+        h_dict[self.component_name]["power"] = self.power
+        h_dict[self.component_name]["dc_power"] = self.dc_power
+        h_dict[self.component_name]["dni"] = self.dni
+        h_dict[self.component_name]["poa"] = self.poa
+        h_dict[self.component_name]["aoi"] = self.aoi
 
         # Log the start time UTC if available
         if hasattr(self, "starttime_utc"):
-            h_dict["solar_farm"]["starttime_utc"] = self.starttime_utc
+            h_dict[self.component_name]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 

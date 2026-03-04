@@ -1,5 +1,7 @@
 # # Generate wind history for a small farm for early examples
 # Generate a small demonstration wind history using the example FLORIS model
+# Additionally, generate a history of wind power data for a small farm for use
+# in the example with WindFarmSCADAPower.
 import floris.layout_visualization as layoutviz
 import matplotlib.pyplot as plt
 import numpy as np
@@ -99,6 +101,23 @@ df.to_feather("wind_input_small.ftr")
 
 print(f"First time (UTC): {df['time_utc'].iloc[0]}")
 print(f"Last time (UTC): {df['time_utc'].iloc[-1]}")
+
+# Now generate rough wind power approximations
+pow_000 = 4 * ws_0**3
+pow_001 = 4 * ws_1**3
+pow_002 = 4 * ws_2**3
+
+# Clip the powers to be less than the rated power
+rated_power = 5000
+pow_000 = np.minimum(pow_000, rated_power)
+pow_001 = np.minimum(pow_001, rated_power)
+pow_002 = np.minimum(pow_002, rated_power)
+
+df["pow_000"] = pow_000
+df["pow_001"] = pow_001
+df["pow_002"] = pow_002
+
+df.to_feather("scada_input.ftr")
 
 if show_plots:
     plt.show()

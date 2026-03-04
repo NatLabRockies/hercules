@@ -16,55 +16,6 @@ hercules_float_type = np.float32
 hercules_complex_type = np.csingle
 
 
-def get_available_component_names():
-    """Return available component names.
-
-    Returns:
-        list: Available plant component names.
-    """
-    return [
-        "wind_farm",
-        "solar_farm",
-        "battery",
-        "electrolyzer",
-        "open_cycle_gas_turbine",
-    ]
-
-
-def get_available_generator_names():
-    """Return available generator component names.
-
-    Returns power generators (wind_farm, solar_farm, open_cycle_gas_turbine), excluding
-    storage and conversion components.
-
-    Returns:
-        list: Available generator component names.
-    """
-    return [
-        "wind_farm",
-        "solar_farm",
-        "open_cycle_gas_turbine",
-    ]
-
-
-def get_available_component_types():
-    """Return available component types by component.
-
-    Returns:
-        dict: Component names mapped to available simulation types.
-    """
-    return {
-        "wind_farm": [
-            "WindFarm",
-            "WindFarmSCADAPower",
-        ],
-        "solar_farm": ["SolarPySAMPVWatts"],
-        "battery": ["BatterySimple", "BatteryLithiumIon"],
-        "electrolyzer": ["ElectrolyzerPlant"],
-        "open_cycle_gas_turbine": ["OpenCycleGasTurbine"],
-    }
-
-
 class Loader(yaml.SafeLoader):
     """Custom YAML loader supporting !include tags.
 
@@ -260,8 +211,10 @@ def load_hercules_input(filename):
 
     # Define valid keys
     required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
-    component_names = get_available_component_names()
-    component_types = get_available_component_types()
+    # Lazy import to avoid circular dependency
+    from hercules.hybrid_plant import VALID_COMPONENT_TYPES
+
+    valid_component_types = list(VALID_COMPONENT_TYPES)
     other_keys = [
         "name",
         "description",
@@ -273,6 +226,11 @@ def load_hercules_input(filename):
         "external_data",
         "output_use_compression",
         "output_buffer_size",
+    ]
+
+    # Discover component entries: any top-level dict entry containing "component_type"
+    component_names = [
+        key for key, val in h_dict.items() if isinstance(val, dict) and "component_type" in val
     ]
 
     # Validate required keys
@@ -310,20 +268,23 @@ def load_hercules_input(filename):
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
 
-    # Validate all keys are valid
+    # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
-            raise ValueError(f'Key "{key}" not a valid key in input file {filename}')
+            raise ValueError(
+                f'Key "{key}" is not a recognised key in input file {filename}. '
+                "If this is a plant component, ensure it contains a 'component_type' field."
+            )
 
     # Disallow pre-defined start/end; derive from UTC + dt policy
     if ("starttime" in h_dict) or ("endtime" in h_dict):
         raise ValueError("starttime/endtime must not be provided; they are derived from *_utc")
 
-    # Validate component structures
+    # Validate component structures (component_names entries already have component_type,
+    # but we still check each is a dict for safety)
     for key in component_names:
-        if key in h_dict:
-            if not isinstance(h_dict[key], dict):
-                raise ValueError(f"{key} must be a dictionary in input file {filename}")
+        if not isinstance(h_dict[key], dict):
+            raise ValueError(f"{key} must be a dictionary in input file {filename}")
 
     # Set verbose default and validate
     if "verbose" not in h_dict:
@@ -338,21 +299,18 @@ def load_hercules_input(filename):
 
     # Validate no components have verbose key
     for key in component_names:
-        if key in h_dict and "verbose" in h_dict[key]:
+        if "verbose" in h_dict[key]:
             raise ValueError(f"{key} cannot include a verbose key in input file {filename}")
 
-    # Validate component types
+    # Validate component types (component_type presence already guaranteed by discovery)
     for key in component_names:
-        if key in h_dict:
-            if "component_type" not in h_dict[key]:
-                raise ValueError(
-                    f"{key} must include a component_type key in input file {filename}"
-                )
-            if h_dict[key]["component_type"] not in component_types[key]:
-                raise ValueError(
-                    f"{key} has an invalid component_type {h_dict[key]['component_type']} "
-                    f"in input file {filename}"
-                )
+        if h_dict[key]["component_type"] not in valid_component_types:
+            raise ValueError(
+                f'"{key}" has an unrecognized component_type '
+                f'"{h_dict[key]["component_type"]}" in input file {filename}. '
+                f"Available types: {sorted(valid_component_types)}"
+                "(Did you forget to add a new component_type to the COMPONENT_REGISTRY?)"
+            )
 
     # Handle external_data structure normalization
 

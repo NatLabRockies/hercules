@@ -14,7 +14,9 @@ class ElectrolyzerPlant(ComponentBase):
     The Electrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
     """
 
-    def __init__(self, h_dict):
+    component_category = "load"
+
+    def __init__(self, h_dict, component_name):
         """Initialize the ElectrolyzerPlant class.
 
         Args:
@@ -87,16 +89,11 @@ class ElectrolyzerPlant(ComponentBase):
                     - finances: Financial parameters including:
                         - discount_rate: Discount rate for financial calculations [%].
                         - install_factor: Installation factor for capital expenditure [0,1].
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
-        # Store the name of this component
-        self.component_name = "electrolyzer"
-
-        # Store the type of this component
-        self.component_type = "ElectrolyzerPlant"
-
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         electrolyzer_dict = {}
         # Check if general key exists in electrolyzer section, otherwise use top-level general

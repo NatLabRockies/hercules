@@ -81,7 +81,9 @@ class BatterySimple(ComponentBase):
         All power units are in kW and energy units are in kWh.
     """
 
-    def __init__(self, h_dict):
+    component_category = "storage"
+
+    def __init__(self, h_dict, component_name):
         """Initialize the BatterySimple class.
 
         This model represents a simple battery with energy storage and power constraints.
@@ -99,15 +101,11 @@ class BatterySimple(ComponentBase):
                 - roundtrip_efficiency: Optional roundtrip efficiency (0-1)
                 - self_discharge_time_constant: Optional self-discharge time constant
                 - track_usage: Optional boolean to enable usage tracking
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
-        # Store the name of this component
-        self.component_name = "battery"
 
-        # Store the type of this component
-        self.component_type = "BatterySimple"
-
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         # size = h_dict[self.component_name]["size"]
         self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
@@ -240,7 +238,7 @@ class BatterySimple(ComponentBase):
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
-            dict: Updated h_dict with battery outputs:
+            dict: Updated h_dict with battery outputs stored under self.component_name:
                 - power: Actual charging/discharging power [kW]
                 - reject: Rejected power due to constraints [kW]
                 - soc: State of charge [0-1]

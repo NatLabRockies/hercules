@@ -7,7 +7,21 @@ from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.wind_farm import WindFarm
 from hercules.plant_components.wind_farm_scada_power import WindFarmSCADAPower
-from hercules.utilities import get_available_component_names, get_available_generator_names
+
+# Registry mapping component_type strings to their classes.
+# Add new component types here to make them discoverable by HybridPlant.
+COMPONENT_REGISTRY = {
+    "WindFarm": WindFarm,
+    "WindFarmSCADAPower": WindFarmSCADAPower,
+    "SolarPySAMPVWatts": SolarPySAMPVWatts,
+    "BatterySimple": BatterySimple,
+    "BatteryLithiumIon": BatteryLithiumIon,
+    "ElectrolyzerPlant": ElectrolyzerPlant,
+    "OpenCycleGasTurbine": OpenCycleGasTurbine,
+}
+
+# Derived from registry keys for validation in utilities.py
+VALID_COMPONENT_TYPES = tuple(COMPONENT_REGISTRY.keys())
 
 
 class HybridPlant:
@@ -29,20 +43,12 @@ class HybridPlant:
         Raises:
             Exception: If no plant components are found in the input dictionary.
         """
-        # get a list of possible component names
-        all_component_names = get_available_component_names()
-
-        # get a list of possible generator names
-        all_generator_names = get_available_generator_names()
-
-        # Make a list of component names that are in the h_dict
+        # Discover components: any top-level h_dict entry whose value is a dict
+        # containing a "component_type" key is treated as a plant component.
+        # This allows user-chosen instance names (e.g. "battery_unit_1") while
+        # remaining backward compatible with conventional names (e.g. "battery").
         self.component_names = [
-            component_name for component_name in all_component_names if component_name in h_dict
-        ]
-
-        # Make a list of generator names that are in the h_dict
-        self.generator_names = [
-            generator_name for generator_name in all_generator_names if generator_name in h_dict
+            key for key, val in h_dict.items() if isinstance(val, dict) and "component_type" in val
         ]
 
         # Add in the number of components
@@ -58,6 +64,13 @@ class HybridPlant:
             self.component_objects[component_name] = self.get_plant_component(
                 component_name, h_dict
             )
+
+        # Determine generator names from component_category after instantiation
+        self.generator_names = [
+            name
+            for name, obj in self.component_objects.items()
+            if obj.component_category == "generator"
+        ]
 
     def add_plant_metadata_to_h_dict(self, h_dict):
         """Add plant component metadata to the h_dict.
@@ -98,31 +111,13 @@ class HybridPlant:
         """
         component_type = h_dict[component_name]["component_type"]
 
-        # Handle wind farm component types with unified WindFarm class
-        if component_type == "WindFarm":
-            return WindFarm(h_dict)
-
-        if component_type == "WindFarmSCADAPower":
-            return WindFarmSCADAPower(h_dict)
-
-        if component_type == "SolarPySAMPVWatts":
-            return SolarPySAMPVWatts(h_dict)
-
-        if component_type == "BatteryLithiumIon":
-            return BatteryLithiumIon(h_dict)
-
-        if component_type == "BatterySimple":
-            return BatterySimple(h_dict)
-
-        if component_type == "ElectrolyzerPlant":
-            return ElectrolyzerPlant(h_dict)
-
-        if component_type == "OpenCycleGasTurbine":
-            return OpenCycleGasTurbine(h_dict)
-
-        raise Exception(
-            f"Unknown component_type '{component_type}' for component '{component_name}'"
-        )
+        cls = COMPONENT_REGISTRY.get(component_type)
+        if cls is None:
+            raise ValueError(
+                f"Unknown component_type '{component_type}' for component '{component_name}'. "
+                f"Available types: {sorted(COMPONENT_REGISTRY)}"
+            )
+        return cls(h_dict, component_name)
 
     def step(self, h_dict):
         """Execute one simulation step for all plant components.
@@ -135,16 +130,16 @@ class HybridPlant:
         """
         # Collect the component objects
         for component_name in self.component_names:
-            # If component_name is battery, invert the sign of the power_setpoint
-            if component_name == "battery":
+            is_storage = self.component_objects[component_name].component_category == "storage"
+
+            # Storage sign convention: negate setpoint before step, restore after
+            if is_storage:
                 h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
 
             # Update h_dict by calling the step method of each component object
             h_dict = self.component_objects[component_name].step(h_dict)
 
-            # If component_name is battery, invert the sign of the power_setpoint back
-            # And invert the sign of the power output
-            if component_name == "battery":
+            if is_storage:
                 h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
                 h_dict[component_name]["power"] = -h_dict[component_name]["power"]
 

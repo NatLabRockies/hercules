@@ -46,10 +46,7 @@ class OpenCycleGasTurbine(ThermalComponentBase):
     All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
     """
 
-    component_name = "open_cycle_gas_turbine"
-    component_type = "OpenCycleGasTurbine"
-
-    def __init__(self, h_dict):
+    def __init__(self, h_dict, component_name):
         """Initialize the OpenCycleGasTurbine class.
 
         Args:
@@ -86,46 +83,47 @@ class OpenCycleGasTurbine(ThermalComponentBase):
                     readings from the SC1A curve in Exhibit ES-4 of [5]:
                     power_fraction = [1.0, 0.75, 0.50, 0.25],
                     efficiency = [0.39, 0.37, 0.325, 0.245].
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
         # Apply fixed default parameters based on [1], [2] and [3]
         # back into the h_dict if they are not provided
-        if "min_stable_load_fraction" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_stable_load_fraction"] = 0.40
-        if "ramp_rate_fraction" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["ramp_rate_fraction"] = 0.1
-        if "hot_startup_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["hot_startup_time"] = 420.0
-        if "warm_startup_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["warm_startup_time"] = 480.0
-        if "cold_startup_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["cold_startup_time"] = 480.0
-        if "min_up_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_up_time"] = 1800.0
-        if "min_down_time" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["min_down_time"] = 3600.0
+        if "min_stable_load_fraction" not in h_dict[component_name]:
+            h_dict[component_name]["min_stable_load_fraction"] = 0.40
+        if "ramp_rate_fraction" not in h_dict[component_name]:
+            h_dict[component_name]["ramp_rate_fraction"] = 0.1
+        if "hot_startup_time" not in h_dict[component_name]:
+            h_dict[component_name]["hot_startup_time"] = 420.0
+        if "warm_startup_time" not in h_dict[component_name]:
+            h_dict[component_name]["warm_startup_time"] = 480.0
+        if "cold_startup_time" not in h_dict[component_name]:
+            h_dict[component_name]["cold_startup_time"] = 480.0
+        if "min_up_time" not in h_dict[component_name]:
+            h_dict[component_name]["min_up_time"] = 1800.0
+        if "min_down_time" not in h_dict[component_name]:
+            h_dict[component_name]["min_down_time"] = 3600.0
 
         # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
-        if "run_up_rate_fraction" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["run_up_rate_fraction"] = h_dict[self.component_name][
+        if "run_up_rate_fraction" not in h_dict[component_name]:
+            h_dict[component_name]["run_up_rate_fraction"] = h_dict[component_name][
                 "ramp_rate_fraction"
             ]
 
         # Default HHV for natural gas (39.05 MJ/m³) from [6]
-        if "hhv" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["hhv"] = 39050000  # J/m³ (39.05 MJ/m³)
+        if "hhv" not in h_dict[component_name]:
+            h_dict[component_name]["hhv"] = 39050000  # J/m³ (39.05 MJ/m³)
 
         # Default fuel density for natural gas (0.768 kg/m³) from [6]
-        if "fuel_density" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["fuel_density"] = 0.768  # kg/m³
+        if "fuel_density" not in h_dict[component_name]:
+            h_dict[component_name]["fuel_density"] = 0.768  # kg/m³
 
         # Default HHV net plant efficiency table based on approximate readings from
         # the SC1A curve in Exhibit ES-4 of [5]
-        if "efficiency_table" not in h_dict[self.component_name]:
-            h_dict[self.component_name]["efficiency_table"] = {
+        if "efficiency_table" not in h_dict[component_name]:
+            h_dict[component_name]["efficiency_table"] = {
                 "power_fraction": [1.0, 0.75, 0.50, 0.25],
                 "efficiency": [0.39, 0.37, 0.325, 0.245],
             }
 
-        # Call the base class init
-        super().__init__(h_dict)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)

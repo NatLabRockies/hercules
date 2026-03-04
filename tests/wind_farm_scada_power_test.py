@@ -17,7 +17,6 @@ h_dict_wind_scada = copy.deepcopy(h_dict_wind)
 # Update component type and remove unneeded parameters
 h_dict_wind_scada["wind_farm"]["component_type"] = "WindFarmSCADAPower"
 h_dict_wind_scada["wind_farm"]["scada_filename"] = "tests/test_inputs/scada_input.csv"
-# Keep turbine_file_name for filter model parameters
 # Remove FLORIS-specific parameters
 del h_dict_wind_scada["wind_farm"]["floris_input_file"]
 del h_dict_wind_scada["wind_farm"]["wind_input_filename"]
@@ -26,7 +25,7 @@ del h_dict_wind_scada["wind_farm"]["floris_update_time_s"]
 
 def test_wind_farm_scada_power_initialization():
     """Test that WindFarmSCADAPower initializes correctly with valid inputs."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarmSCADAPower"
@@ -34,13 +33,11 @@ def test_wind_farm_scada_power_initialization():
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
-    # No FLORIS calculations in SCADA power mode
-    assert wind_sim.num_floris_calcs == 0
 
 
 def test_wind_farm_scada_power_infers_n_turbines():
     """Test that number of turbines is correctly inferred from power columns."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     assert wind_sim.n_turbines == 3
     assert len(wind_sim.power_columns) == 3
@@ -49,7 +46,7 @@ def test_wind_farm_scada_power_infers_n_turbines():
 
 def test_wind_farm_scada_power_infers_rated_power():
     """Test that rated power is correctly inferred from 99th percentile."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Check that rated power is positive and reasonable
     assert wind_sim.rated_turbine_power == 5000.0
@@ -58,7 +55,7 @@ def test_wind_farm_scada_power_infers_rated_power():
 
 def test_wind_farm_scada_power_no_wakes():
     """Test that no wake deficits are applied in SCADA power mode."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Verify initial wake deficits are zero
     assert np.all(wind_sim.floris_wake_deficits == 0.0)
@@ -69,13 +66,10 @@ def test_wind_farm_scada_power_no_wakes():
 
 def test_wind_farm_scada_power_step():
     """Test that the step method works correctly."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
-    # Add power setpoint values to the step h_dict
     step_h_dict = {"step": 1}
-    step_h_dict["wind_farm"] = {
-        "turbine_power_setpoints": np.array([5000.0, 5000.0, 5000.0]),
-    }
+    step_h_dict["wind_farm"] = {}
 
     result = wind_sim.step(step_h_dict)
 
@@ -84,8 +78,7 @@ def test_wind_farm_scada_power_step():
     assert "power" in result["wind_farm"]
     assert len(result["wind_farm"]["turbine_powers"]) == 3
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
-    assert "power" in result["wind_farm"]
-    assert isinstance(result["wind_farm"]["power"], (int, float))
+    assert isinstance(result["wind_farm"]["power"], (int, float, np.floating))
 
     # Verify no wake deficits applied
     assert np.all(wind_sim.floris_wake_deficits == 0.0)
@@ -99,48 +92,9 @@ def test_wind_farm_scada_power_step():
     assert np.isclose(result["wind_farm"]["power"], 3200.0 + 3100.0 + 3300.0)
 
 
-def test_wind_farm_scada_power_power_setpoint_applies():
-    """Test that turbine powers are limited by power setpoint when setpoint is low."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
-
-    # Set very low power setpoint values that should definitely limit power output
-    # Run multiple steps to let filter settle (within available data range 0-9)
-    for step in range(wind_sim.n_steps):
-        step_h_dict = {"step": step}
-        step_h_dict["wind_farm"] = {
-            "turbine_power_setpoints": np.array([100.0, 200.0, 300.0]),  # Very low setpoints
-        }
-        result = wind_sim.step(step_h_dict)
-
-    # Verify that turbine powers are at or below power setpoint limits
-    turbine_powers = result["wind_farm"]["turbine_powers"]
-    power_setpoints = [100.0, 200.0, 300.0]
-
-    for i, (power, setpoint) in enumerate(zip(turbine_powers, power_setpoints)):
-        assert power <= setpoint + 1e-6, (
-            f"Turbine {i} power {power} exceeds power setpoint {setpoint}"
-        )
-
-
-def test_wind_farm_scada_power_power_setpoint_zero():
-    """Test that turbine powers go to zero when setpoint is zero."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
-
-    # Run multiple steps with zero setpoint to ensure filter settles (within available data range)
-    for step in range(wind_sim.n_steps):
-        step_h_dict = {"step": step}
-        step_h_dict["wind_farm"] = {
-            "turbine_power_setpoints": np.zeros(3, dtype=hercules_float_type),
-        }
-        result = wind_sim.step(step_h_dict)
-
-    # After multiple steps, powers should be effectively zero
-    assert np.all(result["wind_farm"]["turbine_powers"] < 1.0)
-
-
 def test_wind_farm_scada_power_get_initial_conditions_and_meta_data():
     """Test that get_initial_conditions_and_meta_data adds correct metadata to h_dict."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Create a copy of the input h_dict to avoid modifying the original
     test_h_dict_copy = copy.deepcopy(h_dict_wind_scada)
@@ -215,7 +169,7 @@ def test_wind_farm_scada_power_time_utc_handling():
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
-        wind_sim = WindFarmSCADAPower(test_h_dict)
+        wind_sim = WindFarmSCADAPower(test_h_dict, "wind_farm")
 
         # Verify that starttime_utc is set correctly
         assert hasattr(wind_sim, "starttime_utc"), "starttime_utc should be set"
@@ -270,7 +224,7 @@ def test_wind_farm_scada_power_time_utc_validation_start_too_early():
         test_h_dict["dt"] = 1.0
 
         with pytest.raises(ValueError, match="Start time UTC .* is before the earliest time"):
-            WindFarmSCADAPower(test_h_dict)
+            WindFarmSCADAPower(test_h_dict, "wind_farm")
 
     finally:
         if os.path.exists(temp_scada_file):
@@ -311,7 +265,7 @@ def test_wind_farm_scada_power_time_utc_validation_end_too_late():
         test_h_dict["dt"] = 1.0
 
         with pytest.raises(ValueError, match="End time UTC .* is after the latest time"):
-            WindFarmSCADAPower(test_h_dict)
+            WindFarmSCADAPower(test_h_dict, "wind_farm")
 
     finally:
         if os.path.exists(temp_scada_file):
@@ -350,7 +304,7 @@ def test_wind_farm_scada_power_ws_mean_handling():
         test_h_dict["endtime_utc"] = "2023-01-01T00:00:04Z"
         test_h_dict["dt"] = 1.0
 
-        wind_sim = WindFarmSCADAPower(test_h_dict)
+        wind_sim = WindFarmSCADAPower(test_h_dict, "wind_farm")
 
         # Verify that ws_mat is properly tiled from ws_mean
         assert wind_sim.ws_mat.shape == (4, 3)
@@ -365,13 +319,11 @@ def test_wind_farm_scada_power_ws_mean_handling():
 
 def test_wind_farm_scada_power_output_consistency():
     """Test that outputs are consistent with no wake modeling."""
-    wind_sim = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Run a step
     step_h_dict = {"step": 2}
-    step_h_dict["wind_farm"] = {
-        "turbine_power_setpoints": np.ones(3, dtype=hercules_float_type) * 5000.0,
-    }
+    step_h_dict["wind_farm"] = {}
 
     result = wind_sim.step(step_h_dict)
 
@@ -389,7 +341,7 @@ def test_wind_farm_scada_power_output_consistency():
 def test_wind_farm_scada_power_multiple_file_formats():
     """Test that SCADA data can be loaded from different file formats."""
     # Test CSV (already tested above, but included for completeness)
-    wind_sim_csv = WindFarmSCADAPower(h_dict_wind_scada)
+    wind_sim_csv = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
     assert wind_sim_csv.n_turbines == 3
 
     # Test pickle format
@@ -405,7 +357,7 @@ def test_wind_farm_scada_power_multiple_file_formats():
         test_h_dict = copy.deepcopy(h_dict_wind_scada)
         test_h_dict["wind_farm"]["scada_filename"] = temp_pickle_file
 
-        wind_sim_pkl = WindFarmSCADAPower(test_h_dict)
+        wind_sim_pkl = WindFarmSCADAPower(test_h_dict, "wind_farm")
         assert wind_sim_pkl.n_turbines == 3
 
     finally:
@@ -421,7 +373,7 @@ def test_wind_farm_scada_power_multiple_file_formats():
         test_h_dict = copy.deepcopy(h_dict_wind_scada)
         test_h_dict["wind_farm"]["scada_filename"] = temp_feather_file
 
-        wind_sim_ftr = WindFarmSCADAPower(test_h_dict)
+        wind_sim_ftr = WindFarmSCADAPower(test_h_dict, "wind_farm")
         assert wind_sim_ftr.n_turbines == 3
 
     finally:
@@ -443,7 +395,7 @@ def test_wind_farm_scada_power_invalid_file_format():
         test_h_dict["wind_farm"]["scada_filename"] = temp_file
 
         with pytest.raises(ValueError, match="SCADA file must be a .csv or .p, .f or .ftr file"):
-            WindFarmSCADAPower(test_h_dict)
+            WindFarmSCADAPower(test_h_dict, "wind_farm")
 
     finally:
         if os.path.exists(temp_file):

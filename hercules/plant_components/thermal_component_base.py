@@ -33,6 +33,7 @@ from enum import IntEnum
 
 import numpy as np
 from hercules.plant_components.component_base import ComponentBase
+from hercules.utilities import hercules_float_type
 
 
 class ThermalComponentBase(ComponentBase):
@@ -61,9 +62,7 @@ class ThermalComponentBase(ComponentBase):
 
     """
 
-    # Default component name and type; subclasses override these as class attributes
-    component_name = "thermal_component"
-    component_type = "ThermalComponentBase"
+    component_category = "generator"
 
     class STATES(IntEnum):
         """Enumeration of thermal component operating states."""
@@ -81,7 +80,7 @@ class ThermalComponentBase(ComponentBase):
     HOT_START_TIME = 8 * 60 * 60  # 8 hours (less than 8 hours triggers a hot start)
     WARM_START_TIME = 48 * 60 * 60  # 48 hours (less than 48 hours triggers a warm start)
 
-    def __init__(self, h_dict):
+    def __init__(self, h_dict, component_name):
         """Initialize the ThermalComponentBase class.
 
         Args:
@@ -107,10 +106,11 @@ class ThermalComponentBase(ComponentBase):
                 - efficiency_table: Dictionary with power_fraction and efficiency arrays
                     (both as fractions 0-1). Efficiency values must be HHV net plant
                     efficiencies.
+            component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
-        # Call the base class init
-        super().__init__(h_dict, self.component_name)
+        # Call the base class init (sets self.component_name and self.component_type)
+        super().__init__(h_dict, component_name)
 
         # Extract parameters from the h_dict
         component_dict = h_dict[self.component_name]
@@ -250,8 +250,10 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("efficiency_table must contain 'efficiency'")
 
         # Extract and convert to numpy arrays for interpolation
-        self.efficiency_power_fraction = np.array(efficiency_table["power_fraction"])
-        self.efficiency_values = np.array(efficiency_table["efficiency"])
+        self.efficiency_power_fraction = np.array(
+            efficiency_table["power_fraction"], dtype=hercules_float_type
+        )
+        self.efficiency_values = np.array(efficiency_table["efficiency"], dtype=hercules_float_type)
 
         # Validate array lengths match
         if len(self.efficiency_power_fraction) != len(self.efficiency_values):

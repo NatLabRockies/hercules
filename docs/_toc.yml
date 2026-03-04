@@ -18,6 +18,8 @@ parts:
     - file: timing
     - file: h_dict
     - file: hybrid_plant
+    - file: component_types
+    - file: adding_components
     - file: hercules_model
     - file: output_files
   - caption: Plant Components

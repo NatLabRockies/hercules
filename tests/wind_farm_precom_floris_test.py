@@ -1,4 +1,4 @@
-"""Tests for the WindFarm class in with precomputed wakes."""
+"""Tests for the WindFarm class with precomputed wakes."""
 
 import copy
 import os
@@ -19,9 +19,9 @@ h_dict_wind_precom_floris["wind_farm"]["component_type"] = "WindFarm"
 h_dict_wind_precom_floris["wind_farm"]["wake_method"] = "precomputed"
 
 
-def test_wind_meso_to_power_precom_floris_initialization():
+def test_wind_farm_precom_floris_initialization():
     """Test that WindFarm initializes correctly with valid inputs."""
-    wind_sim = WindFarm(h_dict_wind_precom_floris)
+    wind_sim = WindFarm(h_dict_wind_precom_floris, "wind_farm")
 
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarm"
@@ -37,7 +37,7 @@ def test_wind_meso_to_power_precom_floris_initialization():
     )
 
 
-def test_wind_meso_to_power_precom_floris_ws_mean():
+def test_wind_farm_precom_floris_ws_mean():
     """Test that invalid component_type raises ValueError."""
 
     current_dir = os.path.dirname(__file__)
@@ -51,7 +51,7 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
 
     # Test that, since individual speed are specified, ws_mean is ignored
     # Note that h_dict_wind_precom_floris specifies an end time of 10.
-    wind_sim = WindFarm(test_h_dict)
+    wind_sim = WindFarm(test_h_dict, "wind_farm")
     assert (
         wind_sim.ws_mat[:, 0] == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
     ).all()
@@ -66,7 +66,7 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
     df_input = df_input.drop(columns=["ws_000", "ws_001", "ws_002"])
     df_input.to_csv(current_dir + "/test_inputs/wind_input_temp.csv")
 
-    wind_sim = WindFarm(test_h_dict)
+    wind_sim = WindFarm(test_h_dict, "wind_farm")
     assert (wind_sim.ws_mat_mean == 10.0).all()
     assert (wind_sim.ws_mat[:, :] == 10.0).all()
 
@@ -74,7 +74,7 @@ def test_wind_meso_to_power_precom_floris_ws_mean():
     os.remove(current_dir + "/test_inputs/wind_input_temp.csv")
 
 
-def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
+def test_wind_farm_precom_floris_requires_floris_update_time():
     """Test that missing floris_update_time_s raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
     del test_h_dict["wind_farm"]["floris_update_time_s"]
@@ -82,21 +82,21 @@ def test_wind_meso_to_power_precom_floris_requires_floris_update_time():
     with pytest.raises(
         ValueError, match="floris_update_time_s must be specified for wake_method='precomputed'"
     ):
-        WindFarm(test_h_dict)
+        WindFarm(test_h_dict, "wind_farm")
 
 
-def test_wind_meso_to_power_precom_floris_invalid_update_time():
+def test_wind_farm_precom_floris_invalid_update_time():
     """Test that invalid floris_update_time_s (<1) raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
     test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5
 
     with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
-        WindFarm(test_h_dict)
+        WindFarm(test_h_dict, "wind_farm")
 
 
-def test_wind_meso_to_power_precom_floris_step():
+def test_wind_farm_precom_floris_step():
     """Test that the step method updates outputs correctly."""
-    wind_sim = WindFarm(h_dict_wind_precom_floris)
+    wind_sim = WindFarm(h_dict_wind_precom_floris, "wind_farm")
 
     # Add power setpoint values to the step h_dict
     step_h_dict = {"step": 1}
@@ -114,9 +114,9 @@ def test_wind_meso_to_power_precom_floris_step():
     assert isinstance(result["wind_farm"]["power"], (int, float))
 
 
-def test_wind_meso_to_power_precom_floris_power_setpoint_applies():
+def test_wind_farm_precom_floris_power_setpoint_applies():
     """Test that turbine powers equal power setpoint when setpoint is very low."""
-    wind_sim = WindFarm(h_dict_wind_precom_floris)
+    wind_sim = WindFarm(h_dict_wind_precom_floris, "wind_farm")
 
     # Set very low power setpoint values that should definitely limit power output
     step_h_dict = {"step": 1}
@@ -136,9 +136,9 @@ def test_wind_meso_to_power_precom_floris_power_setpoint_applies():
         )
 
 
-def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data():
+def test_wind_farm_precom_floris_get_initial_conditions_and_meta_data():
     """Test that get_initial_conditions_and_meta_data adds correct metadata to h_dict."""
-    wind_sim = WindFarm(h_dict_wind_precom_floris)
+    wind_sim = WindFarm(h_dict_wind_precom_floris, "wind_farm")
 
     # Create a copy of the input h_dict to avoid modifying the original
     test_h_dict_copy = copy.deepcopy(h_dict_wind_precom_floris)
@@ -176,9 +176,9 @@ def test_wind_meso_to_power_precom_floris_get_initial_conditions_and_meta_data()
     assert "plant" in result
 
 
-def test_wind_meso_to_power_precom_floris_precomputed_wake_deficits():
+def test_wind_farm_precom_floris_precomputed_wake_deficits():
     """Test that wake deficits are precomputed and stored correctly."""
-    wind_sim = WindFarm(h_dict_wind_precom_floris)
+    wind_sim = WindFarm(h_dict_wind_precom_floris, "wind_farm")
 
     # Verify that precomputed wake wind speeds exist
     assert hasattr(wind_sim, "wind_speeds_withwakes_all")
@@ -197,7 +197,7 @@ def test_wind_meso_to_power_precom_floris_precomputed_wake_deficits():
     assert np.all(wind_sim.floris_wake_deficits >= 0.0)
 
 
-def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
+def test_wind_farm_precom_floris_velocities_update_correctly():
     """Test that wind speeds are updated correctly from precomputed arrays during simulation."""
     # Create a temporary wind input file with varying conditions
     wind_data = {
@@ -232,7 +232,7 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
-        wind_sim = WindFarm(test_h_dict)
+        wind_sim = WindFarm(test_h_dict, "wind_farm")
 
         # Store initial wind speeds
         initial_background = wind_sim.wind_speeds_background.copy()
@@ -268,7 +268,7 @@ def test_wind_meso_to_power_precom_floris_velocities_update_correctly():
             os.unlink(temp_wind_file)
 
 
-def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
+def test_wind_farm_precom_floris_time_utc_reconstruction():
     """Test that time_utc reconstruction works correctly from starttime_utc metadata
     and both time_utc fields are properly set."""
     # Create wind input data with time_utc columns
@@ -304,7 +304,7 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
-        wind_sim = WindFarm(test_h_dict)
+        wind_sim = WindFarm(test_h_dict, "wind_farm")
 
         # Verify that starttime_utc is set correctly
         assert hasattr(wind_sim, "starttime_utc"), "starttime_utc should be set"
@@ -403,7 +403,7 @@ def test_wind_meso_to_power_precom_floris_time_utc_reconstruction():
             os.unlink(temp_wind_file)
 
 
-def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
+def test_wind_farm_precom_floris_time_utc_different_starttime():
     """Test that starttime_utc is correctly set when using a different start time."""
     # Create wind input data with time_utc columns
     wind_data = {
@@ -441,7 +441,7 @@ def test_wind_meso_to_power_precom_floris_time_utc_different_starttime():
         test_h_dict["dt"] = 1.0
 
         # Initialize wind simulation
-        wind_sim = WindFarm(test_h_dict)
+        wind_sim = WindFarm(test_h_dict, "wind_farm")
 
         # Verify that starttime_utc is set correctly
         assert hasattr(wind_sim, "starttime_utc"), "starttime_utc should be set"
