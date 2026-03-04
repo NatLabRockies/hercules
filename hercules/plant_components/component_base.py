@@ -137,3 +137,7 @@ class ComponentBase:
             for handler in self.logger.handlers[:]:
                 handler.close()
                 self.logger.removeHandler(handler)
+
+    def step(self, h_dict):
+        """Raise error"""
+        raise NotImplementedError("Subclasses must implement the step method")
