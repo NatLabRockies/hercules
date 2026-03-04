@@ -221,7 +221,10 @@ class ThermalComponentBase(ComponentBase):
         else:
             self.state = self.STATES.OFF
             # Set time_in_state so the unit is immediately ready to start
-            self.time_in_state = float(self.min_down_time)  # s
+            if "time_in_shutdown" in initial_conditions:
+                self.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
+            else:
+                self.time_in_state = float(self.min_down_time)  # s
 
         # Extract efficiency table (HHV net efficiency), HHV, and fuel density
         # for fuel consumption calculations

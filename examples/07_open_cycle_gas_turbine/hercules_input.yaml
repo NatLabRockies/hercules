@@ -51,7 +51,8 @@ open_cycle_gas_turbine:
     - efficiency
     - power_setpoint
   initial_conditions:
-    power: 100000  # Start ON at rated capacity (100 MW)
+    power: 0  # Start ON at rated capacity (100 MW)
+    time_in_shutdown: 500000  # 1 hour since last shutdown (so we can start immediately if needed)
 
 controller:
 
