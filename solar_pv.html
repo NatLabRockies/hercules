@@ -209,6 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -473,7 +475,7 @@ document.write(`
 <p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Laboratory of the Rockies’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
 <p>Presently only one solar simulator is available</p>
 <ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> in the input dictionary (.yaml file).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">SolarPySAMPVWatts</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p></li>
 </ol>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>

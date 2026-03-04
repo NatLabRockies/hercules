@@ -73,7 +73,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'hybrid_plant';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="HerculesModel" href="hercules_model.html" />
+    <link rel="next" title="Component Names, Types, and Categories" href="component_types.html" />
     <link rel="prev" title="H_Dict Structure" href="h_dict.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -209,6 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -454,6 +456,8 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generator-classification">Generator Classification</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-registry">Component Registry</a></li>
 </ul>
             </nav>
         </div>
@@ -470,45 +474,79 @@ document.write(`
 <p>The <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> class manages all plant components in Hercules. It handles initialization, execution, and coordination of individual components while computing plant-level outputs.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>HybridPlant automatically detects and initializes components based on the <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict structure</span></a>. Each component is configured through its respective section in the h_dict (e.g., <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> auto-discovers components from the <a class="reference internal" href="h_dict.html"><span class="std std-doc">h_dict</span></a> at initialization time. Any top-level <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> entry whose value is a dict containing a <code class="docutils literal notranslate"><span class="pre">component_type</span></code> key is treated as a plant component. The YAML key becomes the component’s <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (a user-chosen instance identifier), and the <code class="docutils literal notranslate"><span class="pre">component_type</span></code> value determines which Python class is instantiated.</p>
+<p>See <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for a full explanation of how <code class="docutils literal notranslate"><span class="pre">component_name</span></code>, <code class="docutils literal notranslate"><span class="pre">component_type</span></code>, and <code class="docutils literal notranslate"><span class="pre">component_category</span></code> relate to each other.</p>
 </section>
 <section id="available-components">
 <h2>Available Components<a class="headerlink" href="#available-components" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Component</p></th>
-<th class="head"><p>Component Type</p></th>
-<th class="head"><p>Description</p></th>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">component_type</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">component_category</span></code></p></th>
+<th class="head"><p>Generator?</p></th>
+<th class="head"><p>Documentation</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wind_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">WindFarm</span></code></p></td>
-<td><p>FLORIS-based wind farm simulation</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WindFarm</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">generator</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p><a class="reference internal" href="wind.html"><span class="std std-doc">Wind</span></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wind_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code></p></td>
-<td><p>Playback of pre-recorded SCADA turbine power data</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">WindFarmSCADAPower</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">generator</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p><a class="reference internal" href="wind.html"><span class="std std-doc">Wind</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">solar_farm</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></p></td>
-<td><p>PySAM-based simplified solar simulation</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">generator</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p><a class="reference internal" href="solar_pv.html"><span class="std std-doc">Solar PV</span></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></p></td>
-<td><p>Basic battery storage model</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">storage</span></code></p></td>
+<td><p>No</p></td>
+<td><p><a class="reference internal" href="battery.html"><span class="std std-doc">Battery</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">battery</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></p></td>
-<td><p>Detailed lithium-ion battery model</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">storage</span></code></p></td>
+<td><p>No</p></td>
+<td><p><a class="reference internal" href="battery.html"><span class="std std-doc">Battery</span></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code></p></td>
-<td><p>Hydrogen production system</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">load</span></code></p></td>
+<td><p>No</p></td>
+<td><p><a class="reference internal" href="electrolyzer.html"><span class="std std-doc">Electrolyzer</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">generator</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p><a class="reference internal" href="open_cycle_gas_turbine.html"><span class="std std-doc">Open Cycle Gas Turbine</span></a></p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>The YAML key for each section is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> and is not required to match the category name. For example, a <code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> component could be named <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">battery_unit_1</span></code>, or anything else.</p>
+</section>
+<section id="generator-classification">
+<h2>Generator Classification<a class="headerlink" href="#generator-classification" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code> classifies components into generators and non-generators based on <code class="docutils literal notranslate"><span class="pre">component_category</span></code>. Components with <code class="docutils literal notranslate"><span class="pre">component_category</span> <span class="pre">==</span> <span class="pre">&quot;generator&quot;</span></code> have their power outputs summed into <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;plant&quot;][&quot;locally_generated_power&quot;]</span></code> each time step. Storage and load components are excluded from this sum.</p>
+</section>
+<section id="component-registry">
+<h2>Component Registry<a class="headerlink" href="#component-registry" title="Link to this heading">#</a></h2>
+<p>All available component types are defined in <code class="docutils literal notranslate"><span class="pre">COMPONENT_REGISTRY</span></code> at the top of <code class="docutils literal notranslate"><span class="pre">hercules/hybrid_plant.py</span></code>. This dictionary maps <code class="docutils literal notranslate"><span class="pre">component_type</span></code> strings to their Python classes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">COMPONENT_REGISTRY</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;WindFarm&quot;</span><span class="p">:</span> <span class="n">WindFarm</span><span class="p">,</span>
+    <span class="s2">&quot;WindFarmSCADAPower&quot;</span><span class="p">:</span> <span class="n">WindFarmSCADAPower</span><span class="p">,</span>
+    <span class="s2">&quot;SolarPySAMPVWatts&quot;</span><span class="p">:</span> <span class="n">SolarPySAMPVWatts</span><span class="p">,</span>
+    <span class="s2">&quot;BatterySimple&quot;</span><span class="p">:</span> <span class="n">BatterySimple</span><span class="p">,</span>
+    <span class="s2">&quot;BatteryLithiumIon&quot;</span><span class="p">:</span> <span class="n">BatteryLithiumIon</span><span class="p">,</span>
+    <span class="s2">&quot;ElectrolyzerPlant&quot;</span><span class="p">:</span> <span class="n">ElectrolyzerPlant</span><span class="p">,</span>
+    <span class="s2">&quot;OpenCycleGasTurbine&quot;</span><span class="p">:</span> <span class="n">OpenCycleGasTurbine</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When adding a new component type, it must be registered here. See <a class="reference internal" href="adding_components.html"><span class="std std-doc">Adding Components</span></a> for a complete guide.</p>
 </section>
 </section>
 
@@ -552,11 +590,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="hercules_model.html"
+       href="component_types.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">HerculesModel</p>
+        <p class="prev-next-title">Component Names, Types, and Categories</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -578,6 +616,8 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-components">Available Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generator-classification">Generator Classification</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#component-registry">Component Registry</a></li>
 </ul>
   </nav></div>
 

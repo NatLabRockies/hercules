@@ -209,6 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -497,7 +499,7 @@ document.write(`
 <ul class="simple">
 <li><p><strong>Top level parameters</strong>: <code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code> (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for details)</p></li>
 <li><p><strong>Plant configuration</strong>: <code class="docutils literal notranslate"><span class="pre">interconnect_limit</span></code></p></li>
-<li><p><strong>Hybrid plant configurations</strong>: <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code></p></li>
+<li><p><strong>Plant component sections</strong>: any number of user-named sections, each containing a <code class="docutils literal notranslate"><span class="pre">component_type</span></code> key that identifies the component class to use (see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a>)</p></li>
 <li><p><strong>External data</strong>: <code class="docutils literal notranslate"><span class="pre">external_data</span></code> for external time series data (e.g., LMP prices, weather forecasts)</p></li>
 <li><p><strong>Optional settings</strong>: <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">output_file</span></code></p></li>
 </ul>
@@ -530,7 +532,7 @@ document.write(`
 <span class="nt">plant</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">interconnect_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30000</span><span class="w">  </span><span class="c1"># kW</span>
 
-<span class="nt">wind_farm</span><span class="p">:</span>
+<span class="nt">wind_farm</span><span class="p">:</span><span class="w">  </span><span class="c1"># User-chosen component_name; component_type determines the class</span>
 <span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WindFarm</span>
 <span class="w">  </span><span class="nt">wake_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dynamic</span>
 <span class="w">  </span><span class="nt">floris_input_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inputs/floris_input.yaml</span>
@@ -544,7 +546,7 @@ document.write(`
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wind_direction_mean</span>
 <span class="w">  </span><span class="nt">floris_update_time_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span>
 
-<span class="nt">solar_farm</span><span class="p">:</span>
+<span class="nt">solar_farm</span><span class="p">:</span><span class="w">  </span><span class="c1"># User-chosen component_name</span>
 <span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SolarPySAMPVWatts</span>
 <span class="w">  </span><span class="nt">solar_input_filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inputs/solar_input.csv</span>
 <span class="w">  </span><span class="nt">lat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">39.7442</span>
@@ -562,7 +564,7 @@ document.write(`
 <span class="w">    </span><span class="nt">dni</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">poa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 
-<span class="nt">battery</span><span class="p">:</span>
+<span class="nt">battery</span><span class="p">:</span><span class="w">  </span><span class="c1"># User-chosen component_name</span>
 <span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BatterySimple</span>
 <span class="w">  </span><span class="nt">energy_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100.0</span><span class="w">  </span><span class="c1"># MWh</span>
 <span class="w">  </span><span class="nt">charge_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w">  </span><span class="c1"># MW</span>

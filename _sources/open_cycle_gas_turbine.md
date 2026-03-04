@@ -2,6 +2,8 @@
 
 The `OpenCycleGasTurbine` class models an open-cycle gas turbine (OCGT), also known as a peaker plant or simple-cycle gas turbine. Since this class is focused on peaker plant behavior, this class was developed based on aeroderivative engines. It is a subclass of {doc}`ThermalComponentBase <thermal_component_base>` and inherits all state machine behavior, ramp constraints, and operational logic from the base class.
 
+Set `component_type: OpenCycleGasTurbine` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `open_cycle_gas_turbine`); see [Component Names, Types, and Categories](component_types.md) for details.
+
 For details on the state machine, startup/shutdown behavior, and base parameters, see {doc}`thermal_component_base`.
 
 ## OCGT-Specific Parameters

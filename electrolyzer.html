@@ -209,6 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -475,7 +477,7 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="electrolyzer-plant">
 <h1>Electrolyzer Plant<a class="headerlink" href="#electrolyzer-plant" title="Link to this heading">#</a></h1>
 <p>The hydrogen electrolyzer modules use the <a class="reference external" href="https://github.com/NREL/electrolyzer">electrolyzer</a> package developed by the National Laboratory of the Rockies to predict hydrogen output of hydrogen electrolyzer plants. This repo contains models for PEM and Alkaline electrolyzer cell types.</p>
-<p>To create a hydrogen electrolyzer plant, set <code class="docutils literal notranslate"><span class="pre">component_type</span></code> = <code class="docutils literal notranslate"><span class="pre">ElectrolyzerPlant</span></code> in the input dictionary (.yaml file).</p>
+<p>To create a hydrogen electrolyzer plant, set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">ElectrolyzerPlant</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
 <section id="required-parameters">

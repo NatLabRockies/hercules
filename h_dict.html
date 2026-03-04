@@ -209,6 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -454,10 +456,11 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure-overview">Structure Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-h-dict-structure">Complete H_Dict Structure</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-wind-farm">Wind Farm (<code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solar-farm-solar-farm">Solar Farm (<code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#battery-battery">Battery (<code class="docutils literal notranslate"><span class="pre">battery</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer-electrolyzer">Electrolyzer (<code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm">Wind Farm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solar-farm">Solar Farm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#battery">Battery</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#open-cycle-gas-turbine">Open Cycle Gas Turbine</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-external-data">External Data (<code class="docutils literal notranslate"><span class="pre">external_data</span></code>)</a></li>
 </ul>
 </li>
@@ -588,8 +591,9 @@ document.write(`
 </tbody>
 </table>
 </div>
-<section id="wind-farm-wind-farm">
-<h3>Wind Farm (<code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>)<a class="headerlink" href="#wind-farm-wind-farm" title="Link to this heading">#</a></h3>
+<p>Any top-level <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> entry whose value is a dict containing a <code class="docutils literal notranslate"><span class="pre">component_type</span></code> key is auto-discovered as a plant component. The key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>, <code class="docutils literal notranslate"><span class="pre">battery_unit_1</span></code>) — it does not need to match the category name. See <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
+<section id="wind-farm">
+<h3>Wind Farm<a class="headerlink" href="#wind-farm" title="Link to this heading">#</a></h3>
 <p>| <code class="docutils literal notranslate"><span class="pre">component_type</span></code> | str | Must be “WindFarm” or “WindFarmSCADAPower” |
 | <code class="docutils literal notranslate"><span class="pre">floris_input_file</span></code> | str | FLORIS input file path |
 | <code class="docutils literal notranslate"><span class="pre">wind_input_filename</span></code> | str | Wind data input file |
@@ -598,8 +602,8 @@ document.write(`
 | <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> | list | List of channels to log (e.g., [“power”, “wind_speed_mean_background”, “turbine_powers”]) |
 | <code class="docutils literal notranslate"><span class="pre">floris_update_time_s</span></code> | float | How often to update FLORIS wake calculations in seconds |</p>
 </section>
-<section id="solar-farm-solar-farm">
-<h3>Solar Farm (<code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>)<a class="headerlink" href="#solar-farm-solar-farm" title="Link to this heading">#</a></h3>
+<section id="solar-farm">
+<h3>Solar Farm<a class="headerlink" href="#solar-farm" title="Link to this heading">#</a></h3>
 <p>| <code class="docutils literal notranslate"><span class="pre">component_type</span></code> | str | “SolarPySAMPVWatts” |
 | <strong>For SolarPySAMPVWatts:</strong> |
 | <code class="docutils literal notranslate"><span class="pre">pysam_model</span></code> | str | “pvwatts” |
@@ -612,8 +616,8 @@ document.write(`
 | <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> | list | List of channels to log (e.g., [“power”, “dni”, “poa”, “aoi”]) |
 | <code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code> | dict | Initial power, DNI, POA |</p>
 </section>
-<section id="battery-battery">
-<h3>Battery (<code class="docutils literal notranslate"><span class="pre">battery</span></code>)<a class="headerlink" href="#battery-battery" title="Link to this heading">#</a></h3>
+<section id="battery">
+<h3>Battery<a class="headerlink" href="#battery" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
@@ -702,8 +706,8 @@ document.write(`
 </table>
 </div>
 </section>
-<section id="electrolyzer-electrolyzer">
-<h3>Electrolyzer (<code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>)<a class="headerlink" href="#electrolyzer-electrolyzer" title="Link to this heading">#</a></h3>
+<section id="electrolyzer">
+<h3>Electrolyzer<a class="headerlink" href="#electrolyzer" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
@@ -743,6 +747,52 @@ document.write(`
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">degradation</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>Degradation parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="open-cycle-gas-turbine">
+<h3>Open Cycle Gas Turbine<a class="headerlink" href="#open-cycle-gas-turbine" title="Link to this heading">#</a></h3>
+<p>Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">OpenCycleGasTurbine</span></code>. See <a class="reference internal" href="open_cycle_gas_turbine.html"><span class="doc">Open Cycle Gas Turbine</span></a> for the full parameter reference.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">component_type</span></code></p></td>
+<td><p>str</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;OpenCycleGasTurbine&quot;</span></code></p></td>
+<td><p>Required</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rated_capacity</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Rated power output in kW</p></td>
+<td><p>Required</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Initial state (<code class="docutils literal notranslate"><span class="pre">power</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code>)</p></td>
+<td><p>Required</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_stable_load_fraction</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Minimum stable load as fraction of rated capacity</p></td>
+<td><p>0.40</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Ramp rate as fraction of rated capacity per minute</p></td>
+<td><p>0.10</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code></p></td>
+<td><p>list</p></td>
+<td><p>List of channels to log</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;power&quot;]</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -850,10 +900,11 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure-overview">Structure Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-h-dict-structure">Complete H_Dict Structure</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm-wind-farm">Wind Farm (<code class="docutils literal notranslate"><span class="pre">wind_farm</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solar-farm-solar-farm">Solar Farm (<code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#battery-battery">Battery (<code class="docutils literal notranslate"><span class="pre">battery</span></code>)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer-electrolyzer">Electrolyzer (<code class="docutils literal notranslate"><span class="pre">electrolyzer</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-farm">Wind Farm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solar-farm">Solar Farm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#battery">Battery</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electrolyzer">Electrolyzer</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#open-cycle-gas-turbine">Open Cycle Gas Turbine</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-external-data">External Data (<code class="docutils literal notranslate"><span class="pre">external_data</span></code>)</a></li>
 </ul>
 </li>

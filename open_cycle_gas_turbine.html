@@ -211,6 +211,8 @@
 <li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
 </ul>
@@ -484,6 +486,7 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="open-cycle-gas-turbine">
 <h1>Open Cycle Gas Turbine<a class="headerlink" href="#open-cycle-gas-turbine" title="Link to this heading">#</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code> class models an open-cycle gas turbine (OCGT), also known as a peaker plant or simple-cycle gas turbine. Since this class is focused on peaker plant behavior, this class was developed based on aeroderivative engines. It is a subclass of <a class="reference internal" href="thermal_component_base.html"><span class="doc">ThermalComponentBase</span></a> and inherits all state machine behavior, ramp constraints, and operational logic from the base class.</p>
+<p>Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">OpenCycleGasTurbine</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">open_cycle_gas_turbine</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
 <p>For details on the state machine, startup/shutdown behavior, and base parameters, see <a class="reference internal" href="thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
 <section id="ocgt-specific-parameters">
 <h2>OCGT-Specific Parameters<a class="headerlink" href="#ocgt-specific-parameters" title="Link to this heading">#</a></h2>
