@@ -1,0 +1,57 @@
+# Input YAML for hercules
+# Explicitly specify the parameters for demonstration purposes
+
+# Name
+name: example_07
+
+###
+# Describe this simulation setup
+description: Open Cycle Gas Turbine (OCGT) Example
+
+dt: 60.0  # 1 minute time step
+starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
+endtime_utc: "2020-01-01T18:00:00Z"  # 18 hours later
+verbose: False
+log_every_n: 1
+
+plant:
+  interconnect_limit: 30000  # kW (30 MW)
+
+steam_turbine:
+  component_type: SteamTurbine
+  rated_capacity: 30000  # kW (30 MW)
+  min_stable_load_fraction: 0.1  # 10% minimum operating point
+  ramp_rate_fraction: 0.05  # 5%/min ramp rate
+  run_up_rate_fraction: 0.03  # 3%/min run up rate
+  hot_startup_time: 7200.0  # 2 hours
+  warm_startup_time: 14400.0  # 4 hours
+  cold_startup_time: 28800.0  # 8 hours
+  min_up_time: 3600  # 1 hour, placeholder, should probably be longer for a steam turbine
+  min_down_time: 3600  # 1 hour, placeholder, should probably be longer for a steam turbine
+  # Carbon coal HHV from https://www.engineeringtoolbox.com/fuels-higher-calorific-values-d_169.html
+  # Conversion from MJ/kg to MJ/m³ using density of 1500 kg/m³
+  hhv: 21860  # MJ/m³ for coal (32.8 MJ/kg)
+  fuel_density: 1500  # kg/m³ for coal (Googled, better source needed)
+  efficiency_table:
+    power_fraction:
+      - 1.0
+      - 0.75
+      - 0.50
+      - 0.25
+    efficiency:  # HHV net plant efficiency, fractions (0-1), from SC1A in Exhibit ES-4 of [5]
+      - 0.14
+      - 0.15
+      - 0.165
+      - 0.17
+  log_channels:
+    - power
+    - fuel_volume_rate
+    - fuel_mass_rate
+    - state
+    - efficiency
+    - power_setpoint
+  initial_conditions:
+    power: 30000  # Start ON at rated capacity (100 MW)
+
+controller:
+
