@@ -7,21 +7,20 @@ from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
 
 
 class ThermalPlant(ComponentBase):
-    """
-    """
+    """ """
+
     component_category = "generator"
 
     def __init__(self, h_dict, component_name):
-
         # Instantiate individual units from the h_dict.
 
         self.unit_names = h_dict[component_name]["unit_names"]
         # Copy h_dict pieces as needed
         for unit_name in self.unit_names:
             if unit_name not in h_dict[component_name]:
-                h_dict[component_name][unit_name] = (
-                    h_dict[component_name]["open_cycle_gas_turbine"].copy()
-                )
+                h_dict[component_name][unit_name] = h_dict[component_name][
+                    "open_cycle_gas_turbine"
+                ].copy()
         # Remove the template from the component dict since it's now copied into each unit dict
         del h_dict[component_name]["open_cycle_gas_turbine"]
         self.units = []
@@ -37,7 +36,6 @@ class ThermalPlant(ComponentBase):
         super().__init__(h_dict, component_name)
 
     def step(self, h_dict):
-
         thermal_plant_power = 0.0
 
         for unit, unit_name, power_setpoint in zip(
