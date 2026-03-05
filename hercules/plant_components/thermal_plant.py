@@ -5,7 +5,7 @@ import copy
 
 from hercules.plant_components.component_base import ComponentBase
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
-
+import hercules.hybrid_plant as hp
 
 class ThermalPlant(ComponentBase):
     """ """
@@ -34,7 +34,9 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["starttime"] = h_dict["starttime"]
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
-            self.units.append(OpenCycleGasTurbine(h_dict_thermal, unit_name))
+            unit_type = h_dict['thermal_power_plant']['OCGT1']['component_type']
+            unit_class = hp.COMPONENT_REGISTRY[unit_type]  # Validate that the unit type is in the registry
+            self.units.append(unit_class(h_dict_thermal, unit_name))
 
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
