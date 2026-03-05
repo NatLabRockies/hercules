@@ -7,7 +7,7 @@ from hercules.plant_components.power_playback import PowerPlayback
 
 from tests.test_inputs.h_dict import h_dict_power_playback
 
-# Create a base test dictionary for WindFarmSCADAPower
+# Create a base test dictionary for PowerPlayback
 h_dict_power_playback = copy.deepcopy(h_dict_power_playback)
 
 

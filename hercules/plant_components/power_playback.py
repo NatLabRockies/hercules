@@ -40,12 +40,12 @@ class PowerPlayback(ComponentBase):
         # Read in the scada file
         if self.scada_filename.endswith(".csv"):
             df_scada = pd.read_csv(self.scada_filename)
-        elif self.scada_filename.endswith(".p") | self.scada_filename.endswith(".pkl"):
+        elif self.scada_filename.endswith((".p", ".pkl")):
             df_scada = pd.read_pickle(self.scada_filename)
-        elif (self.scada_filename.endswith(".f")) | (self.scada_filename.endswith(".ftr")):
+        elif self.scada_filename.endswith((".f", ".ftr")):
             df_scada = pd.read_feather(self.scada_filename)
         else:
-            raise ValueError("SCADA file must be a .csv or .p, .f or .ftr file")
+            raise ValueError("SCADA file must be a .csv, .p, .pkl, .f, or .ftr file")
 
         self.logger.info("Checking SCADA file...")
 
@@ -147,7 +147,7 @@ class PowerPlayback(ComponentBase):
         return h_dict
 
     def step(self, h_dict):
-        """Execute one simulation step for the wind farm.
+        """Execute one simulation step for the power playback component.
 
         Updates power based on the pre-recorded power data.
 

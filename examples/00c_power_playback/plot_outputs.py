@@ -15,7 +15,7 @@ print()
 df = ho.df
 
 
-fig, ax = plt.subplots(1, 1, sharex=True)
+_, ax = plt.subplots(1, 1, sharex=True)
 
 
 # Plot the power
@@ -29,6 +29,6 @@ ax.plot(
 
 ax.grid(True)
 ax.legend()
-ax.set_xlabel("Time [s]")
+ax.set_xlabel("Time (UTC)")
 ax.set_ylabel("Power [kW]")
 plt.show()
