@@ -97,7 +97,7 @@ chmod 600 ~/.ssh/*
 Note: This section is untested.
 Go back to herc_root
 ```
-pip install nrel-pysam==7.1.0
+pip install nrel-pysam==6.0.0
 ```
 
 If you run hercules and get an error that `pyyaml` is missing, you may also need to install it using
