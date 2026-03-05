@@ -37,3 +37,10 @@ def test_power_playback_step():
 
     # Verify power
     assert np.isclose(result["power_playback"]["power"], 1000.0)
+
+    # Step one more time
+    step_h_dict["step"] = 1
+    result = power_playback.step(step_h_dict)
+
+    # Verify power
+    assert np.isclose(result["power_playback"]["power"], 2000.0)
