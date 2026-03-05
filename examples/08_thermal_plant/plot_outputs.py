@@ -24,14 +24,34 @@ fig, axarr = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
 
 # Plot the power output and setpoint
 ax = axarr[0]
-ax.plot(time_minutes, df["thermal_power_plant.power"] / 1000, label="Power Output", color="b")
-# ax.plot(
-#     time_minutes,
-#     df["thermal_power_plant.power_setpoint"] / 1000,
-#     label="Power Setpoint",
-#     color="r",
-#     linestyle="--",
-# )
+ax.plot(time_minutes, df["thermal_power_plant.power"] / 1000, label="Power Output", color="k")
+ax.plot(
+    time_minutes,
+    df["thermal_power_plant.OCGT1.power_setpoint"] / 1000,
+    label="Power Setpoint (OCGT1)",
+    color="r",
+    linestyle="--",
+)
+ax.plot(
+    time_minutes,
+    df["thermal_power_plant.OCGT2.power_setpoint"] / 1000,
+    label="Power Setpoint (OCGT2)",
+    color="b",
+    linestyle="--",
+)
+ax.plot(
+    time_minutes,
+    df["thermal_power_plant.OCGT1.power"] / 1000,
+    label="Power Output (OCGT1)",
+    color="r",
+)
+ax.plot(
+    time_minutes,
+    df["thermal_power_plant.OCGT2.power"] / 1000,
+    label="Power Output (OCGT2)",
+    color="b",
+)
+
 # ax.axhline(
 #     h_dict["thermal_power_plant"]["rated_capacity"] / 1000,
 #     color="gray",
