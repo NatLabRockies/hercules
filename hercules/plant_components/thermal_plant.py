@@ -1,6 +1,7 @@
 """
 Multiunit thermal power plant.
 """
+import copy
 
 from hercules.plant_components.component_base import ComponentBase
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
@@ -15,14 +16,16 @@ class ThermalPlant(ComponentBase):
         # Instantiate individual units from the h_dict.
 
         self.unit_names = h_dict[component_name]["unit_names"]
-        # Copy h_dict pieces as needed
-        for unit_name in self.unit_names:
+        generic_units = h_dict[component_name]["units"]
+
+        for unit, unit_name in zip(generic_units, self.unit_names):
             if unit_name not in h_dict[component_name]:
-                h_dict[component_name][unit_name] = h_dict[component_name][
-                    "open_cycle_gas_turbine"
-                ].copy()
+                h_dict[component_name][unit_name] = copy.deepcopy(h_dict[component_name][unit])
+
         # Remove the template from the component dict since it's now copied into each unit dict
-        del h_dict[component_name]["open_cycle_gas_turbine"]
+        for unit in generic_units:
+            del h_dict[component_name][unit]
+            
         self.units = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
             h_dict_thermal = h_dict[component_name]
