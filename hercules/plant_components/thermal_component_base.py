@@ -355,6 +355,12 @@ class ThermalComponentBase(ComponentBase):
         h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
         h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
 
+        # Update start counts in h_dict for tracking purposes
+        h_dict[self.component_name]["n_total_starts"] = self.n_total_starts
+        h_dict[self.component_name]["n_hot_starts"] = self.n_hot_starts
+        h_dict[self.component_name]["n_warm_starts"] = self.n_warm_starts
+        h_dict[self.component_name]["n_cold_starts"] = self.n_cold_starts
+
         return h_dict
 
     def _control(self, power_setpoint):
