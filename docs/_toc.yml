@@ -25,6 +25,7 @@ parts:
   - caption: Plant Components
     chapters:
     - file: wind
+    - file: power_playback
     - file: solar_pv
     - file: battery
     - file: electrolyzer
@@ -39,6 +40,7 @@ parts:
     chapters:
     - file: examples_overview
     - file: examples/00_wind_farm_only
+    - file: examples/00c_power_playback
     - file: examples/01_wind_farm_dof1_model
     - file: examples/02a_wind_farm_realistic_inflow
     - file: examples/02b_wind_farm_realistic_inflow_precom_floris

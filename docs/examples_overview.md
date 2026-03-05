@@ -6,6 +6,7 @@ Hercules includes several example cases that demonstrate different simulation co
 
 - [00: Wind Farm Only](../examples/00_wind_farm_only/) - Simple wind farm simulation with generated wind data
 - [00b: Wind Farm SCADA Power](../examples/00b_wind_farm_scada_power) - Playback of pre-recorded SCADA turbine power data
+- [00c: Power Playback](../examples/00c_power_playback/) - Playback of pre-recorded power data from a generic power-generating unit
 - [01: Wind Farm DOF1 Model](../examples/01_wind_farm_dof1_model/) - 1-DOF long-duration wind simulation
 - [02: Wind Farm Realistic Inflow](../examples/02_wind_farm_realistic_inflow/) - Large-scale wind farm with longer running wind data
 - [02b: Wind Farm Realistic Inflow (Precomputed FLORIS)](../examples/02b_wind_farm_realistic_inflow_precom_floris/) - Optimized version using precomputed wake deficits
