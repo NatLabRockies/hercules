@@ -283,6 +283,12 @@ class ThermalComponentBase(ComponentBase):
         self.fuel_volume_rate = 0.0  # m³/s
         self.fuel_mass_rate = 0.0  # kg/s
 
+        # Initialize number of starts
+        self.n_total_starts = 0
+        self.n_hot_starts = 0
+        self.n_warm_starts = 0
+        self.n_cold_starts = 0
+
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add initial conditions and meta data to the h_dict.
 
@@ -297,6 +303,10 @@ class ThermalComponentBase(ComponentBase):
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
         h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
+        h_dict[self.component_name]["n_total_starts"] = self.n_total_starts
+        h_dict[self.component_name]["n_hot_starts"] = self.n_hot_starts
+        h_dict[self.component_name]["n_warm_starts"] = self.n_warm_starts
+        h_dict[self.component_name]["n_cold_starts"] = self.n_cold_starts
         return h_dict
 
     def step(self, h_dict):
@@ -406,13 +416,17 @@ class ThermalComponentBase(ComponentBase):
             can_start = self.time_in_state >= self.min_down_time
 
             if power_setpoint > 0 and can_start:
+                self.n_total_starts += 1
                 # Check if hot, warm, or cold starting is implied
                 if self.time_in_state < self.HOT_START_TIME:
                     self.state = self.STATES.HOT_STARTING
+                    self.n_hot_starts += 1
                 elif self.time_in_state < self.WARM_START_TIME:
                     self.state = self.STATES.WARM_STARTING
+                    self.n_warm_starts += 1
                 else:
                     self.state = self.STATES.COLD_STARTING
+                    self.n_cold_starts += 1
                 self.time_in_state = 0.0
 
             return 0.0  # Power is always 0 when off
