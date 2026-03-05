@@ -19,11 +19,14 @@ class ThermalPlant(ComponentBase):
         # Copy h_dict pieces as needed
         for unit_name in self.unit_names:
             if unit_name not in h_dict[component_name]:
-                h_dict[component_name][unit_name] = h_dict[component_name]["open_cycle_gas_turbine"].copy()
-        del h_dict[component_name]["open_cycle_gas_turbine"]  # Remove the template from the component dict since it's now copied into each unit dict
+                h_dict[component_name][unit_name] = (
+                    h_dict[component_name]["open_cycle_gas_turbine"].copy()
+                )
+        # Remove the template from the component dict since it's now copied into each unit dict
+        del h_dict[component_name]["open_cycle_gas_turbine"]
         self.units = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
-            h_dict_thermal = h_dict[component_name].copy()
+            h_dict_thermal = h_dict[component_name]
             h_dict_thermal["dt"] = h_dict["dt"]
             h_dict_thermal["starttime"] = h_dict["starttime"]
             h_dict_thermal["endtime"] = h_dict["endtime"]
@@ -40,11 +43,11 @@ class ThermalPlant(ComponentBase):
         for unit, unit_name, power_setpoint in zip(
             self.units, self.unit_names, h_dict[self.component_name]["power_setpoints"]
         ):
-            h_dict_thermal = h_dict[self.component_name].copy()
+            h_dict_thermal = h_dict[self.component_name]
             h_dict_thermal[unit_name]["power_setpoint"] = power_setpoint
             h_dict_thermal = unit.step(h_dict_thermal)
             thermal_plant_power += h_dict_thermal[unit_name]["power"]
-        
+
         h_dict[self.component_name]["power"] = thermal_plant_power
 
         return h_dict
@@ -56,7 +59,7 @@ class ThermalPlant(ComponentBase):
             h_dict (dict): Dictionary containing simulation parameters.
         """
         for unit in self.units:
-            h_dict_thermal = h_dict[self.component_name].copy()
+            h_dict_thermal = h_dict[self.component_name]
             h_dict_thermal = unit.get_initial_conditions_and_meta_data(h_dict_thermal)
 
         h_dict[self.component_name]["power"] = sum(

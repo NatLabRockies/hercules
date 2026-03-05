@@ -377,6 +377,18 @@ class HerculesModel:
                     else:
                         raise ValueError(f"Output {c} not found in {component_name}")
 
+            if "units" in self.h_dict[component_name]:
+                for unit in component_obj.units:
+                    unit_name = unit.component_name
+                    for c in unit.log_channels:
+                        dataset_name = f"{component_name}.{unit_name}.{c}"
+                        self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                            dataset_name,
+                            shape=(total_rows,),
+                            dtype=hercules_float_type,
+                            **compression_params,
+                        )
+
         # Create external signals datasets
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
             external_signals_group = data_group.create_group("external_signals")
@@ -711,6 +723,16 @@ class HerculesModel:
                             dataset_name = f"{component_name}.{c}"
                             if dataset_name in self.data_buffers:
                                 self.data_buffers[dataset_name][self.buffer_row] = output_value
+
+            if "units" in self.h_dict[component_name]:
+                for unit in component_obj.units:
+                    unit_name = unit.component_name
+                    for c in unit.log_channels:
+                        dataset_name = f"{component_name}.{unit_name}.{c}"
+                        if dataset_name in self.data_buffers:
+                            self.data_buffers[dataset_name][self.buffer_row] = self.h_dict[
+                                component_name
+                            ][unit_name][c]
 
         # Buffer external signals (only those specified in log_channels)
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
