@@ -34,6 +34,12 @@ wind_farm = {
     "floris_update_time_s": 30.0,  # Required parameter for FLORIS updates
 }
 
+power_playback = {
+    "component_type": "PowerPlayback",
+    "scada_filename": "tests/test_inputs/power_playback_input.csv",
+    "log_file_name": "outputs/power_playback.log",
+    "log_channels": ["power"],
+}
 
 solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
@@ -238,6 +244,17 @@ h_dict_wind = {
     "time": 2.0,
     "plant": plant,
     "wind_farm": wind_farm,
+}
+
+# h_dict with power_playback only
+h_dict_power_playback = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "power_playback": power_playback,
 }
 
 # h_dict with solar_farm only
