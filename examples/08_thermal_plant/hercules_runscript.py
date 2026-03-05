@@ -34,7 +34,7 @@ class ControllerOCGT:
             h_dict (dict): The hercules input dictionary.
 
         """
-        self.rated_capacity = 200000 # Hardcode for now. Likely need to get from
+        self.rated_capacity = 200000  # Hardcode for now. Likely need to get from
 
     def step(self, h_dict):
         """Execute one control step.
@@ -76,7 +76,8 @@ class ControllerOCGT:
         power_setpoint_unit_2 = 0.4 * power_setpoint
 
         h_dict["thermal_power_plant"]["power_setpoints"] = [
-            power_setpoint_unit_1, power_setpoint_unit_2
+            power_setpoint_unit_1,
+            power_setpoint_unit_2,
         ]
         h_dict["thermal_power_plant"]["power_setpoint"] = power_setpoint
 
