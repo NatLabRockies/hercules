@@ -14,7 +14,7 @@ from hercules.utilities import (
 class PowerPlayback(ComponentBase):
     """Power playback model that plays back pre-recorded power data.
     Note it is limited to playing back the prerecorded power,
-    there is no option to control.  
+    there is no option to control.
     """
 
     component_category = "generator"
@@ -126,7 +126,6 @@ class PowerPlayback(ComponentBase):
         # Collect the scada power
         self.scada_power = df_scada["power"].to_numpy(dtype=hercules_float_type)
 
-
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
 
@@ -163,7 +162,6 @@ class PowerPlayback(ComponentBase):
         step = h_dict["step"]
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
-
 
         # Update the power
         self.power = self.scada_power[step]

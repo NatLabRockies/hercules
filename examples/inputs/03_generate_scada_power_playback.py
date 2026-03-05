@@ -1,18 +1,13 @@
-"""Generate a history of power playback data
-
-
-"""
-
-
+"""Generate a history of power playback data"""
 
 import pandas as pd
 
-rated_power = 15000 
-starttime_utc = pd.to_datetime("2020-01-01T00:00:00Z", utc=True) # Midnight Jan 1, 2020 UTC (Zulu time)
-endtime_utc = pd.to_datetime("2020-01-01T00:15:50Z", utc=True) # 15 minutes 50 seconds later
+rated_power = 15000
+starttime_utc = pd.to_datetime("2020-01-01T00:00:00Z", utc=True)  # Midnight Jan 1, 2020 UTC
+endtime_utc = pd.to_datetime("2020-01-01T00:15:50Z", utc=True)  # 15 minutes 50 seconds later
 
 # Create a dataframe with the power playback data
-df = pd.DataFrame(index=pd.date_range(start=starttime_utc, end=endtime_utc, freq='S'))
+df = pd.DataFrame(index=pd.date_range(start=starttime_utc, end=endtime_utc, freq="S"))
 df["power"] = rated_power
 
 # Set power to 0 for first half of the data
