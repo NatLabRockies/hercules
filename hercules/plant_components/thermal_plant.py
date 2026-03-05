@@ -24,8 +24,9 @@ class ThermalPlant(ComponentBase):
 
         # Remove the template from the component dict since it's now copied into each unit dict
         for unit in generic_units:
-            del h_dict[component_name][unit]
-            
+            if unit in h_dict[component_name]:
+                del h_dict[component_name][unit]
+
         self.units = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
             h_dict_thermal = h_dict[component_name]
