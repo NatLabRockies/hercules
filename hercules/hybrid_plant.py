@@ -8,6 +8,8 @@ from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.thermal_plant import ThermalPlant
 from hercules.plant_components.wind_farm import WindFarm
 from hercules.plant_components.wind_farm_scada_power import WindFarmSCADAPower
+from hercules.plant_components.thermal_plant import ThermalPlant
+from hercules.plant_components.steam_turbine import SteamTurbine
 
 # Registry mapping component_type strings to their classes.
 # Add new component types here to make them discoverable by HybridPlant.
@@ -20,6 +22,7 @@ COMPONENT_REGISTRY = {
     "ElectrolyzerPlant": ElectrolyzerPlant,
     "OpenCycleGasTurbine": OpenCycleGasTurbine,
     "ThermalPlant": ThermalPlant,
+    "SteamTurbine": SteamTurbine,
 }
 
 # Derived from registry keys for validation in utilities.py
