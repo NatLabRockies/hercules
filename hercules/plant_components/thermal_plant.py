@@ -27,6 +27,15 @@ class ThermalPlant(ComponentBase):
         self.unit_names = h_dict[component_name]["unit_names"]
         generic_units = h_dict[component_name]["units"]
 
+        # Check that unit_names are valid
+        if len(self.unit_names) != len(generic_units):
+            raise ValueError(
+                f"Length of unit_names ({len(self.unit_names)}) must match length of units "
+                f"({len(generic_units)})."
+            )
+        if len(set(self.unit_names)) != len(self.unit_names):
+            raise ValueError(f"unit_names must be unique. Found duplicates in {self.unit_names}.")
+
         for unit, unit_name in zip(generic_units, self.unit_names):
             if unit_name not in h_dict[component_name]:
                 h_dict[component_name][unit_name] = copy.deepcopy(h_dict[component_name][unit])
@@ -47,11 +56,11 @@ class ThermalPlant(ComponentBase):
             unit_class = hp.COMPONENT_REGISTRY[unit_type]
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
+            elif not issubclass(unit_class, ThermalComponentBase):
+                raise ValueError(
+                    f"Unit type {unit_type} must be a subclass of ThermalComponentBase."
+                )
             else:
-                if not issubclass(unit_class, ThermalComponentBase):
-                    raise ValueError(
-                        f"Unit type {unit_type} must be a subclass of ThermalComponentBase."
-                    )
                 self.units.append(unit_class(h_dict_thermal, unit_name))
 
         # Call the base class init (sets self.component_name and self.component_type)

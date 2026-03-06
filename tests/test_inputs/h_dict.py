@@ -429,3 +429,22 @@ h_dict_hard_coal_steam_turbine = {
     "plant": plant,
     "hard_coal_steam_turbine": hard_coal_steam_turbine,
 }
+
+h_dict_thermal_plant = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "thermal_power_plant": {
+        "component_type": "ThermalPlant",
+        "unit_names": ["OCGT1", "HARD_COAL1"],
+        "units": ["open_cycle_gas_turbine", "hard_coal_steam_turbine"],
+        "open_cycle_gas_turbine": open_cycle_gas_turbine,
+        "hard_coal_steam_turbine": hard_coal_steam_turbine,
+    },
+}
