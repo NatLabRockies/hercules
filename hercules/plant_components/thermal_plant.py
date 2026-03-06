@@ -42,12 +42,12 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["starttime"] = h_dict["starttime"]
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
-            unit_type = h_dict["thermal_power_plant"]["OCGT1"]["component_type"]
-            # TODO: Make this more robust, possibly use get_component_class ?
-            unit_class = hp.COMPONENT_REGISTRY[
-                unit_type
-            ]  # Validate that the unit type is in the registry
-            self.units.append(unit_class(h_dict_thermal, unit_name))
+            unit_type = h_dict["thermal_power_plant"][unit_name]["component_type"]
+            unit_class = hp.COMPONENT_REGISTRY[unit_type]
+            if unit_class is None:
+                raise ValueError(f"Unit type {unit_type} not found in component registry.")
+            else:
+                self.units.append(unit_class(h_dict_thermal, unit_name))
 
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
@@ -76,15 +76,14 @@ class ThermalPlant(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
+        # NOTE: h_dict is modified in place, so h_dict will be updated with the initial
+        # conditions and metadata for each unit.
         for unit in self.units:
             h_dict_thermal = h_dict[self.component_name]
-            h_dict_thermal = unit.get_initial_conditions_and_meta_data(h_dict_thermal)
+            unit.get_initial_conditions_and_meta_data(h_dict_thermal)
 
         h_dict[self.component_name]["power"] = sum(
             h_dict_thermal[unit.component_name]["power"] for unit in self.units
         )
-
-        # TODO: we likely want to save off data for the individual units to the
-        # h_dict as well. Will need to figure out how to do that.
 
         return h_dict
