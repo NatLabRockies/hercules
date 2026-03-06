@@ -6,6 +6,7 @@ import copy
 
 import hercules.hybrid_plant as hp
 from hercules.plant_components.component_base import ComponentBase
+from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 
 class ThermalPlant(ComponentBase):
@@ -47,6 +48,10 @@ class ThermalPlant(ComponentBase):
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
             else:
+                if not issubclass(unit_class, ThermalComponentBase):
+                    raise ValueError(
+                        f"Unit type {unit_type} must be a subclass of ThermalComponentBase."
+                    )
                 self.units.append(unit_class(h_dict_thermal, unit_name))
 
         # Call the base class init (sets self.component_name and self.component_type)
