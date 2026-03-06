@@ -61,7 +61,7 @@ def ensure_example_inputs_exist():
         generate_example_inputs()
 
 
-def prepare_output_directory(output_dir="outputs"):
+def prepare_output_directory(output_dir=Path("outputs")):
     """Remove and recreate an output directory for clean runs.
 
     If the output directory exists, it will be deleted and recreated.

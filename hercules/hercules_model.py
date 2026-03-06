@@ -21,8 +21,6 @@ from hercules.utilities import (
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
 
-Path("outputs").mkdir(parents=True, exist_ok=True)
-
 
 class HerculesModel:
     def __init__(self, input_file):
@@ -35,14 +33,17 @@ class HerculesModel:
 
         """
 
+        # Load and validate the input file
+        h_dict = self._load_hercules_input(input_file)
+
+        # set default output directory to cwd / "outputs"
+        output_dir = Path(h_dict.get("output_dir", "outputs"))
+
         # Make sure output folder exists
-        Path("outputs").mkdir(parents=True, exist_ok=True)
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Set up logging
         self.logger = self._setup_logging()
-
-        # Load and validate the input file
-        h_dict = self._load_hercules_input(input_file)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -83,8 +84,17 @@ class HerculesModel:
             # Ensure .h5 extension
             if not self.output_file.endswith(".h5"):
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
+
+            if "/" in self.output_file:
+                # check if folder was specfied in output_file
+                if Path(self.output_file).parent != output_dir:
+                    # if folder of output_file does not match output_dir, then
+                    # just use the name of the output file
+                    self.output_file = output_dir / self.output_file.split("/")[-1]
+            else:
+                self.output_file = output_dir / self.output_file
         else:
-            self.output_file = "outputs/hercules_output.h5"
+            self.output_file = output_dir / "hercules_output.h5"
 
         # Initialize HDF5 output system
         self.hdf5_file = None

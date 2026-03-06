@@ -220,6 +220,7 @@ def load_hercules_input(filename):
         "description",
         "controller",
         "verbose",
+        "output_dir",
         "output_file",
         "log_every_n",
         "external_data_file",
@@ -372,6 +373,7 @@ def setup_logging(
     console_prefix=None,
     log_level=logging.INFO,
     use_outputs_dir=True,
+    outputs_dir=Path("outputs"),
 ):
     """Set up logging to file and console with flexible configuration.
 
@@ -400,9 +402,8 @@ def setup_logging(
     # Determine the log file path
     if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
         # Simple filename - use outputs directory
-        log_dir = os.path.join(os.getcwd(), "outputs")
-        os.makedirs(log_dir, exist_ok=True)
-        log_file_path = os.path.join(log_dir, log_file)
+        os.makedirs(outputs_dir, exist_ok=True)
+        log_file_path = os.path.join(outputs_dir, log_file)
     else:
         # Full path or use_outputs_dir=False - use as-is but ensure directory exists
         log_file_path = log_file
