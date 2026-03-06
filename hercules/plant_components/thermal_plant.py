@@ -9,7 +9,14 @@ from hercules.plant_components.component_base import ComponentBase
 
 
 class ThermalPlant(ComponentBase):
-    """ """
+    """Thermal power plant comprising multiple units.
+
+    The thermal plant component is designed to represent a collection of thermal generation units
+    (e.g. gas turbines, steam turbines, RICEs) that are grouped together into a single Hercules
+    component.  This allows users to model a thermal plant with multiple units with finer
+    granularity than a single aggregate component. Control setpoints can be specified for each unit.
+
+    """
 
     component_category = "generator"
 
@@ -36,6 +43,7 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
             unit_type = h_dict["thermal_power_plant"]["OCGT1"]["component_type"]
+            # TODO: Make this more robust, possibly use get_component_class ?
             unit_class = hp.COMPONENT_REGISTRY[
                 unit_type
             ]  # Validate that the unit type is in the registry
@@ -45,6 +53,9 @@ class ThermalPlant(ComponentBase):
         super().__init__(h_dict, component_name)
 
     def step(self, h_dict):
+        """
+        Step the thermal plant by stepping each individual unit and summing their power outputs.
+        """
         thermal_plant_power = 0.0
 
         for unit, unit_name, power_setpoint in zip(
