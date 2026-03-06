@@ -85,5 +85,8 @@ class ThermalPlant(ComponentBase):
         h_dict[self.component_name]["power"] = sum(
             h_dict_thermal[unit.component_name]["power"] for unit in self.units
         )
+        h_dict[self.component_name]["rated_capacity"] = sum(
+            h_dict_thermal[unit.component_name]["rated_capacity"] for unit in self.units
+        )
 
         return h_dict
