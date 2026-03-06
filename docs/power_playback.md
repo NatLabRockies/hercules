@@ -6,6 +6,8 @@ This component is useful for incorporating measured or externally modeled power 
 
 The PowerPlayback model is intended for use for using the power output from a generator component in a Hercules simulation. This component can be used for all generators, but will only take in the total plant power from a wind farm (and not individual turbine powers). For individual turbine power granularity, please use theWindFarmSCADAPower class.
 
+
+
 ## Configuration
 
 ### Required Parameters

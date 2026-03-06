@@ -28,7 +28,7 @@ def generate_example_inputs():
         inputs_dir / "00_generate_wind_history_small.py",
         inputs_dir / "01_generate_wind_history_large.py",
         inputs_dir / "02_generate_solar_history.py",
-        inputs_dir / "03_generate_scada_power_playback.py",
+        inputs_dir / "07_generate_scada_power_playback.py",
     ]
 
     for script_path in scripts:
