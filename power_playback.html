@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Battery &#8212; HERCULES</title>
+    <title>Power Playback &#8212; HERCULES</title>
   
   
   
@@ -70,13 +70,11 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'battery';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'power_playback';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Electrolyzer Plant" href="electrolyzer.html" />
-    <link rel="prev" title="Solar PV" href="solar_pv.html" />
+    <link rel="next" title="Solar PV" href="solar_pv.html" />
+    <link rel="prev" title="Wind Farm Components" href="wind.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -219,9 +217,9 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="power_playback.html">Power Playback</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Power Playback</a></li>
 <li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="thermal_component_base.html">Thermal Component Base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
@@ -317,7 +315,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/battery.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/power_playback.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -334,7 +332,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fbattery.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fpower_playback.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -364,7 +362,7 @@
       
       
       
-      <li><a href="_sources/battery.md" target="_blank"
+      <li><a href="_sources/power_playback.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -448,7 +446,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Battery</h1>
+    <h1>Power Playback</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -458,25 +456,18 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sign-conventions">Sign Conventions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-parameters">Optional Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-yaml-configuration">Example YAML Configuration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#input-file-format">Input File Format</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-csv">Example CSV</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterylithiumion"><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notes">Notes</a></li>
 </ul>
             </nav>
         </div>
@@ -488,148 +479,86 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="battery">
-<h1>Battery<a class="headerlink" href="#battery" title="Link to this heading">#</a></h1>
-<p>There are two battery models currently implemented in Hercules: <code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> and <code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code>.</p>
-<section id="sign-conventions">
-<h2>Sign Conventions<a class="headerlink" href="#sign-conventions" title="Link to this heading">#</a></h2>
-<p>It is important to note that within the battery modules, the convention that positive power is charging the<br />
-battery is followed for consistency with battery standards.  However, at the level of the <code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>
-this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
-for consistency with other components.  This inversion applies to power_setpoint and also occurs within
-<code class="docutils literal notranslate"><span class="pre">HybridPlant</span></code>.</p>
-<section id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
-<p>Battery parameters are defined in the hercules input yaml file used to initialize <code class="docutils literal notranslate"><span class="pre">HerculesModel</span></code>. The YAML section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">battery</span></code>, <code class="docutils literal notranslate"><span class="pre">battery_unit_1</span></code>); the examples below use <code class="docutils literal notranslate"><span class="pre">battery</span></code> as a conventional choice. See <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="power-playback">
+<h1>Power Playback<a class="headerlink" href="#power-playback" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">PowerPlayback</span></code> plays back pre-recorded power data from a file, treating the recorded values as the output of a generic power-generating unit. There is no control interface — the power values are replayed exactly as stored.</p>
+<p>This component is useful for incorporating measured or externally modeled power output into a hybrid plant simulation without needing to model the underlying physics of the generator.</p>
+<p>The PowerPlayback model is intended for use for using the power output from a generator component in a Hercules simulation. This component can be used for all generators, but will only take in the total plant power from a wind farm (and not individual turbine powers). For individual turbine power granularity, please use theWindFarmSCADAPower class.</p>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <section id="required-parameters">
-<h4>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h4>
+<h3>Required Parameters<a class="headerlink" href="#required-parameters" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">component_type</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;BatterySimple&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;BatteryLithiumIon&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">energy_capacity</span></code>: Energy capacity in kWh</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">charge_rate</span></code>: Maximum charge rate in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">discharge_rate</span></code>: Maximum discharge rate in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_SOC</span></code>: Maximum state of charge (between 0 and 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_SOC</span></code>: Minimum state of charge (between 0 and 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code></p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">SOC</span></code>: Initial state of charge (between <code class="docutils literal notranslate"><span class="pre">min_SOC</span></code> and <code class="docutils literal notranslate"><span class="pre">max_SOC</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">component_type</span></code>: Must be <code class="docutils literal notranslate"><span class="pre">&quot;PowerPlayback&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scada_filename</span></code>: Path to the power data file (CSV, pickle, or feather format)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#logging-configuration"><span class="xref myst">Logging Configuration</span></a> below)</p></li>
 </ul>
-</li>
-</ul>
+<p>See <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for the time-related parameters (<code class="docutils literal notranslate"><span class="pre">dt</span></code>, <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code>, <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code>) that are set at the top level of the input YAML.</p>
 </section>
-<section id="optional-parameters">
-<h4>Optional Parameters<a class="headerlink" href="#optional-parameters" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">allow_grid_power_consumption</span></code>: True or False (defaults to False)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">roundtrip_efficiency</span></code>: Roundtrip efficiency (0-1, applies to BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">self_discharge_time_constant</span></code>: Self-discharge time constant in seconds (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">track_usage</span></code>: Enable usage tracking for degradation modeling (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_calc_interval</span></code>: Interval for usage calculations in seconds (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_lifetime</span></code>: Battery lifetime in years for time-based degradation (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_cycles</span></code>: Number of cycles until replacement for cycle-based degradation (BatterySimple only)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_channels</span></code>: List of output channels to log (see <a class="reference internal" href="#battery-logging-configuration"><span class="std std-ref">Logging Configuration</span></a> below)</p></li>
-</ul>
-<p>Once initialized, the battery is only interacted with using the <code class="docutils literal notranslate"><span class="pre">step</span></code> method.</p>
-</section>
-</section>
-<section id="inputs">
-<h3>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h3>
-<p>Inputs are passed to <code class="docutils literal notranslate"><span class="pre">step()</span></code> as a dict named <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>, which must have the following fields:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;battery&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;power_setpoint&quot;</span><span class="p">:</span> <span class="mi">1000</span>  <span class="c1"># Requested battery power in kW (positive=discharge, negative=charge)</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;plant&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;locally_generated_power&quot;</span><span class="p">:</span> <span class="mi">5000</span>  <span class="c1"># Available power for charging in kW</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-<section id="outputs">
-<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
-<p>Outputs are returned as a dict containing the following values:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual battery power in kW</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reject</span></code>: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">soc</span></code>: Battery state of charge (0-1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code>: Requested power setpoint in kW</p></li>
-</ul>
-<section id="additional-outputs-batterysimple-only-when-track-usage-true">
-<h4>Additional Outputs (BatterySimple only when track_usage=True)<a class="headerlink" href="#additional-outputs-batterysimple-only-when-track-usage-true" title="Link to this heading">#</a></h4>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_in_time</span></code>: Time-based usage percentage</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usage_in_cycles</span></code>: Cycle-based usage percentage</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">total_cycles</span></code>: Total equivalent cycles completed</p></li>
-</ul>
-</section>
-</section>
-<section id="logging-configuration">
-<span id="battery-logging-configuration"></span><h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
-<p><strong>Available Channels:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual battery power output in kW (always logged)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">soc</span></code>: State of charge (0-1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code>: Requested power setpoint in kW</p></li>
-</ul>
-<p><strong>Example:</strong></p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">battery</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BatterySimple</span>
-<span class="w">  </span><span class="nt">energy_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100.0</span><span class="w">  </span><span class="c1"># kWh</span>
-<span class="w">  </span><span class="nt">charge_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w">  </span><span class="c1"># kW</span>
-<span class="w">  </span><span class="nt">discharge_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w">  </span><span class="c1"># kW</span>
-<span class="w">  </span><span class="nt">max_SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.9</span>
-<span class="w">  </span><span class="nt">min_SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<section id="example-yaml-configuration">
+<h3>Example YAML Configuration<a class="headerlink" href="#example-yaml-configuration" title="Link to this heading">#</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">power_unit_1</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PowerPlayback</span>
+<span class="w">  </span><span class="nt">scada_filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../inputs/power_playback_input.ftr</span>
 <span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">soc</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power_setpoint</span>
-<span class="w">  </span><span class="nt">initial_conditions</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">SOC</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
 </pre></div>
 </div>
-<p>If <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> is not specified, only <code class="docutils literal notranslate"><span class="pre">power</span></code> will be logged.</p>
 </section>
-</section>
-<section id="batterysimple">
-<h2><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code><a class="headerlink" href="#batterysimple" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> is a basic energy storage model with the following features:</p>
+<section id="input-file-format">
+<h3>Input File Format<a class="headerlink" href="#input-file-format" title="Link to this heading">#</a></h3>
+<p>The input file must contain the following columns:</p>
 <ul class="simple">
-<li><p><strong>Energy Integration</strong>: <span class="math notranslate nohighlight">\(E_t = \sum_{k=0}^t P_k \Delta t\)</span>, where <span class="math notranslate nohighlight">\(E_t\)</span> is the energy stored and <span class="math notranslate nohighlight">\(P_t\)</span> is the charging/discharging power at time <span class="math notranslate nohighlight">\(t\)</span></p></li>
-<li><p><strong>Efficiency Losses</strong>: Separate charge and discharge efficiencies (from roundtrip efficiency)</p></li>
-<li><p><strong>Self-Discharge</strong>: Exponential energy loss with configurable time constant</p></li>
-<li><p><strong>Usage Tracking</strong>: Optional rainflow cycle counting for degradation modeling</p></li>
-<li><p><strong>Constraints</strong>: Both energy and power are constrained by upper and lower limits:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Power output in kW</p></li>
 </ul>
-<p><span class="math notranslate nohighlight">\(\underline{E} \leq E \leq \overline{E}\)</span></p>
-<p><span class="math notranslate nohighlight">\(\underline{P} \leq P \leq \overline{P}\)</span></p>
-<p>The model uses a state-space representation to handle self-discharge and efficiency losses in a unified framework.</p>
+<p>Supported file formats: <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.p</span></code>, <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> (pickle), <code class="docutils literal notranslate"><span class="pre">.f</span></code>, <code class="docutils literal notranslate"><span class="pre">.ftr</span></code> (feather).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> range in the input file must span at least the simulation’s <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code> to <code class="docutils literal notranslate"><span class="pre">endtime_utc</span></code>. The data is interpolated onto the simulation’s time grid at initialization.</p>
+<section id="example-csv">
+<h4>Example CSV<a class="headerlink" href="#example-csv" title="Link to this heading">#</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">time_utc</span><span class="p">,</span><span class="n">power</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="n">T00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="n">Z</span><span class="p">,</span><span class="mf">0.0</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="n">T00</span><span class="p">:</span><span class="mi">07</span><span class="p">:</span><span class="mi">30</span><span class="n">Z</span><span class="p">,</span><span class="mf">15000.0</span>
+<span class="mi">2020</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="n">T00</span><span class="p">:</span><span class="mi">15</span><span class="p">:</span><span class="mi">50</span><span class="n">Z</span><span class="p">,</span><span class="mf">15000.0</span>
+</pre></div>
+</div>
 </section>
-<section id="batterylithiumion">
-<h2><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code><a class="headerlink" href="#batterylithiumion" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code> models a detailed lithium-ion battery using an equivalent circuit model based on [1]. Key features include:</p>
-<ul class="simple">
-<li><p><strong>Equivalent Circuit Model</strong>: RC branch representing diffusion transients</p></li>
-<li><p><strong>State-Dependent Parameters</strong>: Open circuit voltage, resistance, and capacitance vary with SOC, SOH, and temperature</p></li>
-<li><p><strong>Cell-Level Modeling</strong>: Individual cell behavior scaled to battery pack</p></li>
-<li><p><strong>Voltage-Current Relationship</strong>: Iterative power control accounting for voltage variations</p></li>
-<li><p><strong>Physical Constraints</strong>: Energy, power, and current limits at cell and pack level</p></li>
-</ul>
-<p><strong>Battery Specifications:</strong></p>
-<ul class="simple">
-<li><p>Cathode Material: LiFePO4</p></li>
-<li><p>Anode Material: Graphite</p></li>
-<li><p>Nominal Cell Voltage: 3.3V</p></li>
-<li><p>Cell Capacity: 15.756 Ah</p></li>
-</ul>
-<p>The main difference from <code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code> is the inclusion of voltage dynamics, diffusion transients, and state-dependent equivalent circuit parameters that provide higher fidelity modeling of lithium-ion battery behavior.</p>
-<section id="references">
-<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p>M.-K. Tran et al., “A comprehensive equivalent circuit model for lithium-ion batteries, incorporating the effects of state of health, state of charge, and temperature on model parameters,” Journal of Energy Storage, vol. 43, p. 103252, Nov. 2021, doi: 10.1016/j.est.2021.103252.</p></li>
-</ol>
 </section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>At each simulation step, <code class="docutils literal notranslate"><span class="pre">PowerPlayback</span></code> writes the following to <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Channel</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">power</span></code></p></td>
+<td><p>kW</p></td>
+<td><p>Power output at the current time step (interpolated from input file)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="logging-configuration">
+<h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly listed.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+</pre></div>
+</div>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PowerPlayback</span></code> has <code class="docutils literal notranslate"><span class="pre">component_category</span> <span class="pre">=</span> <span class="pre">&quot;generator&quot;</span></code>, so its power contributes to <code class="docutils literal notranslate"><span class="pre">h_dict[&quot;plant&quot;][&quot;locally_generated_power&quot;]</span></code>.</p></li>
+<li><p>There is no setpoint or control interface; the output power is read-only.</p></li>
+<li><p>The component is intended as a drop-in replacement when measured power data is available and no physics model is needed.</p></li>
+</ul>
 </section>
 </section>
 
@@ -664,20 +593,20 @@ for consistency with other components.  This inversion applies to power_setpoint
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="solar_pv.html"
+       href="wind.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Solar PV</p>
+        <p class="prev-next-title">Wind Farm Components</p>
       </div>
     </a>
     <a class="right-next"
-       href="electrolyzer.html"
+       href="solar_pv.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Electrolyzer Plant</p>
+        <p class="prev-next-title">Solar PV</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -697,25 +626,18 @@ for consistency with other components.  This inversion applies to power_setpoint
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sign-conventions">Sign Conventions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-parameters">Optional Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#required-parameters">Required Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-yaml-configuration">Example YAML Configuration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#input-file-format">Input File Format</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-csv">Example CSV</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-outputs-batterysimple-only-when-track-usage-true">Additional Outputs (BatterySimple only when track_usage=True)</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterysimple"><code class="docutils literal notranslate"><span class="pre">BatterySimple</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#batterylithiumion"><code class="docutils literal notranslate"><span class="pre">BatteryLithiumIon</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notes">Notes</a></li>
 </ul>
   </nav></div>
 
