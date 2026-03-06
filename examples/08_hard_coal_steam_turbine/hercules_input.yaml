@@ -1,0 +1,50 @@
+# Input YAML for hercules
+# Explicitly specify the parameters for demonstration purposes
+
+# Name
+name: example_08
+
+###
+# Describe this simulation setup
+description: Hard Coal Steam Turbine (HCST) Example
+
+dt: 60.0  # 1 minute time step
+starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
+endtime_utc: "2020-01-10T00:00:00Z"  # 10 days later
+verbose: False
+log_every_n: 1
+
+plant:
+  interconnect_limit: 500000  # kW (500 MW)
+
+hard_coal_steam_turbine:
+  component_type: HardCoalSteamTurbine
+  rated_capacity: 500000  # kW (500 MW)
+  min_stable_load_fraction: 0.3  # 30% minimum operating point
+  ramp_rate_fraction: 0.03  # 3%/min ramp rate
+  run_up_rate_fraction: 0.02  # 2%/min run up rate
+  hot_startup_time: 27000.0  # 7.5 hours
+  warm_startup_time: 27000.0  # 7.5 hours
+  cold_startup_time: 27000.0  # 7.5 hours
+  min_up_time: 172800  # 48 hours
+  min_down_time: 172800  # 48 hour
+  efficiency_table:
+    power_fraction:
+      - 1.0
+      - 0.50
+      - 0.30
+    efficiency:  # HHV net plant efficiency, fractions (0-1)
+      - 0.35
+      - 0.32
+      - 0.32
+  log_channels:
+    - power
+    - fuel_volume_rate
+    - fuel_mass_rate
+    - state
+    - efficiency
+    - power_setpoint
+  initial_conditions:
+    power: 500000  # Start ON at rated capacity
+
+controller:
