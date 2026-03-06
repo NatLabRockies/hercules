@@ -119,7 +119,8 @@ class SteamTurbine(ThermalComponentBase):
 
         # Default HHV net plant efficiency table based on approximate readings from
         # the SC1A curve in Exhibit ES-4 of [5]
-        # Values are adjusted assuming the steam turbine efficiency equals open cycle gas turbine efficiency minus combined cycle gas turbine efficiency
+        # Values are adjusted assuming the steam turbine efficiency equals open cycle gas turbine
+        # efficiency minus combined cycle gas turbine efficiency
         if "efficiency_table" not in h_dict[component_name]:
             h_dict[component_name]["efficiency_table"] = {
                 "power_fraction": [1.0, 0.75, 0.50, 0.4],
