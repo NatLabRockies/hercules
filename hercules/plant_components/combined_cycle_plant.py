@@ -42,12 +42,12 @@ class CombinedCyclePlant(ComponentBase):
         self.units = []
         self.unit_types = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
-            h_dict_thermal = h_dict[component_name]
-            h_dict_thermal["dt"] = h_dict["dt"]
-            h_dict_thermal["starttime"] = h_dict["starttime"]
-            h_dict_thermal["endtime"] = h_dict["endtime"]
-            h_dict_thermal["verbose"] = h_dict["verbose"]
-            unit_type = h_dict["thermal_power_plant"][unit_name]["component_type"]
+            h_dict_ccgt = h_dict[component_name]
+            h_dict_ccgt["dt"] = h_dict["dt"]
+            h_dict_ccgt["starttime"] = h_dict["starttime"]
+            h_dict_ccgt["endtime"] = h_dict["endtime"]
+            h_dict_ccgt["verbose"] = h_dict["verbose"]
+            unit_type = h_dict["combined_cycle_plant"][unit_name]["component_type"]
             unit_class = hp.COMPONENT_REGISTRY[unit_type]
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
@@ -56,7 +56,8 @@ class CombinedCyclePlant(ComponentBase):
                     f"Unit type {unit_type} must be a subclass of ThermalComponentBase."
                 )
             else:
-                self.units.append(unit_class(h_dict_thermal, unit_name))
+                self.units.append(unit_class(h_dict_ccgt, unit_name))
+                self.unit_types.append(unit_type)
 
         # Extract initial conditions
         self.power_output = 0.0
