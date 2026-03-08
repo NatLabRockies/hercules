@@ -139,5 +139,5 @@ class ComponentBase:
                 self.logger.removeHandler(handler)
 
     def step(self, h_dict):
-        """Raise error"""
-        raise NotImplementedError("Subclasses must implement the step method")
+        """Raise error if step is called on the abstract base class."""
+        raise NotImplementedError("Components must implement the step() method")

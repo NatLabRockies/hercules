@@ -49,6 +49,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 |---|---|---|
 | `WindFarm` | `generator` | [Wind](wind.md) |
 | `WindFarmSCADAPower` | `generator` | [Wind](wind.md) |
+| `PowerPlayback` | `generator` | [Power Playback](power_playback.md) |
 | `SolarPySAMPVWatts` | `generator` | [Solar PV](solar_pv.md) |
 | `BatterySimple` | `storage` | [Battery](battery.md) |
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |

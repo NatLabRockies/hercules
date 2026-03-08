@@ -5,10 +5,10 @@ as a single unit with a power output that is a function of the open cycle gas tu
 """
 import copy
 
-from hercules.plant_components.component_base import ComponentBase
-from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
-from hercules.plant_components.steam_turbine import SteamTurbine
 import hercules.hybrid_plant as hp
+from hercules.plant_components.component_base import ComponentBase
+from hercules.plant_components.thermal_component_base import ThermalComponentBase
+
 
 class CombinedCyclePlant(ComponentBase):
     """ """
@@ -42,15 +42,21 @@ class CombinedCyclePlant(ComponentBase):
         self.units = []
         self.unit_types = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
-            h_dict_cctg = h_dict[component_name]
-            h_dict_cctg["dt"] = h_dict["dt"]
-            h_dict_cctg["starttime"] = h_dict["starttime"]
-            h_dict_cctg["endtime"] = h_dict["endtime"]
-            h_dict_cctg["verbose"] = h_dict["verbose"]
-            unit_type = h_dict[component_name][unit_name]['component_type']
-            unit_class = hp.COMPONENT_REGISTRY[unit_type]  # Validate that the unit type is in the registry
-            self.units.append(unit_class(h_dict_cctg, unit_name))
-            self.unit_types.append(self.units[-1].component_type)
+            h_dict_thermal = h_dict[component_name]
+            h_dict_thermal["dt"] = h_dict["dt"]
+            h_dict_thermal["starttime"] = h_dict["starttime"]
+            h_dict_thermal["endtime"] = h_dict["endtime"]
+            h_dict_thermal["verbose"] = h_dict["verbose"]
+            unit_type = h_dict["thermal_power_plant"][unit_name]["component_type"]
+            unit_class = hp.COMPONENT_REGISTRY[unit_type]
+            if unit_class is None:
+                raise ValueError(f"Unit type {unit_type} not found in component registry.")
+            elif not issubclass(unit_class, ThermalComponentBase):
+                raise ValueError(
+                    f"Unit type {unit_type} must be a subclass of ThermalComponentBase."
+                )
+            else:
+                self.units.append(unit_class(h_dict_thermal, unit_name))
 
         # Extract initial conditions
         self.power_output = 0.0
