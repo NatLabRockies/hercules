@@ -34,7 +34,7 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["starttime"] = h_dict["starttime"]
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
-            unit_type = h_dict['thermal_power_plant']['OCGT1']['component_type']
+            unit_type = h_dict[component_name][unit_name]['component_type']
             unit_class = hp.COMPONENT_REGISTRY[unit_type]  # Validate that the unit type is in the registry
             self.units.append(unit_class(h_dict_thermal, unit_name))
 
