@@ -1,7 +1,7 @@
 """Example 09: Multiunit Thermal Plant
 
 This example demonstrates a thermal power plant constructed from two 50 MW OCGT units.
-The power setpoints are split unequally between the two units to demonstrate the ability of the 
+The power setpoints are split unequally between the two units to demonstrate the ability of the
 model to specify setpoints of individual units.
 """
 
@@ -11,18 +11,15 @@ from hercules.utilities_examples import prepare_output_directory
 prepare_output_directory()
 
 
-
 # Declare the open loop control setpoint sequence used for demonstration.
 class OpenLoopController:
     """Controller implementing the unit power setpoints in open loop."""
 
     def __init__(self, h_dict):
-
         # Access total rated capacity from h_dict, as well as capacities of individual units
         self.rated_capacity = h_dict["thermal_power_plant"]["rated_capacity"]
         self.unit_1_capacity = h_dict["thermal_power_plant"]["OCGT1"]["rated_capacity"]
         self.unit_2_capacity = h_dict["thermal_power_plant"]["OCGT2"]["rated_capacity"]
-
 
     def step(self, h_dict):
         current_time = h_dict["time"]
