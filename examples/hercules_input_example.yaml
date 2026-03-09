@@ -18,6 +18,14 @@ output_file: outputs/hercules_output.h5  # Output HDF5 file path (automatically 
 output_use_compression: True  # Enable HDF5 compression (True/False, default: True)
 output_buffer_size: 50000  # Memory buffer size for writing data in rows (default: 50000)
 
+logging:
+  logger_name: "hercules"
+  log_file: "log_hercules.log"
+  console_output: True
+  console_prefix: "HERCULES"
+  log_level: "INFO"
+  use_outputs_dir: True
+  outputs_dir: "outputs"
 # Plant-level configuration
 plant:
   interconnect_limit: 201300  # kW - grid interconnection capacity limit
@@ -175,4 +183,3 @@ wind_farm:
 controller:
   # Add controller parameters here if using WHOC or other controllers
   # Example controller configuration would go here
-

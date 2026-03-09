@@ -43,7 +43,8 @@ class HerculesModel:
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Set up logging
-        self.logger = self._setup_logging()
+        logging_inputs = h_dict.get("logging") | {"outputs_dir": output_dir}
+        self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -134,7 +135,7 @@ class HerculesModel:
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
 
-    def _setup_logging(self, logfile="log_hercules.log", console_output=True):
+    def _setup_logging(self, logfile="log_hercules.log", console_output=True, **kwargs):
         """Set up logging to file and console.
 
         Creates 'outputs' directory and configures file/console logging with timestamps.
@@ -147,12 +148,25 @@ class HerculesModel:
         Returns:
             logging.Logger: Configured logger instance.
         """
-        return setup_logging(
-            logger_name="hercules",
-            log_file=logfile,
-            console_output=console_output,
-            console_prefix="HERCULES",
-        )
+
+        logging_defaults = {
+            "logger_name": "hercules",
+            "log_file": logfile,
+            "console_output": console_output,
+            "console_prefix": None,
+            "log_level": "INFO",
+            "use_outputs_dir": True,
+            "outputs_dir": Path("outputs"),
+        }
+
+        # Update the defaults with any input kwargs
+        logging_inputs = logging_defaults | kwargs
+        return setup_logging(**logging_inputs)
+        #     logger_name="hercules",
+        #     log_file=logfile,
+        #     console_output=console_output,
+        #     console_prefix="HERCULES",
+        # )
 
     def _load_hercules_input(self, filename):
         """Load and validate Hercules input file.

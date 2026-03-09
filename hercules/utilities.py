@@ -218,6 +218,7 @@ def load_hercules_input(filename):
     other_keys = [
         "name",
         "description",
+        "logging",
         "controller",
         "verbose",
         "output_dir",
@@ -417,7 +418,11 @@ def setup_logging(
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    logger.setLevel(log_level)
+    if isinstance(log_level, str):
+        log_level_int = logging.getLevelName(log_level.upper())
+        logger.setLevel(log_level_int)
+    else:
+        logger.setLevel(log_level)
 
     # Add file handler
     file_handler = logging.FileHandler(log_file_path)
