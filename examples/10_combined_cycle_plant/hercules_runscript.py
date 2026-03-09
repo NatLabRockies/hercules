@@ -52,23 +52,23 @@ class ControllerCCGT:
         if current_time < 10 * 60:  # 10 minutes in seconds
             # Before 10 minutes: run at full capacity
             power_setpoint = self.rated_capacity
-        elif current_time < 40 * 60:  # 40 minutes in seconds
-            # Between 10 and 40 minutes: shut down
+        elif current_time < 60 * 60:  # 60 minutes in seconds
+            # Between 10 and 60 minutes: shut down
             power_setpoint = 0.0
-        elif current_time < 120 * 60:  # 120 minutes in seconds
-            # Between 40 and 120 minutes: signal to run at full capacity
-            power_setpoint = 0.8*self.rated_capacity
-        elif current_time < 180 * 60:  # 180 minutes in seconds
-            # Between 120 and 180 minutes: reduce power to 50% of rated capacity
+        elif current_time < 260 * 60:  # 260 minutes in seconds
+            # Between 60 and 260 minutes: signal to run at full capacity
+            power_setpoint = self.rated_capacity
+        elif current_time < 360 * 60:  # 360 minutes in seconds
+            # Between 260 and 360 minutes: reduce power to 50% of rated capacity
             power_setpoint = 0.5 * self.rated_capacity
-        elif current_time < 210 * 60:  # 210 minutes in seconds
-            # Between 180 and 210 minutes: reduce power to 10% of rated capacity
+        elif current_time < 480 * 60:  # 480 minutes in seconds
+            # Between 360 and 480 minutes: reduce power to 10% of rated capacity
             power_setpoint = 0.1 * self.rated_capacity
-        elif current_time < 240 * 60:  # 240 minutes in seconds
-            # Between 210 and 240 minutes: increase power to 100% of rated capacity
+        elif current_time < 540 * 60:  # 540 minutes in seconds
+            # Between 480 and 540 minutes: increase power to 100% of rated capacity
             power_setpoint = self.rated_capacity
         else:
-            # After 240 minutes: shut down
+            # After 540 minutes: shut down
             power_setpoint = 0.0
 
         h_dict["combined_cycle_plant"]["power_setpoint"] = power_setpoint

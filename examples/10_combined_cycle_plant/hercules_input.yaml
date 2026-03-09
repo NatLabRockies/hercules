@@ -10,7 +10,7 @@ description: Combined Cycle Gas Turbine (CCGT) Example
 
 dt: 60.0  # 1 minute time step
 starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
-endtime_utc: "2020-01-01T06:00:00Z"  # 6 hours later
+endtime_utc: "2020-01-01T10:00:00Z"  # 10 hours later
 verbose: False
 log_every_n: 1
 
@@ -25,14 +25,14 @@ combined_cycle_plant:
   open_cycle_gas_turbine:
     component_type: OpenCycleGasTurbine
     rated_capacity: 70000  # kW (70 MW)
-    min_stable_load_fraction: 0.2  # 20% minimum operating point
+    min_stable_load_fraction: 0.4  # 40% minimum operating point
     ramp_rate_fraction: 0.1  # 10%/min ramp rate
     run_up_rate_fraction: 0.05  # 5%/min run up rate
-    hot_startup_time: 420.0  # 7 minutes
-    warm_startup_time: 480.0  # 8 minutes
-    cold_startup_time: 480.0  # 8 minutes
-    min_up_time: 3600  # 1 hour
-    min_down_time: 3600  # 1 hour
+    hot_startup_time: 1800.0  # 30 minutes
+    warm_startup_time: 2700.0  # 45 minutes
+    cold_startup_time: 2700.0  # 45 minutes
+    min_up_time: 14400  # 4 hour
+    min_down_time: 7200  # 2 hour
     # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
     # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
     hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]

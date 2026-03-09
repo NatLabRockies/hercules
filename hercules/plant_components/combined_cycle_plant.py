@@ -105,26 +105,15 @@ class CombinedCyclePlant(ComponentBase):
         
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
-         # Determine power setpoints for the units based on the overall combined cycle plant power setpoint
-        power_setpoints = [0] * len(self.units)
-
-        # TODO: look at better setpoints that make gas produce more power when steam is still down
-        power_setpoints[self.gas_turbine_index] = self.gas_power_ratio * power_setpoint
-        power_setpoints[self.steam_turbine_index] = (1 - self.gas_power_ratio) * power_setpoint
-        
-        # Check that the power setpoint is a number
-        if not isinstance(power_setpoint, (int, float)):
-            raise ValueError("power_setpoint must be a number")
-
         # Apply control
-        self.power_output = sum(self.control(power_setpoints))
+        self.power_output = sum(self.control(power_setpoint))
 
         # Step each unit
-        for unit, unit_name, power_setpoint in zip(
-            self.units, self.unit_names, power_setpoints
+        for unit, unit_name in zip(
+            self.units, self.unit_names
         ):
             h_dict_ccgt = h_dict[self.component_name]
-            h_dict_ccgt[unit_name]["power_setpoint"] = power_setpoint
+            h_dict_ccgt[unit_name]["power_setpoint"] = unit.power_setpoint
             h_dict_ccgt = unit.step(h_dict_ccgt)
 
         # Update h_dict with outputs
@@ -155,22 +144,25 @@ class CombinedCyclePlant(ComponentBase):
 
         return h_dict
 
-    def control(self, power_setpoints):
+    def control(self, power_setpoint):
         """"""
         
-        # TODO: we probably want to add an actual controller for the gas turbine
-        self.units[self.gas_turbine_index].power_output = self.units[self.gas_turbine_index]._control(power_setpoints[self.gas_turbine_index])
+        # Check that the power setpoint is a number
+        if not isinstance(power_setpoint, (int, float)):
+            raise ValueError("power_setpoint must be a number")
 
-        if (self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON and 
-            self.units[self.steam_turbine_index].state != self.units[self.steam_turbine_index].STATES.OFF):
-            self.units[self.steam_turbine_index].power_output = self.units[self.steam_turbine_index]._control(power_setpoints[self.steam_turbine_index])
-        else:
-            self.units[self.steam_turbine_index].power_output = self.control_steam_turbine(power_setpoints)
+        # Set gas turbine power setpoint
+        self.units[self.gas_turbine_index].power_setpoint = self.gas_power_ratio * power_setpoint
+        self.units[self.steam_turbine_index].power_setpoint = (1 - self.gas_power_ratio) * power_setpoint
+
+        # TODO: we probably want to add an actual controller for the gas turbine
+        self.units[self.gas_turbine_index].power_output = self.units[self.gas_turbine_index]._control(self.units[self.gas_turbine_index].power_setpoint)
+        self.units[self.steam_turbine_index].power_output = self.control_steam_turbine(self.units[self.steam_turbine_index].power_setpoint)
 
         return [unit.power_output for unit in self.units]
 
     
-    def control_steam_turbine(self, power_setpoints):
+    def control_steam_turbine(self, power_setpoint):
         """
         What I want to do:
         - If the gas turbine is off, or starting up, the steam turbine should be off.
@@ -178,31 +170,32 @@ class CombinedCyclePlant(ComponentBase):
         - Can we use self.units[].time_in_state to delay the startup until the gas turbine is turned on?
         - Current status: might actually be working already. Check what happens.
         """
-        
-        if self.units[self.gas_turbine_index].state == "STOPPING" and self.units[self.steam_turbine_index].power_output > 0:
-            # If the gas turbine is stopping but the steam turbine is still producing power, we need to turn off the steam turbine
-            self.units[self.steam_turbine_index].state = "STOPPING"
+        if self.units[self.gas_turbine_index].state != (
+            self.units[self.gas_turbine_index].STATES.ON or
+            self.units[self.gas_turbine_index].STATES.STOPPING):
+            # If the gas turbine is off or starting up, the steam turbine should be off
+            self.units[self.steam_turbine_index].can_start = False
             self.units[self.steam_turbine_index]._control(0.0)
-            self.units[self.steam_turbine_index].starting_now = False
-        # if self.units[self.gas_turbine_index].state == (
-        #     self.units[self.gas_turbine_index].STATES.HOT_STARTING or
-        #     self.units[self.gas_turbine_index].STATES.WARM_STARTING or 
-        #     self.units[self.gas_turbine_index].STATES.COLD_STARTING):
-        #     # If the gas turbine is not on, the steam turbine should be off
-        #     self.units[self.steam_turbine_index].state = self.units[self.steam_turbine_index].STATES.OFF
-        #     self.units[self.steam_turbine_index]._control(0.0)
+            # self.units[self.steam_turbine_index].starting_now = False
+        elif (self.units[self.gas_turbine_index].state == "STOPPING" and self.units[self.steam_turbine_index].power_output > 0
+            or self.units[self.steam_turbine_index].state == self.units[self.steam_turbine_index].STATES.STOPPING):
+            # If the gas turbine is stopping but the steam turbine is still producing power, we need to turn off the steam turbine
+            self.units[self.steam_turbine_index]._control(0.0)
+            # self.units[self.steam_turbine_index].starting_now = False
         elif (self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON and 
             self.units[self.steam_turbine_index].state == self.units[self.steam_turbine_index].STATES.OFF):
             # If the gas turbine just turned on and the steam turbine is still off, we need to start up the steam turbine
-            if (not self.units[self.steam_turbine_index].starting_now or
-                not hasattr(self.units[self.steam_turbine_index], 'starting_now')):
-                self.units[self.steam_turbine_index].time_in_state = 0.0  # Reset time in state to start the startup process
-                self.units[self.steam_turbine_index].starting_now = True
-            power_setpoint = (1 - self.gas_power_ratio) * sum(power_setpoints)
+            # if (not self.units[self.steam_turbine_index].starting_now or
+            #     not hasattr(self.units[self.steam_turbine_index], 'starting_now')):
+            #     self.units[self.steam_turbine_index].time_in_state = 0.0  # Reset time in state to start the startup process
+            #     self.units[self.steam_turbine_index].starting_now = True
+            self.units[self.steam_turbine_index].can_start = (
+                self.units[self.steam_turbine_index].time_in_state >= self.units[self.steam_turbine_index].min_down_time )
             self.units[self.steam_turbine_index]._control(power_setpoint)
         else:
-            self.units[self.steam_turbine_index]._control(power_setpoints[self.steam_turbine_index])
-            self.units[self.steam_turbine_index].starting_now = False
+            # Normal operation
+            self.units[self.steam_turbine_index]._control(power_setpoint)
+            # self.units[self.steam_turbine_index].starting_now = False
 
         return self.units[self.steam_turbine_index].power_output
         

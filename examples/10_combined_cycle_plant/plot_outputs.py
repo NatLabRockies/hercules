@@ -41,6 +41,13 @@ ax.plot(
 )
 ax.plot(
     time_minutes,
+    (df["combined_cycle_plant.ST.power_setpoint"]+df["combined_cycle_plant.OCGT.power_setpoint"]) / 1000,
+    label="Power Setpoint (CCGT)",
+    color="k",
+    linestyle="--",
+)
+ax.plot(
+    time_minutes,
     df["combined_cycle_plant.OCGT.power"] / 1000,
     label="Power Output (OCGT)",
     color="r",
@@ -75,36 +82,6 @@ ax.set_title(
     "Turbine State (0=Off, 1=Hot Starting, 2=Warm Starting, 3=Cold Starting, 4=On, 5=Stopping)"
 )
 ax.grid(True)
-
-# ax.axhline(
-#     h_dict["thermal_power_plant"]["rated_capacity"] / 1000,
-#     color="gray",
-#     linestyle=":",
-#     label="Rated Capacity",
-# )
-# ax.axhline(
-#     h_dict["thermal_power_plant"]["min_stable_load_fraction"]
-#     * h_dict["thermal_power_plant"]["rated_capacity"]
-#     / 1000,
-#     color="gray",
-#     linestyle="--",
-#     label="Minimum Stable Load",
-# )
-# ax.set_ylabel("Power [MW]")
-# ax.set_title("Open Cycle Gas Turbine Power Output")
-# ax.legend()
-# ax.grid(True)
-
-# # Plot the state
-# ax = axarr[1]
-# ax.plot(time_minutes, df["thermal_power_plant.state"], label="State", color="k")
-# ax.set_ylabel("State")
-# ax.set_yticks([0, 1, 2, 3, 4, 5])
-# ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
-# ax.set_title(
-#     "Turbine State (0=Off, 1=Hot Starting, 2=Warm Starting, 3=Cold Starting, 4=On, 5=Stopping)"
-# )
-# ax.grid(True)
 
 # # Plot the efficiency
 # ax = axarr[2]
