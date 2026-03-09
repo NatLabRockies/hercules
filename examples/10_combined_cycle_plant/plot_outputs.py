@@ -83,17 +83,38 @@ ax.set_title(
 )
 ax.grid(True)
 
-# # Plot the efficiency
-# ax = axarr[2]
-# ax.plot(
-#     time_minutes,
-#     df["thermal_power_plant.efficiency"] * 100,
-#     label="Efficiency",
-#     color="g",
-# )
-# ax.set_ylabel("Efficiency [%]")
-# ax.set_title("Thermal Efficiency")
-# ax.grid(True)
+# Plot the efficiency
+ax = axarr[2]
+ax.plot(
+    time_minutes,
+    df["combined_cycle_plant.efficiency"] * 100,
+    label="Efficiency",
+    color="g",
+)
+ax.set_ylabel("Efficiency [%]")
+ax.set_title("Thermal Efficiency")
+ax.grid(True)
+
+# Plot the efficiency
+ax = axarr[2]
+ax.plot(
+    time_minutes,
+    df["combined_cycle_plant.efficiency"] * 100,
+    label="Efficiency",
+    color="g",
+)
+
+# Plot the efficiency of the OCGT and ST separately
+ax = axarr[2]
+ax.plot(
+    time_minutes,
+    (df["combined_cycle_plant.OCGT.efficiency"] + df["combined_cycle_plant.ST.efficiency"]) * 100,
+    label="Efficiency",
+    color="r",
+)
+ax.set_ylabel("Efficiency [%]")
+ax.set_title("Thermal Efficiency")
+ax.grid(True)
 
 # # Plot the fuel consumption
 # ax = axarr[3]

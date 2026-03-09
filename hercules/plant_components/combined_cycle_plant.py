@@ -5,9 +5,11 @@ as a single unit with a power output that is a function of the open cycle gas tu
 """
 import copy
 
+import numpy as np
 import hercules.hybrid_plant as hp
 from hercules.plant_components.component_base import ComponentBase
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
+from hercules.utilities import hercules_float_type
 
 
 class CombinedCyclePlant(ComponentBase):
@@ -84,6 +86,47 @@ class CombinedCyclePlant(ComponentBase):
              self.units[self.gas_turbine_index].rated_capacity)
         )
 
+        efficiency_table = h_dict[component_name]["efficiency_table"]
+
+        # Validate efficiency_table structure
+        if not isinstance(efficiency_table, dict):
+            raise ValueError("efficiency_table must be a dictionary")
+        if "power_fraction" not in efficiency_table:
+            raise ValueError("efficiency_table must contain 'power_fraction'")
+        if "efficiency" not in efficiency_table:
+            raise ValueError("efficiency_table must contain 'efficiency'")
+
+        # Extract and convert to numpy arrays for interpolation
+        self.efficiency_power_fraction = np.array(
+            efficiency_table["power_fraction"], dtype=hercules_float_type
+        )
+        self.efficiency_values = np.array(efficiency_table["efficiency"], dtype=hercules_float_type)
+
+        # Validate array lengths match
+        if len(self.efficiency_power_fraction) != len(self.efficiency_values):
+            raise ValueError(
+                "efficiency_table power_fraction and efficiency arrays must have the same length"
+            )
+
+        # Validate array lengths are at least 1
+        if len(self.efficiency_power_fraction) < 1:
+            raise ValueError("efficiency_table must have at least one entry")
+
+        # Validate power_fraction values are in [0, 1]
+        if np.any(self.efficiency_power_fraction < 0) or np.any(self.efficiency_power_fraction > 1):
+            raise ValueError("efficiency_table power_fraction values must be between 0 and 1")
+
+        # Validate efficiency values are in (0, 1]
+        if np.any(self.efficiency_values <= 0) or np.any(self.efficiency_values > 1):
+            raise ValueError("efficiency_table efficiency values must be between 0 and 1")
+
+        # Sort arrays by power_fraction for proper interpolation
+        sort_idx = np.argsort(self.efficiency_power_fraction)
+        self.efficiency_power_fraction = self.efficiency_power_fraction[sort_idx]
+        self.efficiency_values = self.efficiency_values[sort_idx]
+
+        self.rated_capacity = self.units[self.gas_turbine_index].rated_capacity + self.units[self.steam_turbine_index].rated_capacity
+
         # Derive initial state from power: if power > 0 then ON, else OFF
         for unit in self.units:
             if unit.power_output > 0:
@@ -116,10 +159,12 @@ class CombinedCyclePlant(ComponentBase):
             h_dict_ccgt[unit_name]["power_setpoint"] = unit.power_setpoint
             h_dict_ccgt = unit.step(h_dict_ccgt)
 
+        self.efficiency = self.calculate_efficiency(self.power_output)
+
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         # h_dict[self.component_name]["state"] = self.state.value
-        # h_dict[self.component_name]["efficiency"] = self.efficiency
+        h_dict[self.component_name]["efficiency"] = self.efficiency
         # h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
         # h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
 
@@ -160,7 +205,6 @@ class CombinedCyclePlant(ComponentBase):
         self.units[self.steam_turbine_index].power_output = self.control_steam_turbine(self.units[self.steam_turbine_index].power_setpoint)
 
         return [unit.power_output for unit in self.units]
-
     
     def control_steam_turbine(self, power_setpoint):
         """
@@ -176,31 +220,48 @@ class CombinedCyclePlant(ComponentBase):
             # If the gas turbine is off or starting up, the steam turbine should be off
             self.units[self.steam_turbine_index].can_start = False
             self.units[self.steam_turbine_index]._control(0.0)
-            # self.units[self.steam_turbine_index].starting_now = False
         elif (self.units[self.gas_turbine_index].state == "STOPPING" and self.units[self.steam_turbine_index].power_output > 0
             or self.units[self.steam_turbine_index].state == self.units[self.steam_turbine_index].STATES.STOPPING):
             # If the gas turbine is stopping but the steam turbine is still producing power, we need to turn off the steam turbine
             self.units[self.steam_turbine_index]._control(0.0)
-            # self.units[self.steam_turbine_index].starting_now = False
         elif (self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON and 
             self.units[self.steam_turbine_index].state == self.units[self.steam_turbine_index].STATES.OFF):
             # If the gas turbine just turned on and the steam turbine is still off, we need to start up the steam turbine
-            # if (not self.units[self.steam_turbine_index].starting_now or
-            #     not hasattr(self.units[self.steam_turbine_index], 'starting_now')):
-            #     self.units[self.steam_turbine_index].time_in_state = 0.0  # Reset time in state to start the startup process
-            #     self.units[self.steam_turbine_index].starting_now = True
             self.units[self.steam_turbine_index].can_start = (
                 self.units[self.steam_turbine_index].time_in_state >= self.units[self.steam_turbine_index].min_down_time )
             self.units[self.steam_turbine_index]._control(power_setpoint)
         else:
             # Normal operation
             self.units[self.steam_turbine_index]._control(power_setpoint)
-            # self.units[self.steam_turbine_index].starting_now = False
 
         return self.units[self.steam_turbine_index].power_output
         
         # self.units[self.steam_turbine_index].state = "OFF"
 
+    def calculate_efficiency(self, power_output):
+        """Calculate HHV net efficiency based on current power output.
 
+        Uses linear interpolation from the efficiency table. Values outside the
+        table range are clamped to the nearest endpoint.
+
+        Args:
+            power_output (float): Current power output in kW.
+
+        Returns:
+            float: HHV net efficiency as a fraction (0-1).
+        """
+        if power_output <= 0:
+            # Return efficiency at lowest power fraction when off
+            return self.efficiency_values[0]
+
+        # Calculate power fraction
+        power_fraction = power_output / self.rated_capacity
+
+        # Interpolate efficiency (numpy.interp clamps to endpoints by default)
+        efficiency = np.interp(
+            power_fraction, self.efficiency_power_fraction, self.efficiency_values
+        )
+
+        return efficiency
 
 
