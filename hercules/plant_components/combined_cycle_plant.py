@@ -161,12 +161,15 @@ class CombinedCyclePlant(ComponentBase):
 
         self.efficiency = self.calculate_efficiency(self.power_output)
 
+        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power_output)
+        self.fuel_mass_rate = self.fuel_volume_rate * self.units[self.gas_turbine_index].fuel_density
+
         # Update h_dict with outputs
         h_dict[self.component_name]["power"] = self.power_output
         # h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
-        # h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
-        # h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
+        h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
+        h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
 
         return h_dict
 
@@ -248,12 +251,29 @@ class CombinedCyclePlant(ComponentBase):
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        if self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.OFF:
+        if self.units[self.gas_turbine_index].state == (
+            self.units[self.gas_turbine_index].STATES.OFF
+            ):
             # Efficiency is not defined when off
             return np.nan
+        elif self.units[self.gas_turbine_index].state == (
+            self.units[self.gas_turbine_index].STATES.STOPPING
+            ):
+            # Efficiency is not defined when stopping
+            return np.nan
         elif power_output <= 0:
-            # Efficiency is 0 when not producing power (but not off)
+            # Efficiency is 0 when gas turbine not producing power (but not off)
             return 0.0
+        elif self.units[self.steam_turbine_index].state == self.units[self.steam_turbine_index].STATES.OFF:
+            # If the steam turbine is not on, we are just running the gas turbine, so efficiency is based on gas turbine power output
+            return self.units[self.gas_turbine_index].calculate_efficiency(self.units[self.gas_turbine_index].power_output)
+        elif self.units[self.steam_turbine_index].state != (
+            self.units[self.steam_turbine_index].STATES.ON or 
+            self.units[self.steam_turbine_index].STATES.STOPPING):
+            # If the steam turbine is starting up, it might be producing power, increasing the overall efficiency
+            efficiency_gas = self.units[self.gas_turbine_index].calculate_efficiency(self.units[self.gas_turbine_index].power_output)
+            fuel_used = (self.units[self.gas_turbine_index].power_output * 1000.0) / (efficiency_gas * self.units[self.gas_turbine_index].hhv)
+            return power_output * 1000.0 / (fuel_used * self.units[self.gas_turbine_index].hhv)
 
         # Calculate power fraction
         power_fraction = power_output / self.rated_capacity
@@ -264,5 +284,27 @@ class CombinedCyclePlant(ComponentBase):
         )
 
         return efficiency
+
+    def calculate_fuel_volume_rate(self, power_output):
+        """Calculate fuel volume flow rate based on power output and HHV net efficiency.
+
+        Args:
+            power_output (float): Current power output in kW.
+
+        Returns:
+            float: Fuel volume flow rate in m³/s.
+        """
+        if power_output <= 0:
+            return 0.0
+
+        # Calculate current HHV net efficiency
+        efficiency = self.calculate_efficiency(power_output)
+
+        # Calculate fuel volume rate using HHV net efficiency
+        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
+        # Convert power from kW to W (multiply by 1000)
+        fuel_m3_per_s = (power_output * 1000.0) / (efficiency * self.units[self.gas_turbine_index].hhv)
+
+        return fuel_m3_per_s
 
 

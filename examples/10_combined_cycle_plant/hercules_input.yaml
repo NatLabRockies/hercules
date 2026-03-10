@@ -50,10 +50,7 @@ combined_cycle_plant:
         - 0.245
     log_channels:
       - power
-      - fuel_volume_rate
-      - fuel_mass_rate
       - state
-      - efficiency
       - power_setpoint
     initial_conditions:
       power: 70000  # Start ON at rated capacity (70 MW)
@@ -86,10 +83,7 @@ combined_cycle_plant:
         - 0.17
     log_channels:
       - power
-      - fuel_volume_rate
-      - fuel_mass_rate
       - state
-      - efficiency
       - power_setpoint
     initial_conditions:
       power: 30000  # Start ON at rated capacity (30 MW)
@@ -123,10 +117,9 @@ combined_cycle_plant:
       - 0.47
 
   log_channels:
-    # - power
-    # - fuel_volume_rate
-    # - fuel_mass_rate
-    # - state
+    - power
+    - fuel_volume_rate
+    - fuel_mass_rate
     - efficiency
 
 controller:
