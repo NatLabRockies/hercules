@@ -125,23 +125,23 @@ class ThermalComponentBase(ComponentBase):
         self.min_down_time = component_dict["min_down_time"]  # s
 
         # Check all required parameters are numbers
-        if not isinstance(self.rated_capacity, (int, float)):
+        if not isinstance(self.rated_capacity, (int, float, hercules_float_type)):
             raise ValueError("rated_capacity must be a number")
-        if not isinstance(self.min_stable_load_fraction, (int, float)):
+        if not isinstance(self.min_stable_load_fraction, (int, float, hercules_float_type)):
             raise ValueError("min_stable_load_fraction must be a number")
-        if not isinstance(self.ramp_rate_fraction, (int, float)):
+        if not isinstance(self.ramp_rate_fraction, (int, float, hercules_float_type)):
             raise ValueError("ramp_rate_fraction must be a number")
-        if not isinstance(self.run_up_rate_fraction, (int, float)):
+        if not isinstance(self.run_up_rate_fraction, (int, float, hercules_float_type)):
             raise ValueError("run_up_rate_fraction must be a number")
-        if not isinstance(self.hot_startup_time, (int, float)):
+        if not isinstance(self.hot_startup_time, (int, float, hercules_float_type)):
             raise ValueError("hot_startup_time must be a number")
-        if not isinstance(self.warm_startup_time, (int, float)):
+        if not isinstance(self.warm_startup_time, (int, float, hercules_float_type)):
             raise ValueError("warm_startup_time must be a number")
-        if not isinstance(self.cold_startup_time, (int, float)):
+        if not isinstance(self.cold_startup_time, (int, float, hercules_float_type)):
             raise ValueError("cold_startup_time must be a number")
-        if not isinstance(self.min_up_time, (int, float)):
+        if not isinstance(self.min_up_time, (int, float, hercules_float_type)):
             raise ValueError("min_up_time must be a number")
-        if not isinstance(self.min_down_time, (int, float)):
+        if not isinstance(self.min_down_time, (int, float, hercules_float_type)):
             raise ValueError("min_down_time must be a number")
 
         # Check parameters
@@ -230,13 +230,13 @@ class ThermalComponentBase(ComponentBase):
         efficiency_table = component_dict["efficiency_table"]
 
         # Validate hhv
-        if not isinstance(self.hhv, (int, float)):
+        if not isinstance(self.hhv, (int, float, hercules_float_type)):
             raise ValueError("hhv must be a number")
         if self.hhv <= 0:
             raise ValueError("hhv must be greater than 0")
 
         # Validate fuel_density
-        if not isinstance(self.fuel_density, (int, float)):
+        if not isinstance(self.fuel_density, (int, float, hercules_float_type)):
             raise ValueError("fuel_density must be a number")
         if self.fuel_density <= 0:
             raise ValueError("fuel_density must be greater than 0")
@@ -323,7 +323,7 @@ class ThermalComponentBase(ComponentBase):
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
         # Check that the power setpoint is a number
-        if not isinstance(power_setpoint, (int, float)):
+        if not isinstance(power_setpoint, (int, float, hercules_float_type)):
             raise ValueError("power_setpoint must be a number")
 
         # Update time in current state
