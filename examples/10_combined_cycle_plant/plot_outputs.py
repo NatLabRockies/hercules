@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from hercules import HerculesOutput
+import numpy as np
 
 # Read the Hercules output file using HerculesOutput
 ho = HerculesOutput("outputs/hercules_output.h5")
@@ -108,7 +109,7 @@ ax.plot(
 ax = axarr[2]
 ax.plot(
     time_minutes,
-    (df["combined_cycle_plant.OCGT.efficiency"] + df["combined_cycle_plant.ST.efficiency"]) * 100,
+    np.nansum([df["combined_cycle_plant.OCGT.efficiency"], df["combined_cycle_plant.ST.efficiency"]], axis=0) * 100,
     label="Efficiency",
     color="r",
 )

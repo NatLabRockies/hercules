@@ -236,8 +236,6 @@ class CombinedCyclePlant(ComponentBase):
 
         return self.units[self.steam_turbine_index].power_output
         
-        # self.units[self.steam_turbine_index].state = "OFF"
-
     def calculate_efficiency(self, power_output):
         """Calculate HHV net efficiency based on current power output.
 
@@ -250,9 +248,12 @@ class CombinedCyclePlant(ComponentBase):
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        if power_output <= 0:
-            # Return efficiency at lowest power fraction when off
-            return self.efficiency_values[0]
+        if self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.OFF:
+            # Efficiency is not defined when off
+            return np.nan
+        elif power_output <= 0:
+            # Efficiency is 0 when not producing power (but not off)
+            return 0.0
 
         # Calculate power fraction
         power_fraction = power_output / self.rated_capacity
