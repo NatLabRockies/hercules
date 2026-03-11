@@ -91,6 +91,7 @@ ax.plot(time_minutes, df["thermal_power_plant.OCGT2.fuel_volume_rate"], label="O
 ax.set_ylabel("Fuel [m³/s]")
 ax.grid(True)
 ax.legend()
+ax.set_xlabel("Time [mins]")
 
 plt.tight_layout()
 plt.show()
