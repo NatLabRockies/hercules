@@ -670,6 +670,8 @@ class WindFarm(ComponentBase):
 
         # Grab the instantaneous turbine power setpoint signal
         turbine_power_setpoints = h_dict[self.component_name]["turbine_power_setpoints"]
+        if np.any(np.isnan(turbine_power_setpoints)):
+            raise ValueError(f"{self.component_name}: turbine_power_setpoints contains NaN")
 
         # Update wind speeds based on wake model
         if self.wake_method == "dynamic":

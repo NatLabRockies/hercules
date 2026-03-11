@@ -322,9 +322,11 @@ class ThermalComponentBase(ComponentBase):
         # Get power setpoint from controller
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
-        # Check that the power setpoint is a number
+        # Check that the power setpoint is a valid number
         if not isinstance(power_setpoint, (int, float)):
             raise ValueError("power_setpoint must be a number")
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
 
         # Update time in current state
         self.time_in_state += self.dt
