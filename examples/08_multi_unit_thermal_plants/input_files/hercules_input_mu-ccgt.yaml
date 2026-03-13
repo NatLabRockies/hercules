@@ -16,6 +16,23 @@ log_every_n: 1
 
 plant:
   interconnect_limit: 100000  # kW (100 MW)
+  power_setpoint_schedule:
+    time: # Time in seconds from start
+      - 0
+      - 600
+      - 3600
+      - 15600
+      - 21600
+      - 28800
+      - 32400
+    power_setpoint_fraction:
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.5
+      - 0.1
+      - 1.0
+      - 0.0
 
 combined_cycle_plant:
   component_type: CombinedCyclePlant

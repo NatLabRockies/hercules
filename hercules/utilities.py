@@ -290,9 +290,9 @@ def load_hercules_input(filename):
                 f"All entries in power_setpoint_schedule 'time' list must be floats or ints "
                 f"in input file {filename}"
             )
-        if not all(isinstance(p, (float, int)) for p in schedule["power_setpoint_fraction"]):
+        if not all(isinstance(p, (float, int, list, tuple)) for p in schedule["power_setpoint_fraction"]):
             raise ValueError(
-                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list must be floats or ints "
+                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list must be floats, ints, lists, or tuples "
                 f"in input file {filename}"
             )
 
