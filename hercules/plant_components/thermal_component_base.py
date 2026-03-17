@@ -325,6 +325,8 @@ class ThermalComponentBase(ComponentBase):
         # Check that the power setpoint is a number
         if not isinstance(power_setpoint, (int, float, hercules_float_type)):
             raise ValueError("power_setpoint must be a number")
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
 
         # Update time in current state
         self.time_in_state += self.dt
