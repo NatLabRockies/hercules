@@ -53,6 +53,11 @@ class PowerPlayback(ComponentBase):
         if "time_utc" not in df_scada.columns:
             raise ValueError("SCADA file must contain a column called 'time_utc'")
 
+        # Check key columns for Nan values
+        nan_check_cols = ["time_utc", "power"]
+        if df_scada[nan_check_cols].isna().any().any():
+            raise ValueError("SCADA file contains NaN values in required columns (time_utc, power)")
+
         # Convert time_utc to datetime if it's not already
         if not pd.api.types.is_datetime64_any_dtype(df_scada["time_utc"]):
             # Strip whitespace from time_utc values to handle CSV formatting issues
