@@ -59,7 +59,7 @@ def test_wind_farm_direct_step():
     assert len(result["wind_farm"]["turbine_powers"]) == 3
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
     assert "power" in result["wind_farm"]
-    assert isinstance(result["wind_farm"]["power"], (int, float))
+    assert isinstance(result["wind_farm"]["power"], (int, float, hercules_float_type))
 
     # Verify no wake deficits applied
     assert np.all(wind_sim.floris_wake_deficits == 0.0)
