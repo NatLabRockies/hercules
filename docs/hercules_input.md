@@ -12,7 +12,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 
 - **Top level parameters**: `dt`, `starttime_utc`, `endtime_utc` (see [timing](timing.md) for details)
 - **Plant configuration**: `interconnect_limit`
-- **Hybrid plant configurations**: `wind_farm`, `solar_farm`, `battery`, `electrolyzer`
+- **Plant component sections**: any number of user-named sections, each containing a `component_type` key that identifies the component class to use (see [Component Names, Types, and Categories](component_types.md))
 - **External data**: `external_data` for external time series data (e.g., LMP prices, weather forecasts)
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
 
@@ -45,7 +45,7 @@ verbose: False
 plant:
   interconnect_limit: 30000  # kW
 
-wind_farm:
+wind_farm:  # User-chosen component_name; component_type determines the class
   component_type: WindFarm
   wake_method: dynamic
   floris_input_file: inputs/floris_input.yaml
@@ -59,7 +59,7 @@ wind_farm:
     - wind_direction_mean
   floris_update_time_s: 30.0
 
-solar_farm:
+solar_farm:  # User-chosen component_name
   component_type: SolarPySAMPVWatts
   solar_input_filename: inputs/solar_input.csv
   lat: 39.7442
@@ -77,7 +77,7 @@ solar_farm:
     dni: 1000
     poa: 1000
 
-battery:
+battery:  # User-chosen component_name
   component_type: BatterySimple
   energy_capacity: 100.0  # MWh
   charge_rate: 50.0  # MW

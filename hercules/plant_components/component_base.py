@@ -1,6 +1,8 @@
 # Base class for plant components in Hercules.
 
 
+from typing import ClassVar
+
 from hercules.utilities import setup_logging
 
 
@@ -9,18 +11,53 @@ class ComponentBase:
 
     Provides common functionality for all Hercules plant components including logging setup,
     time step management, and shared configuration parameters.
+
+    Subclasses must define the class attribute ``component_category`` with one of three
+    values: ``"generator"``, ``"load"``, or ``"storage"``.  The per-instance
+    ``component_name`` (the unique YAML key chosen by the user) is passed into ``__init__``
+    and may differ from the category when multiple instances of the same type are present.
+    ``component_type`` is always set automatically to the concrete class name.
     """
+
+    # Subclasses must override this with one of: "generator", "load", "storage"
+    component_category: ClassVar[str]
+
+    # Valid component categories
+    _ALLOWED_CATEGORIES = {"generator", "load", "storage"}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, "component_category"):
+            raise TypeError(f"{cls.__name__} must define a class attribute 'component_category'")
+
+        value = cls.component_category
+        if not isinstance(value, str):
+            raise TypeError(
+                f"{cls.__name__}.component_category must be a string in "
+                f"{cls._ALLOWED_CATEGORIES}, got {type(value).__name__!r}: {value!r}"
+            )
+        if value not in cls._ALLOWED_CATEGORIES:
+            raise TypeError(
+                f"{cls.__name__}.component_category must be one of "
+                f"{cls._ALLOWED_CATEGORIES}, got {value!r}"
+            )
 
     def __init__(self, h_dict, component_name):
         """Initialize the base component with a dictionary of parameters.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
-            component_name (str): Name of the component.
+            component_name (str): Unique name for this component instance (the YAML top-level
+                key).  For single-instance plants this is typically the category name (e.g.
+                ``"battery"``); for multi-instance plants it may be any user-chosen string
+                (e.g. ``"battery_unit_1"``).
         """
 
-        # Store the component name
+        # Store the component name (unique instance identifier from the YAML key)
         self.component_name = component_name
+
+        # Derive component_type from the concrete class name — no hardcoding needed
+        self.component_type = type(self).__name__
 
         # Set up logging
         # Check if log_file_name is defined in the h_dict[component_name]

@@ -217,7 +217,7 @@ def test_load_hercules_input_invalid_component_type():
         temp_file = f.name
 
     try:
-        with pytest.raises(ValueError, match="wind_farm has an invalid component_type"):
+        with pytest.raises(ValueError, match="wind_farm.*unrecognized component_type"):
             load_hercules_input(temp_file)
     finally:
         os.unlink(temp_file)

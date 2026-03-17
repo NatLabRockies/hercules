@@ -4,7 +4,7 @@ The solar PV modules use the [PySAM](https://nrel-pysam.readthedocs.io/en/main/o
 
 Presently only one solar simulator is available
 
-1. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set `component_type` = `SolarPySAMPVWatts` in the input dictionary (.yaml file).
+1. **`SolarPySAMPVWatts`** - Uses the [PVWatts model](https://sam.nrel.gov/photovoltaic.html) in [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html), which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set `component_type: SolarPySAMPVWatts` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `solar_farm`); see [Component Names, Types, and Categories](component_types.md) for details.
 
 
 

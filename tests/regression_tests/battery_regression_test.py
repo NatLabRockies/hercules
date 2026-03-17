@@ -130,7 +130,7 @@ usage_calc_base_dict = {
 
 
 def test_SimpleBattery_regression_():
-    battery = BatterySimple(test_h_dict)
+    battery = BatterySimple(test_h_dict, "battery")
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -162,7 +162,7 @@ def test_SimpleBattery_regression_():
 
 
 def test_LIB_regression_():
-    battery = BatteryLithiumIon(test_h_dict)
+    battery = BatteryLithiumIon(test_h_dict, "battery")
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -210,7 +210,7 @@ def test_SimpleBattery_usage_calc_regression():
     battery_dict["battery"]["usage_cycles"] = 5
     battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 
-    SB = BatterySimple(battery_dict)
+    SB = BatterySimple(battery_dict, "battery")
 
     power_avail = 10e3 * np.ones(21)
     power_signal = [

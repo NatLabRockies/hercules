@@ -172,7 +172,7 @@ H2_mfr_base = np.array(
 
 
 def test_ElectrolyzerPlant_regression_():
-    electrolyzer = ElectrolyzerPlant(test_h_dict)
+    electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
 
     times_test = np.arange(0, 12.0, test_h_dict["dt"])
     H2_output_test = np.zeros_like(times_test)
