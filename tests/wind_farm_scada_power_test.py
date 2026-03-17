@@ -180,9 +180,9 @@ def test_wind_farm_scada_power_time_utc_handling():
         actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values
-        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
-            tzinfo=None
-        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
+            f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
+        )
 
     finally:
         # Clean up temporary file
