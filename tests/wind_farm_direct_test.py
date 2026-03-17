@@ -200,7 +200,7 @@ def test_wind_farm_raises_on_nan_in_wind_input():
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
 
         with pytest.raises(ValueError, match="wind input file contains NaN values"):
-            WindFarm(test_h_dict)
+            WindFarm(test_h_dict, "wind_farm")
     finally:
         if os.path.exists(temp_wind_file):
             os.unlink(temp_wind_file)

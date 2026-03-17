@@ -180,9 +180,9 @@ def test_wind_farm_scada_power_time_utc_handling():
         actual_start_time = pd.Timestamp(wind_sim.starttime_utc)
 
         # Compare datetime values
-        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(tzinfo=None), (
-            f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
-        )
+        assert actual_start_time.replace(tzinfo=None) == expected_start_time.replace(
+            tzinfo=None
+        ), f"starttime_utc mismatch: expected {expected_start_time}, got {actual_start_time}"
 
     finally:
         # Clean up temporary file
@@ -435,7 +435,7 @@ def test_wind_farm_scada_power_raises_on_nan_in_power_columns():
         test_h_dict["dt"] = 1.0
 
         with pytest.raises(ValueError, match="SCADA file contains NaN values"):
-            WindFarmSCADAPower(test_h_dict)
+            WindFarmSCADAPower(test_h_dict, "wind_farm")
     finally:
         if os.path.exists(temp_scada_file):
             os.unlink(temp_scada_file)
