@@ -5,9 +5,6 @@ The power setpoint schedule is defined in the hercules_input_[unit].yaml file an
 controller follows that schedule. The outputs of the simulation are plotted in the 
 plot_outputs.py script.
 The following thermal power plants are currently available for simulation:
-- Hard Coal Steam Turbine (HCST)
-- Open Cycle Gas Turbine (OCGT)
-- Steam Turbine (ST)
 - Combined Cycle Gas Turbine modeled as individual gas and steam turbines with a coupling constraint (MU-CCGT)
 - Multi-unit thermal plant with 2 OCGTs (MUTP)
 """
@@ -21,9 +18,6 @@ prepare_output_directory()
 # Initialize the Hercules model
 # Select which thermal plant you want to simulate by changing the yaml file
 # Currenctly available:
-# - hercules_input_hcst.yaml: Hard coal steam turbine (HCST)
-# - hercules_input_ocgt.yaml: Open Cycle Gas Turbine (OCGT)
-# - hercules_input_st.yaml: Steam Turbine (ST)
 # - hercules_input_mu-ccgt.yaml: Combined Cycle Gas Turbine (CCGT) modeled as 
 #       individual gas and steam turbines with a coupling constraint
 # - hercules_inputs_mutp.yaml: Multi-unit thermal plants with 2 OCGTs

@@ -26,18 +26,18 @@ class SteamTurbine(ThermalComponentBase):
 
         # Specify default parameter values
         default_parameters_steam_turbine = {
-            "min_stable_load_fraction": 0.40,
-            "ramp_rate_fraction": 0.1,
-            "hot_startup_time": 420.0,
-            "warm_startup_time": 480.0,
-            "cold_startup_time": 480.0,
-            "min_up_time": 1800.0,
-            "min_down_time": 3600.0,
-            "hhv": 39050000,  # J/m³ (39.05
-            "fuel_density": 0.768,  # kg/m³
+            "min_stable_load_fraction": 0.30,
+            "ramp_rate_fraction": 0.03,
+            "hot_startup_time": 27000.0,
+            "warm_startup_time": 27000.0,
+            "cold_startup_time": 27000.0,
+            "min_up_time": 172800.0,
+            "min_down_time": 172800.0,
+            "hhv": 29310000000,  # J/m³
+            "fuel_density": 1000,  # kg/m³
             "efficiency_table": {
-                "power_fraction": [1.0, 0.75, 0.50, 0.4],
-                "efficiency": [0.14, 0.15, 0.165, 0.17],
+                "power_fraction": [1.0, 0.5, 0.3],
+                "efficiency": [0.35, 0.32, 0.30],
             },
         }
 

@@ -30,8 +30,17 @@ class CombinedCyclePlant(ComponentBase):
         if not "open_cycle_gas_turbine" in generic_units:
             raise ValueError("For the combined cycle plant, one of the units must be an open cycle gas turbine.")
 
+        print(generic_units)
+        print(len(generic_units))
+        if len(generic_units) != 2:
+            print(generic_units)
+            raise ValueError("For the combined cycle plant, there must be exactly two units: "
+            "one steam turbine and one open cycle gas turbine.")
+
         for unit, unit_name in zip(generic_units, self.unit_names):
+            print(unit)
             if unit not in ["open_cycle_gas_turbine", "steam_turbine"]:
+                print(unit)
                 raise ValueError("For the combined cycle plant, units must be either 'open_cycle_gas_turbine' or 'steam_turbine'.")
             if unit_name not in h_dict[component_name]:
                 h_dict[component_name][unit_name] = copy.deepcopy(h_dict[component_name][unit])
@@ -86,6 +95,13 @@ class CombinedCyclePlant(ComponentBase):
              self.units[self.gas_turbine_index].rated_capacity)
         )
 
+        # Default HHV net plant efficiency table based on [2]:
+        if "efficiency_table" not in h_dict[component_name]:
+            h_dict[component_name]["efficiency_table"] = {
+                "power_fraction": [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.7, 0.65, 0.6, 0.55, 0.50, 0.4],
+                "efficiency": [0.53, 0.515, 0.52, 0.52, 0.52, 0.52, 0.52, 0.515, 0.505, 0.5, 0.47, 0.47],
+            }
+
         efficiency_table = h_dict[component_name]["efficiency_table"]
 
         # Validate efficiency_table structure
@@ -126,6 +142,7 @@ class CombinedCyclePlant(ComponentBase):
         self.efficiency_values = self.efficiency_values[sort_idx]
 
         self.rated_capacity = self.units[self.gas_turbine_index].rated_capacity + self.units[self.steam_turbine_index].rated_capacity
+        h_dict[component_name]["rated_capacity"] = self.rated_capacity
 
         # Derive initial state from power: if power > 0 then ON, else OFF
         for unit in self.units:
