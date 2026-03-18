@@ -89,9 +89,11 @@ class MyComponent(ComponentBase):
 
 ### Component Categories
 
-- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.
-- **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant`.
-- **`load`**: Consumes power (electrolyzers).
+- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.  Generator power should be positive signed to represent production.
+- **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant` in the following way.  It is assumed at the component model level, battery dischage is negatively signed.  At the plant level `HybridPlant` inverts the sign of the setpoint going into the battery component model, and inverts the power output coming out of the battery component model.  This way at the plant level, positive power represents discharge/production, consistent with the generator category.
+- **`load`**: Consumes power (electrolyzers).  Power of loads should be negative signed to represent consumption.
+
+While only generator power is included in `locally_generated_power`, all categories' power are combined into the total plant power in the `HybridPlant` class.
 
 ## Step 2: Register the Component
 
@@ -99,6 +101,20 @@ Add the component to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py` (see [Hy
 
 
 The key string (e.g., `"MyComponent"`) is the `component_type` value users will specify in their YAML input files.
+
+## Testing
+
+Add unit tests in `tests/my_component_test.py`. Test at minimum:
+
+- Initialization with valid parameters
+- `step` method produces expected outputs
+- `get_initial_conditions_and_meta_data` sets initial state
+
+Run tests with:
+
+```bash
+pytest tests/my_component_test.py -v
+```
 
 ## Step 3: Document the Component
 
@@ -119,19 +135,6 @@ The key string (e.g., `"MyComponent"`) is the `component_type` value users will 
    - [hybrid_plant.md](hybrid_plant.md) — Available Components table
    - [component_types.md](component_types.md) — Complete Component Type Reference table
 
-## Testing
-
-Add unit tests in `tests/my_component_test.py`. Test at minimum:
-
-- Initialization with valid parameters
-- `step` method produces expected outputs
-- `get_initial_conditions_and_meta_data` sets initial state
-
-Run tests with:
-
-```bash
-pytest tests/my_component_test.py -v
-```
 
 ## Summary Checklist
 
@@ -140,7 +143,7 @@ pytest tests/my_component_test.py -v
 - [ ] Define `component_category` class attribute
 - [ ] Implement `__init__`, `step`, `get_initial_conditions_and_meta_data`
 - [ ] Import and add to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py`
+- [ ] Create tests in `tests/my_component_test.py`
 - [ ] Create `docs/my_component.md`
 - [ ] Add to `docs/_toc.yml`
 - [ ] Update reference tables in `hybrid_plant.md` and `component_types.md`
-- [ ] Create tests in `tests/my_component_test.py`

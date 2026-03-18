@@ -34,6 +34,12 @@ wind_farm = {
     "floris_update_time_s": 30.0,  # Required parameter for FLORIS updates
 }
 
+power_playback = {
+    "component_type": "PowerPlayback",
+    "scada_filename": "tests/test_inputs/power_playback_input.csv",
+    "log_file_name": "outputs/power_playback.log",
+    "log_channels": ["power"],
+}
 
 solar_farm_pysam = {
     "component_type": "SolarPySAMPVWatts",
@@ -152,6 +158,25 @@ open_cycle_gas_turbine = {
     },
 }
 
+hard_coal_steam_turbine = {
+    "component_type": "HardCoalSteamTurbine",
+    "rated_capacity": 500000,  # kW (500 MW)
+    "min_stable_load_fraction": 0.3,  # 30% minimum operating point
+    "ramp_rate_fraction": 0.04,  # 4%/min ramp rate
+    "run_up_rate_fraction": 0.02,  # 2%/min run up rate
+    "hot_startup_time": 27000.0,  # 7.5 hours
+    "warm_startup_time": 27000.0,  # 7.5 hours
+    "cold_startup_time": 27000.0,  # 7.5 hours
+    "min_up_time": 172800,  # 48 hours
+    "min_down_time": 172800,  # 48 hour
+    "hhv": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
+    "fuel_density": 1000,  # kg/m³ for bituminous coal
+    "initial_conditions": {"power": 1000},  # power > 0 implies ON state
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.5, 0.3],
+        "efficiency": [0.35, 0.32, 0.30],
+    },
+}
 
 electrolyzer = {
     "component_type": "ElectrolyzerPlant",
@@ -238,6 +263,17 @@ h_dict_wind = {
     "time": 2.0,
     "plant": plant,
     "wind_farm": wind_farm,
+}
+
+# h_dict with power_playback only
+h_dict_power_playback = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "power_playback": power_playback,
 }
 
 # h_dict with solar_farm only
@@ -379,4 +415,17 @@ h_dict_open_cycle_gas_turbine = {
     "time": 0.0,
     "plant": plant,
     "open_cycle_gas_turbine": open_cycle_gas_turbine,
+}
+
+h_dict_hard_coal_steam_turbine = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "hard_coal_steam_turbine": hard_coal_steam_turbine,
 }
