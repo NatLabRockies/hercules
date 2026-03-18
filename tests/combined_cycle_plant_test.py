@@ -24,7 +24,11 @@ def test_invalid_unit_type():
         CombinedCyclePlant(h_dict, "combined_cycle_plant")
 
     # Additional units not part of combined cycle plant
-    h_dict["combined_cycle_plant"]["units"] = ["open_cycle_gas_turbine", "steam_turbine", "simple_battery"]
+    h_dict["combined_cycle_plant"]["units"] = [
+        "open_cycle_gas_turbine",
+        "steam_turbine",
+        "simple_battery",
+    ]
     h_dict["combined_cycle_plant"]["simple_battery"] = copy.deepcopy(simple_battery)
     with pytest.raises(ValueError):
         CombinedCyclePlant(h_dict, "combined_cycle_plant")
@@ -34,7 +38,7 @@ def test_invalid_unit_type():
     h_dict["combined_cycle_plant"]["steam_turbine"]["component_type"] = "InvalidComponent"
     with pytest.raises(KeyError):
         CombinedCyclePlant(h_dict, "combined_cycle_plant")
-    
+
 
 def test_h_dict_structure():
     h_dict = copy.deepcopy(h_dict_combined_cycle_plant)

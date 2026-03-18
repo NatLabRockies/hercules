@@ -2,6 +2,7 @@ import numpy as np
 
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
+from hercules.plant_components.combined_cycle_plant import CombinedCyclePlant
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 from hercules.plant_components.hard_coal_steam_turbine import HardCoalSteamTurbine
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
@@ -9,7 +10,6 @@ from hercules.plant_components.power_playback import PowerPlayback
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
 from hercules.plant_components.steam_turbine import SteamTurbine
 from hercules.plant_components.thermal_plant import ThermalPlant
-from hercules.plant_components.combined_cycle_plant import CombinedCyclePlant
 from hercules.plant_components.wind_farm import WindFarm
 from hercules.plant_components.wind_farm_scada_power import WindFarmSCADAPower
 

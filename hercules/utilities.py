@@ -273,7 +273,9 @@ def load_hercules_input(filename):
     if "power_setpoint_schedule" in h_dict["plant"]:
         schedule = h_dict["plant"]["power_setpoint_schedule"]
         if not isinstance(schedule, dict):
-            raise ValueError(f"power_setpoint_schedule must be a dictionary in input file {filename}")
+            raise ValueError(
+                f"power_setpoint_schedule must be a dictionary in input file {filename}"
+            )
         if "time" not in schedule or "power_setpoint_fraction" not in schedule:
             raise ValueError(
                 f"power_setpoint_schedule must contain 'time' and 'power_setpoint_fraction' keys "
@@ -281,8 +283,8 @@ def load_hercules_input(filename):
             )
         if len(schedule["time"]) != len(schedule["power_setpoint_fraction"]):
             raise ValueError(
-                f"'time' and 'power_setpoint_fraction' lists in power_setpoint_schedule must be the same length "
-                f"in input file {filename}"
+                f"'time' and 'power_setpoint_fraction' lists in power_setpoint_schedule "
+                f"must be the same length in input file {filename}"
             )
         # Validate time and power_setpoint types
         if not all(isinstance(t, (float, int)) for t in schedule["time"]):
@@ -290,12 +292,13 @@ def load_hercules_input(filename):
                 f"All entries in power_setpoint_schedule 'time' list must be floats or ints "
                 f"in input file {filename}"
             )
-        if not all(isinstance(p, (float, int, list, tuple)) for p in schedule["power_setpoint_fraction"]):
+        if not all(
+            isinstance(p, (float, int, list, tuple)) for p in schedule["power_setpoint_fraction"]
+        ):
             raise ValueError(
-                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list must be floats, ints, lists, or tuples "
-                f"in input file {filename}"
+                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list "
+                f"must be floats, ints, lists, or tuples in input file {filename}"
             )
-
 
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:

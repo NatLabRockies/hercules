@@ -437,7 +437,8 @@ class ThermalComponentBase(ComponentBase):
                     self.state = self.STATES.COLD_STARTING
                     self.n_cold_starts += 1
                 self.time_in_state = 0.0
-                if hasattr(self, "can_start"): del self.can_start
+                if hasattr(self, "can_start"):
+                    del self.can_start
 
             return 0.0  # Power is always 0 when off
 
