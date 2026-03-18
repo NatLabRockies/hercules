@@ -61,6 +61,9 @@ def test_h_dict_structure():
     # Check that combined cycle plant conditions are recorded correctly
     assert h_dict["combined_cycle_plant"]["power"] == 1000 + 1000
 
+    print(h_dict["combined_cycle_plant"]["rated_capacity"])
+    print(h_dict["combined_cycle_plant"]["ST"]["rated_capacity"])
+
 
 def test_step():
     h_dict = copy.deepcopy(h_dict_combined_cycle_plant)
@@ -68,12 +71,14 @@ def test_step():
     tp = CombinedCyclePlant(h_dict, "combined_cycle_plant")
 
     # Provide power setpoints to the two units
-    h_dict["combined_cycle_plant"]["power_setpoint"] = 1500
+    h_dict["combined_cycle_plant"]["power_setpoint"] = 500
 
     # Step the plant and check that power is updated correctly
     h_dict = tp.step(h_dict)
     power_ocgt = h_dict["combined_cycle_plant"]["OCGT"]["power"]
     power_steam = h_dict["combined_cycle_plant"]["ST"]["power"]
+
+    print(h_dict["combined_cycle_plant"])
 
     assert power_ocgt < 1000  # Reacts to power setpoint
     assert power_steam < 1000  # Reacts to power setpoint

@@ -84,6 +84,10 @@ try:
 except KeyError:
     ax.plot(time_minutes, df[f"{component_name}.efficiency"] * 100, label="Efficiency", color="g")
 
+ax.set_ylabel("Thermal efficiency [%]")
+ax.grid(True)
+ax.legend()
+
 # Fuel consumption
 ax = axarr[3]
 try:
@@ -102,10 +106,6 @@ except KeyError:
         color="orange",
     )
 ax.set_ylabel("Fuel [m³/s]")
-ax.grid(True)
-ax.legend()
-
-ax.set_ylabel("Thermal efficiency [%]")
 ax.grid(True)
 ax.legend()
 

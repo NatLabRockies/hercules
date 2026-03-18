@@ -35,19 +35,14 @@ class CombinedCyclePlant(ComponentBase):
                 "For the combined cycle plant, one of the units must be an open cycle gas turbine."
             )
 
-        print(generic_units)
-        print(len(generic_units))
         if len(generic_units) != 2:
-            print(generic_units)
             raise ValueError(
                 "For the combined cycle plant, there must be exactly two units: "
                 "one steam turbine and one open cycle gas turbine."
             )
 
         for unit, unit_name in zip(generic_units, self.unit_names):
-            print(unit)
             if unit not in ["open_cycle_gas_turbine", "steam_turbine"]:
-                print(unit)
                 raise ValueError(
                     "For the combined cycle plant, units must be either "
                     "'open_cycle_gas_turbine' or 'steam_turbine'."
@@ -205,14 +200,17 @@ class CombinedCyclePlant(ComponentBase):
 
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
+        # Update time in state
+        for unit in self.units:
+            unit.time_in_state += unit.dt
+
         # Apply control
         self.power_output = sum(self.control(power_setpoint))
 
-        # Step each unit
         for unit, unit_name in zip(self.units, self.unit_names):
             h_dict_ccgt = h_dict[self.component_name]
+            h_dict_ccgt = unit.get_initial_conditions_and_meta_data(h_dict_ccgt)
             h_dict_ccgt[unit_name]["power_setpoint"] = unit.power_setpoint
-            h_dict_ccgt = unit.step(h_dict_ccgt)
 
         self.efficiency = self.calculate_efficiency(self.power_output)
 
@@ -236,13 +234,11 @@ class CombinedCyclePlant(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters.
         """
-        for unit in self.units:
+        for unit, unit_name in zip(self.units, self.unit_names):
             h_dict_ccgt = h_dict[self.component_name]
             h_dict_ccgt = unit.get_initial_conditions_and_meta_data(h_dict_ccgt)
 
-        h_dict[self.component_name]["power"] = sum(
-            h_dict_ccgt[unit.component_name]["power"] for unit in self.units
-        )
+        h_dict[self.component_name]["power"] = self.power_output
 
         # TODO: we likely want to save off data for the individual units to the
         # h_dict as well. Will need to figure out how to do that.
@@ -286,7 +282,9 @@ class CombinedCyclePlant(ComponentBase):
         ):
             # If the gas turbine is off or starting up, the steam turbine should be off
             self.units[self.steam_turbine_index].can_start = False
-            self.units[self.steam_turbine_index]._control(0.0)
+            self.units[self.steam_turbine_index].power_output = self.units[
+                self.steam_turbine_index
+            ]._control(0.0)
         elif (
             self.units[self.gas_turbine_index].state == "STOPPING"
             and self.units[self.steam_turbine_index].power_output > 0
@@ -295,7 +293,9 @@ class CombinedCyclePlant(ComponentBase):
         ):
             # If the gas turbine is stopping but the steam turbine is still producing power,
             # we need to turn off the steam turbine
-            self.units[self.steam_turbine_index]._control(0.0)
+            self.units[self.steam_turbine_index].power_output = self.units[
+                self.steam_turbine_index
+            ]._control(0.0)
         elif (
             self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON
             and self.units[self.steam_turbine_index].state
@@ -307,10 +307,14 @@ class CombinedCyclePlant(ComponentBase):
                 self.units[self.steam_turbine_index].time_in_state
                 >= self.units[self.steam_turbine_index].min_down_time
             )
-            self.units[self.steam_turbine_index]._control(power_setpoint)
+            self.units[self.steam_turbine_index].power_output = self.units[
+                self.steam_turbine_index
+            ]._control(power_setpoint)
         else:
             # Normal operation
-            self.units[self.steam_turbine_index]._control(power_setpoint)
+            self.units[self.steam_turbine_index].power_output = self.units[
+                self.steam_turbine_index
+            ]._control(power_setpoint)
 
         return self.units[self.steam_turbine_index].power_output
 

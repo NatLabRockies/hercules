@@ -81,8 +81,8 @@ combined_cycle_plant:
     hot_startup_time: 3600.0  # 1 hour
     warm_startup_time: 7200.0  # 2 hours
     cold_startup_time: 14400.0  # 4 hours
-    # min_up_time: 3600  # 1 hour
-    # min_down_time: 3600  # 1 hour
+    min_up_time: 14400  # 4 hour
+    min_down_time: 7200  # 2 hour
     # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
     # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
     # hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
