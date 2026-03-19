@@ -607,12 +607,30 @@ class ThermalComponentBase(ComponentBase):
         if power_output <= 0:
             return 0.0
 
-        # Calculate current HHV net efficiency
-        efficiency = self.calculate_efficiency(power_output)
+        if self.state == self.STATES.ON:
+            # When on, calculate fuel rate based on current HHV net efficiency
+            efficiency = self.calculate_efficiency(power_output)
 
-        # Calculate fuel volume rate using HHV net efficiency
-        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
-        # Convert power from kW to W (multiply by 1000)
-        fuel_m3_per_s = (power_output * 1000.0) / (efficiency * self.hhv)
-
-        return fuel_m3_per_s
+            # Calculate fuel volume rate using HHV net efficiency
+            # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
+            # Convert power from kW to W (multiply by 1000)
+            return (power_output * 1000.0) / (efficiency * self.hhv)
+        elif self.state == self.STATES.OFF:
+            # When off, fuel flow is zero
+            return 0.0
+        elif self.state == self.STATES.STOPPING:
+            if hasattr(self, "shutdown_fuel_fraction"):
+                # When stopping, use shutdown fuel fraction if provided
+                return self.shutdown_fuel_fraction * (
+                    self.rated_capacity * 1000.0 / (self.hhv) * self.calculate_efficiency(self.rated_capacity)
+                )
+            else:
+                return 0.0
+        else:
+            # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
+            if hasattr(self, "startup_fuel_fraction"):
+                return self.startup_fuel_fraction * (
+                    self.rated_capacity * 1000.0 / (self.hhv) * self.calculate_efficiency(self.rated_capacity)
+                )
+            else:
+                return 0.0

@@ -32,6 +32,8 @@ open_cycle_gas_turbine:
   # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
   fuel_density: 0.768  # kg/m³ for natural gas [6]
+  startup_fuel_fraction: 0.6  # 60% of rated fuel flow for startup
+  shutdown_fuel_fraction: 0.04  # 4% of rated fuel flow for shutdown
   efficiency_table:
     power_fraction:
       - 1.0
