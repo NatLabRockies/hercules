@@ -70,7 +70,7 @@ ax.plot(
     label="Efficiency",
     color="g",
 )
-ax.set_ylabel("Efficiency [%]") 
+ax.set_ylabel("Efficiency [%]")
 ax.set_title("Thermal Efficiency")
 ax.grid(True)
 

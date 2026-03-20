@@ -623,8 +623,10 @@ class ThermalComponentBase(ComponentBase):
             # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
             # Convert power from kW to W (multiply by 1000)
             # Ensure fuel rate is at least the startup fuel fraction when on
-            return max( (power_output * 1000.0) / (efficiency * self.hhv), 
-                    rated_fuel_consumption_rate * self.startup_fuel_fraction)
+            return max(
+                (power_output * 1000.0) / (efficiency * self.hhv),
+                rated_fuel_consumption_rate * self.startup_fuel_fraction,
+            )
         elif self.state == self.STATES.OFF:
             # When off, fuel flow is zero
             return 0.0
