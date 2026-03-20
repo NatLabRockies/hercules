@@ -85,6 +85,8 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `hhv` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
 | `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below). Efficiency values must be HHV net plant efficiencies. |
+| `startup_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during startup, as a fraction of rated fuel consumption. Defaults to 0 |
+| `shutdown_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during shutdown, as a fraction of rated fuel consumption. Defaults to 0 |
 
 ### Derived Parameters
 
