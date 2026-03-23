@@ -43,7 +43,7 @@ class HerculesModel:
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Set up logging
-        logging_inputs = h_dict.get("logging") | {"outputs_dir": output_dir}
+        logging_inputs = h_dict.get("logging", {}) | {"outputs_dir": output_dir}
         self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
