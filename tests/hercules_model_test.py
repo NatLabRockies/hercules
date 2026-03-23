@@ -152,9 +152,9 @@ def test_log_data_to_hdf5():
 
     actual_datasets = set(hmodel.hdf5_datasets.keys())
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -270,9 +270,9 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
     # Verify that all expected datasets are present
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(
-        actual_datasets
-    ), f"Missing expected datasets: {missing_datasets}"
+    assert expected_datasets.issubset(actual_datasets), (
+        f"Missing expected datasets: {missing_datasets}"
+    )
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -523,19 +523,19 @@ def test_log_selective_array_element():
     actual_datasets = set(hmodel.hdf5_datasets.keys())
 
     # turbine_powers.001 SHOULD be present
-    assert (
-        "wind_farm.turbine_powers.001" in actual_datasets
-    ), "Expected wind_farm.turbine_powers.001 to be logged"
+    assert "wind_farm.turbine_powers.001" in actual_datasets, (
+        "Expected wind_farm.turbine_powers.001 to be logged"
+    )
 
     # turbine_powers.000 should NOT be present
-    assert (
-        "wind_farm.turbine_powers.000" not in actual_datasets
-    ), "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
+    assert "wind_farm.turbine_powers.000" not in actual_datasets, (
+        "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
+    )
 
     # turbine_powers.002 should NOT be present
-    assert (
-        "wind_farm.turbine_powers.002" not in actual_datasets
-    ), "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
+    assert "wind_farm.turbine_powers.002" not in actual_datasets, (
+        "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
+    )
 
     # Verify that basic datasets are still present
     assert "time" in actual_datasets
