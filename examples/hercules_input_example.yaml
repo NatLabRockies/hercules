@@ -14,6 +14,7 @@ verbose: False  # Enable verbose console output (True/False)
 log_every_n: 10  # Log output every N time steps (positive integer, default: 1)
 
 # Output file configuration
+output_dir: outputs # output folder
 output_file: outputs/hercules_output.h5  # Output HDF5 file path (automatically adds .h5 extension if missing)
 output_use_compression: True  # Enable HDF5 compression (True/False, default: True)
 output_buffer_size: 50000  # Memory buffer size for writing data in rows (default: 50000)

@@ -162,11 +162,6 @@ class HerculesModel:
         # Update the defaults with any input kwargs
         logging_inputs = logging_defaults | kwargs
         return setup_logging(**logging_inputs)
-        #     logger_name="hercules",
-        #     log_file=logfile,
-        #     console_output=console_output,
-        #     console_prefix="HERCULES",
-        # )
 
     def _load_hercules_input(self, filename):
         """Load and validate Hercules input file.
