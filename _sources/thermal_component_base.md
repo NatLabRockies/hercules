@@ -4,7 +4,7 @@ The `ThermalComponentBase` class provides common functionality for thermal power
 
 - Reciprocating internal combustion engines (RICE)
 - Open-cycle gas turbines (OCGT)
-- Combined-cycle gas turbines (CCGT) 
+- Combined-cycle gas turbines (CCGT)
 - Coal-fired power plants
 
 The parameterized model is based primarily on [1], with additional parameters and naming conventions from [2] and [3]. Table 1 on page 48 of [1] provides many of the default values used in subclasses.
@@ -18,7 +18,7 @@ The thermal component operates as a state machine with six states:
 ```{mermaid}
 stateDiagram-v2
     direction TB
-    
+
     state "OFF (0)" as Off
     state "HOT STARTING (1)" as Hot
     state "WARM STARTING (2)" as Warm
@@ -27,22 +27,22 @@ stateDiagram-v2
     state "STOPPING (5)" as Stop
 
     [*] --> Off
-    
+
     Off --> Hot: start (hot)
     Off --> Warm: start (warm)
     Off --> Cold: start (cold)
-    
+
     Hot --> Off: abort
     Hot --> On: P >= P_min
-    
+
     Warm --> Off: abort
     Warm --> On: P >= P_min
-    
+
     Cold --> Off: abort
     Cold --> On: P >= P_min
-    
+
     On --> Stop: shutdown
-    
+
     Stop --> Off: P = 0
 ```
 
@@ -81,10 +81,15 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `cold_startup_time` | s | Time to reach P_min from off (cold start). Includes both readying time and ramping time |
 | `min_up_time` | s | Minimum time unit must remain on before shutdown is allowed |
 | `min_down_time` | s | Minimum time unit must remain off before restart is allowed |
-| `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF. When ON, `time_in_state` = `min_up_time` (ready to stop). When OFF, `time_in_state` = `min_down_time` (ready to start). |
+| `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF. When ON, `time_in_state` = `min_up_time` (ready to stop). When OFF, by default `time_in_state` = `min_down_time` (ready to start). However, `time_in_shutdown` is an optional parameter to set the `time_in_state` variable if the component is OFF. This parameter is described in the next section|
 | `hhv` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
 | `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below). Efficiency values must be HHV net plant efficiencies. |
+
+### Optional Parameters
+| Parameter | Units | Description |
+|-----------|-------|-------------|
+| `initial_conditions.time_in_shutdown` | s | An optional parameter to set the `time_in_state` variable if the component is OFF. This can be used to adjust the behavior of a component, e.g. force a warm start at the beginning of the simulation |
 
 ### Derived Parameters
 
