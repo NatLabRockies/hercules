@@ -622,11 +622,13 @@ class ThermalComponentBase(ComponentBase):
             # When stopping, use shutdown fuel fraction if provided
             return self.shutdown_fuel_fraction * rated_fuel_consumption_rate
         elif self.state in [
-            self.STATES.HOT_STARTING, self.STATES.WARM_STARTING, self.STATES.COLD_STARTING
-            ]:
+            self.STATES.HOT_STARTING,
+            self.STATES.WARM_STARTING,
+            self.STATES.COLD_STARTING,
+        ]:
             # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
             return self.startup_fuel_fraction * rated_fuel_consumption_rate
-        
+
         # When on, calculate fuel rate based on current HHV net efficiency
         efficiency = self.calculate_efficiency(power_output)
 
