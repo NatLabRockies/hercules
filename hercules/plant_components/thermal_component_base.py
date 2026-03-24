@@ -611,31 +611,30 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             float: Fuel volume flow rate in m³/s.
         """
-        if power_output <= 0:
-            return 0.0
-
         rated_fuel_consumption_rate = (self.rated_capacity * 1000.0) / (
             self.hhv * self.calculate_efficiency(self.rated_capacity)
         )  # m³/s at rated capacity
 
-        if self.state == self.STATES.ON:
-            # When on, calculate fuel rate based on current HHV net efficiency
-            efficiency = self.calculate_efficiency(power_output)
-
-            # Calculate fuel volume rate using HHV net efficiency
-            # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
-            # Convert power from kW to W (multiply by 1000)
-            # Ensure fuel rate is at least the startup fuel fraction when on
-            return max(
-                (power_output * 1000.0) / (efficiency * self.hhv),
-                rated_fuel_consumption_rate * self.startup_fuel_fraction,
-            )
-        elif self.state == self.STATES.OFF:
+        if self.state == self.STATES.OFF:
             # When off, fuel flow is zero
             return 0.0
         elif self.state == self.STATES.STOPPING:
             # When stopping, use shutdown fuel fraction if provided
             return self.shutdown_fuel_fraction * rated_fuel_consumption_rate
-        else:
+        elif self.state in [
+            self.STATES.HOT_STARTING, self.STATES.WARM_STARTING, self.STATES.COLD_STARTING
+            ]:
             # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
             return self.startup_fuel_fraction * rated_fuel_consumption_rate
+        
+        # When on, calculate fuel rate based on current HHV net efficiency
+        efficiency = self.calculate_efficiency(power_output)
+
+        # Calculate fuel volume rate using HHV net efficiency
+        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
+        # Convert power from kW to W (multiply by 1000)
+        # Ensure fuel rate is at least the startup fuel fraction when on
+        return max(
+            (power_output * 1000.0) / (efficiency * self.hhv),
+            rated_fuel_consumption_rate * self.startup_fuel_fraction,
+        )
