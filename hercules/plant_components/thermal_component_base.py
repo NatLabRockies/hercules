@@ -125,8 +125,8 @@ class ThermalComponentBase(ComponentBase):
         self.min_down_time = component_dict["min_down_time"]  # s
 
         # Extract optional parameters for startup and shutdown fuel fractions
-        self.startup_fuel_fraction = component_dict.get("startup_fuel_fraction", 0)
-        self.shutdown_fuel_fraction = component_dict.get("shutdown_fuel_fraction", 0)
+        self.startup_fuel_fraction = component_dict.get("startup_fuel_fraction", None)
+        self.shutdown_fuel_fraction = component_dict.get("shutdown_fuel_fraction", None)
 
         # Check all required parameters are numbers
         if not isinstance(self.rated_capacity, (int, float, hercules_float_type)):
@@ -577,7 +577,23 @@ class ThermalComponentBase(ComponentBase):
         return P_constrained
 
     def calculate_efficiency(self, power_output):
-        """Calculate HHV net efficiency based on current power output.
+        """Calculate HHV net efficiency based on current power output and state.
+
+        Args:
+            power_output (float): Current power output in kW.
+
+        Returns:
+            float: HHV net efficiency as a fraction (0-1).
+        """
+        fuel_consumption_rate = self.calculate_fuel_volume_rate(power_output)  # m³/s
+
+        if fuel_consumption_rate == 0:
+            return np.nan  # Efficiency is undefined when fuel consumption is zero
+
+        return (power_output * 1000.0) / (fuel_consumption_rate * self.hhv)
+
+    def interpolate_efficiency(self, power_output):
+        """Interpolate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
         table range are clamped to the nearest endpoint.
@@ -588,10 +604,6 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        if power_output <= 0:
-            # Return efficiency at lowest power fraction when off
-            return self.efficiency_values[0]
-
         # Calculate power fraction
         power_fraction = power_output / self.rated_capacity
 
@@ -612,31 +624,31 @@ class ThermalComponentBase(ComponentBase):
             float: Fuel volume flow rate in m³/s.
         """
         rated_fuel_consumption_rate = (self.rated_capacity * 1000.0) / (
-            self.hhv * self.calculate_efficiency(self.rated_capacity)
+            self.hhv * self.interpolate_efficiency(self.rated_capacity)
         )  # m³/s at rated capacity
 
         if self.state == self.STATES.OFF:
             # When off, fuel flow is zero
             return 0.0
-        elif self.state == self.STATES.STOPPING:
+        elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:
             # When stopping, use shutdown fuel fraction if provided
             return self.shutdown_fuel_fraction * rated_fuel_consumption_rate
-        elif self.state in [
-            self.STATES.HOT_STARTING,
-            self.STATES.WARM_STARTING,
-            self.STATES.COLD_STARTING,
-        ]:
+        elif (
+            self.state
+            in [
+                self.STATES.HOT_STARTING,
+                self.STATES.WARM_STARTING,
+                self.STATES.COLD_STARTING,
+            ]
+            and self.startup_fuel_fraction is not None
+        ):
             # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
             return self.startup_fuel_fraction * rated_fuel_consumption_rate
 
         # When on, calculate fuel rate based on current HHV net efficiency
-        efficiency = self.calculate_efficiency(power_output)
+        efficiency = self.interpolate_efficiency(power_output)
 
         # Calculate fuel volume rate using HHV net efficiency
         # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
         # Convert power from kW to W (multiply by 1000)
-        # Ensure fuel rate is at least the startup fuel fraction when on
-        return max(
-            (power_output * 1000.0) / (efficiency * self.hhv),
-            rated_fuel_consumption_rate * self.startup_fuel_fraction,
-        )
+        return (power_output * 1000.0) / (efficiency * self.hhv)
