@@ -135,6 +135,7 @@ open_cycle_gas_turbine:
     - power_setpoint
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
+    time_in_shutdown: 50000  # Adding this forces a warm startup (default initialization results in a hot start)
 ```
 
 ## Logging Configuration
