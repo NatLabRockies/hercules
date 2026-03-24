@@ -250,6 +250,8 @@ class BatterySimple(ComponentBase):
 
         # Power available for the battery to use for charging (should be >=0)
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
         # Power signal desired by the controller
         if self.allow_grid_power_consumption:
             P_avail = np.inf

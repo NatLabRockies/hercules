@@ -400,3 +400,42 @@ def test_wind_farm_scada_power_invalid_file_format():
     finally:
         if os.path.exists(temp_file):
             os.unlink(temp_file)
+
+
+def test_wind_farm_scada_power_raises_on_nan_in_power_columns():
+    """Test that WindFarmSCADAPower raises ValueError when pow_NNN columns contain NaN."""
+    scada_data = {
+        "time_utc": [
+            "2023-01-01T00:00:00Z",
+            "2023-01-01T00:00:01Z",
+            "2023-01-01T00:00:02Z",
+            "2023-01-01T00:00:03Z",
+            "2023-01-01T00:00:04Z",
+        ],
+        "wd_mean": [270.0, 275.0, 280.0, 285.0, 290.0],
+        "ws_000": [8.0, 9.0, 10.0, 11.0, 12.0],
+        "ws_001": [8.5, 9.5, 10.5, 11.5, 12.5],
+        "ws_002": [9.0, 10.0, 11.0, 12.0, 13.0],
+        "pow_000": [2500.0, np.nan, 4000.0, 4500.0, 5000.0],
+        "pow_001": [2400.0, 3100.0, 3900.0, 4400.0, 4900.0],
+        "pow_002": [2600.0, 3300.0, 4100.0, 4600.0, 5000.0],
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        pd.DataFrame(scada_data).to_csv(f.name, index=False)
+        temp_scada_file = f.name
+
+    try:
+        test_h_dict = copy.deepcopy(h_dict_wind_scada)
+        test_h_dict["wind_farm"]["scada_filename"] = temp_scada_file
+        test_h_dict["starttime"] = 0.0
+        test_h_dict["endtime"] = 4.0
+        test_h_dict["starttime_utc"] = "2023-01-01T00:00:00Z"
+        test_h_dict["endtime_utc"] = "2023-01-01T00:00:04Z"
+        test_h_dict["dt"] = 1.0
+
+        with pytest.raises(ValueError, match="SCADA file contains NaN values"):
+            WindFarmSCADAPower(test_h_dict, "wind_farm")
+    finally:
+        if os.path.exists(temp_scada_file):
+            os.unlink(temp_scada_file)

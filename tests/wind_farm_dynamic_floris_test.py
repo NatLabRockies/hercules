@@ -105,7 +105,7 @@ def test_wind_farm_step():
     assert len(result["wind_farm"]["turbine_powers"]) == 3
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
     assert "power" in result["wind_farm"]
-    assert isinstance(result["wind_farm"]["power"], (int, float))
+    assert isinstance(result["wind_farm"]["power"], (int, float, hercules_float_type))
 
 
 def test_wind_farm_time_utc_conversion():

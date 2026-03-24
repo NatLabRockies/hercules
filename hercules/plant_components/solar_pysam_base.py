@@ -254,7 +254,10 @@ class SolarPySAMBase(ComponentBase):
         self.power = self.power_uncurtailed[step]
 
         # Apply control
-        self.control(h_dict[self.component_name]["power_setpoint"])
+        power_setpoint = h_dict[self.component_name]["power_setpoint"]
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
+        self.control(power_setpoint)
 
         if self.power < 0.0:
             self.power = 0.0
