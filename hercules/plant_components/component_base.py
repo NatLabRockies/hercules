@@ -1,6 +1,6 @@
 # Base class for plant components in Hercules.
 
-
+from pathlib import Path
 from typing import ClassVar
 
 from hercules.utilities import setup_logging
@@ -60,13 +60,16 @@ class ComponentBase:
         self.component_type = type(self).__name__
 
         # Set up logging
+        output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
+        logging_inputs = h_dict[component_name].get("logging", {}) | {"outputs_dir": output_dir}
+
         # Check if log_file_name is defined in the h_dict[component_name]
         if "log_file_name" in h_dict[component_name]:
             self.log_file_name = h_dict[component_name]["log_file_name"]
         else:
-            self.log_file_name = f"outputs/log_{component_name}.log"
+            self.log_file_name = f"log_{component_name}.log"
 
-        self.logger = self._setup_logging(self.log_file_name)
+        self.logger = self._setup_logging(self.log_file_name, **logging_inputs)
 
         # Parse log_channels from the h_dict
         if "log_channels" in h_dict[component_name]:
@@ -102,7 +105,7 @@ class ComponentBase:
         self.verbose = h_dict["verbose"]
         self.logger.info(f"read in verbose flag = {self.verbose}")
 
-    def _setup_logging(self, log_file_name):
+    def _setup_logging(self, log_file_name, **kwargs):
         """Set up logging for the component.
 
 
@@ -116,13 +119,20 @@ class ComponentBase:
         Returns:
             logging.Logger: Configured logger instance for the component.
         """
-        return setup_logging(
-            logger_name=self.component_name,
-            log_file=log_file_name,
-            console_output=True,
-            console_prefix=self.component_name.upper(),
-            use_outputs_dir=False,  # log_file_name is already a full path
-        )
+        logging_defaults = {
+            "logger_name": self.component_name,
+            "log_file": log_file_name,
+            "console_output": True,
+            "console_prefix": self.component_name.upper(),
+            "log_level": "INFO",
+            "use_outputs_dir": True,  # log_file_name is already a full path
+            # the use_outputs_dir used to default to False.
+            "outputs_dir": Path("outputs").absolute(),
+        }
+
+        # Update the defaults with any input kwargs
+        logging_inputs = logging_defaults | kwargs
+        return setup_logging(**logging_inputs)
 
     def __del__(self):
         """Cleanup method to properly close log file handlers."""

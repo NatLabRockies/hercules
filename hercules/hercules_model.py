@@ -37,7 +37,7 @@ class HerculesModel:
         h_dict = self._load_hercules_input(input_file)
 
         # set default output directory to cwd / "outputs"
-        output_dir = Path(h_dict.get("output_dir", "outputs"))
+        output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
 
         # Make sure output folder exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -96,6 +96,8 @@ class HerculesModel:
                 self.output_file = output_dir / self.output_file
         else:
             self.output_file = output_dir / "hercules_output.h5"
+
+        self.output_file = Path(self.output_file).absolute()
 
         # Initialize HDF5 output system
         self.hdf5_file = None
@@ -156,7 +158,7 @@ class HerculesModel:
             "console_prefix": None,
             "log_level": "INFO",
             "use_outputs_dir": True,
-            "outputs_dir": Path("outputs"),
+            "outputs_dir": Path("outputs").absolute(),
         }
 
         # Update the defaults with any input kwargs

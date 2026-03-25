@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from hercules.hercules_model import HerculesModel
@@ -79,7 +81,7 @@ def test_HerculesModel_instantiation():
     hmodel = HerculesModel(test_h_dict)
 
     # Check default settings
-    assert str(hmodel.output_file) == "outputs/hercules_output.h5"
+    assert hmodel.output_file == Path("outputs/hercules_output.h5").absolute()
     assert hmodel.log_every_n == 1
     assert hmodel.external_signals_all == {}
 
@@ -108,6 +110,65 @@ def test_HerculesModel_instantiation():
 
     # Check custom output file
     assert hmodel.output_file.name == "test_output.h5"
+
+
+def test_specified_outputs_dir():
+    """Test that a user-specified output directory can be used for log files and output files"""
+    import os
+    import shutil
+
+    import hercules
+
+    HERCULES_ROOT = Path(hercules.__file__).parent.parent
+    TEST_DIR = HERCULES_ROOT / "tests"
+
+    starting_cwd = str(Path.cwd().absolute())
+
+    temp_test_folder = HERCULES_ROOT / "tmp_tests"
+
+    # If temp testing folder already exists, remove all existing files
+    if temp_test_folder.exists():
+        shutil.rmtree(temp_test_folder)
+    Path(temp_test_folder).mkdir(parents=True, exist_ok=True)
+
+    # change cwd to test folder
+    os.chdir(temp_test_folder)
+
+    test_h_dict = h_dict_solar.copy()
+    # Enforce new loader policy: remove preset start/end and rely on *_utc
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
+
+    outputs_folder_name = "nondefault_output_dirname"
+    test_h_dict["output_dir"] = outputs_folder_name
+    test_h_dict["output_file"] = f"{outputs_folder_name}/hercules_test_output.h5"
+    test_h_dict["solar_farm"]["solar_input_filename"] = str(
+        Path(TEST_DIR / "test_inputs" / "solar_pysam_data.csv").absolute()
+    )
+
+    expected_hercules_log = temp_test_folder / outputs_folder_name / "log_hercules.log"
+    expected_solar_log_fpath = temp_test_folder / outputs_folder_name / "log_solar_farm.log"
+
+    hmodel = HerculesModel(test_h_dict)
+
+    folders = [f for f in temp_test_folder.iterdir()]
+
+    assert len(folders) == 1
+    assert folders[0] == temp_test_folder / outputs_folder_name
+    assert expected_hercules_log.exists()
+    assert expected_solar_log_fpath.exists()
+    assert (
+        hmodel.output_file.absolute()
+        == temp_test_folder / outputs_folder_name / "hercules_test_output.h5"
+    )
+
+    # Reset cwd
+    os.chdir(Path(starting_cwd))
+
+    # Remove all files and folders from temporary test dir
+    shutil.rmtree(temp_test_folder)
 
 
 def test_log_data_to_hdf5():
@@ -152,9 +213,9 @@ def test_log_data_to_hdf5():
 
     actual_datasets = set(hmodel.hdf5_datasets.keys())
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(actual_datasets), (
-        f"Missing expected datasets: {missing_datasets}"
-    )
+    assert expected_datasets.issubset(
+        actual_datasets
+    ), f"Missing expected datasets: {missing_datasets}"
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -270,9 +331,9 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
     # Verify that all expected datasets are present
     missing_datasets = expected_datasets - actual_datasets
-    assert expected_datasets.issubset(actual_datasets), (
-        f"Missing expected datasets: {missing_datasets}"
-    )
+    assert expected_datasets.issubset(
+        actual_datasets
+    ), f"Missing expected datasets: {missing_datasets}"
 
     # Flush buffer to write data to HDF5
     if hasattr(hmodel, "data_buffers") and hmodel.data_buffers and hmodel.buffer_row > 0:
@@ -523,19 +584,19 @@ def test_log_selective_array_element():
     actual_datasets = set(hmodel.hdf5_datasets.keys())
 
     # turbine_powers.001 SHOULD be present
-    assert "wind_farm.turbine_powers.001" in actual_datasets, (
-        "Expected wind_farm.turbine_powers.001 to be logged"
-    )
+    assert (
+        "wind_farm.turbine_powers.001" in actual_datasets
+    ), "Expected wind_farm.turbine_powers.001 to be logged"
 
     # turbine_powers.000 should NOT be present
-    assert "wind_farm.turbine_powers.000" not in actual_datasets, (
-        "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
-    )
+    assert (
+        "wind_farm.turbine_powers.000" not in actual_datasets
+    ), "wind_farm.turbine_powers.000 should NOT be logged when only .001 is specified"
 
     # turbine_powers.002 should NOT be present
-    assert "wind_farm.turbine_powers.002" not in actual_datasets, (
-        "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
-    )
+    assert (
+        "wind_farm.turbine_powers.002" not in actual_datasets
+    ), "wind_farm.turbine_powers.002 should NOT be logged when only .001 is specified"
 
     # Verify that basic datasets are still present
     assert "time" in actual_datasets
