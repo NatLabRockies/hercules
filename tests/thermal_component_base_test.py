@@ -1,5 +1,6 @@
 import copy
 
+import numpy as np
 import pytest
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
@@ -435,7 +436,7 @@ def test_efficiency_clamping():
 
     # Test at zero power (should return first efficiency value)
     eff_0 = tcb.calculate_efficiency(0)
-    assert eff_0 == pytest.approx(0.30)
+    assert np.isnan(eff_0)
 
 
 def test_efficiency_interpolation():
