@@ -632,7 +632,11 @@ class ThermalComponentBase(ComponentBase):
             return 0.0
         elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:
             # When stopping, use shutdown fuel fraction if provided
-            return self.shutdown_fuel_fraction * rated_fuel_consumption_rate
+            return max(
+                self.shutdown_fuel_fraction * rated_fuel_consumption_rate,
+                power_output * 1000.0 / (self.hhv * self.interpolate_efficiency(power_output)),
+            )
+
         elif (
             self.state
             in [
