@@ -4,7 +4,6 @@ Multiunit thermal power plant.
 
 import copy
 
-# import hercules.hybrid_plant as hp
 from hercules.plant_components.component_base import ComponentBase
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
