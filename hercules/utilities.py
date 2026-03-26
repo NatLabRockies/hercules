@@ -212,7 +212,7 @@ def load_hercules_input(filename):
     # Define valid keys
     required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
     # Lazy import to avoid circular dependency
-    from hercules.hybrid_plant import VALID_COMPONENT_TYPES
+    from hercules.component_registry import VALID_COMPONENT_TYPES
 
     valid_component_types = list(VALID_COMPONENT_TYPES)
     other_keys = [
