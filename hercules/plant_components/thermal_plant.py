@@ -4,7 +4,7 @@ Multiunit thermal power plant.
 
 import copy
 
-import hercules.hybrid_plant as hp
+# import hercules.hybrid_plant as hp
 from hercules.plant_components.component_base import ComponentBase
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
@@ -45,6 +45,10 @@ class ThermalPlant(ComponentBase):
             if unit in h_dict[component_name]:
                 del h_dict[component_name][unit]
 
+        # Load component registry here to define units in thermal plant
+        # NOTE: this breaks a circular dependency issue
+        from hercules.component_registry import COMPONENT_REGISTRY
+
         self.units = []
         for unit, unit_name in zip(h_dict[component_name]["units"], self.unit_names):
             h_dict_thermal = h_dict[component_name]
@@ -53,7 +57,7 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
             unit_type = h_dict["thermal_power_plant"][unit_name]["component_type"]
-            unit_class = hp.COMPONENT_REGISTRY[unit_type]
+            unit_class = COMPONENT_REGISTRY[unit_type]
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
             elif not issubclass(unit_class, ThermalComponentBase):
