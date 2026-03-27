@@ -44,9 +44,9 @@ class LinearGenerator(ThermalComponentBase):
     DEFAULTS = {
         "min_stable_load_fraction": 0.0,
         "ramp_rate_fraction": 1.2,  # fraction of rated capacity per minute [2]
-        "hot_startup_time": 420.0,  # s (7 minutes)
-        "warm_startup_time": 480.0,  # s (8 minutes)
-        "cold_startup_time": 480.0,  # s (8 minutes)
+        "hot_startup_time": 90.0,  # s (1.5 minutes)
+        "warm_startup_time": 450.0,  # s (7.5 minutes)
+        "cold_startup_time": 900.0,  # s (15 minutes)
         "min_up_time": 300.0,  # s (5 minutes)
         "min_down_time": 300.0,  # s (5 minutes)
         "hhv": 39050000,  # J/m³ (39.05 MJ/m³) for natural gas [3]
@@ -70,11 +70,11 @@ class LinearGenerator(ThermalComponentBase):
                 - run_up_rate_fraction: Optional, maximum rate of power increase during startup
                     as fraction of rated capacity per minute. Default: ramp_rate_fraction
                 - hot_startup_time: Optional, time to reach min_stable_load_fraction from off
-                    in s. Default: 420.0 s (7 minutes)
+                    in s. Default: 90.0 s (1.5 minutes)
                 - warm_startup_time: Optional, time to reach min_stable_load_fraction from off
-                    in s. Default: 480.0 s (8 minutes)
+                    in s. Default: 450.0 s (7.5 minutes)
                 - cold_startup_time: Optional, time to reach min_stable_load_fraction from off
-                    in s. Default: 480.0 s (8 minutes)
+                    in s. Default: 900.0 s (15 minutes)
                 - min_up_time: Optional, minimum time unit must remain on in s.
                     Default: 300.0 s (5 minutes)
                 - min_down_time: Optional, minimum time unit must remain off in s.

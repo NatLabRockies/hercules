@@ -16,9 +16,9 @@ The `LinearGenerator` class provides default values for all base class parameter
 | `min_stable_load_fraction` | 0.0 (0%) | — |
 | `ramp_rate_fraction` | 1.2 (120%/min) | [2] |
 | `run_up_rate_fraction` | Same as `ramp_rate_fraction` | — |
-| `hot_startup_time` | 420 s (7 minutes) | — |
-| `warm_startup_time` | 480 s (8 minutes) | — |
-| `cold_startup_time` | 480 s (8 minutes) | — |
+| `hot_startup_time` | 90 s (1.5 minutes) | — |
+| `warm_startup_time` | 450 s (7.5 minutes) | — |
+| `cold_startup_time` | 900 s (15 minutes) | — |
 | `min_up_time` | 300 s (5 minutes) | — |
 | `min_down_time` | 300 s (5 minutes) | — |
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [3] |
@@ -86,9 +86,9 @@ linear_generator:
   min_stable_load_fraction: 0.0
   ramp_rate_fraction: 1.2  # 120%/min
   run_up_rate_fraction: 1.2  # 120%/min
-  hot_startup_time: 420.0  # 7 minutes
-  warm_startup_time: 480.0  # 8 minutes
-  cold_startup_time: 480.0  # 8 minutes
+  hot_startup_time: 90.0  # 1.5 minutes
+  warm_startup_time: 450.0  # 7.5 minutes
+  cold_startup_time: 900.0  # 15 minutes
   min_up_time: 300  # 5 minutes
   min_down_time: 300  # 5 minutes
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]

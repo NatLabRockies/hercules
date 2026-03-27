@@ -22,9 +22,9 @@ linear_generator:
   rated_capacity: 250  # kW
   min_stable_load_fraction: 0.0  # Can operate at any load level
   ramp_rate_fraction: 1.2  # 120%/min — effectively instantaneous at 1-min time steps
-  hot_startup_time: 420.0  # 7 minutes
-  warm_startup_time: 480.0  # 8 minutes
-  cold_startup_time: 480.0  # 8 minutes
+  hot_startup_time: 90.0  # 1.5 minutes
+  warm_startup_time: 450.0  # 7.5 minutes
+  cold_startup_time: 900.0  # 15 minutes
   min_up_time: 300  # 5 minutes
   min_down_time: 300  # 5 minutes
   # Natural gas properties from [3] Staffell, "The Energy and Fuel Data Sheet", 2011
