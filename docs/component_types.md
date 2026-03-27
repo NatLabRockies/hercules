@@ -55,6 +55,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `LinearGenerator` | `generator` | [Linear Generator](linear_generator.md) |
 
 Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.
 

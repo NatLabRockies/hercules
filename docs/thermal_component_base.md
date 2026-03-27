@@ -75,7 +75,7 @@ All parameters below are defined in the Hercules input YAML file. The base class
 | `rated_capacity` | kW | Maximum power output (P_max) |
 | `min_stable_load_fraction` | fraction (0-1) | Minimum operating point as fraction of rated capacity |
 | `ramp_rate_fraction` | fraction/min | Maximum rate of power change during normal operation, as fraction of rated capacity per minute |
-| `run_up_rate_fraction` | fraction/min | Maximum rate of power increase during startup ramp, as fraction of rated capacity per minute |
+| `run_up_rate_fraction` | fraction/min | Maximum rate of power increase during startup ramp, as fraction of rated capacity per minute (optional, default is `ramp_rate_fraction`) |
 | `hot_startup_time` | s | Time to reach P_min from off (hot start). Includes both readying time and ramping time |
 | `warm_startup_time` | s | Time to reach P_min from off (warm start). Includes both readying time and ramping time |
 | `cold_startup_time` | s | Time to reach P_min from off (cold start). Includes both readying time and ramping time |
