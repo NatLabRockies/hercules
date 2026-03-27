@@ -39,6 +39,13 @@ ax.plot(
 )
 ax.plot(
     time_minutes,
+    df["thermal_power_plant.OCGT3.power_setpoint"] / 1000,
+    label="Power setpoint (OCGT3)",
+    color="g",
+    linestyle="--",
+)
+ax.plot(
+    time_minutes,
     df["thermal_power_plant.OCGT1.power"] / 1000,
     label="Power output (OCGT1)",
     color="r",
@@ -48,6 +55,12 @@ ax.plot(
     df["thermal_power_plant.OCGT2.power"] / 1000,
     label="Power output (OCGT2)",
     color="b",
+)
+ax.plot(
+    time_minutes,
+    df["thermal_power_plant.OCGT3.power"] / 1000,
+    label="Power output (OCGT3)",
+    color="g",
 )
 ax.axhline(
     h_dict["thermal_power_plant"]["rated_capacity"] / 1000,
@@ -70,6 +83,7 @@ ax.set_xlim(0, time_minutes.iloc[-1])
 ax = axarr[1]
 ax.plot(time_minutes, df["thermal_power_plant.OCGT1.state"], label="OCGT1", color="r")
 ax.plot(time_minutes, df["thermal_power_plant.OCGT2.state"], label="OCGT2", color="b")
+ax.plot(time_minutes, df["thermal_power_plant.OCGT3.state"], label="OCGT3", color="g")
 ax.set_ylabel("State")
 ax.set_yticks([0, 1, 2, 3, 4, 5])
 ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
@@ -80,6 +94,7 @@ ax.legend()
 ax = axarr[2]
 ax.plot(time_minutes, df["thermal_power_plant.OCGT1.efficiency"] * 100, label="OCGT1", color="r")
 ax.plot(time_minutes, df["thermal_power_plant.OCGT2.efficiency"] * 100, label="OCGT2", color="b")
+ax.plot(time_minutes, df["thermal_power_plant.OCGT3.efficiency"] * 100, label="OCGT3", color="g")
 ax.set_ylabel("Thermal efficiency [%]")
 ax.grid(True)
 ax.legend()
@@ -88,6 +103,7 @@ ax.legend()
 ax = axarr[3]
 ax.plot(time_minutes, df["thermal_power_plant.OCGT1.fuel_volume_rate"], label="OCGT1", color="r")
 ax.plot(time_minutes, df["thermal_power_plant.OCGT2.fuel_volume_rate"], label="OCGT2", color="b")
+ax.plot(time_minutes, df["thermal_power_plant.OCGT3.fuel_volume_rate"], label="OCGT3", color="g")
 ax.set_ylabel("Fuel [m³/s]")
 ax.grid(True)
 ax.legend()
