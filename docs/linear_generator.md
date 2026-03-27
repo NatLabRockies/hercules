@@ -6,18 +6,8 @@ Set `component_type: LinearGenerator` in the component's YAML section. The secti
 
 For details on the state machine, startup/shutdown behavior, and base parameters, see {doc}`thermal_component_base`.
 
-## Linear Generator-Specific Parameters
 
-The `LinearGenerator` class provides default values for natural gas properties from [3]:
-
-| Parameter | Units | Default | Description |
-|-----------|-------|---------|-------------|
-| `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [3] |
-| `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [3] |
-
-The `efficiency_table` parameter is **optional**. If not provided, the default HHV net plant efficiency from the Mainspring Energy Linear Generator datasheet [1] is used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
-
-## Default Parameter Values
+## Default Linear Generator-Specific Parameter Values
 
 The `LinearGenerator` class provides default values for all base class parameters. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration. All defaults are defined in the class-level `DEFAULTS` dict.
 
@@ -34,6 +24,18 @@ The `LinearGenerator` class provides default values for all base class parameter
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [3] |
 | `fuel_density` | 0.768 kg/m³ | [3] |
 | `efficiency_table` | Flat 41.44% HHV efficiency (see below) | [1] |
+
+## Linear Generator Fuel Parameters
+
+The `LinearGenerator` class currently uses default values for natural gas properties from [3]:
+
+| Parameter | Units | Default | Description |
+|-----------|-------|---------|-------------|
+| `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [3] |
+| `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [3] |
+
+Linear generators are also capable of mixed-fuel operation. To model a different fuel, simply override the `hhv` and `fuel_density` parameters in the YAML configuration; in this case the `efficiency_table` should also be updated to reflect the new fuel's combustion characteristics.
+The `efficiency_table` parameter is **optional**. If not provided, the default HHV net plant efficiency from the Mainspring Energy Linear Generator datasheet [1] is used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ### Default Efficiency Table
 
@@ -58,30 +60,6 @@ The linear generator model provides the following outputs (inherited from base c
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` [3]) |
 
-### Efficiency and Fuel Rate
-
-HHV net plant efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
-
-$$
-\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
-$$
-
-Where:
-- `power` is in W (converted from kW internally)
-- `efficiency` is the HHV net efficiency interpolated from the efficiency table
-- `hhv` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [3])
-- Result is fuel volume rate in m³/s
-
-The fuel mass rate is then computed from the volume rate using the fuel density [3]:
-
-$$
-\text{fuel\_mass\_rate} = \text{fuel\_volume\_rate} \times \text{fuel\_density}
-$$
-
-Where:
-- `fuel_volume_rate` is in m³/s
-- `fuel_density` is in kg/m³ (default 0.768 kg/m³ for natural gas [3])
-- Result is fuel mass rate in kg/s
 
 ## YAML Configuration
 
