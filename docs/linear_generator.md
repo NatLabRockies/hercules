@@ -19,8 +19,8 @@ The `LinearGenerator` class provides default values for all base class parameter
 | `hot_startup_time` | 420 s (7 minutes) | — |
 | `warm_startup_time` | 480 s (8 minutes) | — |
 | `cold_startup_time` | 480 s (8 minutes) | — |
-| `min_up_time` | 3600 s (1 hour) | — |
-| `min_down_time` | 3600 s (1 hour) | — |
+| `min_up_time` | 300 s (5 minutes) | — |
+| `min_down_time` | 300 s (5 minutes) | — |
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [3] |
 | `fuel_density` | 0.768 kg/m³ | [3] |
 | `efficiency_table` | Flat 41.44% HHV efficiency (see below) | [1] |
@@ -89,8 +89,8 @@ linear_generator:
   hot_startup_time: 420.0  # 7 minutes
   warm_startup_time: 480.0  # 8 minutes
   cold_startup_time: 480.0  # 8 minutes
-  min_up_time: 3600  # 1 hour
-  min_down_time: 3600  # 1 hour
+  min_up_time: 300  # 5 minutes
+  min_down_time: 300  # 5 minutes
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
   fuel_density: 0.768  # kg/m³ for natural gas [3]
   efficiency_table:

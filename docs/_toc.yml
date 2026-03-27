@@ -51,3 +51,4 @@ parts:
     - file: examples/05_wind_and_storage_with_lmp
     - file: examples/06_wind_and_hydrogen
     - file: examples/07_open_cycle_gas_turbine
+    - file: examples/10_linear_generator

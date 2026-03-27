@@ -47,8 +47,8 @@ class LinearGenerator(ThermalComponentBase):
         "hot_startup_time": 420.0,  # s (7 minutes)
         "warm_startup_time": 480.0,  # s (8 minutes)
         "cold_startup_time": 480.0,  # s (8 minutes)
-        "min_up_time": 3600.0,  # s (1 hour)
-        "min_down_time": 3600.0,  # s (1 hour)
+        "min_up_time": 300.0,  # s (5 minutes)
+        "min_down_time": 300.0,  # s (5 minutes)
         "hhv": 39050000,  # J/m³ (39.05 MJ/m³) for natural gas [3]
         "fuel_density": 0.768,  # kg/m³ for natural gas [3]
         "efficiency_table": {  # HHV net plant efficiency from [1]
@@ -76,9 +76,9 @@ class LinearGenerator(ThermalComponentBase):
                 - cold_startup_time: Optional, time to reach min_stable_load_fraction from off
                     in s. Default: 480.0 s (8 minutes)
                 - min_up_time: Optional, minimum time unit must remain on in s.
-                    Default: 3600.0 s (1 hour)
+                    Default: 300.0 s (5 minutes)
                 - min_down_time: Optional, minimum time unit must remain off in s.
-                    Default: 3600.0 s (1 hour)
+                    Default: 300.0 s (5 minutes)
                 - initial_conditions: Dictionary with initial power (state is
                     derived automatically: power > 0 means ON, power == 0 means OFF)
                 - hhv: Optional, higher heating value of natural gas in J/m³.

@@ -25,8 +25,8 @@ linear_generator:
   hot_startup_time: 420.0  # 7 minutes
   warm_startup_time: 480.0  # 8 minutes
   cold_startup_time: 480.0  # 8 minutes
-  min_up_time: 3600  # 1 hour
-  min_down_time: 3600  # 1 hour
+  min_up_time: 300  # 5 minutes
+  min_down_time: 300  # 5 minutes
   # Natural gas properties from [3] Staffell, "The Energy and Fuel Data Sheet", 2011
   # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
