@@ -32,7 +32,30 @@ class LinearGenerator(ThermalComponentBase):
     a subclass of the ThermalComponentBase class.
 
     All efficiency values are HHV (Higher Heating Value) net plant efficiencies.
+
+    Class Attributes:
+        DEFAULTS (dict): Default parameter values applied when a key is absent from
+            the input dictionary. Tests should reference this dict directly rather
+            than hardcoding expected values. Note that ``run_up_rate_fraction`` is
+            not included here because its default is derived from
+            ``ramp_rate_fraction`` at runtime.
     """
+
+    DEFAULTS = {
+        "min_stable_load_fraction": 0.0,
+        "ramp_rate_fraction": 1.2,  # fraction of rated capacity per minute [2]
+        "hot_startup_time": 420.0,  # s (7 minutes)
+        "warm_startup_time": 480.0,  # s (8 minutes)
+        "cold_startup_time": 480.0,  # s (8 minutes)
+        "min_up_time": 3600.0,  # s (1 hour)
+        "min_down_time": 3600.0,  # s (1 hour)
+        "hhv": 39050000,  # J/m³ (39.05 MJ/m³) for natural gas [3]
+        "fuel_density": 0.768,  # kg/m³ for natural gas [3]
+        "efficiency_table": {  # HHV net plant efficiency from [1]
+            "power_fraction": [1.0, 0.0],
+            "efficiency": [0.4144, 0.4144],
+        },
+    }
 
     def __init__(self, h_dict, component_name):
         """Initialize the LinearGenerator class.
@@ -70,42 +93,16 @@ class LinearGenerator(ThermalComponentBase):
             component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
-        # Apply default parameters back into h_dict if not provided
-        if "min_stable_load_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["min_stable_load_fraction"] = 0.0
-        if "ramp_rate_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["ramp_rate_fraction"] = 1.2
-        if "hot_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["hot_startup_time"] = 420.0
-        if "warm_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["warm_startup_time"] = 480.0
-        if "cold_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["cold_startup_time"] = 480.0
-        if "min_up_time" not in h_dict[component_name]:
-            h_dict[component_name]["min_up_time"] = 3600.0
-        if "min_down_time" not in h_dict[component_name]:
-            h_dict[component_name]["min_down_time"] = 3600.0
+        # Apply DEFAULTS for any parameter not present in h_dict
+        for key, value in self.DEFAULTS.items():
+            if key not in h_dict[component_name]:
+                h_dict[component_name][key] = value
 
-        # If run_up_rate_fraction is not provided, it defaults to ramp_rate_fraction
+        # run_up_rate_fraction is not in DEFAULTS because it derives from ramp_rate_fraction
         if "run_up_rate_fraction" not in h_dict[component_name]:
             h_dict[component_name]["run_up_rate_fraction"] = h_dict[component_name][
                 "ramp_rate_fraction"
             ]
-
-        # Default HHV for natural gas (39.05 MJ/m³) from [3]
-        if "hhv" not in h_dict[component_name]:
-            h_dict[component_name]["hhv"] = 39050000  # J/m³ (39.05 MJ/m³)
-
-        # Default fuel density for natural gas (0.768 kg/m³) from [3]
-        if "fuel_density" not in h_dict[component_name]:
-            h_dict[component_name]["fuel_density"] = 0.768  # kg/m³
-
-        # Default HHV net plant efficiency table from [1]
-        if "efficiency_table" not in h_dict[component_name]:
-            h_dict[component_name]["efficiency_table"] = {
-                "power_fraction": [1.0, 0.0],
-                "efficiency": [0.4144, 0.4144],
-            }
 
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
