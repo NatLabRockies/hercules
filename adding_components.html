@@ -53,7 +53,7 @@
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="_static/togglebutton.js?v=1ae7504c"></script>
+    <script src="_static/togglebutton.js?v=b8b12719"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
@@ -580,7 +580,7 @@
 </section>
 <section id="step-2-register-the-component">
 <h2>Step 2: Register the Component<a class="headerlink" href="#step-2-register-the-component" title="Link to this heading">#</a></h2>
-<p>Add the component to <code class="docutils literal notranslate"><span class="pre">COMPONENT_REGISTRY</span></code> in <code class="docutils literal notranslate"><span class="pre">hercules/hybrid_plant.py</span></code> (see <a class="reference internal" href="hybrid_plant.html"><span class="std std-doc">Hybrid Plant Components</span></a>).</p>
+<p>Add the component to <code class="docutils literal notranslate"><span class="pre">COMPONENT_REGISTRY</span></code> in <code class="docutils literal notranslate"><span class="pre">hercules/component_registry.py</span></code> (see <a class="reference internal" href="hybrid_plant.html"><span class="std std-doc">Hybrid Plant Components</span></a>).</p>
 <p>The key string (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;MyComponent&quot;</span></code>) is the <code class="docutils literal notranslate"><span class="pre">component_type</span></code> value users will specify in their YAML input files.</p>
 </section>
 <section id="testing">
@@ -625,7 +625,7 @@
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Inherit from <code class="docutils literal notranslate"><span class="pre">ComponentBase</span></code></p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Define <code class="docutils literal notranslate"><span class="pre">component_category</span></code> class attribute</p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Implement <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">get_initial_conditions_and_meta_data</span></code></p></li>
-<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Import and add to <code class="docutils literal notranslate"><span class="pre">COMPONENT_REGISTRY</span></code> in <code class="docutils literal notranslate"><span class="pre">hercules/hybrid_plant.py</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Import and add to <code class="docutils literal notranslate"><span class="pre">COMPONENT_REGISTRY</span></code> in <code class="docutils literal notranslate"><span class="pre">hercules/component_registry.py</span></code></p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Create tests in <code class="docutils literal notranslate"><span class="pre">tests/my_component_test.py</span></code></p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Create <code class="docutils literal notranslate"><span class="pre">docs/my_component.md</span></code></p></li>
 <li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Add to <code class="docutils literal notranslate"><span class="pre">docs/_toc.yml</span></code></p></li>

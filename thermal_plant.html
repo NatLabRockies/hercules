@@ -1,0 +1,654 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Thermal Plant &#8212; HERCULES</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=b8b12719"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-3V1BDK8KEJ');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-3V1BDK8KEJ');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'thermal_plant';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
+    <img src="_static/herc.png" class="logo__image only-dark pst-js-only" alt="HERCULES - Home"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="index.html">
+                    Hercules
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power_playback.html">Power Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="thermal_component_base.html">Thermal Component Base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/00c_power_playback.html">Example 00c: Power Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/07_open_cycle_gas_turbine.html">Example 07: Open Cycle Gas Turbine (OCGT)</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/thermal_plant.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fthermal_plant.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/thermal_plant.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Thermal Plant</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-configuration">YAML configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging configuration</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="thermal-plant">
+<h1>Thermal Plant<a class="headerlink" href="#thermal-plant" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">ThermalPlant</span></code> class models generic single or multiunit thermal power plants. It expects to be assigned one or more thermal units, for example <a class="reference internal" href="open_cycle_gas_turbine.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code>s</span></a>. The individual units are established in the YAML configuration file, and may be repeats of the same type of units or heterogeneous units.</p>
+<p>In order to use the thermal plant model, set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">ThermalPlant</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">my_thermal_plant</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
+<p>For details on the state machine, startup/shutdown behavior, and base parameters, see <a class="reference internal" href="thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ThermalPlant</span></code> class does not have any default parameters. However, key attributes that must be provided in the YAML configuration file are <code class="docutils literal notranslate"><span class="pre">units</span></code>, which is a list that is used to instantiate the individual thermal units that make up the plant, and <code class="docutils literal notranslate"><span class="pre">unit_names</span></code>, which is a list of unique names for each unit. The number of entries in <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">unit_names</span></code> must match.</p>
+<p>See the <a class="reference internal" href="#yaml-configuration"><span class="xref myst">YAML Configuration</span></a> section below for examples of how to specify these parameters in the input file.</p>
+</section>
+<section id="yaml-configuration">
+<h2>YAML configuration<a class="headerlink" href="#yaml-configuration" title="Link to this heading">#</a></h2>
+<p>The YAML configuration for the thermal plant includes lists <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">unit_names</span></code>, that define the configuration for each unit. The <code class="docutils literal notranslate"><span class="pre">component_type</span></code> of each unit must be a valid thermal component type, e.g. <code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code>. See <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Types</span></a> for the full list of available component types.</p>
+<p>The units listed under the <code class="docutils literal notranslate"><span class="pre">units</span></code> field are used to index the subdictionaries for each unit, which specify the parameters and initial conditions for each unit. For example, if <code class="docutils literal notranslate"><span class="pre">units:</span> <span class="pre">[&quot;open_cycle_gas_turbine&quot;,</span> <span class="pre">&quot;open_cycle_gas_turbine&quot;]</span></code>, then the YAML file must include a subdictionary with the key <code class="docutils literal notranslate"><span class="pre">open_cycle_gas_turbine:</span></code> that specify the parameters and initial conditions that will be used for both of the two gas turbines. Different subdictionaries can be defined for each, or a subset, of units by adding a subdictionary defining the desired parameters and initial conditions, and adding it to the appropriate place in the <code class="docutils literal notranslate"><span class="pre">units</span></code> list. This is illustrated in the below example, where the first two units use the <code class="docutils literal notranslate"><span class="pre">large_ocgt</span></code> subdictionary and the last unit uses the <code class="docutils literal notranslate"><span class="pre">small_ocgt</span></code> subdictionary. The <code class="docutils literal notranslate"><span class="pre">unit_names</span></code> field is a list of unique names for each unit, which are used to identify the units in the HDF5 output file and in the <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> passed to controllers. For example, if <code class="docutils literal notranslate"><span class="pre">unit_names:</span> <span class="pre">[&quot;OCGT1&quot;,</span> <span class="pre">&quot;OCGT2&quot;]</span></code>, then the two gas turbines will be identified as <code class="docutils literal notranslate"><span class="pre">OCGT1</span></code> and <code class="docutils literal notranslate"><span class="pre">OCGT2</span></code> in the output file and in the <code class="docutils literal notranslate"><span class="pre">h_dict</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">my_thermal_plant</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ThermalPlant</span>
+<span class="w">  </span><span class="nt">units</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;large_ocgt&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;large_ocgt&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;small_ocgt&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">unit_names</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;OCGT1&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;OCGT2&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;OCGT3&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="nt">large_ocgt</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenCycleGasTurbine</span>
+<span class="w">    </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span><span class="w">  </span><span class="c1"># kW (100 MW)</span>
+<span class="w">    </span><span class="nt">min_stable_load_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4</span><span class="w">  </span><span class="c1"># 40% minimum operating point</span>
+<span class="w">    </span><span class="nt">ramp_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span><span class="w">  </span><span class="c1"># 10%/min ramp rate</span>
+<span class="w">    </span><span class="nt">run_up_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w">  </span><span class="c1"># 5%/min run up rate</span>
+<span class="w">    </span><span class="nt">hot_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">420.0</span><span class="w">  </span><span class="c1"># 7 minutes</span>
+<span class="w">    </span><span class="nt">warm_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480.0</span><span class="w">  </span><span class="c1"># 8 minutes</span>
+<span class="w">    </span><span class="nt">cold_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480.0</span><span class="w">  </span><span class="c1"># 8 minutes</span>
+<span class="w">    </span><span class="nt">min_up_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1800</span><span class="w">  </span><span class="c1"># 30 minutes</span>
+<span class="w">    </span><span class="nt">min_down_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600</span><span class="w">  </span><span class="c1"># 1 hour</span>
+<span class="w">    </span><span class="nt">hhv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">39050000</span><span class="w">  </span><span class="c1"># J/m³ for natural gas (39.05 MJ/m³)</span>
+<span class="w">    </span><span class="nt">fuel_density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.768</span><span class="w">  </span><span class="c1"># kg/m³ for natural gas</span>
+<span class="w">    </span><span class="nt">efficiency_table</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">power_fraction</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.75</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.50</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
+<span class="w">      </span><span class="nt">efficiency</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.39</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.37</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.325</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.245</span>
+<span class="w">    </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuel_volume_rate</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuel_mass_rate</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">state</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">efficiency</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power_setpoint</span>
+<span class="w">    </span><span class="nt">initial_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+
+<span class="w">  </span><span class="nt">small_ocgt</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenCycleGasTurbine</span>
+<span class="w">    </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50000</span><span class="w">  </span><span class="c1"># kW (50 MW)</span>
+<span class="w">    </span><span class="nt">min_stable_load_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4</span><span class="w">  </span><span class="c1"># 40% minimum operating point</span>
+<span class="w">    </span><span class="nt">ramp_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">  </span><span class="c1"># 15%/min ramp rate</span>
+<span class="w">    </span><span class="nt">run_up_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span><span class="w">  </span><span class="c1"># 10%/min run up rate</span>
+<span class="w">    </span><span class="nt">hot_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300.0</span><span class="w">  </span><span class="c1"># 5 minutes</span>
+<span class="w">    </span><span class="nt">warm_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">360.0</span><span class="w">  </span><span class="c1"># 6 minutes</span>
+<span class="w">    </span><span class="nt">cold_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">420.0</span><span class="w">  </span><span class="c1"># 7 minutes</span>
+<span class="w">    </span><span class="nt">min_up_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1200</span><span class="w">  </span><span class="c1"># 20 minutes</span>
+<span class="w">    </span><span class="nt">min_down_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2400</span><span class="w">  </span><span class="c1"># 40 minutes</span>
+<span class="w">    </span><span class="nt">hhv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">39050000</span><span class="w">  </span><span class="c1"># J/m³ for natural gas (39.05 MJ/m³) [6]</span>
+<span class="w">    </span><span class="nt">fuel_density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.768</span><span class="w">  </span><span class="c1"># kg/m</span>
+<span class="w">    </span><span class="nt">efficiency_table</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">power_fraction</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.75</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.50</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
+<span class="w">      </span><span class="nt">efficiency</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.38</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.36</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.32</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.22</span>
+<span class="w">    </span><span class="nt">log_channels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
+<span class="w">    </span><span class="nt">initial_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</pre></div>
+</div>
+</section>
+<section id="logging-configuration">
+<h2>Logging configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. Logging is configured separately for each unit, so the <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> field is specified within each unit’s subdictionary. For example, if <code class="docutils literal notranslate"><span class="pre">unit_names:</span> <span class="pre">[&quot;OCGT1&quot;,</span> <span class="pre">&quot;OCGT1&quot;]</span></code>, then the log will have columns <code class="docutils literal notranslate"><span class="pre">my_thermal_plant.OCGT1.power</span></code>, <code class="docutils literal notranslate"><span class="pre">my_thermal_plant.OCGT1.fuel_volume_rate</span></code>, etc. for the first unit, and <code class="docutils literal notranslate"><span class="pre">my_thermal_plant.OCGT2.power</span></code>, <code class="docutils literal notranslate"><span class="pre">my_thermal_plant.OCGT2.fuel_volume_rate</span></code>, etc. for the second unit, assuming those channels are included in the <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> list for each unit. The total power for the thermal plant is always logged to <code class="docutils literal notranslate"><span class="pre">my_thermal_plant.power</span></code>, which is the sum of the power outputs of each unit.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-configuration">YAML configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging configuration</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By National Laboratory of the Rockies
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

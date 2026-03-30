@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="./" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Running Hercules &#8212; HERCULES</title>
+    <title>Example 09: Multi-unit Thermal Plant &#8212; HERCULES</title>
   
   
   
@@ -27,35 +27,35 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
-    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="_static/togglebutton.js?v=b8b12719"></script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-3V1BDK8KEJ"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -64,7 +64,7 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>
                 window.dataLayer = window.dataLayer || [];
@@ -73,11 +73,9 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'running_hercules';</script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Order of Operations" href="order_of_op.html" />
-    <link rel="prev" title="Installation instructions" href="install.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/09_multiunit_thermal_plant';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -99,7 +97,7 @@
   <dialog id="pst-search-dialog">
     
 <form class="bd-search d-flex align-items-center"
-      action="search.html"
+      action="../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -129,6 +127,8 @@
       
       
       
+        
+      
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
@@ -148,7 +148,7 @@
     
   
 
-<a class="navbar-brand logo" href="index.html">
+<a class="navbar-brand logo" href="../index.html">
   
   
   
@@ -159,8 +159,8 @@
       
     
     
-    <img src="_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
-    <img src="_static/herc.png" class="logo__image only-dark pst-js-only" alt="HERCULES - Home"/>
+    <img src="../_static/herc.png" class="logo__image only-light" alt="HERCULES - Home"/>
+    <img src="../_static/herc.png" class="logo__image only-dark pst-js-only" alt="HERCULES - Home"/>
   
   
 </a></div>
@@ -176,63 +176,63 @@
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
-                <a class="reference internal" href="index.html">
+                <a class="reference internal" href="../index.html">
                     Hercules
                 </a>
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation instructions</a></li>
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Running Hercules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../running_hercules.html">Running Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../order_of_op.html">Order of Operations</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="key_concepts.html">Key Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">Units Convention in Hercules</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timing.html">Timing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="h_dict.html">H_Dict Structure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hybrid_plant.html">Hybrid Plant Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="component_types.html">Component Names, Types, and Categories</a></li>
-<li class="toctree-l1"><a class="reference internal" href="adding_components.html">Adding a New Component</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hercules_model.html">HerculesModel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="output_files.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concepts.html">Key Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Units Convention in Hercules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timing.html">Timing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../h_dict.html">H_Dict Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hybrid_plant.html">Hybrid Plant Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../component_types.html">Component Names, Types, and Categories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adding_components.html">Adding a New Component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hercules_model.html">HerculesModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output_files.html">Output Files</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Plant Components</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="wind.html">Wind Farm Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="power_playback.html">Power Playback</a></li>
-<li class="toctree-l1"><a class="reference internal" href="solar_pv.html">Solar PV</a></li>
-<li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="thermal_component_base.html">Thermal Component Base</a></li>
-<li class="toctree-l1"><a class="reference internal" href="open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wind.html">Wind Farm Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../power_playback.html">Power Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solar_pv.html">Solar PV</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../battery.html">Battery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../electrolyzer.html">Electrolyzer Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../thermal_component_base.html">Thermal Component Base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="hercules_input.html">Hercules Input Files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gridstatus_download.html">Grid Status Data Download</a></li>
-<li class="toctree-l1"><a class="reference internal" href="resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hercules_input.html">Hercules Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gridstatus_download.html">Grid Status Data Download</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resource_downloading.html">Solar and Wind Resource Downloading and Upsampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="examples_overview.html">Examples Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/00_wind_farm_only.html">Example 00: Wind only</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/00c_power_playback.html">Example 00c: Power Playback</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/07_open_cycle_gas_turbine.html">Example 07: Open Cycle Gas Turbine (OCGT)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples_overview.html">Examples Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="00_wind_farm_only.html">Example 00: Wind only</a></li>
+<li class="toctree-l1"><a class="reference internal" href="00c_power_playback.html">Example 00c: Power Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_wind_farm_dof1_model.html">Example 01: Wind Only: 1-DOF model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02a_wind_farm_realistic_inflow.html">Example 02a: Wind Farm Realistic Inflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02b_wind_farm_realistic_inflow_precom_floris.html">Example 02b: Wind Farm Realistic Inflow (Precomputed FLORIS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02c_wind_farm_realistic_inflow_direct.html">Example 02c: Wind Farm Realistic Inflow (Direct - No Wake Modeling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_wind_and_solar.html">Example 03: Wind and solar hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07_open_cycle_gas_turbine.html">Example 07: Open Cycle Gas Turbine (OCGT)</a></li>
 </ul>
 
     </div>
@@ -309,7 +309,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/running_hercules.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/09_multiunit_thermal_plant.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -326,7 +326,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Frunning_hercules.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/09_multiunit_thermal_plant.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -356,7 +356,7 @@
       
       
       
-      <li><a href="_sources/running_hercules.md" target="_blank"
+      <li><a href="../_sources/examples/09_multiunit_thermal_plant.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -419,7 +419,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -430,11 +432,21 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Running Hercules</h1>
+    <h1>Example 09: Multi-unit Thermal Plant</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -444,33 +456,33 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="running-hercules">
-<h1>Running Hercules<a class="headerlink" href="#running-hercules" title="Link to this heading">#</a></h1>
-<p>It is recommended to run Hercules using a python runscript. The typical pattern is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.hercules_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">HerculesModel</span>
-
-<span class="c1"># Initialize the Hercules model</span>
-<span class="n">hmodel</span> <span class="o">=</span> <span class="n">HerculesModel</span><span class="p">(</span><span class="s2">&quot;hercules_input.yaml&quot;</span><span class="p">)</span>
-
-<span class="c1"># Define your controller class</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MyController</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
-        <span class="c1"># Initialize with the prepared h_dict</span>
-        <span class="k">pass</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
-        <span class="c1"># Implement your control logic here</span>
-        <span class="c1"># Set power setpoints, etc.</span>
-        <span class="k">return</span> <span class="n">h_dict</span>
-
-<span class="c1"># Assign the controller to the Hercules model</span>
-<span class="n">hmodel</span><span class="o">.</span><span class="n">assign_controller</span><span class="p">(</span><span class="n">MyController</span><span class="p">(</span><span class="n">hmodel</span><span class="o">.</span><span class="n">h_dict</span><span class="p">))</span>
-
-<span class="c1"># Run the simulation</span>
-<span class="n">hmodel</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="example-09-multi-unit-thermal-plant">
+<h1>Example 09: Multi-unit Thermal Plant<a class="headerlink" href="#example-09-multi-unit-thermal-plant" title="Link to this heading">#</a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
+<p>Demonstrates a multi-unit thermal plant with three Open Cycle Gas Turbine (OCGT) units. Each unit has its own state machine and ramp behavior, but they share a common controller that issues power setpoints for all units simultaneously. The example illustrates how the plant responds to changes in setpoints while respecting constraints such as minimum up/down times, ramp rates, and minimum stable load of the individual units. The first two individual units are identical, but their commands and responses are tracked separately in the outputs. The third unit is also an Open Cycle Gas Turbine, but it has half the ramp rate of the first two units. It is given the same power set points as the second unit, demonstrating the effect of the ramp rate parameter. This example demonstrates how to both use the same unit definition for two units (OCGT1 &amp; OCGT2), and how to define a unit with its own definition (OCGT3).</p>
+</section>
+<section id="running">
+<h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
+<p>To run the example, execute the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
 </pre></div>
 </div>
-<p>See the example runscripts in the <code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory for complete examples.</p>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>To plot the outputs, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
+</pre></div>
+</div>
+<p>The plot shows (for the all units separately):</p>
+<ul class="simple">
+<li><p>Power output over time (demonstrating ramp constraints and minimum stable load in response to setpoint changes for the individual units), as well as total plant power output</p></li>
+<li><p>Operating state transitions</p></li>
+<li><p>Fuel consumption tracking</p></li>
+<li><p>Heat rate variation with load</p></li>
+</ul>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -486,7 +498,7 @@
         },
         kernelOptions: {
             name: "python3",
-            path: "./."
+            path: "./examples"
         },
         predefinedOutput: true
     }
@@ -503,30 +515,31 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="install.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Installation instructions</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="order_of_op.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Order of Operations</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
@@ -571,8 +584,8 @@ By National Laboratory of the Rockies
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
   </footer>

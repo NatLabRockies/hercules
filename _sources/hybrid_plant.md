@@ -28,7 +28,7 @@ The YAML key for each section is a user-chosen `component_name` and is not requi
 
 ## Component Registry
 
-All available component types are defined in `COMPONENT_REGISTRY` at the top of `hercules/hybrid_plant.py`. This dictionary maps `component_type` strings to their Python classes:
+All available component types are defined in `COMPONENT_REGISTRY` in `hercules/component_registry.py`. This dictionary maps `component_type` strings to their Python classes:
 
 ```python
 COMPONENT_REGISTRY = {
