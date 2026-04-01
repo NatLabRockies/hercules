@@ -6,9 +6,7 @@ import os
 import sys
 
 import numpy as np
-from hercules.resource.wind_solar_resource_downloader import (
-    download_openmeteo_data,
-)
+from hercules.resource.openmeteo_downloader import download_openmeteo_data
 from matplotlib import pyplot as plt
 
 sys.path.append(".")

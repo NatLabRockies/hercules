@@ -15,10 +15,8 @@ More information can be found at: https://github.com/NREL/hsds-examples.
 import os
 import sys
 
-from hercules.resource.wind_solar_resource_downloader import (
-    download_nsrdb_data,
-    download_wtk_data,
-)
+from hercules.resource.nsrdb_downloader import download_nsrdb_data
+from hercules.resource.wtk_downloader import download_wtk_data
 from matplotlib import pyplot as plt
 
 sys.path.append(".")
