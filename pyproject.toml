@@ -55,7 +55,6 @@ develop = [
     "pytest",
     "pre-commit",
     "ruff",
-    "isort"
 ]
 
 [tool.setuptools.packages.find]
