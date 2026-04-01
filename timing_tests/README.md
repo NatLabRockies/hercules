@@ -31,4 +31,4 @@ python 02_plot_wind_solar_data.py
 # Run timing tests
 python 03_run_wind_timing_test.py
 python 04_run_solar_timing_test.py
-``` 
+```

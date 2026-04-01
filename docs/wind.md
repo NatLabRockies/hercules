@@ -106,7 +106,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 **Scalar Channels:**
 - `power`: Total wind farm power output (kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
-- `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)  
+- `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 
 **Array Channels:**

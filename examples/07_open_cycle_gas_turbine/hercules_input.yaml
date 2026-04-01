@@ -55,4 +55,3 @@ open_cycle_gas_turbine:
     time_in_shutdown: 50000  # Forces warm startup
 
 controller:
-

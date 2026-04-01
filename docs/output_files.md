@@ -4,7 +4,7 @@ Hercules generates HDF5 output files containing simulation data for analysis and
 
 ## File Format
 
-Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.  
+Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.
 
 ## File Structure
 

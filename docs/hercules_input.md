@@ -156,7 +156,7 @@ class MyController:
         lmp_rt = h_dict["external_signals"]["lmp_rt"]
         lmp_da = h_dict["external_signals"]["lmp_da"]
         wind_forecast = h_dict["external_signals"]["wind_forecast"]
-        
+
         # Use signals for control logic
         if lmp_rt < 15:
             h_dict["battery"]["power_setpoint"] = -10000  # charge
@@ -164,7 +164,7 @@ class MyController:
             h_dict["battery"]["power_setpoint"] = 10000  # discharge
         else:
             h_dict["battery"]["power_setpoint"] = 0
-        
+
         return h_dict
 ```
 
