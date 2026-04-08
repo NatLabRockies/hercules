@@ -128,12 +128,15 @@ class SolarPySAMBase(ComponentBase):
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
         df_solar = interpolate_df(df_solar, time_steps_all)
 
+        # Shift df_solar["time_utc"] by a half step to compute midpoints
+        df_solar["time_utc_midpoints"] = df_solar["time_utc"] + pd.Timedelta(seconds=self.dt / 2)
+
         # Can now save the input data as simple columns
-        self.year_array = df_solar["time_utc"].dt.year.values
-        self.month_array = df_solar["time_utc"].dt.month.values
-        self.day_array = df_solar["time_utc"].dt.day.values
-        self.hour_array = df_solar["time_utc"].dt.hour.values
-        self.minute_array = df_solar["time_utc"].dt.minute.values
+        self.year_array = df_solar["time_utc_midpoints"].dt.year.values
+        self.month_array = df_solar["time_utc_midpoints"].dt.month.values
+        self.day_array = df_solar["time_utc_midpoints"].dt.day.values
+        self.hour_array = df_solar["time_utc_midpoints"].dt.hour.values
+        self.minute_array = df_solar["time_utc_midpoints"].dt.minute.values
         self.ghi_array = self._get_solar_data_array(df_solar, "Global Horizontal Irradiance")
         self.dni_array = self._get_solar_data_array(df_solar, "Direct Normal Irradiance")
         self.dhi_array = self._get_solar_data_array(df_solar, "Diffuse Horizontal Irradiance")
