@@ -451,6 +451,15 @@ def close_logging(logger):
 def interpolate_df(df, new_time):
     """Interpolate DataFrame values to match new time axis.
 
+    Numeric columns are assumed to represent period-averaged values whose
+    timestamps mark the start of each period.  To recover the best estimate
+    of the instantaneous value at a query time, each value is assigned to the
+    midpoint of its interval before interpolating.
+
+    Datetime columns (e.g. ``time_utc``) are instantaneous coordinates — they
+    map simulation time to wall-clock time directly — so they are interpolated
+    without the midpoint shift.
+
     Uses linear interpolation with Polars backend for better performance and memory efficiency.
     Converts datetime columns to timestamps for interpolation.
 
