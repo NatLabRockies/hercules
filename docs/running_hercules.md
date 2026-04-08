@@ -14,7 +14,7 @@ class MyController:
     def __init__(self, h_dict):
         # Initialize with the prepared h_dict
         pass
-    
+
     def step(self, h_dict):
         # Implement your control logic here
         # Set power setpoints, etc.
@@ -28,7 +28,3 @@ hmodel.run()
 ```
 
 See the example runscripts in the `examples/` directory for complete examples.
-
-
-
-

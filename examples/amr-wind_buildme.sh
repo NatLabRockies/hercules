@@ -21,6 +21,6 @@ cmake -DAMR_WIND_ENABLE_CUDA:BOOL=OFF \
       -DBUILD_SHARED_LIBS:BOOL=ON \
       -DAMR_WIND_ENABLE_HELICS:BOOL=ON \
       -DHELICS_INSTALL_DIR:PATH="/nopt/nrel/apps/helics/v3.1.0_openmpi/"\
-      -DHELICS_DIR:PATH="/nopt/nrel/apps/helics/v3.1.0_openmpi/" .. 
+      -DHELICS_DIR:PATH="/nopt/nrel/apps/helics/v3.1.0_openmpi/" ..
 
 nice make -j16
