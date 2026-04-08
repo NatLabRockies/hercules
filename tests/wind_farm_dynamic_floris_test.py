@@ -44,7 +44,7 @@ def test_wind_farm_ws_mean():
     wind_sim = WindFarm(test_h_dict, "wind_farm")
 
     # Assume df_input represents time stamps indicating start of period.
-    # Convert to instantanous values with midpoint correction as would be done
+    # Convert to instantaneous values with midpoint correction as would be done
     # internally by interpolate_df function.
     df_input["time"] = np.arange(0, df_input.shape[0], 1)
     df_input["time_utc"] = pd.to_datetime(df_input["time_utc"])
