@@ -21,7 +21,7 @@ class MyController:
     def __init__(self, h_dict):
         # Initialize with prepared h_dict
         pass
-    
+
     def step(self, h_dict):
         # Implement control logic
         return h_dict
@@ -58,7 +58,7 @@ For each time step:
 
 The HerculesModel supports configurable logging frequency through the `log_every_n` parameter:
 
-- **`log_every_n`** (int, optional): Controls how often simulation data is logged to the output file. 
+- **`log_every_n`** (int, optional): Controls how often simulation data is logged to the output file.
   - Default: 1 (log every simulation step)
   - Example: `log_every_n: 5` logs data every 5 simulation steps
   - This reduces output file size and improves performance for long simulations
@@ -87,4 +87,3 @@ The `setup_logging()` function is called automatically by:
 - All component classes through `ComponentBase` (creates component-specific loggers)
 
 Each component gets its own logger with an appropriate console prefix for easy identification of log messages.
-

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Running Hercules &#8212; HERCULES</title>
+    <title>Contributing to Hercules &#8212; HERCULES</title>
   
   
   
@@ -73,11 +73,9 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'running_hercules';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contribute';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Order of Operations" href="order_of_op.html" />
-    <link rel="prev" title="Installation instructions" href="install.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -128,6 +126,8 @@
     <div class="bd-container__inner bd-page-width">
       
       
+      
+        
       
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
@@ -187,8 +187,8 @@
 
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Running Hercules</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="running_hercules.html">Running Hercules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="order_of_op.html">Order of Operations</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Key Concepts</span></p>
@@ -312,7 +312,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/running_hercules.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/contribute.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -329,7 +329,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Frunning_hercules.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fcontribute.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -359,7 +359,7 @@
       
       
       
-      <li><a href="_sources/running_hercules.md" target="_blank"
+      <li><a href="_sources/contribute.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -422,7 +422,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -433,11 +435,19 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Running Hercules</h1>
+    <h1>Contributing to Hercules</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -447,33 +457,40 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="running-hercules">
-<h1>Running Hercules<a class="headerlink" href="#running-hercules" title="Link to this heading">#</a></h1>
-<p>It is recommended to run Hercules using a python runscript. The typical pattern is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">hercules.hercules_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">HerculesModel</span>
-
-<span class="c1"># Initialize the Hercules model</span>
-<span class="n">hmodel</span> <span class="o">=</span> <span class="n">HerculesModel</span><span class="p">(</span><span class="s2">&quot;hercules_input.yaml&quot;</span><span class="p">)</span>
-
-<span class="c1"># Define your controller class</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MyController</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
-        <span class="c1"># Initialize with the prepared h_dict</span>
-        <span class="k">pass</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_dict</span><span class="p">):</span>
-        <span class="c1"># Implement your control logic here</span>
-        <span class="c1"># Set power setpoints, etc.</span>
-        <span class="k">return</span> <span class="n">h_dict</span>
-
-<span class="c1"># Assign the controller to the Hercules model</span>
-<span class="n">hmodel</span><span class="o">.</span><span class="n">assign_controller</span><span class="p">(</span><span class="n">MyController</span><span class="p">(</span><span class="n">hmodel</span><span class="o">.</span><span class="n">h_dict</span><span class="p">))</span>
-
-<span class="c1"># Run the simulation</span>
-<span class="n">hmodel</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="contributing-to-hercules">
+<h1>Contributing to Hercules<a class="headerlink" href="#contributing-to-hercules" title="Link to this heading">#</a></h1>
+<p>We welcome contributions in the form of bug reports, bug fixes, improvements to the documentation,
+ideas for enhancements (or the enhancements themselves!).</p>
+<p>You can find a <a class="reference external" href="https://github.com/NatLabRockies/hercules/issues">list of current issues</a> in the project’s
+GitHub repo. Feel free to tackle any existing bugs or enhancement ideas by submitting a
+<a class="reference external" href="https://github.com/NatLabRockies/hercules/pulls">pull request</a>.</p>
+<section id="pull-requests">
+<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
+<p>If you’d like to contribute code through a pull request, please read the following guidance:</p>
+<ul class="simple">
+<li><p>Please reference relevant GitHub issues in your commit message using <code class="docutils literal notranslate"><span class="pre">GH123</span></code> or <code class="docutils literal notranslate"><span class="pre">#123</span></code>.</p></li>
+<li><p>Changes should be <a class="reference external" href="http://www.python.org/dev/peps/pep-0008/">PEP8</a> compatible.</p></li>
+<li><p>Keep style fixes to a separate commit to make your pull request more readable.</p></li>
+<li><p>Docstrings are required and should follow the
+<a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html">Google style</a>.</p></li>
+<li><p>When you start working on a pull request, start by creating a new branch pointing at the latest
+commit on <a class="reference external" href="https://github.com/NatLabRockies/hercules/tree/develop">develop</a>.</p></li>
+<li><p>Code formatting is enforced using pre-commit hooks and is required for any code pushed up to the repository. The pre-commit package is included in the developer install of the repository. The pre-commit hooks can be installed by running</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
-<p>See the example runscripts in the <code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory for complete examples.</p>
+<p>in the repository directory. This will automatically run the pre-commit formatting hooks when code changes are committed. If you are having difficulty committing code after it has been reformatted by these hooks, try using the commit command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>commit<span class="w"> </span>-am<span class="w"> </span><span class="s2">&quot;&lt;Your commit message here&gt;&quot;</span>
+</pre></div>
+</div>
+<p>which will re-add the reformatted files to the commit.
+If changes are required, follow the suggested fix or resolve the stated issue(s). Restaging and committing may take multiple attempts steps if errors are unaddressed or insufficiently addressed. Please see <a class="reference external" href="https://pre-commit.com/">pre-commit</a>,
+<a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a>, or <a class="reference external" href="https://pycqa.github.io/isort/">isort</a> for more information.</p>
+<ul class="simple">
+<li><p>The Hercules copyright policy is detailed in the <a class="reference external" href="https://github.com/NatLabRockies/hercules/blob/main/LICENSE.txt"><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code></a>.</p></li>
+</ul>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -506,30 +523,29 @@
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="install.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Installation instructions</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="order_of_op.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Order of Operations</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

@@ -46,21 +46,21 @@ The parameters listed below are required unless otherwise specified as *Optional
         - `eol_eff_percent_loss`: End of life efficiency percent loss [%].
         - `PEM_params` or `ALK_params`: Degradation parameters specific to PEM or Alkaline cells:
             - `rate_steady`: Rate of voltage degradation under steady operation alone
-            - `rate_fatigue`: Rate of voltage degradation under variable operation alone 
+            - `rate_fatigue`: Rate of voltage degradation under variable operation alone
             - `rate_onoff`: Rate of voltage degradation per on/off cycle
     - `controller`: Electrolyzer control parameters including:
         - `control_type`: Controller type for electrolyzer plant operation.
     - `costs`: *Optional* Cost parameters for the electrolyzer plant including:
         - `plant_params`:
             - `plant_life`: integer, Plant life in years
-            - `pem_location`: Location of the PEM electrolyzer. Options are 
+            - `pem_location`: Location of the PEM electrolyzer. Options are
                 [onshore, offshore, in-turbine]
             - `grid_connected`: boolean, Whether the plant is connected to the grid or not
         - `feedstock`: Parameters related to the feedstock including:
             - `water_feedstock_cost`: Cost of water per kg of water
             - `water_per_kgH2`: Amount of water required per kg of hydrogen produced
         - `opex`: Operational expenditure parameters including:
-            - `var_OM`: Variable operation and maintenance cost per kW 
+            - `var_OM`: Variable operation and maintenance cost per kW
             - `fixed_OM`: Fixed operation and maintenance cost per kW-year
         - `stack_replacement`: Parameters related to stack replacement costs including:
             - `d_eol`: End of life cell voltage value [V]
