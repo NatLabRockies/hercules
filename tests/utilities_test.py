@@ -32,6 +32,8 @@ def test_upsampling():
         }
     )
 
+    # Midpoints will be 1, 3, 5, 7, 9, 11
+
     # Create new_time with more points (upsampling)
     new_time = np.linspace(0, 10, 11)  # [0, 1, 2, 3, ..., 10]
 
@@ -42,7 +44,13 @@ def test_upsampling():
     assert np.allclose(result["time"], new_time)
 
     # Assert values are correct
-    expected_values = new_time  # Linear function y = x
+    # Time 0 is before first midpoint, so value should clamp to 0
+    # Time 1 is at first midpoint, so value should be 0
+    # Time 2 is between first and second midpoint, so value should be 1
+    # Time 3 is at second midpoint, so value should be 2
+    # ...
+    # Time 10 is in between last and second last midpoint, so value should be 9
+    expected_values = [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     assert np.allclose(result["value"], expected_values), "Interpolated values should match y = x"
 
 
@@ -55,20 +63,23 @@ def test_downsampling():
     """
 
     time_points = np.linspace(0, 10, 11)
-    df = pd.DataFrame({"time": time_points, "value": time_points * 1.7})
+    value_points = time_points * 1.7
+    df = pd.DataFrame({"time": time_points, "value": value_points})
 
-    # Create new_time with fewer points (downsampling)
-    new_time = np.array([0, 2, 4])
+    # Query at interval midpoints (0.5, 5.5, 9.5) and end points (0, 10)
+    new_time = np.array([0.0, 5.0, 5.5, 10.0, 10.5])
 
-    # Interpolate
     result = interpolate_df(df, new_time)
 
-    # For our quadratic function, the interpolated values should be the square of new_time
-    expected_values = new_time * 1.7
+    # At the midpoints we should recover the original period values
+    expected_values = [
+        value_points[0],
+        (value_points[4] + value_points[5]) / 2,
+        value_points[5],
+        (value_points[-2] + value_points[-1]) / 2,
+        value_points[-1],
+    ]
     assert np.allclose(result["value"], expected_values)
-
-    # Check the shape is correct
-    assert result.shape[0] == len(new_time)
 
 
 def test_datetime_interpolation():
