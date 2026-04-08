@@ -12,7 +12,7 @@ Presently only one solar simulator is available
 
 Both models require an input weather file:
 1. A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:
-    - timestamp (see [timing](timing.md) for time format requirements)
+    - timestamp (see [timing](timing.md) for time format requirements). Each `time_utc` timestamp marks the **start of a reporting period**; irradiance and weather values on that row are treated as period averages. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for how Hercules converts these to instantaneous values.
     - direct normal irradiance (DNI)
     - diffuse horizontal irradiance (DHI)
     - global horizontal irradiance (GHI)

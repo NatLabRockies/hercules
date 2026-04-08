@@ -54,7 +54,7 @@ Required parameters for WindFarmSCADAPower:
 **SCADA File Format:**
 
 The SCADA file must contain the following columns:
-- `time_utc`: Timestamps in UTC (ISO 8601 format or parseable datetime strings)
+- `time_utc`: Timestamps in UTC (ISO 8601 format or parseable datetime strings). Each timestamp marks the **start of a reporting period**; values on that row are treated as period averages. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for how Hercules converts these to instantaneous values.
 - `wd_mean`: Mean wind direction in degrees
 - `pow_###`: Power output for each turbine (e.g., `pow_000`, `pow_001`, `pow_002`)
 

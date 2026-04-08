@@ -131,7 +131,7 @@ The old format is still supported for backward compatibility but will show a dep
 ### External Data File Format
 
 The CSV file must contain:
-- A `time_utc` column with UTC timestamps in ISO 8601 format
+- A `time_utc` column with UTC timestamps in ISO 8601 format. Each timestamp marks the **start of a reporting period**; values on that row are treated as period averages. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for how Hercules converts these to instantaneous values.
 - One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `lmp_rt`, `lmp_da`, `wind_forecast`, etc.
 
 Example `lmp_data.csv`:

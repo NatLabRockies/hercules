@@ -9,6 +9,59 @@ Timing in Hercules is specified using two complementary representations:
 - `time` (float): Simulation time in seconds, where `time=0` corresponds to `starttime_utc`
 - `time_utc` (datetime): Absolute UTC timestamp
 
+## Time Interpretation: Inputs vs. Internal Values
+
+### Input files: start-of-period convention
+
+In external data sources such as weather files, SCADA records, and resource
+databases, each `time_utc` timestamp marks the **beginning** of a reporting
+period and the associated values (irradiance, wind speed, power, etc.)
+represent an average or aggregate over that period.  For example, an hourly
+weather file with a row at `2020-06-15T12:00:00Z` and GHI = 735 W/m² means
+that 735 W/m² is the average GHI from 12:00 to 13:00.
+
+### Hercules internal values: instantaneous convention
+
+Inside the simulation, values at a given time step represent **instantaneous**
+quantities at that moment.  All Hercules output values follow this same
+instantaneous convention.
+
+### Midpoint correction during interpolation
+
+Because input data uses start-of-period timestamps while Hercules needs
+instantaneous values, a correction is applied when input data is resampled
+onto the simulation time grid.  The best single-point estimate of a
+period-averaged value is at the **midpoint** of its interval, not the start.
+For example, the hourly average from 12:00–13:00 is most representative of
+conditions at 12:30.
+
+The functions `interpolate_df`, `_interpolate_with_polars`, and
+`_compute_interval_midpoints` in `utilities.py` implement this correction:
+
+1. Each numeric value is assigned to the midpoint of its input interval.
+2. Linear interpolation is then performed between these midpoints to produce
+   values at the simulation time steps.
+
+Datetime columns (e.g. `time_utc`) are **not** shifted because they are
+instantaneous coordinate mappings between simulation time and wall-clock time,
+not period-averaged measurements.
+
+```
+Input file (start-of-period):
+
+time_utc             value
+12:00                100        ← average over [12:00, 13:00)
+13:00                200        ← average over [13:00, 14:00)
+
+After midpoint correction:
+
+time                 value
+12:30                100        ← midpoint of [12:00, 13:00)
+13:30                200        ← midpoint of [13:00, 14:00)
+
+Querying at 13:00 yields 150 (halfway between midpoints).
+```
+
 ## Input Requirements
 
 All Hercules input files must specify start and end times using UTC datetime strings:
@@ -113,7 +166,7 @@ For the example above, `endtime` would be 3600.0 seconds.
 
 ### Wind and Solar Input Data
 
-Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps:
+Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps.  Each `time_utc` value marks the **start of a reporting period**; the data values on that row are treated as period averages.  See [Time Interpretation](#time-interpretation-inputs-vs-internal-values) above for how Hercules handles the conversion to instantaneous values.
 
 ```text
 time_utc,wd_mean,ws_000,ws_001,ws_002
@@ -144,6 +197,8 @@ Key Points:
 ```
 
 ## Output Files
+
+All values in Hercules output files represent **instantaneous** quantities at each time step, not period averages.  See [Time Interpretation](#time-interpretation-inputs-vs-internal-values) for the distinction from input files.
 
 Hercules output HDF5 files store:
 
