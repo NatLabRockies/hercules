@@ -517,20 +517,14 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
     # Start with the time column
     result_pl = new_time_pl
 
+    # Compute time values and midpoints
+    time_values = df_pl["time"].to_numpy()
+    midpoints = _compute_interval_midpoints(time_values)
+
     # Process numeric columns using Polars' interpolation
     if numeric_cols:
         for col in numeric_cols:
-            # Use Polars' join_asof for efficient interpolation-like behavior
-            # This is more memory efficient than pandas for large datasets
-            col_data = df_pl.select(["time", col]).sort("time")
-
-            # Perform interpolation using Polars operations
-            # Note: Polars doesn't have direct linear interpolation, so we use numpy interp
-            # but with Polars' efficient data extraction
-            time_values = col_data["time"].to_numpy()
-            col_values = col_data[col].to_numpy()
-
-            midpoints = _compute_interval_midpoints(time_values)
+            col_values = df_pl[col].to_numpy()
 
             # Linear interpolation with float32 precision
             interpolated_values = np.interp(new_time, midpoints, col_values).astype(
