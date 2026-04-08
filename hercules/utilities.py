@@ -567,9 +567,15 @@ def _compute_interval_midpoints(time_values):
     Returns:
         np.ndarray: Array of interval midpoints, same length as *time_values*.
     """
+    # Allow the edge case of a single time value by returning the time value itself
+    if len(time_values) < 2:
+        return time_values
+    # Compute midpoints
     midpoints = np.empty_like(time_values, dtype=np.float64)
     midpoints[:-1] = (time_values[:-1] + time_values[1:]) / 2.0
-    midpoints[-1] = time_values[-1] + (time_values[-1] - time_values[-2]) / 2.0
+    midpoints[-1] = (
+        time_values[-1] + (time_values[-1] - time_values[-2]) / 2.0
+    )  # Last interval is equal to the previous one
     return midpoints
 
 
