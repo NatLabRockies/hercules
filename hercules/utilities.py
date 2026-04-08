@@ -479,7 +479,16 @@ def interpolate_df(df, new_time):
 
 
 def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
-    """Interpolate using Polars backend.
+    """Interpolate using Polars backend with midpoint correction.
+
+    Numeric columns are assumed to represent period-averaged values whose
+    timestamps mark the start of each period.  To recover the best estimate
+    of the instantaneous value at a query time, each value is assigned to the
+    midpoint of its interval before interpolating.
+
+    Datetime columns (e.g. ``time_utc``) are instantaneous coordinates — they
+    map simulation time to wall-clock time directly — so they are interpolated
+    without the midpoint shift.
 
     Args:
         df (pd.DataFrame): Input DataFrame.
@@ -512,8 +521,10 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
             time_values = col_data["time"].to_numpy()
             col_values = col_data[col].to_numpy()
 
+            midpoints = _compute_interval_midpoints(time_values)
+
             # Linear interpolation with float32 precision
-            interpolated_values = np.interp(new_time, time_values, col_values).astype(
+            interpolated_values = np.interp(new_time, midpoints, col_values).astype(
                 hercules_float_type
             )
 
@@ -538,6 +549,25 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
 
     # Convert back to pandas DataFrame
     return result_pl.to_pandas()
+
+
+def _compute_interval_midpoints(time_values):
+    """Compute the midpoints of consecutive time intervals.
+
+    For start-of-period timestamps, each value is best represented at the
+    centre of its interval.  The last interval width is assumed equal to the
+    preceding one.
+
+    Args:
+        time_values (np.ndarray): Sorted array of start-of-period timestamps.
+
+    Returns:
+        np.ndarray: Array of interval midpoints, same length as *time_values*.
+    """
+    midpoints = np.empty_like(time_values, dtype=np.float64)
+    midpoints[:-1] = (time_values[:-1] + time_values[1:]) / 2.0
+    midpoints[-1] = time_values[-1] + (time_values[-1] - time_values[-2]) / 2.0
+    return midpoints
 
 
 def find_time_utc_value(df, time_value, time_column="time", time_utc_column="time_utc"):
