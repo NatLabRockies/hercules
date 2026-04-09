@@ -30,7 +30,7 @@ def download_nsrdb_data(
     end_date: Optional[str] = None,
     variables: List[str] = ["ghi", "dni", "dhi", "wind_speed", "air_temperature"],
     nsrdb_dataset_path="/nrel/nsrdb/GOES/conus/v4.0.0",
-    nsrdb_filename_prefix="nsrdb_conus",
+    nsrdb_filename_prefix="nsrdb_conus_",
     coord_delta: float = 0.1,
     output_dir: str = "./data",
     filename_prefix: str = "nsrdb",
@@ -40,14 +40,14 @@ def download_nsrdb_data(
     """Download NSRDB solar irradiance data for a specified location and time period.
 
     This function requires an NLR API key, which can be obtained by visiting
-    https://developer.nrel.gov/signup/. After receiving your API key, you must make a configuration
+    https://developer.nlr.gov/signup/. After receiving your API key, you must make a configuration
     file at ~/.hscfg containing the following:
 
-        hs_endpoint = https://developer.nrel.gov/api/hsds
+        hs_endpoint = https://developer.nlr.gov/api/hsds
 
         hs_api_key = YOUR_API_KEY_GOES_HERE
 
-    More information can be found at: https://github.com/NREL/hsds-examples.
+    More information can be found at: https://github.com/NatLabRockies/hsds-examples.
 
     Args:
         target_lat (float): Target latitude coordinate.
@@ -60,10 +60,12 @@ def download_nsrdb_data(
         variables (List[str], optional): List of variables to download.
             Defaults to ['ghi', 'dni', 'dhi', 'wind_speed', 'air_temperature'].
         nsrdb_dataset_path (str, optional): Path name of NSRDB dataset. Available datasets at
-            https://developer.nrel.gov/docs/solar/nsrdb/.
-            Defaults to "/nrel/nsrdb/GOES/conus/v4.0.0".
+            https://developer.nlr.gov/docs/solar/nsrdb/. You can see what datasets are available by
+            using h5pyd to list the contents of the NSRDB folder by following the instructions here:
+            https://github.com/NatLabRockies/rex/tree/main/examples/HSDS.
+            Defaults to "/nlr/nsrdb/GOES/conus/v4.0.0".
         nsrdb_filename_prefix (str, optional): File name prefix for the NSRDB HDF5 files in the
-            format {nsrdb_filename_prefix}_{year}.h5. Defaults to "nsrdb_conus".
+            format {nsrdb_filename_prefix}{year}.h5. Defaults to "nsrdb_conus_".
         coord_delta (float, optional): Coordinate delta for bounding box. Defaults to 0.1 degrees.
         output_dir (str, optional): Directory to save output files. Defaults to "./data".
         filename_prefix (str, optional): Prefix for output filenames. Defaults to "nsrdb".
@@ -124,7 +126,7 @@ def download_nsrdb_data(
     try:
         for file_year in file_years:
             print(f"\nProcessing year {file_year}...")
-            fp = f"{nsrdb_dataset_path}/{nsrdb_filename_prefix}_{file_year}.h5"
+            fp = f"{nsrdb_dataset_path}/{nsrdb_filename_prefix}{file_year}.h5"
 
             with ResourceX(fp) as res:
                 for var in variables:
