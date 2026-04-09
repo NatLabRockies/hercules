@@ -15,8 +15,7 @@ More information can be found at: https://github.com/NREL/hsds-examples.
 import os
 import sys
 
-from hercules.resource.nsrdb_downloader import download_nsrdb_data
-from hercules.resource.wtk_downloader import download_wtk_data
+import hercules.resource as resource
 from matplotlib import pyplot as plt
 
 sys.path.append(".")
@@ -42,7 +41,7 @@ def run_small_example():
 
     # Download a small sample of NSRDB data with plotting
     try:
-        nsrdb_data = download_nsrdb_data(
+        nsrdb_data = resource.nsrdb_downloader.download_nsrdb_data(
             target_lat=target_lat,
             target_lon=target_lon,
             year=year_solar,
@@ -75,7 +74,7 @@ def run_small_example():
     year_wind = 2020
 
     try:
-        wtk_data = download_wtk_data(
+        wtk_data = resource.wtk_downloader.download_wtk_data(
             target_lat=target_lat,
             target_lon=target_lon,
             year=year_wind,
