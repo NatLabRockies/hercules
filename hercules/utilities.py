@@ -484,55 +484,16 @@ def interpolate_df(df, new_time):
             else:
                 numeric_cols.append(col)
 
-    return _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols)
-
-
-def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
-    """Interpolate using Polars backend with midpoint correction.
-
-    Numeric columns are assumed to represent period-averaged values whose
-    timestamps mark the start of each period.  To recover the best estimate
-    of the instantaneous value at a query time, each value is assigned to the
-    midpoint of its interval before interpolating.
-
-    Datetime columns (e.g. ``time_utc``) are instantaneous coordinates — they
-    map simulation time to wall-clock time directly — so they are interpolated
-    without the midpoint shift.
-
-    Args:
-        df (pd.DataFrame): Input DataFrame.
-        new_time (np.ndarray): New time points.
-        datetime_cols (list): Datetime column names.
-        numeric_cols (list): Numeric column names.
-
-    Returns:
-        pd.DataFrame: Interpolated DataFrame.
-    """
-    # Convert to Polars for efficient processing
     df_pl = pl.from_pandas(df)
+    result_pl = pl.DataFrame({"time": new_time})
 
-    # Create a Polars DataFrame for the new time points
-    new_time_pl = pl.DataFrame({"time": new_time})
-
-    # Start with the time column
-    result_pl = new_time_pl
-
-    # Compute time values and midpoints
     time_values = df_pl["time"].to_numpy()
     midpoints = _compute_interval_midpoints(time_values)
 
-    # Process numeric columns using Polars' interpolation
-    if numeric_cols:
-        for col in numeric_cols:
-            col_values = df_pl[col].to_numpy()
-
-            # Linear interpolation with float32 precision
-            interpolated_values = np.interp(new_time, midpoints, col_values).astype(
-                hercules_float_type
-            )
-
-            # Add interpolated column to result
-            result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
+    for col in numeric_cols:
+        col_values = df_pl[col].to_numpy()
+        interpolated_values = np.interp(new_time, midpoints, col_values).astype(hercules_float_type)
+        result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
     # Process datetime columns
     for col in datetime_cols:

@@ -35,8 +35,8 @@ period-averaged value is at the **midpoint** of its interval, not the start.
 For example, the hourly average from 12:00–13:00 is most representative of
 conditions at 12:30.
 
-The functions `interpolate_df`, `_interpolate_with_polars`, and
-`_compute_interval_midpoints` in `utilities.py` implement this correction:
+The functions `interpolate_df` and `_compute_interval_midpoints` in
+`utilities.py` implement this correction:
 
 1. Each numeric value is assigned to the midpoint of its input interval.
 2. Linear interpolation is then performed between these midpoints to produce
