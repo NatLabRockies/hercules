@@ -172,10 +172,15 @@ class HerculesModel:
         """
         Read and interpolate external data from a CSV, feather, or pickle file.
 
-        This method reads external data from the specified file (CSV, feather, or pickle)
-        and interpolates it according to the simulation time steps. The external data must
-        include a 'time_utc' column which will be converted to simulation time.
-        The interpolated data is stored in self.external_signals_all.
+        This method reads external data from the specified file (CSV, feather, or
+        pickle) and interpolates it onto the simulation time grid using zero-order
+        hold (``"zoh_to_instantaneous"``).  ZOH is appropriate because external
+        signals such as LMP prices are piecewise-constant over each reporting
+        interval, unlike time-averaged weather data used by wind/solar components.
+
+        The external data must include a ``time_utc`` column which will be
+        converted to simulation time.  The interpolated data is stored in
+        ``self.external_signals_all``.
 
         Args:
             filename (str): Path to the file containing external data. Supported formats:
@@ -216,7 +221,9 @@ class HerculesModel:
         )
 
         # Interpolate using the utility function
-        df_interpolated = interpolate_df(df_ext, new_times)
+        df_interpolated = interpolate_df(
+            df_ext, new_times, interpolation_method="zoh_to_instantaneous"
+        )
 
         # Convert interpolated DataFrame to dictionary format
         for col in df_interpolated.columns:

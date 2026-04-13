@@ -38,7 +38,7 @@ def test_upsampling():
     new_time = np.linspace(0, 10, 11)  # [0, 1, 2, 3, ..., 10]
 
     # Interpolate
-    result = interpolate_df(df, new_time)
+    result = interpolate_df(df, new_time, interpolation_method="averaged_to_instantaneous")
 
     # Assert time is correct
     assert np.allclose(result["time"], new_time)
@@ -69,7 +69,7 @@ def test_downsampling():
     # Query at interval midpoints (0.5, 5.5, 9.5) and end points (0, 10)
     new_time = np.array([0.0, 5.0, 5.5, 10.0, 10.5])
 
-    result = interpolate_df(df, new_time)
+    result = interpolate_df(df, new_time, interpolation_method="averaged_to_instantaneous")
 
     # At the midpoints we should recover the original period values
     expected_values = [
@@ -80,6 +80,19 @@ def test_downsampling():
         value_points[-1],
     ]
     assert np.allclose(result["value"], expected_values)
+
+
+def test_zoh_interpolation():
+    """Test zero-order hold interpolation with interpolate_df.
+
+    Each query time should receive the value at the last original
+    timestamp at or before it (piecewise-constant / step behaviour).
+    """
+    df = pd.DataFrame({"time": [0, 5, 10], "value": [100, 200, 300]})
+    new_time = np.array([0, 2, 5, 7, 10, 12])
+    result = interpolate_df(df, new_time, interpolation_method="zoh_to_instantaneous")
+    expected = [100, 100, 200, 200, 300, 300]
+    assert np.allclose(result["value"], expected)
 
 
 def test_datetime_interpolation():
@@ -109,7 +122,7 @@ def test_datetime_interpolation():
     new_time = np.array([0, 2.5, 5, 7.5, 10])
 
     # Interpolate
-    result = interpolate_df(df, new_time)
+    result = interpolate_df(df, new_time, interpolation_method="averaged_to_instantaneous")
 
     # Assert time is correct
     assert np.allclose(result["time"], new_time)
@@ -577,7 +590,7 @@ def test_interpolate_df_with_large_dataset():
     new_time = np.linspace(0, 1000, 500)
 
     # Interpolate
-    result = interpolate_df(df, new_time)
+    result = interpolate_df(df, new_time, interpolation_method="averaged_to_instantaneous")
 
     # Verify result has the correct shape and columns
     assert len(result) == len(new_time)

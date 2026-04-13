@@ -58,7 +58,11 @@ def test_wind_farm_precom_floris_ws_mean():
     # internally by interpolate_df function.
     df_input["time"] = np.arange(0, df_input.shape[0], 1)
     df_input["time_utc"] = pd.to_datetime(df_input["time_utc"])
-    df_input_interpolated = interpolate_df(df_input, np.arange(0, df_input.shape[0], 1))
+    df_input_interpolated = interpolate_df(
+        df_input,
+        np.arange(0, df_input.shape[0], 1),
+        interpolation_method="averaged_to_instantaneous",
+    )
 
     assert np.allclose(
         wind_sim.ws_mat[:, 0],

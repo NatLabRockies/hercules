@@ -448,29 +448,52 @@ def close_logging(logger):
             logger.removeHandler(handler)
 
 
-def interpolate_df(df, new_time):
+_VALID_INTERPOLATION_METHODS = {
+    "averaged_to_instantaneous",
+    "zoh_to_instantaneous",
+    "instantaneous_to_instantaneous",
+}
+
+
+def interpolate_df(df, new_time, interpolation_method):
     """Interpolate DataFrame values to match new time axis.
 
-    Numeric columns are assumed to represent period-averaged values whose
-    timestamps mark the start of each period.  To recover the best estimate
-    of the instantaneous value at a query time, each value is assigned to the
-    midpoint of its interval before interpolating.
+    The ``interpolation_method`` parameter controls how numeric columns are
+    resampled onto ``new_time``:
 
-    Datetime columns (e.g. ``time_utc``) are instantaneous coordinates — they
-    map simulation time to wall-clock time directly — so they are interpolated
-    without the midpoint shift.
+    - ``"averaged_to_instantaneous"``: Input values are period averages whose
+      timestamps mark the **start** of each period.  Each value is assigned to
+      the midpoint of its interval and then linearly interpolated.  Use for
+      wind speed, solar irradiance, and similar time-averaged signals.
+    - ``"zoh_to_instantaneous"``: Input values are piecewise-constant
+      (zero-order hold) with timestamps at the start of each interval.  Each
+      query time receives the value of the last original timestamp at or
+      before it.  Use for LMP prices and other step-change signals.
+    - ``"instantaneous_to_instantaneous"``: Input values already represent
+      instantaneous measurements.  Standard linear interpolation is performed
+      directly on the original timestamps with no midpoint shift.
 
-    Uses linear interpolation with Polars backend for better performance and memory efficiency.
-    Converts datetime columns to timestamps for interpolation.
+    Datetime columns (e.g. ``time_utc``) are always linearly interpolated on
+    the raw timestamps regardless of the chosen method, because they map
+    simulation time to wall-clock time directly.
 
     Args:
         df (pd.DataFrame): DataFrame with 'time' column and data columns.
         new_time (array-like): New time points for interpolation.
+        interpolation_method (str): One of ``"averaged_to_instantaneous"``,
+            ``"zoh_to_instantaneous"``, or
+            ``"instantaneous_to_instantaneous"``.
 
     Returns:
         pd.DataFrame: DataFrame with new time axis and interpolated data columns.
+
     """
-    # Convert new_time to numpy array for consistency
+    if interpolation_method not in _VALID_INTERPOLATION_METHODS:
+        raise ValueError(
+            f"Unknown interpolation_method '{interpolation_method}'. "
+            f"Must be one of {sorted(_VALID_INTERPOLATION_METHODS)}."
+        )
+
     new_time = np.asarray(new_time)
 
     # Separate datetime and non-datetime columns for different processing
@@ -488,11 +511,22 @@ def interpolate_df(df, new_time):
     result_pl = pl.DataFrame({"time": new_time})
 
     time_values = df_pl["time"].to_numpy()
-    midpoints = _compute_interval_midpoints(time_values)
+
+    if interpolation_method == "averaged_to_instantaneous":
+        x_coords = _compute_interval_midpoints(time_values)
+    else:
+        x_coords = time_values
 
     for col in numeric_cols:
         col_values = df_pl[col].to_numpy()
-        interpolated_values = np.interp(new_time, midpoints, col_values).astype(hercules_float_type)
+        if interpolation_method == "zoh_to_instantaneous":
+            indices = np.searchsorted(time_values, new_time, side="right") - 1
+            indices = np.clip(indices, 0, len(col_values) - 1)
+            interpolated_values = col_values[indices].astype(hercules_float_type)
+        else:
+            interpolated_values = np.interp(new_time, x_coords, col_values).astype(
+                hercules_float_type
+            )
         result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
     # Process datetime columns

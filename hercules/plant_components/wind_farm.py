@@ -188,7 +188,9 @@ class WindFarm(ComponentBase):
 
         # Interpolate df_wi on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
-        df_wi = interpolate_df(df_wi, time_steps_all)
+        df_wi = interpolate_df(
+            df_wi, time_steps_all, interpolation_method="averaged_to_instantaneous"
+        )
 
         # INITIALIZE FLORIS BASED ON WAKE MODEL
         if self.wake_method == "precomputed":

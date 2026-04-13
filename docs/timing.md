@@ -26,25 +26,23 @@ Inside the simulation, values at a given time step represent **instantaneous**
 quantities at that moment.  All Hercules output values follow this same
 instantaneous convention.
 
-### Midpoint correction during interpolation
+### Interpolation methods
 
-Because input data uses start-of-period timestamps while Hercules needs
-instantaneous values, a correction is applied when input data is resampled
-onto the simulation time grid.  The best single-point estimate of a
-period-averaged value is at the **midpoint** of its interval, not the start.
-For example, the hourly average from 12:00–13:00 is most representative of
-conditions at 12:30.
+The `interpolate_df` function in `utilities.py` accepts a mandatory
+`interpolation_method` parameter that controls how numeric columns are
+resampled onto the simulation time grid.  Three methods are available:
 
-The functions `interpolate_df` and `_compute_interval_midpoints` in
-`utilities.py` implement this correction:
+#### `"averaged_to_instantaneous"` (wind, solar, and similar)
 
-1. Each numeric value is assigned to the midpoint of its input interval.
+Input values are period averages whose timestamps mark the **start** of each
+period.  The best single-point estimate of a period-averaged value is at the
+**midpoint** of its interval, not the start.  For example, the hourly average
+from 12:00-13:00 is most representative of conditions at 12:30.
+
+1. Each numeric value is assigned to the midpoint of its input interval
+   (using `_compute_interval_midpoints`).
 2. Linear interpolation is then performed between these midpoints to produce
    values at the simulation time steps.
-
-Datetime columns (e.g. `time_utc`) are **not** shifted because they are
-instantaneous coordinate mappings between simulation time and wall-clock time,
-not period-averaged measurements.
 
 ```
 Input file (start-of-period):
@@ -61,6 +59,38 @@ time                 value
 
 Querying at 13:00 yields 150 (halfway between midpoints).
 ```
+
+#### `"zoh_to_instantaneous"` (LMP, external signals)
+
+Input values are piecewise-constant (zero-order hold) with timestamps at the
+start of each interval.  Each query time receives the value of the last
+original timestamp at or before it -- the value is held constant until the
+next timestamp.  This is appropriate for signals like locational marginal
+prices (LMP) that change in discrete steps.
+
+```
+Input file:
+
+time_utc             value
+12:00                100        ← held constant over [12:00, 13:00)
+13:00                200        ← held constant over [13:00, 14:00)
+
+Querying at 12:30 yields 100.
+Querying at 13:00 yields 200.
+```
+
+#### `"instantaneous_to_instantaneous"`
+
+Input values already represent instantaneous measurements at their
+timestamps.  Standard linear interpolation is performed directly on the
+original timestamps with no midpoint shift.
+
+---
+
+In all three methods, datetime columns (e.g. `time_utc`) are linearly
+interpolated on the raw timestamps without any shift, because they are
+instantaneous coordinate mappings between simulation time and wall-clock
+time, not period-averaged measurements.
 
 ## Input Requirements
 
@@ -166,7 +196,11 @@ For the example above, `endtime` would be 3600.0 seconds.
 
 ### Wind and Solar Input Data
 
-Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps.  Each `time_utc` value marks the **start of a reporting period**; the data values on that row are treated as period averages.  See [Time Interpretation](#time-interpretation-inputs-vs-internal-values) above for how Hercules handles the conversion to instantaneous values.
+Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps.  Each `time_utc` value marks the **start of a reporting period**; the data values on that row are treated as period averages.  These are interpolated with `"averaged_to_instantaneous"`.  See [Interpolation methods](#interpolation-methods) above for details.
+
+### External Data (LMP, etc.)
+
+External data files loaded via `_read_external_data_file` are interpolated with `"zoh_to_instantaneous"` (zero-order hold), which is appropriate for signals like LMP prices that are piecewise-constant over each interval rather than time-averaged.
 
 ```text
 time_utc,wd_mean,ws_000,ws_001,ws_002
