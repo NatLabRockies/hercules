@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 import os
+import shutil
 import sys
 import time as _time
 from pathlib import Path
@@ -39,11 +40,16 @@ class HerculesModel:
         # set default output directory to cwd / "outputs"
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
 
+        # If the output directory exists, and overwrite_outputs is True
+        # The output folder will be deleted and recreated.
+        if h_dict.get("overwrite_outputs", True):
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
         # Make sure output folder exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Set up logging
-        logging_inputs = h_dict.get("logging", {}) | {"outputs_dir": output_dir}
+        logging_inputs = {"outputs_dir": output_dir} | h_dict.get("logging", {})
         self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
@@ -443,7 +449,8 @@ class HerculesModel:
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        with open("outputs/h_dict.echo", "w") as f_i:
+        echo_file_fpath = self.output_file.parent / "h_dict.echo"
+        with open(echo_file_fpath, "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value

@@ -15,13 +15,18 @@ This example demonstrates a simple open cycle gas turbine (OCGT) that:
 - Simulation runs for 6 hours total with 1 minute time steps
 """
 
-from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import prepare_output_directory
+import os
+from pathlib import Path
 
-prepare_output_directory()
+from hercules.hercules_model import HerculesModel
+from hercules.utilities import load_yaml
+
+os.chdir(os.path.dirname(__file__))
+
+hercules_dict = load_yaml(Path(__file__).parent / "hercules_input.yaml")
 
 # Initialize the Hercules model
-hmodel = HerculesModel("hercules_input.yaml")
+hmodel = HerculesModel(hercules_dict)
 
 
 class ControllerOCGT:

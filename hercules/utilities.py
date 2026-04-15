@@ -223,6 +223,7 @@ def load_hercules_input(filename):
         "verbose",
         "output_dir",
         "output_file",
+        "overwrite_outputs",
         "log_every_n",
         "external_data_file",
         "external_data",
@@ -408,8 +409,9 @@ def setup_logging(
     else:
         # Full path or use_outputs_dir=False - use as-is but ensure directory exists
         log_file_path = log_file
-        log_dir = Path(log_file_path).parent
+        log_dir = Path(log_file_path).parent.absolute()
         log_dir.mkdir(parents=True, exist_ok=True)
+        log_file_path = log_dir / log_file
 
     # Get the logger
     logger = logging.getLogger(logger_name)

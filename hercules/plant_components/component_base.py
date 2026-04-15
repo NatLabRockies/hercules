@@ -61,13 +61,28 @@ class ComponentBase:
 
         # Set up logging
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
-        logging_inputs = h_dict[component_name].get("logging", {}) | {"outputs_dir": output_dir}
-
+        # Get the default output folder
+        logging_inputs = (
+            {"outputs_dir": output_dir}
+            | {"outputs_dir": h_dict.get("logging", {}).get("outputs_dir", output_dir)}
+            | {
+                "outputs_dir": h_dict[component_name]
+                .get("logging", {})
+                .get("outputs_dir", output_dir)
+            }
+        )
+        logging_inputs["outputs_dir"] = Path(logging_inputs["outputs_dir"]).absolute()
+        logging_inputs = (
+            logging_inputs | h_dict.get("logging", {}) | h_dict[component_name].get("logging", {})
+        )
         # Check if log_file_name is defined in the h_dict[component_name]
         if "log_file_name" in h_dict[component_name]:
             self.log_file_name = h_dict[component_name]["log_file_name"]
         else:
             self.log_file_name = f"log_{component_name}.log"
+
+        if "log_file" in logging_inputs:
+            logging_inputs["log_file"] = self.log_file_name
 
         self.logger = self._setup_logging(self.log_file_name, **logging_inputs)
 
