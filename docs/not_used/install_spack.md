@@ -59,4 +59,3 @@ Note that this last line will take a little while, as spack will clone all repos
 ```
 spack install
 ```
-

@@ -31,6 +31,8 @@ parts:
     - file: electrolyzer
     - file: thermal_component_base
     - file: open_cycle_gas_turbine
+    - file: hard_coal_steam_turbine
+    - file: thermal_plant
   - caption: Inputs
     chapters:
     - file: hercules_input
@@ -50,3 +52,4 @@ parts:
     - file: examples/05_wind_and_storage_with_lmp
     - file: examples/06_wind_and_hydrogen
     - file: examples/07_open_cycle_gas_turbine
+    - file: examples/09_multiunit_thermal_plant

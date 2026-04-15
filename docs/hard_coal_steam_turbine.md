@@ -19,7 +19,7 @@ The `efficiency_table` parameter is **optional**. If not provided, default value
 
 ## Default Parameter Values
 
-The `HardCoalSteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
+The `HardCoalSteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|

@@ -1,0 +1,97 @@
+# Input YAML for hercules
+# Explicitly specify the parameters for demonstration purposes
+
+# Name
+name: example_07
+
+###
+# Describe this simulation setup
+description: Open Cycle Gas Turbine (OCGT) Example
+
+dt: 60.0  # 1 minute time step
+starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
+endtime_utc: "2020-01-01T06:00:00Z"  # 6 hours later
+verbose: False
+log_every_n: 1
+
+plant:
+  interconnect_limit: 100000  # kW (100 MW)
+
+thermal_power_plant:
+  component_type: ThermalPlant
+  units: ["open_cycle_gas_turbine1", "open_cycle_gas_turbine1", "open_cycle_gas_turbine3"]
+  unit_names: ["OCGT1", "OCGT2", "OCGT3"]
+
+  open_cycle_gas_turbine1:
+    component_type: OpenCycleGasTurbine
+    rated_capacity: 100000  # kW (100 MW)
+    min_stable_load_fraction: 0.2  # 20% minimum operating point
+    ramp_rate_fraction: 0.1  # 10%/min ramp rate
+    run_up_rate_fraction: 0.05  # 5%/min run up rate
+    hot_startup_time: 420.0  # 7 minutes
+    warm_startup_time: 480.0  # 8 minutes
+    cold_startup_time: 480.0  # 8 minutes
+    min_up_time: 3600  # 1 hour
+    min_down_time: 3600  # 1 hour
+    # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
+    # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
+    hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+    fuel_density: 0.768  # kg/m³ for natural gas [6]
+    efficiency_table:
+      power_fraction:
+        - 1.0
+        - 0.75
+        - 0.50
+        - 0.25
+      efficiency:  # HHV net plant efficiency, fractions (0-1), from SC1A in Exhibit ES-4 of [5]
+        - 0.39
+        - 0.37
+        - 0.325
+        - 0.245
+    log_channels:
+      - power
+      - fuel_volume_rate
+      - fuel_mass_rate
+      - state
+      - efficiency
+      - power_setpoint
+    initial_conditions:
+      power: 100000  # Start ON at rated capacity (100 MW)
+
+  open_cycle_gas_turbine3:
+    component_type: OpenCycleGasTurbine
+    rated_capacity: 100000  # kW (100 MW)
+    min_stable_load_fraction: 0.2  # 20% minimum operating point
+    ramp_rate_fraction: 0.05  # 10%/min ramp rate
+    run_up_rate_fraction: 0.05  # 5%/min run up rate
+    hot_startup_time: 420.0  # 7 minutes
+    warm_startup_time: 480.0  # 8 minutes
+    cold_startup_time: 480.0  # 8 minutes
+    min_up_time: 3600  # 1 hour
+    min_down_time: 3600  # 1 hour
+    # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
+    # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
+    hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+    fuel_density: 0.768  # kg/m³ for natural gas [6]
+    efficiency_table:
+      power_fraction:
+        - 1.0
+        - 0.75
+        - 0.50
+        - 0.25
+      efficiency:  # HHV net plant efficiency, fractions (0-1), from SC1A in Exhibit ES-4 of [5]
+        - 0.39
+        - 0.37
+        - 0.325
+        - 0.245
+    log_channels:
+      - power
+      - fuel_volume_rate
+      - fuel_mass_rate
+      - state
+      - efficiency
+      - power_setpoint
+    initial_conditions:
+      power: 100000  # Start ON at rated capacity (100 MW)
+
+controller:
