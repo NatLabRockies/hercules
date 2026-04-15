@@ -408,7 +408,7 @@ def setup_logging(
         log_file_path = os.path.join(outputs_dir, log_file)
     else:
         # Full path or use_outputs_dir=False - use as-is but ensure directory exists
-        log_file_path = log_file
+        log_file_path = log_file.split("/")[-1]
         log_dir = Path(log_file_path).parent.absolute()
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file_path = log_dir / log_file
