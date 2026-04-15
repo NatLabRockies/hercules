@@ -406,6 +406,10 @@ def setup_logging(
         # Simple filename - use outputs directory
         os.makedirs(outputs_dir, exist_ok=True)
         log_file_path = os.path.join(outputs_dir, log_file)
+    elif not use_outputs_dir and (os.sep in log_file or "/" in log_file):
+        log_file_path = Path(log_file).absolute()
+        log_dir = Path(log_file_path).parent.absolute()
+        log_dir.mkdir(parents=True, exist_ok=True)
     else:
         # Full path or use_outputs_dir=False - use as-is but ensure directory exists
         log_file_path = log_file.split("/")[-1]
