@@ -37,7 +37,7 @@ resampled onto the simulation time grid.  Three methods are available:
 Input values are period averages whose timestamps mark the **start** of each
 period.  The best single-point estimate of a period-averaged value is at the
 **midpoint** of its interval, not the start.  For example, the hourly average
-from 12:00-13:00 is most representative of conditions at 12:30.
+from 12:00-13:00 is most representative of conditions at 12:30. This also ensures that an average of the signal back to the original time interval will match the original data.
 
 1. Each numeric value is assigned to the midpoint of its input interval
    (using `_compute_interval_midpoints`).
