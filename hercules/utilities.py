@@ -553,7 +553,7 @@ def _compute_interval_midpoints(time_values):
     """Compute the midpoints of consecutive time intervals.
 
     For start-of-period timestamps, each value is best represented at the
-    centre of its interval.  The last interval width is assumed equal to the
+    center of its interval.  The last interval width is assumed equal to the
     preceding one.
 
     Args:
