@@ -78,7 +78,7 @@ def run_hercules_example(hercules_dict):
 
 def test_specified_output_dir():
     test_n = "01"
-    # what happens with non-default output dir
+    # what happens with non-default output dir and all default logging logic
 
     output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
     logger_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
@@ -106,7 +106,7 @@ def test_specified_output_dir():
 
 def test_specified_main_logger_dir():
     test_n = "02"
-    # what happens with non-default output dir
+    # what happens with non-default output dir and a different logging dir
 
     output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
     logger_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"loggers_{test_n}"
@@ -141,7 +141,7 @@ def test_specified_main_logger_dir():
 
 def test_dont_use_outputs_dir_logging():
     test_n = "03"
-    # what happens with non-default output dir
+    # what happens with non-default output dir and use_outputs_dir for logging is False
     cwd = Path.cwd().absolute()
 
     output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
