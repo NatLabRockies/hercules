@@ -32,7 +32,7 @@ The `interpolate_df` function in `utilities.py` accepts a mandatory
 `interpolation_method` parameter that controls how numeric columns are
 resampled onto the simulation time grid.  Three methods are available:
 
-#### `"averaged_to_instantaneous"` (wind, solar, and similar)
+#### `"averaged_to_instantaneous"` (wind, solar, and similar resource and power signals)
 
 Input values are period averages whose timestamps mark the **start** of each
 period.  The best single-point estimate of a period-averaged value is at the
