@@ -25,6 +25,98 @@ def test_init():
     assert SPS.aoi == 0
 
 
+def test_init_defaults():
+    # testing the `init` function: reading the inputs from input dictionary
+    # and using defaults for missing PySAM options
+    test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
+    # Remove PySAM options to test defaults
+    if "pysam_options" in test_h_dict["solar_farm"]:
+        del test_h_dict["solar_farm"]["pysam_options"]
+
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
+
+    # Test that Hercules defaults are used when pysam_options are missing
+    assert SPS.model_params["SystemDesign"]["array_type"] == 3.0  # single axis backtracking
+    assert SPS.model_params["SystemDesign"]["azimuth"] == 180.0
+    assert (
+        SPS.model_params["SystemDesign"]["dc_ac_ratio"] == 1.0
+    )  # default is 1.0 so there are no inverter losses.
+    assert SPS.model_params["SystemDesign"]["module_type"] == 0.0  # standard crystalline silicon
+
+
+def test_init_pysam_options():
+    # testing the `init` function: reading the inputs from input dictionary
+    # and using provided PySAM options instead of defaults
+    test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
+    # Add custom PySAM options to test that they are read correctly
+    test_h_dict["solar_farm"]["pysam_options"] = {
+        "SystemDesign": {
+            "array_type": 1.0,  # fixed open rack
+            "azimuth": 170.0,
+            "dc_ac_ratio": 1.5,
+            "module_type": 1.0,  # premium crystalline silicon
+        }
+    }
+
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
+
+    # Test that provided PySAM options are used instead of defaults
+    assert SPS.model_params["SystemDesign"]["array_type"] == 1.0  # fixed open rack
+    assert SPS.model_params["SystemDesign"]["azimuth"] == 170.0
+    assert SPS.model_params["SystemDesign"]["dc_ac_ratio"] == 1.5
+    assert SPS.model_params["SystemDesign"]["module_type"] == 1.0  # premium crystalline silicon
+
+
+def test_init_invalid_pysam_options():
+    # testing the `init` function: handling invalid PySAM options
+    test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
+    # Add invalid PySAM options to test error handling
+    test_h_dict["solar_farm"]["pysam_options"] = {
+        "SystemDesign": {
+            "array_type": 1.0,  # Invalid array type
+            "azimuth": 170.0,
+            "dc_ac_ratio": 1.5,
+            "module_type": 1.0,  # premium crystalline silicon
+            "losses": 0.1,
+        }
+    }
+
+    try:
+        SolarPySAMPVWatts(test_h_dict, "solar_farm")
+        # If no error is raised, the test should fail
+        assert False, "Expected ValueError for invalid pysam_options entry."
+    except ValueError as e:
+        assert (
+            str(e)
+            == "Error: The following parameters are provided in both the top-level input\
+                        and the PySAM options: {'losses'}. Please remove these parameters\
+                        from the PySAM options."
+        )
+
+
+def test_init_partial_pysam_options():
+    # testing the `init` function: handling partial PySAM options (some provided, some defaults)
+    test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
+    # Add partial PySAM options to test that provided options are used and missing ones default
+    test_h_dict["solar_farm"]["pysam_options"] = {
+        "SystemDesign": {
+            "array_type": 1.0,  # fixed open rack
+            "azimuth": 170.0,
+            # dc_ac_ratio and module_type are not provided, should use defaults
+        }
+    }
+
+    SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
+
+    # Test that provided PySAM options are used and missing ones default
+    assert SPS.model_params["SystemDesign"]["array_type"] == 1.0  # fixed open rack
+    assert SPS.model_params["SystemDesign"]["azimuth"] == 170.0
+    assert (
+        SPS.model_params["SystemDesign"]["dc_ac_ratio"] == 1.0
+    )  # default is 1.0 so there are no inverter losses.
+    assert SPS.model_params["SystemDesign"]["module_type"] == 0.0  # standard crystalline silicon
+
+
 def test_return_outputs():
     # testing the function `return_outputs`
     # outputs after initialization - all outputs should reflect input dict
