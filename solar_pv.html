@@ -488,13 +488,28 @@
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
 <p>The solar module output is the DC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.  Using DC power makes the parameters <code class="docutils literal notranslate"><span class="pre">inv_eff</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_to_ac_ratio</span></code> irrelevant.  The <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> parameter represents the DC system capacity under Standard Test Conditions.</p>
-<p>The PVWatts model is configured with the following hardcoded parameters for utility-scale installations:</p>
+<p>The PVWatts model is configured with the following default parameters for utility-scale installations:</p>
 <ul class="simple">
 <li><p><strong>Module type</strong>: Standard crystalline silicon (module_type = 0)</p></li>
 <li><p><strong>Array type</strong>: Single-axis tracking with backtracking (array_type = 3)</p></li>
 <li><p><strong>Azimuth</strong>: 180° (due south)</p></li>
 <li><p><strong>DC/AC ratio</strong>: 1.0</p></li>
 </ul>
+<p>These parameters can be changed by using a <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> input dictionary in the yaml, shown below:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">solar_farm</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SolarPySAMPVWatts</span>
+<span class="w">  </span><span class="nt">system_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30000</span><span class="w">  </span><span class="c1"># kW (30 MW)</span>
+<span class="w">  </span><span class="nt">tilt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># degrees</span>
+<span class="w">  </span><span class="nt">losses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="nt">pysam_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">SystemDesign</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">array_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span><span class="w">  </span><span class="c1"># single axis backtracking</span>
+<span class="w">      </span><span class="nt">azimuth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">170.0</span>
+<span class="w">      </span><span class="nt">dc_ac_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">  </span><span class="c1"># Force to 1.0</span>
+<span class="w">      </span><span class="nt">module_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span><span class="w">  </span><span class="c1"># standard crystalline silicon</span>
+</pre></div>
+</div>
+<p>You can specify some or all of these parameters and the <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> parameters will always overwrite the defaults. These parameters represent the minimum parameters needed to define the solar model. For an exhaustive list of additional parameters you can set using this method, see <a class="reference external" href="https://h2integrate.readthedocs.io/en/stable/technology_models/pvwattsv8_solar_pv.html">this page</a>.</p>
 <p>The array tilt angle must be specified in the input configuration file.</p>
 </section>
 <section id="logging-configuration">
