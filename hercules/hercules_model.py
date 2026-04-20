@@ -561,16 +561,17 @@ class HerculesModel:
             self.logger.info("=====================================")
             self.logger.info(
                 (
-                    "Total simulated time: ",
-                    f"{self.total_simulation_time} seconds ({self.total_simulation_days} days)",
+                    "Total simulated time: "
+                    f"{self.total_simulation_time:.1f} seconds ({self.total_simulation_days:.2f}"
+                    " days)"
                 )
             )
-            self.logger.info(f"Total wall time: {self.total_time_wall}")
+            self.logger.info(f"Total wall time: {self.total_time_wall:.1f} seconds")
             self.logger.info(
                 (
-                    "Rate of simulation: ",
-                    f"{self.total_simulation_time / self.total_time_wall:.1f}",
-                    "x real time",
+                    "Rate of simulation: "
+                    f"{self.total_simulation_time / self.total_time_wall:.2g}"
+                    "x real time"
                 )
             )
             self.logger.info("=====================================")
