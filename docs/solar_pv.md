@@ -27,11 +27,27 @@ The system location (latitude, longitude, and elevation) is specified in the inp
 
 The solar module output is the DC power (`power`) in kW of the PV plant at each timestep.  Using DC power makes the parameters `inv_eff` and `dc_to_ac_ratio` irrelevant.  The `system_capacity` parameter represents the DC system capacity under Standard Test Conditions.
 
-The PVWatts model is configured with the following hardcoded parameters for utility-scale installations:
+The PVWatts model is configured with the following default parameters for utility-scale installations:
 - **Module type**: Standard crystalline silicon (module_type = 0)
 - **Array type**: Single-axis tracking with backtracking (array_type = 3)
 - **Azimuth**: 180° (due south)
 - **DC/AC ratio**: 1.0
+
+These parameters can be changed by using a `pysam_options` input dictionary in the yaml, shown below:
+```yaml
+solar_farm:
+  component_type: SolarPySAMPVWatts
+  system_capacity: 30000  # kW (30 MW)
+  tilt: 0  # degrees
+  losses: 0
+  pysam_options:
+    SystemDesign:
+      array_type: 3.0  # single axis backtracking
+      azimuth: 170.0
+      dc_ac_ratio: 1.0  # Force to 1.0
+      module_type: 0.0  # standard crystalline silicon
+```
+You can specify some or all of these parameters and the `pysam_options` parameters will always overwrite the defaults. These parameters represent the minimum parameters needed to define the solar model. For an exhaustive list of additional parameters you can set using this method, see [this page](https://h2integrate.readthedocs.io/en/stable/technology_models/pvwattsv8_solar_pv.html).
 
 The array tilt angle must be specified in the input configuration file.
 

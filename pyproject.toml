@@ -37,7 +37,7 @@ dependencies = [
 "polars~=1.0",
 "pyarrow",
 "h5py~=3.10",
-"NREL-rex[hsds]",
+"NLR-rex[hsds]",
 "utm",
 "cartopy",
 "openmeteo_requests",

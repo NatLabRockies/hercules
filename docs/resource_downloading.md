@@ -1,16 +1,16 @@
 # Solar and Wind Resource Downloading and Upsampling
 
-Functions are provided in the `hercules.resource.wind_solar_resource_downloading` module for downloading solar and wind time series data so they can be used as inputs to Hercules simulations. The `hercules.resource.upsample_wind_data` module is used to spatially interpolate downloaded wind data at specific wind turbine locations and temporally upsample the data.
+Functions are provided in the `hercules.resource.nsrdb_downloader`, `hercules.resource.wtk_downloader`, and `hercules.resource.openmeteo_downloader` modules for downloading solar and wind time series data so they can be used as inputs to Hercules simulations. The `hercules.resource.upsample_wind_data` module is used to spatially interpolate downloaded wind data at specific wind turbine locations and temporally upsample the data.
 
 ## Overview
 
-The `hercules.resource.wind_solar_resource_downloading` module contains functions for downloading solar data from the [National Solar Radiation Database (NSRDB)](https://nsrdb.nrel.gov), wind data from the [Wind Integration National Dataset (WIND) Toolkit](https://www.nrel.gov/grid/wind-toolkit), and solar and wind data from [Open-Meteo](https://open-meteo.com).
+The `hercules.resource.nsrdb_downloader`, `hercules.resource.wtk_downloader`, and `hercules.resource.openmeteo_downloader` modules contain functions for downloading solar data from the [National Solar Radiation Database (NSRDB)](https://nsrdb.nrel.gov), wind data from the [Wind Integration National Dataset (WIND) Toolkit](https://www.nrel.gov/grid/wind-toolkit), and solar and wind data from [Open-Meteo](https://open-meteo.com), respectively.
 
 For downloaded wind data, the `hercules.resource.upsample_wind_data` module can be used to spatially interpolate the data at specific wind turbine locations and temporally upsample the data to represent realistic turbulent wind speeds. The downloaded and upsampled data can be saved as `.feather` files and used as inputs to Hercules simulations.
 
 ## Solar and Wind Resource Downloading Module
 
-This section describes the functions for downloading solar and wind resource data in the `hercules.resource.wind_solar_resource_downloading` module.
+This section describes the functions for downloading solar and wind resource data in the `hercules.resource.nsrdb_downloader`, `hercules.resource.wtk_downloader`, and `hercules.resource.openmeteo_downloader` modules.
 
 ### API Key
 
@@ -41,8 +41,8 @@ Arguments to the `download_nsrdb_data` function used to specify the data to down
 - `start_date`: If `year` is not used, the specific start date for which data are requested.
 - `end_date`: If `year` is not used, the specific end date for which data are requested.
 - `variables`: List of variables to download. Defaults to ["ghi", "dni", "dhi", "wind_speed", "air_temperature"].
-- `nsrdb_dataset_path`:  Path name of NSRDB dataset. Available datasets are described [here](https://developer.nrel.gov/docs/solar/nsrdb/) and path names can be identified [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). Defaults to the GOES Conus v4.0.0 dataset: "/nrel/nsrdb/GOES/conus/v4.0.0".
-- `nsrdb_filename_prefix`: File name prefix for the NSRDB HDF5 files in the format "{nsrdb_filename_prefix}_{year}.h5". Information about file names can be found [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). Defaults to "nsrdb_conus".
+- `nsrdb_dataset_path`:  Path name of NSRDB dataset. Available datasets are described [here](https://developer.nlr.gov/docs/solar/nsrdb/) and path names can be identified [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). You can see also identify path names of datasets directly by following the directions on [this page](https://github.com/NatLabRockies/rex/tree/main/examples/HSDS), as datasets on the NLR HPC may be named differenctly than the AWS site. Defaults to the GOES Conus v4.0.0 dataset: "/nrel/nsrdb/GOES/conus/v4.0.0".
+- `nsrdb_filename_prefix`: File name prefix for the NSRDB HDF5 files in the format "{nsrdb_filename_prefix}{year}.h5". Information about file names can be found [here](https://data.openei.org/s3_viewer?bucket=nrel-pds-nsrdb). Defaults to "nsrdb_conus_".
 - `coord_delta`: Coordinate delta for bounding box defining grid of points for which data are requested. Bounding box is defined as target_lat +/- coord_delta and target_lon +/- coord_delta. Defaults to 0.1 degrees.
 
 ### WIND Toolkit Wind Data
@@ -75,7 +75,7 @@ Arguments to the `download_openmeteo_data` function used to specify the data to 
 
 ## Wind Data Upsampling Module
 
-After downloading wind data from WIND Toolkit or Open-Meteo, the `hercules.resource.upsample_wind_data` module can be used to spatially interpolate wind speeds and directions from the grid of downloaded points to specific wind turbine locations. The spatially interpolated wind speeds and directions are then upsampled to the desired temporal resolution and realistic turbulence is added to the wind speed time series. The upsampled data are then saved in the format used for wind inputs to Hercules simulations.
+After downloading wind data from `hercules.resource.wtk_downloader` or `hercules.resource.openmeteo_downloader`, the `hercules.resource.upsample_wind_data` module can be used to spatially interpolate wind speeds and directions from the grid of downloaded points to specific wind turbine locations. The spatially interpolated wind speeds and directions are then upsampled to the desired temporal resolution and realistic turbulence is added to the wind speed time series. The upsampled data are then saved in the format used for wind inputs to Hercules simulations.
 
 ### Spatial Interpolation Overview
 
@@ -98,9 +98,9 @@ Note that in the current implementation, independent stochastic turbulence is ge
 The function `upsample_wind_data` is used to perform the above-mentioned steps and return the upsampled wind speeds and directions at each upsampled location as a pandas DataFrame, which is also saved as a `.feather` file.
 
 Arguments to the `upsample_wind_data` function used to specify the upsampling are as follows:
-- `ws_data_filepath`: Filepath to the `.feather` file containing raw downloaded wind speed data saved by the `download_wtk_data` or `download_openmeteo_data` functions in the `wind_solar_resource_downloading` module.
-- `wd_data_filepath`: Filepath to the `.feather` file containing raw downloaded wind direction data saved by the `download_wtk_data` or `download_openmeteo_data` functions in the `wind_solar_resource_downloading` module.
-- `coords_filepath`: Filepath to the `.feather` file containing the coordinates corresponding to the downloaded wind data saved by the `download_wtk_data` or `download_openmeteo_data` functions in the `wind_solar_resource_downloading` module.
+- `ws_data_filepath`: Filepath to the `.feather` file containing raw downloaded wind speed data saved by the `download_wtk_data` function in `hercules.resource.wtk_downloader` or the `download_openmeteo_data` function in `hercules.resource.openmeteo_downloader`.
+- `wd_data_filepath`: Filepath to the `.feather` file containing raw downloaded wind direction data saved by the `download_wtk_data` function in `hercules.resource.wtk_downloader` or the `download_openmeteo_data` function in `hercules.resource.openmeteo_downloader`.
+- `coords_filepath`: Filepath to the `.feather` file containing the coordinates corresponding to the downloaded wind data saved by the `download_wtk_data` function in `hercules.resource.wtk_downloader` or the `download_openmeteo_data` function in `hercules.resource.openmeteo_downloader`.
 - `x_locs_upsample`: The "x" (Easting) locations of the desired upsampled locations (e.g., corresponding to turbine locations) relative to the provided origin coordinates in meters.
 - `y_locs_upsample`: The "y" (Northing) locations of the desired upsampled locations (e.g., corresponding to turbine locations) relative to the provided origin coordinates in meters.
 - `origin_lat`: The "origin" latitude corresponding to a `y_locs_upsample` location of 0.
