@@ -567,13 +567,6 @@ class HerculesModel:
                 )
             )
             self.logger.info(f"Total wall time: {self.total_time_wall:.1f} seconds")
-            self.logger.info(
-                (
-                    "Rate of simulation: "
-                    f"{self.total_simulation_time / self.total_time_wall:.2g}"
-                    "x real time"
-                )
-            )
             self.logger.info("=====================================")
 
         except Exception as e:
