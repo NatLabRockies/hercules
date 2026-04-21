@@ -76,7 +76,7 @@ time, not period-averaged measurements.
 #### Achieving zero-order-hold (ZOH) behaviour
 
 `interpolate_df` does not provide a dedicated zero-order-hold mode.  If you
-need step/piecewise-constant semantics -- for example, LMP prices that
+need step/piecewise-constant values -- for example, LMP prices that
 should be held constant across each reporting interval -- pre-process your
 input data to include an additional row at the end of each interval that
 carries the same value as the start-of-interval row, and then use
