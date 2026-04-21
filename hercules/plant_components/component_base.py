@@ -100,7 +100,8 @@ class ComponentBase:
 
         # Use the top-level verbose option
         self.verbose = h_dict["verbose"]
-        self.logger.info(f"read in verbose flag = {self.verbose}")
+        if self.verbose:
+            self.logger.info(f"Verbose flag = {self.verbose}")
 
     def _setup_logging(self, log_file_name):
         """Set up logging for the component.
