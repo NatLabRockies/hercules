@@ -512,7 +512,11 @@ def interpolate_df(df, new_time, interpolation_method):
             else:
                 numeric_cols.append(col)
 
-    df_pl = pl.from_pandas(df)
+    # Sort by "time" once up front so that np.interp (which requires
+    # strictly-increasing x-coordinates) sees monotonic input for every
+    # column.  Applying the sort in one place keeps numeric and datetime
+    # columns consistently ordered.
+    df_pl = pl.from_pandas(df).sort("time")
     result_pl = pl.DataFrame({"time": new_time})
 
     time_values = df_pl["time"].to_numpy()
@@ -527,14 +531,9 @@ def interpolate_df(df, new_time, interpolation_method):
         interpolated_values = np.interp(new_time, x_coords, col_values).astype(hercules_float_type)
         result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
-    # Process datetime columns
+    # Process datetime columns (use the same sorted frame as numeric cols)
     for col in datetime_cols:
-        # Extract datetime data using Polars
-        col_data = df_pl.select(["time", col]).sort("time")
-        time_values = col_data["time"].to_numpy()
-
-        # Convert datetime to timestamps for interpolation
-        datetime_values = col_data[col].to_pandas().astype("int64").values / 10**9
+        datetime_values = df_pl[col].to_pandas().astype("int64").values / 10**9
 
         # Interpolate timestamps (datetime precision doesn't need float32 constraint)
         interpolated_timestamps = np.interp(new_time, time_values, datetime_values)
