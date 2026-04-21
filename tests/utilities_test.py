@@ -51,7 +51,10 @@ def test_upsampling():
     # ...
     # Time 10 is in between last and second last midpoint, so value should be 9
     expected_values = [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    assert np.allclose(result["value"], expected_values), "Interpolated values should match y = x"
+    assert np.allclose(result["value"], expected_values), (
+        "Interpolated values should match midpoint-corrected "
+        "averaged_to_instantaneous output with edge clamping"
+    )
 
 
 def test_downsampling():
