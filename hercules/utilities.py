@@ -450,7 +450,6 @@ def close_logging(logger):
 
 _VALID_INTERPOLATION_METHODS = {
     "averaged_to_instantaneous",
-    "zoh_to_instantaneous",
     "instantaneous_to_instantaneous",
 }
 
@@ -465,10 +464,6 @@ def interpolate_df(df, new_time, interpolation_method):
       timestamps mark the **start** of each period.  Each value is assigned to
       the midpoint of its interval and then linearly interpolated.  Use for
       wind speed, solar irradiance, and similar time-averaged signals.
-    - ``"zoh_to_instantaneous"``: Input values are piecewise-constant
-      (zero-order hold) with timestamps at the start of each interval.  Each
-      query time receives the value of the last original timestamp at or
-      before it.  Use for LMP prices and other step-change signals.
     - ``"instantaneous_to_instantaneous"``: Input values already represent
       instantaneous measurements.  Standard linear interpolation is performed
       directly on the original timestamps with no midpoint shift.
@@ -477,11 +472,21 @@ def interpolate_df(df, new_time, interpolation_method):
     the raw timestamps regardless of the chosen method, because they map
     simulation time to wall-clock time directly.
 
+    Note:
+        A dedicated zero-order-hold (ZOH) mode is intentionally not provided.
+        If you need step/piecewise-constant behaviour (e.g. LMP prices that
+        should be held constant across each reporting interval), pre-process
+        the input DataFrame to include an extra row at the end of each
+        interval carrying the same value, and then call this function with
+        ``"instantaneous_to_instantaneous"``.  Linear interpolation between
+        each pair of identical endpoints reproduces the ZOH shape.  See
+        ``hercules.grid.grid_utilities.generate_locational_marginal_price_dataframe_from_gridstatus``
+        for an example of this endpoint-insertion pattern.
+
     Args:
         df (pd.DataFrame): DataFrame with 'time' column and data columns.
         new_time (array-like): New time points for interpolation.
-        interpolation_method (str): One of ``"averaged_to_instantaneous"``,
-            ``"zoh_to_instantaneous"``, or
+        interpolation_method (str): One of ``"averaged_to_instantaneous"`` or
             ``"instantaneous_to_instantaneous"``.
 
     Returns:
@@ -519,14 +524,7 @@ def interpolate_df(df, new_time, interpolation_method):
 
     for col in numeric_cols:
         col_values = df_pl[col].to_numpy()
-        if interpolation_method == "zoh_to_instantaneous":
-            indices = np.searchsorted(time_values, new_time, side="right") - 1
-            indices = np.clip(indices, 0, len(col_values) - 1)
-            interpolated_values = col_values[indices].astype(hercules_float_type)
-        else:
-            interpolated_values = np.interp(new_time, x_coords, col_values).astype(
-                hercules_float_type
-            )
+        interpolated_values = np.interp(new_time, x_coords, col_values).astype(hercules_float_type)
         result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
     # Process datetime columns

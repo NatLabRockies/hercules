@@ -30,7 +30,7 @@ instantaneous convention.
 
 The `interpolate_df` function in `utilities.py` accepts a mandatory
 `interpolation_method` parameter that controls how numeric columns are
-resampled onto the simulation time grid.  Three methods are available:
+resampled onto the simulation time grid.  Two methods are available:
 
 #### `"averaged_to_instantaneous"` (wind, solar, and similar resource and power signals)
 
@@ -60,25 +60,6 @@ time                 value
 Querying at 13:00 yields 150 (halfway between midpoints).
 ```
 
-#### `"zoh_to_instantaneous"` (LMP, external signals)
-
-Input values are piecewise-constant (zero-order hold) with timestamps at the
-start of each interval.  Each query time receives the value of the last
-original timestamp at or before it -- the value is held constant until the
-next timestamp.  This is appropriate for signals like locational marginal
-prices (LMP) that change in discrete steps.
-
-```
-Input file:
-
-time_utc             value
-12:00                100        ← held constant over [12:00, 13:00)
-13:00                200        ← held constant over [13:00, 14:00)
-
-Querying at 12:30 yields 100.
-Querying at 13:00 yields 200.
-```
-
 #### `"instantaneous_to_instantaneous"`
 
 Input values already represent instantaneous measurements at their
@@ -87,10 +68,45 @@ original timestamps with no midpoint shift.
 
 ---
 
-In all three methods, datetime columns (e.g. `time_utc`) are linearly
+In both methods, datetime columns (e.g. `time_utc`) are linearly
 interpolated on the raw timestamps without any shift, because they are
 instantaneous coordinate mappings between simulation time and wall-clock
 time, not period-averaged measurements.
+
+#### Achieving zero-order-hold (ZOH) behaviour
+
+`interpolate_df` does not provide a dedicated zero-order-hold mode.  If you
+need step/piecewise-constant semantics -- for example, LMP prices that
+should be held constant across each reporting interval -- pre-process your
+input data to include an additional row at the end of each interval that
+carries the same value as the start-of-interval row, and then use
+`"instantaneous_to_instantaneous"`.  Linear interpolation between each pair
+of identical endpoints reproduces the ZOH shape.
+
+```
+Original data (start-of-interval only):
+
+time_utc             value
+12:00                100
+13:00                200
+
+After inserting end-of-interval rows (just before the next start):
+
+time_utc             value
+12:00                100
+12:59:59             100   ← added endpoint
+13:00                200
+13:59:59             200   ← added endpoint
+
+Querying at 12:30 with "instantaneous_to_instantaneous" yields 100.
+Querying at 13:00 yields 200.
+```
+
+See
+[`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py)
+in `hercules/grid/grid_utilities.py` for a worked example of this
+endpoint-insertion pattern (it shifts a copy of the data by `dt - 1` seconds
+and merges it back in before handing the frame to Hercules).
 
 ## Input Requirements
 
@@ -200,7 +216,16 @@ Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` co
 
 ### External Data (LMP, etc.)
 
-External data files loaded via `_read_external_data_file` are interpolated with `"zoh_to_instantaneous"` (zero-order hold), which is appropriate for signals like LMP prices that are piecewise-constant over each interval rather than time-averaged.
+External data files loaded via `_read_external_data_file` are upsampled onto
+the simulation time grid with `"instantaneous_to_instantaneous"` (linear
+interpolation between the supplied timestamps).  If you want zero-order-hold
+(piecewise-constant) behaviour for signals like LMP prices, pre-process the
+file to include end-of-interval rows that repeat the previous value as
+described in [Achieving zero-order-hold (ZOH) behaviour](#achieving-zero-order-hold-zoh-behaviour).
+The helper
+[`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py)
+in `hercules/grid/grid_utilities.py` is a concrete example of adding those
+endpoint rows for LMP data.
 
 ```text
 time_utc,wd_mean,ws_000,ws_001,ws_002

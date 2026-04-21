@@ -82,19 +82,6 @@ def test_downsampling():
     assert np.allclose(result["value"], expected_values)
 
 
-def test_zoh_interpolation():
-    """Test zero-order hold interpolation with interpolate_df.
-
-    Each query time should receive the value at the last original
-    timestamp at or before it (piecewise-constant / step behaviour).
-    """
-    df = pd.DataFrame({"time": [0, 5, 10], "value": [100, 200, 300]})
-    new_time = np.array([0, 2, 5, 7, 10, 12])
-    result = interpolate_df(df, new_time, interpolation_method="zoh_to_instantaneous")
-    expected = [100, 100, 200, 200, 300, 300]
-    assert np.allclose(result["value"], expected)
-
-
 def test_datetime_interpolation():
     """
     Test interpolation of datetime columns with interpolate_df function.

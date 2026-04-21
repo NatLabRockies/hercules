@@ -173,10 +173,18 @@ class HerculesModel:
         Read and interpolate external data from a CSV, feather, or pickle file.
 
         This method reads external data from the specified file (CSV, feather, or
-        pickle) and interpolates it onto the simulation time grid using zero-order
-        hold (``"zoh_to_instantaneous"``).  ZOH is appropriate because external
-        signals such as LMP prices are piecewise-constant over each reporting
-        interval, unlike time-averaged weather data used by wind/solar components.
+        pickle) and upsamples it onto the simulation time grid using
+        ``"instantaneous_to_instantaneous"`` (linear interpolation between the
+        values at the supplied timestamps).
+
+        If zero-order-hold (piecewise-constant / step) behavior is desired --
+        for example, LMP prices that should be held constant across each
+        reporting interval -- the external data file must be pre-processed to
+        include an additional row at the end of each interval carrying the
+        same value.  Linear interpolation between each pair of identical
+        endpoints then reproduces the ZOH shape.  See
+        ``hercules.grid.grid_utilities.generate_locational_marginal_price_dataframe_from_gridstatus``
+        for a worked example of this endpoint-insertion pattern.
 
         The external data must include a ``time_utc`` column which will be
         converted to simulation time.  The interpolated data is stored in
@@ -222,7 +230,7 @@ class HerculesModel:
 
         # Interpolate using the utility function
         df_interpolated = interpolate_df(
-            df_ext, new_times, interpolation_method="zoh_to_instantaneous"
+            df_ext, new_times, interpolation_method="instantaneous_to_instantaneous"
         )
 
         # Convert interpolated DataFrame to dictionary format
