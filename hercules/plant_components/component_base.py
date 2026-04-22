@@ -62,15 +62,16 @@ class ComponentBase:
         # Set up logging
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
         # Get the default output folder
-        logging_inputs = (
-            {"logging_dir": output_dir}
-            | {"logging_dir": h_dict.get("logging", {}).get("logging_dir", output_dir)}
-            | {
-                "logging_dir": h_dict[component_name]
-                .get("logging", {})
-                .get("logging_dir", output_dir)
-            }
-        )
+        logging_inputs = {"logging_dir": output_dir} | {
+            "logging_dir": h_dict.get("logging", {}).get("logging_dir", output_dir)
+        }
+        if h_dict[component_name].get("logging", {}).get("logging_dir", None) is not None:
+            msg = (
+                f"Cannot specify log folder for component {component_name}, "
+                f"all log files will be saved to the logging_dir {logging_inputs['logging_dir']}"
+            )
+            raise ValueError(msg)
+
         logging_inputs["logging_dir"] = Path(logging_inputs["logging_dir"]).absolute()
         logging_inputs = (
             logging_inputs | h_dict.get("logging", {}) | h_dict[component_name].get("logging", {})
