@@ -130,7 +130,8 @@ class ComponentBase:
 
 
         Args:
-            log_file_name (str): Full path to the log file.
+            log_file_name (str): Filename of the logger
+            **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
             logging.Logger: Configured logger instance for the component.
@@ -138,11 +139,7 @@ class ComponentBase:
         logging_defaults = {
             "logger_name": self.component_name,
             "log_file": log_file_name,
-            "console_output": True,
             "console_prefix": self.component_name.upper(),
-            "log_level": "INFO",
-            # the use_outputs_dir used to default to False.
-            "logging_dir": Path("outputs").absolute(),
         }
 
         # Update the defaults with any input kwargs

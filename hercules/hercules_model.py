@@ -165,15 +165,15 @@ class HerculesModel:
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
 
-    def _setup_logging(self, logfile="log_hercules.log", console_output=True, **kwargs):
+    def _setup_logging(self, log_file_name="log_hercules.log", **kwargs):
         """Set up logging to file and console.
 
         Creates 'outputs' directory and configures file/console logging with timestamps.
         This method wraps the utilities.setup_logging function for backward compatibility.
 
         Args:
-            logfile (str, optional): Log file name. Defaults to "log_hercules.log".
-            console_output (bool, optional): Enable console output. Defaults to True.
+            log_file_name (str, optional): Log file name. Defaults to "log_hercules.log".
+            **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
             logging.Logger: Configured logger instance.
@@ -181,11 +181,7 @@ class HerculesModel:
 
         logging_defaults = {
             "logger_name": "hercules",
-            "log_file": logfile,
-            "console_output": console_output,
-            "console_prefix": None,
-            "log_level": "INFO",
-            "logging_dir": Path("outputs").absolute(),
+            "log_file": log_file_name,
         }
 
         # Update the defaults with any input kwargs
