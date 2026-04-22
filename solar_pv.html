@@ -474,7 +474,7 @@
 <ol class="arabic simple">
 <li><p>A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:</p>
 <ul class="simple">
-<li><p>timestamp (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements)</p></li>
+<li><p>timestamp (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements). Each <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> timestamp marks the <strong>start of a reporting period</strong>; irradiance and weather values on that row are treated as period averages. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for how Hercules converts these to instantaneous values.</p></li>
 <li><p>direct normal irradiance (DNI)</p></li>
 <li><p>diffuse horizontal irradiance (DHI)</p></li>
 <li><p>global horizontal irradiance (GHI)</p></li>

@@ -498,7 +498,7 @@
 <h3>Input File Format<a class="headerlink" href="#input-file-format" title="Link to this heading">#</a></h3>
 <p>The input file must contain the following columns:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings). Each timestamp marks the <strong>start of a reporting period</strong>; the power value on that row is treated as the period average. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for how Hercules converts these to instantaneous values.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Power output in kW</p></li>
 </ul>
 <p>Supported file formats: <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.p</span></code>, <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> (pickle), <code class="docutils literal notranslate"><span class="pre">.f</span></code>, <code class="docutils literal notranslate"><span class="pre">.ftr</span></code> (feather).</p>

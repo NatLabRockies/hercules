@@ -446,6 +446,17 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-interpretation-inputs-vs-internal-values">Time Interpretation: Inputs vs. Internal Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#input-files-start-of-period-convention">Input files: start-of-period convention</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hercules-internal-values-instantaneous-convention">Hercules internal values: instantaneous convention</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolation-methods">Interpolation methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#averaged-to-instantaneous-wind-solar-and-similar-resource-and-power-signals"><code class="docutils literal notranslate"><span class="pre">"averaged_to_instantaneous"</span></code> (wind, solar, and similar resource and power signals)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#instantaneous-to-instantaneous"><code class="docutils literal notranslate"><span class="pre">"instantaneous_to_instantaneous"</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#achieving-zero-order-hold-zoh-behaviour">Achieving zero-order-hold (ZOH) behaviour</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datetime-string-format-iso-8601">Datetime String Format (ISO 8601)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-local-time-to-utc">Converting Local Time to UTC</a></li>
@@ -454,6 +465,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-time-values">Computed Time Values</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-file-requirements">Data File Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-and-solar-input-data">Wind and Solar Input Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-lmp-etc">External Data (LMP, etc.)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-coordinate-system">Time Coordinate System</a></li>
@@ -483,6 +495,102 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> (float): Simulation time in seconds, where <code class="docutils literal notranslate"><span class="pre">time=0</span></code> corresponds to <code class="docutils literal notranslate"><span class="pre">starttime_utc</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code> (datetime): Absolute UTC timestamp</p></li>
 </ul>
+</section>
+<section id="time-interpretation-inputs-vs-internal-values">
+<h2>Time Interpretation: Inputs vs. Internal Values<a class="headerlink" href="#time-interpretation-inputs-vs-internal-values" title="Link to this heading">#</a></h2>
+<section id="input-files-start-of-period-convention">
+<h3>Input files: start-of-period convention<a class="headerlink" href="#input-files-start-of-period-convention" title="Link to this heading">#</a></h3>
+<p>In external data sources such as weather files, SCADA records, and resource
+databases, each <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> timestamp marks the <strong>beginning</strong> of a reporting
+period and the associated values (irradiance, wind speed, power, etc.)
+represent an average or aggregate over that period.  For example, an hourly
+weather file with a row at <code class="docutils literal notranslate"><span class="pre">2020-06-15T12:00:00Z</span></code> and GHI = 735 W/m² means
+that 735 W/m² is the average GHI from 12:00 to 13:00.</p>
+</section>
+<section id="hercules-internal-values-instantaneous-convention">
+<h3>Hercules internal values: instantaneous convention<a class="headerlink" href="#hercules-internal-values-instantaneous-convention" title="Link to this heading">#</a></h3>
+<p>Inside the simulation, values at a given time step represent <strong>instantaneous</strong>
+quantities at that moment.  All Hercules output values follow this same
+instantaneous convention.</p>
+</section>
+<section id="interpolation-methods">
+<h3>Interpolation methods<a class="headerlink" href="#interpolation-methods" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">interpolate_df</span></code> function in <code class="docutils literal notranslate"><span class="pre">utilities.py</span></code> accepts a mandatory
+<code class="docutils literal notranslate"><span class="pre">interpolation_method</span></code> parameter that controls how numeric columns are
+resampled onto the simulation time grid.  Two methods are available:</p>
+<section id="averaged-to-instantaneous-wind-solar-and-similar-resource-and-power-signals">
+<h4><code class="docutils literal notranslate"><span class="pre">&quot;averaged_to_instantaneous&quot;</span></code> (wind, solar, and similar resource and power signals)<a class="headerlink" href="#averaged-to-instantaneous-wind-solar-and-similar-resource-and-power-signals" title="Link to this heading">#</a></h4>
+<p>Input values are period averages whose timestamps mark the <strong>start</strong> of each
+period.  The best single-point estimate of a period-averaged value is at the
+<strong>midpoint</strong> of its interval, not the start.  For example, the hourly average
+from 12:00-13:00 is most representative of conditions at 12:30. This also ensures that an average of the signal back to the original time interval will match the original data.</p>
+<ol class="arabic simple">
+<li><p>Each numeric value is assigned to the midpoint of its input interval
+(using <code class="docutils literal notranslate"><span class="pre">_compute_interval_midpoints</span></code>).</p></li>
+<li><p>Linear interpolation is then performed between these midpoints to produce
+values at the simulation time steps.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Input file (start-of-period):
+
+time_utc             value
+12:00                100        ← average over [12:00, 13:00)
+13:00                200        ← average over [13:00, 14:00)
+
+After midpoint correction:
+
+time                 value
+12:30                100        ← midpoint of [12:00, 13:00)
+13:30                200        ← midpoint of [13:00, 14:00)
+
+Querying at 13:00 yields 150 (halfway between midpoints).
+</pre></div>
+</div>
+</section>
+<section id="instantaneous-to-instantaneous">
+<h4><code class="docutils literal notranslate"><span class="pre">&quot;instantaneous_to_instantaneous&quot;</span></code><a class="headerlink" href="#instantaneous-to-instantaneous" title="Link to this heading">#</a></h4>
+<p>Input values already represent instantaneous measurements at their
+timestamps.  Standard linear interpolation is performed directly on the
+original timestamps with no midpoint shift.</p>
+<hr class="docutils" />
+<p>In both methods, datetime columns (e.g. <code class="docutils literal notranslate"><span class="pre">time_utc</span></code>) are linearly
+interpolated on the raw timestamps without any shift, because they are
+instantaneous coordinate mappings between simulation time and wall-clock
+time, not period-averaged measurements.</p>
+</section>
+<section id="achieving-zero-order-hold-zoh-behaviour">
+<h4>Achieving zero-order-hold (ZOH) behaviour<a class="headerlink" href="#achieving-zero-order-hold-zoh-behaviour" title="Link to this heading">#</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">interpolate_df</span></code> does not provide a dedicated zero-order-hold mode.  If you
+need step/piecewise-constant values – for example, LMP prices that
+should be held constant across each reporting interval – pre-process your
+input data to include an additional row at the end of each interval that
+carries the same value as the start-of-interval row, and then use
+<code class="docutils literal notranslate"><span class="pre">&quot;instantaneous_to_instantaneous&quot;</span></code>.  Linear interpolation between each pair
+of identical endpoints reproduces the ZOH shape.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Original data (start-of-interval only):
+
+time_utc             value
+12:00                100
+13:00                200
+
+After inserting end-of-interval rows (just before the next start):
+
+time_utc             value
+12:00                100
+12:59:59             100   ← added endpoint
+13:00                200
+13:59:59             200   ← added endpoint
+
+Querying at 12:30 with &quot;instantaneous_to_instantaneous&quot; yields 100.
+Querying at 13:00 yields 200.
+</pre></div>
+</div>
+<p>See
+<a class="reference download internal" download="" href="_downloads/5050b9fc76ba37c8dc140c80baf00d69/grid_utilities.py"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus</span></code></span></a>
+in <code class="docutils literal notranslate"><span class="pre">hercules/grid/grid_utilities.py</span></code> for a worked example of this
+endpoint-insertion pattern (it shifts a copy of the data by <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">-</span> <span class="pre">1</span></code> seconds
+and merges it back in before handing the frame to Hercules).</p>
+</section>
+</section>
 </section>
 <section id="input-requirements">
 <h2>Input Requirements<a class="headerlink" href="#input-requirements" title="Link to this heading">#</a></h2>
@@ -585,7 +693,20 @@ ISO 8601 is an international standard for representing dates and times. The form
 <h2>Data File Requirements<a class="headerlink" href="#data-file-requirements" title="Link to this heading">#</a></h2>
 <section id="wind-and-solar-input-data">
 <h3>Wind and Solar Input Data<a class="headerlink" href="#wind-and-solar-input-data" title="Link to this heading">#</a></h3>
-<p>Both wind and solar input CSV/Feather/Parquet files must contain a <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column with UTC timestamps:</p>
+<p>Both wind and solar input CSV/Feather/Parquet files must contain a <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column with UTC timestamps.  Each <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> value marks the <strong>start of a reporting period</strong>; the data values on that row are treated as period averages.  These are interpolated with <code class="docutils literal notranslate"><span class="pre">&quot;averaged_to_instantaneous&quot;</span></code>.  See <a class="reference internal" href="#interpolation-methods"><span class="xref myst">Interpolation methods</span></a> above for details.</p>
+</section>
+<section id="external-data-lmp-etc">
+<h3>External Data (LMP, etc.)<a class="headerlink" href="#external-data-lmp-etc" title="Link to this heading">#</a></h3>
+<p>External data files loaded via <code class="docutils literal notranslate"><span class="pre">_read_external_data_file</span></code> are upsampled onto
+the simulation time grid with <code class="docutils literal notranslate"><span class="pre">&quot;instantaneous_to_instantaneous&quot;</span></code> (linear
+interpolation between the supplied timestamps).  If you want zero-order-hold
+(piecewise-constant) behaviour for signals like LMP prices, pre-process the
+file to include end-of-interval rows that repeat the previous value as
+described in <a class="reference internal" href="#achieving-zero-order-hold-zoh-behaviour"><span class="xref myst">Achieving zero-order-hold (ZOH) behaviour</span></a>.
+The helper
+<a class="reference download internal" download="" href="_downloads/5050b9fc76ba37c8dc140c80baf00d69/grid_utilities.py"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">generate_locational_marginal_price_dataframe_from_gridstatus</span></code></span></a>
+in <code class="docutils literal notranslate"><span class="pre">hercules/grid/grid_utilities.py</span></code> is a concrete example of adding those
+endpoint rows for LMP data.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>time_utc,wd_mean,ws_000,ws_001,ws_002
 2020-01-01T00:00:00Z,270.0,8.0,8.1,8.2
 2020-01-01T00:00:01Z,270.5,8.1,8.2,8.3
@@ -616,6 +737,7 @@ Key Points:
 </section>
 <section id="output-files">
 <h2>Output Files<a class="headerlink" href="#output-files" title="Link to this heading">#</a></h2>
+<p>All values in Hercules output files represent <strong>instantaneous</strong> quantities at each time step, not period averages.  See <a class="reference internal" href="#time-interpretation-inputs-vs-internal-values"><span class="xref myst">Time Interpretation</span></a> for the distinction from input files.</p>
 <p>Hercules output HDF5 files store:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> array: Simulation time points (seconds from t=0)</p></li>
@@ -760,6 +882,17 @@ Key Points:
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-interpretation-inputs-vs-internal-values">Time Interpretation: Inputs vs. Internal Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#input-files-start-of-period-convention">Input files: start-of-period convention</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hercules-internal-values-instantaneous-convention">Hercules internal values: instantaneous convention</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolation-methods">Interpolation methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#averaged-to-instantaneous-wind-solar-and-similar-resource-and-power-signals"><code class="docutils literal notranslate"><span class="pre">"averaged_to_instantaneous"</span></code> (wind, solar, and similar resource and power signals)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#instantaneous-to-instantaneous"><code class="docutils literal notranslate"><span class="pre">"instantaneous_to_instantaneous"</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#achieving-zero-order-hold-zoh-behaviour">Achieving zero-order-hold (ZOH) behaviour</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-requirements">Input Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datetime-string-format-iso-8601">Datetime String Format (ISO 8601)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-local-time-to-utc">Converting Local Time to UTC</a></li>
@@ -768,6 +901,7 @@ Key Points:
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computed-time-values">Computed Time Values</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-file-requirements">Data File Requirements</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wind-and-solar-input-data">Wind and Solar Input Data</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#external-data-lmp-etc">External Data (LMP, etc.)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-coordinate-system">Time Coordinate System</a></li>

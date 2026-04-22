@@ -539,7 +539,7 @@
 <p><strong>SCADA File Format:</strong></p>
 <p>The SCADA file must contain the following columns:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_utc</span></code>: Timestamps in UTC (ISO 8601 format or parseable datetime strings). Each timestamp marks the <strong>start of a reporting period</strong>; values on that row are treated as period averages. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for how Hercules converts these to instantaneous values.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wd_mean</span></code>: Mean wind direction in degrees</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">pow_###</span></code>: Power output for each turbine (e.g., <code class="docutils literal notranslate"><span class="pre">pow_000</span></code>, <code class="docutils literal notranslate"><span class="pre">pow_001</span></code>, <code class="docutils literal notranslate"><span class="pre">pow_002</span></code>)</p></li>
 </ul>

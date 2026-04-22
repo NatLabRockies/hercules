@@ -470,6 +470,7 @@
   <section class="tex2jax_ignore mathjax_ignore" id="output-files">
 <h1>Output Files<a class="headerlink" href="#output-files" title="Link to this heading">#</a></h1>
 <p>Hercules generates HDF5 output files containing simulation data for analysis and visualization. This page describes the file format, available utilities for reading the data, and how HerculesModel generates these files.</p>
+<p>All values in output files represent <strong>instantaneous</strong> quantities at each time step, not period averages. This differs from the convention used by input data files, where timestamps mark the start of a reporting period. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for details on this distinction and the midpoint correction applied during input interpolation.</p>
 <section id="file-format">
 <h2>File Format<a class="headerlink" href="#file-format" title="Link to this heading">#</a></h2>
 <p>Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.</p>
