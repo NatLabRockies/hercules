@@ -27,8 +27,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `logging.console_output` | bool | Whether to log to console | True |
 | `logging.console_prefix` | str | Logger prefix | "HERCULES" |
 | `logging.log_level` | str | Logging level | "INFO" |
-| `logging.use_outputs_dir` | bool | Whether to save logger to `output_dir` | True |
-| `logging.outputs_dir` | str | Logger output dir | "outputs" |
+| `logging.logging_dir` | str | Logger output dir | "outputs" |
 | **Plant Configuration** |
 | `plant` | dict | Plant-level configuration | - |
 | `plant.interconnect_limit` | float | Maximum power limit in kW | - |
