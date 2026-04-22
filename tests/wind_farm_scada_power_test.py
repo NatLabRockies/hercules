@@ -87,9 +87,9 @@ def test_wind_farm_scada_power_step():
         result["wind_farm"]["wind_speeds_background"],
     )
 
-    # Verify turbine powers
-    assert np.allclose(result["wind_farm"]["turbine_powers"], [3200.0, 3100.0, 3300.0])
-    assert np.isclose(result["wind_farm"]["power"], 3200.0 + 3100.0 + 3300.0)
+    # At step=1, midpoint correction gives the average of period-0 and period-1 values.
+    assert np.allclose(result["wind_farm"]["turbine_powers"], [2850.0, 2750.0, 2950.0])
+    assert np.isclose(result["wind_farm"]["power"], 2850.0 + 2750.0 + 2950.0)
 
 
 def test_wind_farm_scada_power_get_initial_conditions_and_meta_data():

@@ -128,7 +128,9 @@ class WindFarmSCADAPower(ComponentBase):
 
         # Interpolate df_scada on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
-        df_scada = interpolate_df(df_scada, time_steps_all)
+        df_scada = interpolate_df(
+            df_scada, time_steps_all, interpolation_method="averaged_to_instantaneous"
+        )
 
         # Get a list of power columns and infer number of turbines
         self.power_columns = sorted([col for col in df_scada.columns if col.startswith("pow_")])

@@ -20,8 +20,8 @@ EXAMPLE_DESCRIPTION = "Wind Farm Only with Precomputed FLORIS"
 
 # Test configuration
 NUM_TIME_STEPS = 5
-EXPECTED_FINAL_WIND_POWER = 3021  # Updated for precomputed FLORIS model
-EXPECTED_FINAL_PLANT_POWER = 3021  # Same as wind power for wind-only case
+EXPECTED_FINAL_WIND_POWER = 3020  # Updated for midpoint interpolation correction
+EXPECTED_FINAL_PLANT_POWER = 3020  # Same as wind power for wind-only case
 
 # File names
 INPUT_FILE = "hercules_input.yaml"
