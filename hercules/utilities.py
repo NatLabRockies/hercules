@@ -68,6 +68,43 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
+def make_unique_folder_name(parent_folder: str | Path, proposed_dirname: str):
+    """Generate a folder that does not already exist in a user-defined parent folder.
+
+    Args:
+        parent_folder (str | Path): directory that a folder is expected to be created in.
+        proposed_dirname (str): folder name to check for existence and
+            to use as the base folder description of a new an unique folder name.
+
+    Returns:
+        str: unique direcoty that does not yet exist in parent_folder.
+    """
+
+    # if folder(s) exist with the same base name, make a new unique directory name
+    # file_base = proposed_fname.split(fext)[0]
+    existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_dirname}*") if f.is_dir()]
+    if len(existing_files) == 0:
+        return Path(parent_folder) / proposed_dirname
+
+    # get past numbers that were used to make unique folders by matching
+    # folder names against the file base name followed by a number
+    past_numbers = [
+        int(re.findall(f"{proposed_dirname}[0-9]+", str(fname))[0].split(proposed_dirname)[-1])
+        for fname in existing_files
+        if len(re.findall(f"{proposed_dirname}[0-9]+", str(fname))) > 0
+    ]
+
+    if len(past_numbers) > 0:
+        # if multiple folders have the same basename followed by a number,
+        # take the maximum unique number and add one
+        unique_number = int(max(past_numbers) + 1)
+        return Path(parent_folder) / f"{proposed_dirname}{unique_number}"
+    else:
+        # if no folders have the same basename followed by a number,
+        # but do have the same basename, then add a zero to the folder basename
+        return Path(parent_folder) / f"{proposed_dirname}0"
+
+
 def _validate_utc_datetime_string(dt_str, field_name):
     """Validate that a datetime string represents UTC time.
 

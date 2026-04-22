@@ -17,6 +17,7 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
+    make_unique_folder_name,
     setup_logging,
 )
 
@@ -45,6 +46,9 @@ class HerculesModel:
         if h_dict.get("overwrite_outputs", True):
             if output_dir.exists():
                 shutil.rmtree(output_dir)
+        else:
+            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
+
         # Make sure output folder exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
