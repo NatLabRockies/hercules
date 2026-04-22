@@ -18,7 +18,7 @@ output_dir: "outputs_07"
 overwrite_outputs: True
 logging:
   use_outputs_dir: True
-  outputs_dir: "logger_outputs_07"
+  logging_dir: "logger_outputs_07"
   log_file: "log_hercules_ex_07.log"
 
 plant:

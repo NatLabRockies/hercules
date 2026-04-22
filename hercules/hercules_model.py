@@ -47,13 +47,31 @@ class HerculesModel:
             if output_dir.exists():
                 shutil.rmtree(output_dir)
         else:
+            # Make a unique foldername with the same basename as the output_dir
+            proposed_dirname = str(output_dir.name)
             output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
+            # If the proposed directory already existed and a new folder was proposed,
+            # update the logger directory to have the same unique number
+            if output_dir.name != proposed_dirname:
+                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
+                unique_folder_id = "".join(p for p in unique_folder_id_parts)
+                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
+                    if isinstance(h_dict["logging"]["logging_dir"], str):
+                        h_dict["logging"].update(
+                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
+                        )
+
+                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
+                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
+                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
+
+                    h_dict["logging"].update({"logging_dir": new_log_fpath})
 
         # Make sure output folder exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Set up logging
-        logging_inputs = {"outputs_dir": output_dir} | h_dict.get("logging", {})
+        logging_inputs = {"logging_dir": output_dir} | h_dict.get("logging", {})
         self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
@@ -167,8 +185,7 @@ class HerculesModel:
             "console_output": console_output,
             "console_prefix": None,
             "log_level": "INFO",
-            "use_outputs_dir": True,
-            "outputs_dir": Path("outputs").absolute(),
+            "logging_dir": Path("outputs").absolute(),
         }
 
         # Update the defaults with any input kwargs

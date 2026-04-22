@@ -411,8 +411,7 @@ def setup_logging(
     console_output=True,
     console_prefix=None,
     log_level=logging.INFO,
-    use_outputs_dir=True,
-    outputs_dir=Path("outputs"),
+    logging_dir=Path("outputs"),
 ):
     """Set up logging to file and console with flexible configuration.
 
@@ -429,30 +428,29 @@ def setup_logging(
             logger_name in uppercase. Defaults to None.
         log_level (int, optional): Logging level (e.g., logging.INFO, logging.DEBUG).
             Defaults to logging.INFO.
-        use_outputs_dir (bool, optional): If True and log_file is a simple filename
-            (no directory separators), automatically places it in 'outputs' directory.
-            If False, treats log_file as-is. Defaults to True.
+        logging_dir (str | Path): Folder to save log file to
 
     Returns:
         logging.Logger: Configured logger instance.
 
 
     """
+
+    if Path(log_file).suffix != ".log":
+        log_file += ".log"
+
     # Determine the log file path
-    if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
+    if os.sep not in log_file and "/" not in log_file:
         # Simple filename - use outputs directory
-        os.makedirs(outputs_dir, exist_ok=True)
-        log_file_path = os.path.join(outputs_dir, log_file)
-    elif not use_outputs_dir and (os.sep in log_file or "/" in log_file):
-        log_file_path = Path(log_file).absolute()
-        log_dir = Path(log_file_path).parent.absolute()
-        log_dir.mkdir(parents=True, exist_ok=True)
+        os.makedirs(logging_dir, exist_ok=True)
+        log_file_path = os.path.join(logging_dir, log_file)
     else:
-        # Full path or use_outputs_dir=False - use as-is but ensure directory exists
-        log_file_path = log_file.split("/")[-1]
+        # Partial path, use as subdirectories within logging_dir
+        log_file_parts = log_file.split("/")
+        log_fpath_parts = [logging_dir] + log_file_parts
+        log_file_path = Path(*log_fpath_parts)
         log_dir = Path(log_file_path).parent.absolute()
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_file_path = log_dir / log_file
 
     # Get the logger
     logger = logging.getLogger(logger_name)

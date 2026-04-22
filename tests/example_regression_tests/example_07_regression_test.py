@@ -1,4 +1,6 @@
 import shutil
+import tempfile
+from copy import deepcopy
 from pathlib import Path
 
 import hercules
@@ -117,8 +119,7 @@ def test_specified_main_logger_dir():
     hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
     hercules_dict["overwrite_outputs"] = True
     hercules_dict["logging"] = {
-        "use_outputs_dir": True,
-        "outputs_dir": logger_dir,
+        "logging_dir": logger_dir,
         "log_file": f"log_hercules_test{test_n}.log",
     }
 
@@ -139,40 +140,58 @@ def test_specified_main_logger_dir():
     assert not logger_dir.is_dir()
 
 
-def test_dont_use_outputs_dir_logging():
+def test_dont_overwrite_outputs():
     test_n = "03"
-    # what happens with non-default output dir and use_outputs_dir for logging is False
-    cwd = Path.cwd().absolute()
 
-    output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
-    logger_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"loggers_{test_n}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_dir = Path(tmpdir, "outputs")
+        logger_dir = Path(tmpdir, "loggers")
 
-    hercules_fpath = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / "hercules_input.yaml"
-    hercules_dict = load_yaml(hercules_fpath)
-    hercules_dict["output_dir"] = output_dir
-    hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
-    hercules_dict["overwrite_outputs"] = True
-    hercules_dict["logging"] = {
-        "use_outputs_dir": False,
-        "outputs_dir": logger_dir,
-        "log_file": f"log_hercules_test{test_n}.log",
-    }
+        hercules_fpath = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / "hercules_input.yaml"
+        hercules_dict = load_yaml(hercules_fpath)
+        hercules_dict["output_dir"] = output_dir
+        hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
+        hercules_dict["overwrite_outputs"] = False
+        hercules_dict["logging"] = {
+            "logging_dir": logger_dir,
+            "log_file": f"log_hercules_test{test_n}.log",
+        }
 
-    run_hercules_example(hercules_dict)
+        # Run once - folders should be named as proposed
+        run_hercules_example(deepcopy(hercules_dict))
 
-    expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}.h5"
-    expected_output_main_log_fpath = cwd / f"log_hercules_test{test_n}.log"
-    expected_component_log_fpath = cwd / "log_open_cycle_gas_turbine.log"
+        expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}.h5"
+        expected_output_main_log_fpath = logger_dir / f"log_hercules_test{test_n}.log"
+        expected_component_log_fpath = logger_dir / "log_open_cycle_gas_turbine.log"
 
-    assert expected_output_h5_fpath.is_file(), "h5 file"
-    assert expected_output_main_log_fpath.is_file(), "main log file"
-    assert expected_component_log_fpath.is_file(), "component log file"
+        assert expected_output_h5_fpath.is_file(), "run 1, h5 file"
+        assert expected_output_main_log_fpath.is_file(), "run 1, main log file"
+        assert expected_component_log_fpath.is_file(), "run 1, component log file"
 
-    shutil.rmtree(output_dir)
-    assert not output_dir.is_dir()
+        # Run again - folders should be named with proposed name appended with a zero
+        run_hercules_example(deepcopy(hercules_dict))
 
-    expected_component_log_fpath.unlink()
-    expected_output_main_log_fpath.unlink()
+        expected_output_dir = output_dir.parent / f"{output_dir.name}0"
+        expected_logger_dir = logger_dir.parent / f"{logger_dir.name}0"
+        expected_output_h5_fpath = expected_output_dir / f"hercules_output_test{test_n}.h5"
 
-    assert not expected_component_log_fpath.is_file()
-    assert not expected_output_main_log_fpath.is_file()
+        expected_output_main_log_fpath = expected_logger_dir / f"log_hercules_test{test_n}.log"
+        expected_component_log_fpath = expected_logger_dir / "log_open_cycle_gas_turbine.log"
+
+        assert expected_output_h5_fpath.is_file(), "run 2, h5 file"
+        assert expected_output_main_log_fpath.is_file(), "run 2, main log file"
+        assert expected_component_log_fpath.is_file(), "run 2, component log file"
+
+        # Run again - folders should be named with proposed name appended with a 1
+        run_hercules_example(deepcopy(hercules_dict))
+
+        expected_output_dir = output_dir.parent / f"{output_dir.name}1"
+        expected_logger_dir = logger_dir.parent / f"{logger_dir.name}1"
+        expected_output_h5_fpath = expected_output_dir / f"hercules_output_test{test_n}.h5"
+
+        expected_output_main_log_fpath = expected_logger_dir / f"log_hercules_test{test_n}.log"
+        expected_component_log_fpath = expected_logger_dir / "log_open_cycle_gas_turbine.log"
+
+        assert expected_output_h5_fpath.is_file(), "run 3, h5 file"
+        assert expected_output_main_log_fpath.is_file(), "run 3, main log file"
+        assert expected_component_log_fpath.is_file(), "run 3, component log file"

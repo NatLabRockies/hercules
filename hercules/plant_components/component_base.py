@@ -63,15 +63,15 @@ class ComponentBase:
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
         # Get the default output folder
         logging_inputs = (
-            {"outputs_dir": output_dir}
-            | {"outputs_dir": h_dict.get("logging", {}).get("outputs_dir", output_dir)}
+            {"logging_dir": output_dir}
+            | {"logging_dir": h_dict.get("logging", {}).get("logging_dir", output_dir)}
             | {
-                "outputs_dir": h_dict[component_name]
+                "logging_dir": h_dict[component_name]
                 .get("logging", {})
-                .get("outputs_dir", output_dir)
+                .get("logging_dir", output_dir)
             }
         )
-        logging_inputs["outputs_dir"] = Path(logging_inputs["outputs_dir"]).absolute()
+        logging_inputs["logging_dir"] = Path(logging_inputs["logging_dir"]).absolute()
         logging_inputs = (
             logging_inputs | h_dict.get("logging", {}) | h_dict[component_name].get("logging", {})
         )
@@ -140,9 +140,8 @@ class ComponentBase:
             "console_output": True,
             "console_prefix": self.component_name.upper(),
             "log_level": "INFO",
-            "use_outputs_dir": True,  # log_file_name is already a full path
             # the use_outputs_dir used to default to False.
-            "outputs_dir": Path("outputs").absolute(),
+            "logging_dir": Path("outputs").absolute(),
         }
 
         # Update the defaults with any input kwargs
