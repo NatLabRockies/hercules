@@ -31,6 +31,8 @@ The `HardCoalSteamTurbine` class provides default values for base class paramete
 | `cold_startup_time` | 7.5 hours | [1] |
 | `min_up_time` | 48 hours | [2] |
 | `min_down_time` | 48 hours | [2] |
+| `hot_to_warm_time` | 28800 s (8 hours) | [5] |
+| `hot_to_cold_time` | 172800 s (48 hours) | [5] |
 | `efficiency_table` | Average plant efficiency | [2,3] |
 
 ### Default Efficiency Table
@@ -50,7 +52,7 @@ The HCST model provides the following outputs (inherited from base class):
 | Output | Units | Description |
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
-| `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
+| `state` | integer | Operating state number (0-7), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current HHV net plant efficiency |
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` |
@@ -110,6 +112,8 @@ hard_coal_steam_turbine:
   cold_startup_time: 27000.0  # 7.5 hours
   min_up_time: 172800  # 48 hours
   min_down_time: 172800  # 48 hour
+  hot_to_warm_time: 28800.0  # 8 hours
+  hot_to_cold_time: 172800.0  # 48 hours
   hhv: 29310000000  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
   fuel_density: 1000  # kg/m³ for bituminous coal
   efficiency_table:
@@ -138,7 +142,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
-- `state`: Operating state number (0-5), corresponding to the `STATES` enum
+- `state`: Operating state number (0-7), corresponding to the `STATES` enum
 - `fuel_volume_rate`: Fuel volume flow rate in m³/s
 - `fuel_mass_rate`: Fuel mass flow rate in kg/s
 - `efficiency`: Current HHV net plant efficiency (0-1)

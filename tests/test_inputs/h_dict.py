@@ -114,6 +114,8 @@ thermal_component = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -142,6 +144,8 @@ open_cycle_gas_turbine = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -169,6 +173,8 @@ linear_generator = {
     "cold_startup_time": 120.0,  # s; non-default (default is 480.0)
     "min_up_time": 10.0,  # s; non-default (default is 3600.0)
     "min_down_time": 10.0,  # s; non-default (default is 3600.0)
+    "hot_to_warm_time": 2700.0,  # s (45 minutes); non-default (default is 2700.0)
+    "hot_to_cold_time": 10800.0,  # s (3 hours); non-default (default is 10800.0)
     "log_channels": [
         "power",
         "state",
@@ -195,6 +201,8 @@ hard_coal_steam_turbine = {
     "cold_startup_time": 27000.0,  # 7.5 hours
     "min_up_time": 172800,  # 48 hours
     "min_down_time": 172800,  # 48 hour
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "hhv": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
     "fuel_density": 1000,  # kg/m³ for bituminous coal
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state

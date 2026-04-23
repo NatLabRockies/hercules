@@ -65,6 +65,17 @@ def test_default_inputs():
     lg = LinearGenerator(h_dict, "linear_generator")
     assert lg.min_down_time == LinearGenerator.DEFAULTS["min_down_time"]
 
+    # Test cooldown threshold defaults
+    h_dict = copy.deepcopy(h_dict_linear_generator)
+    del h_dict["linear_generator"]["hot_to_warm_time"]
+    lg = LinearGenerator(h_dict, "linear_generator")
+    assert lg.hot_to_warm_time == LinearGenerator.DEFAULTS["hot_to_warm_time"]
+
+    h_dict = copy.deepcopy(h_dict_linear_generator)
+    del h_dict["linear_generator"]["hot_to_cold_time"]
+    lg = LinearGenerator(h_dict, "linear_generator")
+    assert lg.hot_to_cold_time == LinearGenerator.DEFAULTS["hot_to_cold_time"]
+
 
 def test_default_hhv():
     """Test that LinearGenerator provides default HHV for natural gas from [3]."""

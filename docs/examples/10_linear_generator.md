@@ -20,16 +20,16 @@ The simulation runs for 4 hours with 1-minute time steps on a 250 kW unit.
 |------------|------------|----------|-------|-------------|
 | 0 | Initial | 250 kW | ON (4) | Generator starts on at rated capacity; `time_in_state` pre-set to `min_up_time` |
 | 10 | Command | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` pre-satisfied, stopping begins immediately |
-| ~10 | State | 0 | → OFF (0) | Power reaches 0 within one time step (ramp rate of 120%/min exceeds rated capacity), `min_down_time` begins counting |
-| ~15 | State | 0 | OFF (0) | `min_down_time` (5 min) satisfied |
+| ~10 | State | 0 | → OFF_HOT (0) | Power reaches 0 within one time step (ramp rate of 120%/min exceeds rated capacity), `min_down_time` begins counting |
+| ~15 | State | 0 | OFF_HOT (0) | `min_down_time` (5 min) satisfied |
 | 20 | Command | → 250 kW | → HOT STARTING (1) | ON command issued; `min_down_time` already satisfied, hot start begins immediately |
 | ~21–22 | State | — | HOT STARTING (1) | Hot start in progress; `hot_startup_time` is 90 s, which spans 2 time steps at dt=60 s |
 | ~22 | State | 250 kW | → ON (4) | `hot_startup_time` complete; power ramps to 250 kW (ramp rate of 120%/min exceeds rated capacity, so full power is reached within one time step) |
 | 90 | Command | → 125 kW | ON (4) | Setpoint reduced to 50%; power reaches 125 kW within one time step |
 | 120 | Command | → 50 kW | ON (4) | Setpoint reduced to 20%; power reaches 50 kW — note no minimum stable load constraint |
 | 180 | Command | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` satisfied (~153 min on), stopping begins |
-| ~180 | State | 0 | → OFF (0) | Power reaches 0 within one time step |
-| 240 | End | 0 | OFF (0) | Simulation ends |
+| ~180 | State | 0 | → OFF_HOT (0) | Power reaches 0 within one time step |
+| 240 | End | 0 | OFF_HOT (0) | Simulation ends |
 
 ### Key Behaviors Demonstrated
 

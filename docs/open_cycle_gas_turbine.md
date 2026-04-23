@@ -31,6 +31,8 @@ The `OpenCycleGasTurbine` class provides default values for base class parameter
 | `cold_startup_time` | 480 s (8 minutes) | [1], [5] |
 | `min_up_time` | 1800 s (30 minutes) | [4] |
 | `min_down_time` | 3600 s (1 hour) | [4] |
+| `hot_to_warm_time` | 28800 s (8 hours) | [5] |
+| `hot_to_cold_time` | 172800 s (48 hours) | [5] |
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [6] |
 | `fuel_density` | 0.768 kg/m³ | [6] |
 | `efficiency_table` | SC1A HHV net efficiency (see below) | Exhibit ES-4 of [5] |
@@ -53,7 +55,7 @@ The OCGT model provides the following outputs (inherited from base class):
 | Output | Units | Description |
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
-| `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
+| `state` | integer | Operating state number (0-7), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current HHV net plant efficiency |
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` [6]) |
@@ -113,6 +115,8 @@ open_cycle_gas_turbine:
   cold_startup_time: 480.0  # 8 minutes
   min_up_time: 1800  # 30 minutes
   min_down_time: 3600  # 1 hour
+  hot_to_warm_time: 28800.0  # 8 hours
+  hot_to_cold_time: 172800.0  # 48 hours
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
   fuel_density: 0.768  # kg/m³ for natural gas [6]
   efficiency_table:
@@ -144,7 +148,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
-- `state`: Operating state number (0-5), corresponding to the `STATES` enum
+- `state`: Operating state number (0-7), corresponding to the `STATES` enum
 - `fuel_volume_rate`: Fuel volume flow rate in m³/s
 - `fuel_mass_rate`: Fuel mass flow rate in kg/s (computed using `fuel_density` [6])
 - `efficiency`: Current HHV net plant efficiency (0-1)

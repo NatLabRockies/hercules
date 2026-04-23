@@ -21,6 +21,8 @@ The `LinearGenerator` class provides default values for all base class parameter
 | `cold_startup_time` | 900 s (15 minutes) | — |
 | `min_up_time` | 300 s (5 minutes) | — |
 | `min_down_time` | 300 s (5 minutes) | — |
+| `hot_to_warm_time` | 2700 s (45 minutes) | — |
+| `hot_to_cold_time` | 10800 s (3 hours) | — |
 | `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [3] |
 | `fuel_density` | 0.768 kg/m³ | [3] |
 | `efficiency_table` | Flat 41.44% HHV efficiency (see below) | [1] |
@@ -55,7 +57,7 @@ The linear generator model provides the following outputs (inherited from base c
 | Output | Units | Description |
 |--------|-------|-------------|
 | `power` | kW | Actual power output |
-| `state` | integer | Operating state number (0-5), corresponding to the `STATES` enum |
+| `state` | integer | Operating state number (0-7), corresponding to the `STATES` enum |
 | `efficiency` | fraction (0-1) | Current HHV net plant efficiency |
 | `fuel_volume_rate` | m³/s | Fuel volume flow rate |
 | `fuel_mass_rate` | kg/s | Fuel mass flow rate (computed using `fuel_density` [3]) |
@@ -91,6 +93,8 @@ linear_generator:
   cold_startup_time: 900.0  # 15 minutes
   min_up_time: 300  # 5 minutes
   min_down_time: 300  # 5 minutes
+  hot_to_warm_time: 2700.0  # 45 minutes
+  hot_to_cold_time: 10800.0  # 3 hours
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
   fuel_density: 0.768  # kg/m³ for natural gas [3]
   efficiency_table:
@@ -134,7 +138,7 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: Actual power output in kW (always logged)
-- `state`: Operating state number (0-5), corresponding to the `STATES` enum
+- `state`: Operating state number (0-7), corresponding to the `STATES` enum
 - `fuel_volume_rate`: Fuel volume flow rate in m³/s
 - `fuel_mass_rate`: Fuel mass flow rate in kg/s (computed using `fuel_density` [3])
 - `efficiency`: Current HHV net plant efficiency (0-1)

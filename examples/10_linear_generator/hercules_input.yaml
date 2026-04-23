@@ -2,15 +2,15 @@
 # Explicitly specify the parameters for demonstration purposes
 
 # Name
-name: example_10
+name: 10_linear_generator
 
 ###
 # Describe this simulation setup
 description: Linear Generator Example
 
 dt: 60.0  # 1 minute time step
-starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
-endtime_utc: "2020-01-01T04:00:00Z"  # 4 hours later
+starttime_utc: "2020-01-20T00:00:00Z"  # Midnight Jan 20, 2020 UTC
+endtime_utc: "2020-01-20T04:00:00Z"  # 4 hours later
 verbose: False
 log_every_n: 1
 
@@ -27,6 +27,8 @@ linear_generator:
   cold_startup_time: 900.0  # 15 minutes
   min_up_time: 300  # 5 minutes
   min_down_time: 300  # 5 minutes
+  hot_to_warm_time: 2700.0  # 45 minutes (±15 minutes)
+  hot_to_cold_time: 10800.0  # 3 hours (±1 hour)
   # Natural gas properties from [3] Staffell, "The Energy and Fuel Data Sheet", 2011
   # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]

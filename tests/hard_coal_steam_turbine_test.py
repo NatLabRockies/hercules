@@ -71,6 +71,17 @@ def test_default_inputs():
     hcst = HardCoalSteamTurbine(h_dict, "hard_coal_steam_turbine")
     assert hcst.min_down_time == 48 * 60.0 * 60.0  # 48 hours in seconds
 
+    # Test cooldown threshold defaults
+    h_dict = copy.deepcopy(h_dict_hard_coal_steam_turbine)
+    del h_dict["hard_coal_steam_turbine"]["hot_to_warm_time"]
+    hcst = HardCoalSteamTurbine(h_dict, "hard_coal_steam_turbine")
+    assert hcst.hot_to_warm_time == 28800.0  # 8 hours
+
+    h_dict = copy.deepcopy(h_dict_hard_coal_steam_turbine)
+    del h_dict["hard_coal_steam_turbine"]["hot_to_cold_time"]
+    hcst = HardCoalSteamTurbine(h_dict, "hard_coal_steam_turbine")
+    assert hcst.hot_to_cold_time == 172800.0  # 48 hours
+
 
 def test_default_hhv():
     """Test that HardCoalSteamTurbine provides default HHV for bituminous coal from [4]."""
