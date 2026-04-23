@@ -11,9 +11,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import utm
-from hercules.utilities import hercules_complex_type, hercules_float_type
 from scipy.interpolate import CloughTocher2DInterpolator
 from shapely.geometry import MultiPoint
+
+from hercules.utilities import hercules_complex_type, hercules_float_type
 
 
 def _spatially_interpolate_wind_data(
@@ -230,8 +231,9 @@ def upsample_wind_data(
 ) -> dict:
     """Spatially interpolate and temporally upsample wind speed and direction data.
 
-    Processes wind files generated using wind data downloading functions in the
-    wind_solar_resource_downloader module (e.g., for the Wind Toolkit or Open-Meteo datasets).
+    Processes wind files generated using the wind data downloading functions in the
+    `hercules.resource.wtk_downloader` or `hercules.resource.openmeteo_downloader` modules
+    (e.g., for the Wind Toolkit or Open-Meteo datasets).
     Spatial interpolation is achieved using 2D Clough-Tocher interpolation. Upsampling is
     accomplished by simple Nyquist upsampling to create a smooth signal. Lastly, for the wind
     speeds, stochastic, uncorrelated turbulence generated using the Kaimal spectrum is added.

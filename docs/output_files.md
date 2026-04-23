@@ -2,9 +2,11 @@
 
 Hercules generates HDF5 output files containing simulation data for analysis and visualization. This page describes the file format, available utilities for reading the data, and how HerculesModel generates these files.
 
+All values in output files represent **instantaneous** quantities at each time step, not period averages. This differs from the convention used by input data files, where timestamps mark the start of a reporting period. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for details on this distinction and the midpoint correction applied during input interpolation.
+
 ## File Format
 
-Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.  
+Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.
 
 ## File Structure
 

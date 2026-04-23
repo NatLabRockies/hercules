@@ -28,4 +28,3 @@ Within each hybrid plant step:
 - Each component updates its internal state and outputs
 - Plant-level power is computed as sum of all component powers
 - Locally generated power is computed as sum of generator component powers (excluding storage/electrolyzer)
-

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from hercules.plant_components.wind_farm import WindFarm
-from hercules.utilities import hercules_float_type
+from hercules.utilities import hercules_float_type, interpolate_df
 
 from tests.test_inputs.h_dict import h_dict_wind
 
@@ -52,14 +52,27 @@ def test_wind_farm_precom_floris_ws_mean():
     # Test that, since individual speed are specified, ws_mean is ignored
     # Note that h_dict_wind_precom_floris specifies an end time of 10.
     wind_sim = WindFarm(test_h_dict, "wind_farm")
-    assert (
-        wind_sim.ws_mat[:, 0] == df_input["ws_000"].to_numpy(dtype=hercules_float_type)[:10]
-    ).all()
+
+    # Assume df_input represents time stamps indicating start of period.
+    # Convert to instantaneous values with midpoint correction as would be done
+    # internally by interpolate_df function.
+    df_input["time"] = np.arange(0, df_input.shape[0], 1)
+    df_input["time_utc"] = pd.to_datetime(df_input["time_utc"])
+    df_input_interpolated = interpolate_df(
+        df_input,
+        np.arange(0, df_input.shape[0], 1),
+        interpolation_method="averaged_to_instantaneous",
+    )
+
+    assert np.allclose(
+        wind_sim.ws_mat[:, 0],
+        df_input_interpolated["ws_000"].to_numpy(dtype=hercules_float_type)[:10],
+    )
     assert np.allclose(
         wind_sim.ws_mat_mean,
-        (df_input[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(dtype=hercules_float_type)[
-            :10
-        ],
+        (df_input_interpolated[["ws_000", "ws_001", "ws_002"]].mean(axis=1)).to_numpy(
+            dtype=hercules_float_type
+        )[:10],
     )
 
     # Drop individual speeds and test that ws_mean is used instead
@@ -111,7 +124,7 @@ def test_wind_farm_precom_floris_step():
     assert len(result["wind_farm"]["turbine_powers"]) == 3
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
     assert "power" in result["wind_farm"]
-    assert isinstance(result["wind_farm"]["power"], (int, float))
+    assert isinstance(result["wind_farm"]["power"], (int, float, hercules_float_type))
 
 
 def test_wind_farm_precom_floris_power_setpoint_applies():
@@ -254,8 +267,9 @@ def test_wind_farm_precom_floris_velocities_update_correctly():
             "Withwakes wind speeds should have been updated"
         )
 
-        # Verify the wind speeds match the expected values from the input data
-        expected_background = np.array([9.0, 9.5, 10.0])  # ws values for step 1
+        # With midpoint correction, the value at step=1 is the average of
+        # period-0 and period-1 input values for each turbine.
+        expected_background = np.array([8.5, 9.0, 9.5])
         np.testing.assert_array_equal(wind_sim.wind_speeds_background, expected_background)
 
         # Verify that wake deficits are recalculated

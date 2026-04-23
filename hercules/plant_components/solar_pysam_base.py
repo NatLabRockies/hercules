@@ -126,7 +126,9 @@ class SolarPySAMBase(ComponentBase):
 
         # Interpolate df_solar on to the time steps
         time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
-        df_solar = interpolate_df(df_solar, time_steps_all)
+        df_solar = interpolate_df(
+            df_solar, time_steps_all, interpolation_method="averaged_to_instantaneous"
+        )
 
         # Can now save the input data as simple columns
         self.year_array = df_solar["time_utc"].dt.year.values
@@ -254,7 +256,10 @@ class SolarPySAMBase(ComponentBase):
         self.power = self.power_uncurtailed[step]
 
         # Apply control
-        self.control(h_dict[self.component_name]["power_setpoint"])
+        power_setpoint = h_dict[self.component_name]["power_setpoint"]
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
+        self.control(power_setpoint)
 
         if self.power < 0.0:
             self.power = 0.0

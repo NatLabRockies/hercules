@@ -1,10 +1,10 @@
 # Battery
 
-There are two battery models currently implemented in Hercules: `BatterySimple` and `BatteryLithiumIon`. 
+There are two battery models currently implemented in Hercules: `BatterySimple` and `BatteryLithiumIon`.
 
 ## Sign Conventions
 
-It is important to note that within the battery modules, the convention that positive power is charging the  
+It is important to note that within the battery modules, the convention that positive power is charging the
 battery is followed for consistency with battery standards.  However, at the level of the `HybridPlant`
 this is inverted, such that positive power implies power delivery (and thus the battery is discharging)
 for consistency with other components.  This inversion applies to power_setpoint and also occurs within
@@ -53,14 +53,14 @@ h_dict = {
 
 ### Outputs
 Outputs are returned as a dict containing the following values:
-- `power`: Actual battery power in kW 
+- `power`: Actual battery power in kW
 - `reject`: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)
 - `soc`: Battery state of charge (0-1)
 - `power_setpoint`: Requested power setpoint in kW
 
 #### Additional Outputs (BatterySimple only when track_usage=True)
 - `usage_in_time`: Time-based usage percentage
-- `usage_in_cycles`: Cycle-based usage percentage  
+- `usage_in_cycles`: Cycle-based usage percentage
 - `total_cycles`: Total equivalent cycles completed
 
 (battery-logging-configuration)=

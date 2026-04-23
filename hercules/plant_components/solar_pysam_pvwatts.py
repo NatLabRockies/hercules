@@ -43,18 +43,45 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # This represents the DC system capacity under Standard Test Conditions
         system_capacity = h_dict[self.component_name]["system_capacity"]  # (in kW)
 
+        # These values are always provided at the top level of the solar model input.
+        top_level_dict = {
+            "losses": h_dict[self.component_name]["losses"],
+            "tilt": h_dict[self.component_name]["tilt"],
+            "system_capacity": system_capacity,
+        }
+        top_level_set = set(top_level_dict.keys())
+
+        # These values are the Hercules defaults for the PVWatts model and will be used if
+        #   not provided in the PySAM options in the input.
+        hercules_defaults = {
+            "array_type": 3.0,  # single axis backtracking
+            "azimuth": 180.0,
+            "dc_ac_ratio": 1.0,  # default is 1.0 so there are no inverter losses.
+            "module_type": 0.0,  # standard crystalline silicon
+        }
+
+        # Check if any PySAM options for SystemDesign are provided in the input.
+        if h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign") is not None:
+            pysam_options_set = set(h_dict[self.component_name]["pysam_options"]["SystemDesign"])
+            self.logger.info(
+                "PySAM model options provided in input are being used to define the PVWatts system."
+            )
+            common_keys = pysam_options_set.intersection(top_level_set)
+            if len(common_keys) > 0:
+                raise ValueError(
+                    f"Error: The following parameters are provided in both the top-level input\
+                        and the PySAM options: {common_keys}. Please remove these parameters\
+                        from the PySAM options."
+                )
+
+        model_dict = (
+            hercules_defaults
+            | top_level_dict
+            | h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign", {})
+        )
+
         sys_design = {
-            "ModelParams": {
-                "SystemDesign": {
-                    "array_type": 3.0,  # single axis backtracking
-                    "azimuth": 180.0,
-                    "dc_ac_ratio": 1.0,  # Force to 1.0
-                    "losses": h_dict[self.component_name]["losses"],
-                    "module_type": 0.0,  # standard crystalline silicon (hardcoded)
-                    "system_capacity": system_capacity,
-                    "tilt": h_dict[self.component_name]["tilt"],
-                },
-            },
+            "ModelParams": {"SystemDesign": model_dict},
         }
 
         self.model_params = sys_design["ModelParams"]
