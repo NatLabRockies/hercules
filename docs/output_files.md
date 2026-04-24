@@ -26,7 +26,8 @@ hercules_output.h5
 │   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
 │   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
 │   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
-│   │   ├── solar_farm.power                  # Solar farm power output
+│   │   ├── solar_farm.power                  # Solar farm AC power (kW) (if logged)
+│   │   ├── solar_farm.dc_power_uncurtailed  # Pre-inverter DC (kW) (if logged)
 │   │   ├── solar_farm.dni                    # Direct normal irradiance (if logged)
 │   │   ├── solar_farm.poa                    # Plane-of-array irradiance (if logged)
 │   │   ├── battery.power                     # Battery power (if present)

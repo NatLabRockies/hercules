@@ -44,15 +44,16 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 ### Solar Farm
 | `component_type` | str | "SolarPySAMPVWatts" |
 | **For SolarPySAMPVWatts:** |
-| `pysam_model` | str | "pvwatts" |
 | `solar_input_filename` | str | Solar data file path |
-| `system_capacity` | float | DC system capacity in kW as defined by PVWatts - under Standard Test Conditions|
+| `system_capacity` | float | DC system capacity in kW (PVWatts STC) |
 | `tilt` | float | Array tilt angle in degrees (required) |
+| `losses` | float | System losses, % (0–100); see [Solar PV](solar_pv.md) |
+| `pysam_options` | dict | Optional; e.g. `SystemDesign: {dc_ac_ratio, array_type, ...}` — see [Solar PV](solar_pv.md) |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
-| `log_channels` | list | List of channels to log (e.g., ["power", "dni", "poa", "aoi"]) |
-| `initial_conditions` | dict | Initial power, DNI, POA |
+| `log_channels` | list | Channels to log (e.g. `power`, `dc_power_uncurtailed`, `dni`, `poa`, `aoi`) — see [Solar PV](solar_pv.md) |
+| `initial_conditions` | dict | Initial `power`, `dni`, `poa` (placeholders; PVWatts overwrites with modeled values on init) |
 
 ### Battery
 | Key | Type | Description | Default |
