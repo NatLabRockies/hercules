@@ -10,12 +10,10 @@ from hercules.utilities import (
 
 
 class SolarPySAMBase(ComponentBase):
-    """Base class for PySAM-based solar simulators.
+    """Base class for PySAM-based solar (PV) simulators.
 
-    This class provides common functionality for both PVSam and PVWatts models,
-    including weather data processing, solar resource assignment, and control logic.
-
-    Note PVSam is no longer supported in Hercules.
+    Subclasses run a PySAM model, load weather, and apply AC power setpoints. Weather
+    handling and stepping live here; model-specific precompute is in the subclass.
     """
 
     component_category = "generator"
@@ -36,12 +34,9 @@ class SolarPySAMBase(ComponentBase):
         # Save the system capacity (in kW - PVWatts DC system capacity)
         self.system_capacity = h_dict[self.component_name]["system_capacity"]
 
-        # Save the target dc/ac ratio (Force to 1.0)
-        self.target_dc_ac_ratio = 1.0
-
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
-        self.dc_power = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dc_power_uncurtailed = h_dict[self.component_name]["initial_conditions"]["power"]
         self.dni = h_dict[self.component_name]["initial_conditions"]["dni"]
         self.poa = h_dict[self.component_name]["initial_conditions"]["poa"]
         self.aoi = 0
@@ -172,23 +167,21 @@ class SolarPySAMBase(ComponentBase):
         # This is a bit of a hack but need this to exist
         h_dict[self.component_name]["capacity"] = self.system_capacity
         h_dict[self.component_name]["power"] = self.power
-        h_dict[self.component_name]["dc_power"] = self.dc_power
+        h_dict[self.component_name]["dc_power_uncurtailed"] = self.dc_power_uncurtailed
         h_dict[self.component_name]["dni"] = self.dni
         h_dict[self.component_name]["poa"] = self.poa
         h_dict[self.component_name]["aoi"] = self.aoi
 
-        # Log the start time UTC if available
-        if hasattr(self, "starttime_utc"):
-            h_dict[self.component_name]["starttime_utc"] = self.starttime_utc
+        h_dict[self.component_name]["starttime_utc"] = self.starttime_utc
 
         return h_dict
 
     def control(self, power_setpoint):
         """Controls the PV plant power output to meet a specified setpoint.
 
-        This low-level controller enforces power setpoints for the PV plant by
-        applying uniform curtailment across the entire plant. Note that DC power
-        output is not controlled as it is not utilized elsewhere in the code.
+        This low-level controller enforces AC power setpoints by uniform curtailment
+        of ``self.power``. Uncurtailed DC from the model remains in
+        ``dc_power_uncurtailed`` (exposed in ``h_dict`` after each step).
 
         Args:
             power_setpoint (float, optional): Desired total PV plant output in kW.
@@ -207,11 +200,15 @@ class SolarPySAMBase(ComponentBase):
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
 
+        ``dc_power_uncurtailed`` is uncurtailed pre-inverter DC (kW) for the
+        current step when the subclass precomputes ``dc_power_uncurtailed_array``.
+
         Args:
             h_dict (dict): Dictionary containing simulation state.
         """
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = self.power
+        h_dict[self.component_name]["dc_power_uncurtailed"] = self.dc_power_uncurtailed
         h_dict[self.component_name]["dni"] = self.dni
         h_dict[self.component_name]["poa"] = self.poa
         h_dict[self.component_name]["aoi"] = self.aoi
@@ -238,8 +235,7 @@ class SolarPySAMBase(ComponentBase):
     def step(self, h_dict):
         """Execute one simulation step.
 
-        This is the common step implementation that works for both PVWatts and PVSAM.
-        Subclasses only need to implement _precompute_power_array() and _get_step_outputs().
+        Subclasses must implement _precompute_power_array() and _get_step_outputs().
 
         Args:
             h_dict (dict): Dictionary containing current simulation state.
@@ -253,7 +249,9 @@ class SolarPySAMBase(ComponentBase):
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
         # Get the pre-computed uncurtailed power for this step (already in kW)
-        self.power = self.power_uncurtailed[step]
+        self.power = self.power_uncurtailed_array[step]
+        if hasattr(self, "dc_power_uncurtailed_array"):
+            self.dc_power_uncurtailed = self.dc_power_uncurtailed_array[step]
 
         # Apply control
         power_setpoint = h_dict[self.component_name]["power_setpoint"]

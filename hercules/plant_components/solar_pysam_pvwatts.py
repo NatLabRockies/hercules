@@ -56,7 +56,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         hercules_defaults = {
             "array_type": 3.0,  # single axis backtracking
             "azimuth": 180.0,
-            "dc_ac_ratio": 1.0,  # default is 1.0 so there are no inverter losses.
+            "dc_ac_ratio": 1.0,  # inverter kWac nameplate / array kWdc STC; 1.0 is a common default
             "module_type": 0.0,  # standard crystalline silicon
         }
 
@@ -80,11 +80,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
             | h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign", {})
         )
 
-        sys_design = {
-            "ModelParams": {"SystemDesign": model_dict},
-        }
-
-        self.model_params = sys_design["ModelParams"]
+        self.model_params = {"SystemDesign": model_dict}
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -123,11 +119,14 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Execute the model once for all time steps
         self.system_model.execute()
 
-        # Store the pre-computed power array (convert from W to kW)
-        # Use DC power output directly from PVWatts
-        self.power_uncurtailed = (
+        # W -> kW: uncurtailed AC (plant output) and DC (pre-inverter) from PVWatts
+        self.power_uncurtailed_array = (
+            np.array(self.system_model.Outputs.ac, dtype=hercules_float_type) / 1000.0
+        )
+        self.dc_power_uncurtailed_array = (
             np.array(self.system_model.Outputs.dc, dtype=hercules_float_type) / 1000.0
         )
+        self.dc_power_uncurtailed = self.dc_power_uncurtailed_array[0]
 
         # Store other outputs as arrays for efficient access
         self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
