@@ -20,7 +20,7 @@ def test_init():
     # Test that system_capacity is stored correctly
     assert SPS.system_capacity == test_h_dict["solar_farm"]["system_capacity"]
     assert SPS.power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
-    assert SPS.dc_power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
+    assert SPS.dc_power_uncurtailed == SPS.dc_power_uncurtailed_array[0]
     assert SPS.dni == test_h_dict["solar_farm"]["initial_conditions"]["dni"]
     assert SPS.aoi == 0
 
@@ -151,9 +151,9 @@ def test_step():
 
     SPS.step(step_inputs)
 
-    # test the calculated power output (0° tilt)
+    # test the calculated power output (0° tilt, AC post-inverter)
     # Using decimal=4 for float32 precision (hercules_float_type provides ~6-7 significant digits)
-    assert_almost_equal(SPS.power, 17092.157367793126, decimal=4)
+    assert_almost_equal(SPS.power, 16010.88671875, decimal=4)
 
     # test the irradiance input
     # Using decimal=4 for float32 precision (hercules_float_type provides ~6-7 significant digits)
@@ -169,7 +169,7 @@ def test_control():
     power_setpoint = 100000  # Above uncurtailed power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
-    uncurtailed_power = SPS.power_uncurtailed[0]
+    uncurtailed_power = SPS.power_uncurtailed_array[0]
     assert_almost_equal(SPS.power, uncurtailed_power, decimal=8)  # uncurtailed power
 
     # Test curtailment - set power below uncurtailed power, should get setpoint
