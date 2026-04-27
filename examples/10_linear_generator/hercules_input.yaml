@@ -35,11 +35,15 @@ linear_generator:
   fuel_density: 0.768  # kg/m³ for natural gas [3]
   efficiency_table:
     power_fraction:
-      - 1.0
-      - 0.0
-    efficiency:  # HHV net plant efficiency, flat across load range, from [1]
+      - 1.00
+      - 0.90
+      - 0.30
+      - 0.20
+    efficiency:  # HHV net plant efficiency from [1]; peak across mid-load, roll-off at extremes
+      - 0.40
       - 0.4144
       - 0.4144
+      - 0.35
   log_channels:
     - power
     - fuel_volume_rate
