@@ -58,7 +58,7 @@ class LinearGenerator(ThermalComponentBase):
             # most of the operating range. A modest drop-off is applied at the extremes
             # to reflect fixed losses at low load and thermal losses at high load.
             "power_fraction": [1.00, 0.90, 0.30, 0.20],
-            "efficiency":     [0.40, 0.4144, 0.4144, 0.35],
+            "efficiency": [0.40, 0.4144, 0.4144, 0.35],
         },
     }
 
