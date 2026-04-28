@@ -63,7 +63,7 @@ ax.plot(
     color="g",
 )
 ax.set_ylabel("Efficiency [%]")
-ax.set_title("Thermal Efficiency (flat across all load levels)")
+ax.set_title("Thermal Efficiency (relatively flat across load range)")
 ax.grid(True)
 
 # Plot the fuel consumption

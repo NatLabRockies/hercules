@@ -18,7 +18,7 @@ This example demonstrates a Mainspring linear generator that:
 Key behaviors demonstrated:
 - Fast ramp rate: power changes are nearly instantaneous
 - No minimum stable load: can operate at any fraction of rated capacity
-- Flat efficiency: 41.44% HHV net efficiency regardless of load level
+- Relatively flat efficiency: ~41% HHV net efficiency across most of the load range
 - Minimum down time: ON command at 20 min is deferred until 60-min
   down time is satisfied
 """
