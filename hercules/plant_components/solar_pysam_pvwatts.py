@@ -56,7 +56,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         hercules_defaults = {
             "array_type": 3.0,  # single axis backtracking
             "azimuth": 180.0,
-            "dc_ac_ratio": 1.0,  # inverter kWac nameplate / array kWdc STC; 1.0 is a common default
+            "dc_ac_ratio": 1.0,
             "module_type": 0.0,  # standard crystalline silicon
         }
 
