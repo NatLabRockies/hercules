@@ -79,7 +79,9 @@ wind_farm:
 #   losses: 0  # System losses as a percentage (0-100, default: 0)
 #   log_file_name: outputs/log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
-#     - power  # DC power output in kW (always logged)
+#     - power  # Delivered AC power in kW after control (always logged)
+#     - ac_power_available  # Post-inverter AC potential in kW (before control curtailment)
+#     - dc_power_available  # Pre-inverter DC potential of the arrays in kW
 #     - poa  # Plane-of-array irradiance in W/m²
 #     - dni  # Direct normal irradiance in W/m²
 #     - aoi  # Angle of incidence in degrees
