@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="920" height="220" fill="white"/>
+
+  <!-- Arrowhead marker -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4f6f"/>
+    </marker>
+  </defs>
+
+  <!-- Solar Arrays box -->
+  <rect x="40" y="60" width="180" height="120" fill="#1f4f6f" stroke="#1f4f6f" stroke-width="2"/>
+  <text x="130" y="115" font-size="20" fill="white" font-weight="bold" text-anchor="middle">Solar</text>
+  <text x="130" y="142" font-size="20" fill="white" font-weight="bold" text-anchor="middle">Arrays</text>
+
+  <!-- Inverters box -->
+  <rect x="370" y="60" width="180" height="120" fill="#1f4f6f" stroke="#1f4f6f" stroke-width="2"/>
+  <text x="460" y="128" font-size="20" fill="white" font-weight="bold" text-anchor="middle">Inverters</text>
+
+  <!-- Controller box -->
+  <rect x="700" y="60" width="180" height="120" fill="#1f4f6f" stroke="#1f4f6f" stroke-width="2"/>
+  <text x="790" y="128" font-size="20" fill="white" font-weight="bold" text-anchor="middle">Controller</text>
+
+  <!-- Arrow: Arrays -> Inverters -->
+  <line x1="220" y1="120" x2="365" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="292" y="110" font-size="15" fill="#1f4f6f" font-weight="bold" text-anchor="middle">dc_power_available</text>
+
+  <!-- Arrow: Inverters -> Controller -->
+  <line x1="550" y1="120" x2="695" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="622" y="110" font-size="15" fill="#1f4f6f" font-weight="bold" text-anchor="middle">ac_power_available</text>
+
+  <!-- Arrow: Controller -> output -->
+  <line x1="880" y1="120" x2="900" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="890" y="110" font-size="15" fill="#1f4f6f" font-weight="bold" text-anchor="end">power</text>
+</svg>
