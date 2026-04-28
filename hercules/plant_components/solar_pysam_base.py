@@ -36,7 +36,8 @@ class SolarPySAMBase(ComponentBase):
 
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
-        self.dc_power_uncurtailed = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.ac_power_available = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.dc_power_available = h_dict[self.component_name]["initial_conditions"]["power"]
         self.dni = h_dict[self.component_name]["initial_conditions"]["dni"]
         self.poa = h_dict[self.component_name]["initial_conditions"]["poa"]
         self.aoi = 0
@@ -167,7 +168,8 @@ class SolarPySAMBase(ComponentBase):
         # This is a bit of a hack but need this to exist
         h_dict[self.component_name]["capacity"] = self.system_capacity
         h_dict[self.component_name]["power"] = self.power
-        h_dict[self.component_name]["dc_power_uncurtailed"] = self.dc_power_uncurtailed
+        h_dict[self.component_name]["ac_power_available"] = self.ac_power_available
+        h_dict[self.component_name]["dc_power_available"] = self.dc_power_available
         h_dict[self.component_name]["dni"] = self.dni
         h_dict[self.component_name]["poa"] = self.poa
         h_dict[self.component_name]["aoi"] = self.aoi
@@ -180,8 +182,9 @@ class SolarPySAMBase(ComponentBase):
         """Controls the PV plant power output to meet a specified setpoint.
 
         This low-level controller enforces AC power setpoints by uniform curtailment
-        of ``self.power``. Uncurtailed DC from the model remains in
-        ``dc_power_uncurtailed`` (exposed in ``h_dict`` after each step).
+        of ``self.power``. The pre-control AC potential remains in
+        ``ac_power_available`` and the pre-inverter DC potential remains in
+        ``dc_power_available`` (both exposed in ``h_dict`` after each step).
 
         Args:
             power_setpoint (float, optional): Desired total PV plant output in kW.
@@ -200,15 +203,19 @@ class SolarPySAMBase(ComponentBase):
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
 
-        ``dc_power_uncurtailed`` is uncurtailed pre-inverter DC (kW) for the
-        current step when the subclass precomputes ``dc_power_uncurtailed_array``.
+        ``ac_power_available`` is the post-inverter AC potential (kW) and
+        ``dc_power_available`` is the pre-inverter DC potential (kW) for the
+        current step. Both are reported before any control-based curtailment.
+        ``dc_power_available`` is populated when the subclass precomputes
+        ``dc_power_available_array``.
 
         Args:
             h_dict (dict): Dictionary containing simulation state.
         """
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = self.power
-        h_dict[self.component_name]["dc_power_uncurtailed"] = self.dc_power_uncurtailed
+        h_dict[self.component_name]["ac_power_available"] = self.ac_power_available
+        h_dict[self.component_name]["dc_power_available"] = self.dc_power_available
         h_dict[self.component_name]["dni"] = self.dni
         h_dict[self.component_name]["poa"] = self.poa
         h_dict[self.component_name]["aoi"] = self.aoi
@@ -248,10 +255,11 @@ class SolarPySAMBase(ComponentBase):
         if self.verbose:
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
-        # Get the pre-computed uncurtailed power for this step (already in kW)
-        self.power = self.power_uncurtailed_array[step]
-        if hasattr(self, "dc_power_uncurtailed_array"):
-            self.dc_power_uncurtailed = self.dc_power_uncurtailed_array[step]
+        # Get the pre-computed available (pre-control) power for this step (already in kW)
+        self.ac_power_available = self.ac_power_available_array[step]
+        self.power = self.ac_power_available
+        if hasattr(self, "dc_power_available_array"):
+            self.dc_power_available = self.dc_power_available_array[step]
 
         # Apply control
         power_setpoint = h_dict[self.component_name]["power_setpoint"]

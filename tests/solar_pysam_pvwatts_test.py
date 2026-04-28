@@ -20,7 +20,8 @@ def test_init():
     # Test that system_capacity is stored correctly
     assert SPS.system_capacity == test_h_dict["solar_farm"]["system_capacity"]
     assert SPS.power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
-    assert SPS.dc_power_uncurtailed == SPS.dc_power_uncurtailed_array[0]
+    assert SPS.ac_power_available == SPS.ac_power_available_array[0]
+    assert SPS.dc_power_available == SPS.dc_power_available_array[0]
     assert SPS.dni == test_h_dict["solar_farm"]["initial_conditions"]["dni"]
     assert SPS.aoi == 0
 
@@ -164,16 +165,16 @@ def test_control():
     test_h_dict = copy.deepcopy(h_dict_solar_pvwatts)
     SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
-    # Test curtailment - set power setpoint above uncurtailed power,
-    # should get uncurtailed power
-    power_setpoint = 100000  # Above uncurtailed power
+    # Test curtailment - set power setpoint above available power,
+    # should get available power
+    power_setpoint = 100000  # Above available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
-    uncurtailed_power = SPS.power_uncurtailed_array[0]
-    assert_almost_equal(SPS.power, uncurtailed_power, decimal=8)  # uncurtailed power
+    ac_power_available = SPS.ac_power_available_array[0]
+    assert_almost_equal(SPS.power, ac_power_available, decimal=8)  # available power
 
-    # Test curtailment - set power below uncurtailed power, should get setpoint
-    power_setpoint = 100  # Below uncurtailed power
+    # Test curtailment - set power below available power, should get setpoint
+    power_setpoint = 100  # Below available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)
