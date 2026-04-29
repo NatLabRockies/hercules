@@ -446,9 +446,10 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-flow">Power Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and loss parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
@@ -463,31 +464,50 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="solar-pv">
 <h1>Solar PV<a class="headerlink" href="#solar-pv" title="Link to this heading">#</a></h1>
-<p>The solar PV modules use the <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> package for the National Laboratory of the Rockies’s System Advisor Model (SAM) to predict the power output of the solar PV plant.</p>
-<p>Presently only one solar simulator is available</p>
+<p>Hercules uses NLR <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/overview.html">PySAM</a> to drive NLR <a class="reference external" href="https://sam.nlr.gov">System Advisor Model (SAM)</a> PV technology models.</p>
+<p>The only solar implementation currently in Hercules is:</p>
 <ol class="arabic simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> - Uses the <a class="reference external" href="https://sam.nrel.gov/photovoltaic.html">PVWatts model</a> in <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>, which calculates estimated PV electrical output with configurable efficiency and loss parameters. This model is less detailed but more time-efficient, making it suitable for longer duration simulations (approximately 1 year). Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">SolarPySAMPVWatts</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code></strong> — <a class="reference external" href="https://sam.nlr.gov/photovoltaic.html">PVWatts</a> via PySAM <a class="reference external" href="https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html"><code class="docutils literal notranslate"><span class="pre">Pvwattsv8</span></code></a>. It is fast and suitable for long runs (e.g. about one year). Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">SolarPySAMPVWatts</span></code> in the component YAML. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">solar_farm</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a>.</p></li>
 </ol>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">#</a></h2>
-<p>Both models require an input weather file:</p>
-<ol class="arabic simple">
-<li><p>A CSV file that specifies the weather conditions (e.g. NonAnnualSimulation-sample_data-interpolated-daytime.csv). This file should include:</p>
+<p>The solar component requires a weather time-series file. Supported formats are CSV, pickle (<code class="docutils literal notranslate"><span class="pre">.p</span></code>), Feather (<code class="docutils literal notranslate"><span class="pre">.f</span></code>/<code class="docutils literal notranslate"><span class="pre">.ftr</span></code>), and Parquet. The file should include:</p>
 <ul class="simple">
-<li><p>timestamp (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements). Each <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> timestamp marks the <strong>start of a reporting period</strong>; irradiance and weather values on that row are treated as period averages. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for how Hercules converts these to instantaneous values.</p></li>
-<li><p>direct normal irradiance (DNI)</p></li>
-<li><p>diffuse horizontal irradiance (DHI)</p></li>
-<li><p>global horizontal irradiance (GHI)</p></li>
-<li><p>wind speed</p></li>
-<li><p>air temperature (dry bulb temperature)</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> column (see <a class="reference internal" href="timing.html"><span class="std std-doc">timing</span></a> for time format requirements). Each <code class="docutils literal notranslate"><span class="pre">time_utc</span></code> value marks the <strong>start of a reporting period</strong>; irradiance and weather on that row are period averages. See <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a> for how Hercules converts them to instants.</p></li>
+<li><p>DNI, DHI, and GHI in columns whose names include the usual “Direct Normal…”, “Diffuse Horizontal…”, and “Global Horizontal…” substrings (see the solar module’s column lookup)</p></li>
+<li><p>Wind speed</p></li>
+<li><p>Air temperature (dry-bulb)</p></li>
 </ul>
-</li>
-</ol>
 <p>The system location (latitude, longitude, and elevation) is specified in the input <code class="docutils literal notranslate"><span class="pre">yaml</span></code> file.</p>
+</section>
+<section id="power-flow">
+<h2>Power Flow<a class="headerlink" href="#power-flow" title="Link to this heading">#</a></h2>
+<p>The solar component models three distinct power quantities at each time step,
+corresponding to successive stages along the plant’s electrical path:</p>
+<a class="reference internal image-reference" href="_images/solar_power_flow.svg"><img alt="Solar power flow from arrays through inverters to the controller" class="align-center" src="_images/solar_power_flow.svg" style="width: 700px;" />
+</a>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">dc_power_available</span></code></strong> (kW): the full <strong>DC potential</strong> of the arrays, before
+the inverters. This is the modeled DC output (e.g. PVWatts <code class="docutils literal notranslate"><span class="pre">Outputs.dc</span></code>,
+W → kW) and reflects irradiance, temperature, and DC-side losses, but not
+inverter behavior or control.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code></strong> (kW): the <strong>post-inverter AC potential</strong> of the
+plant. It includes inverter inefficiency and AC clipping at the inverter
+nameplate (per PVWatts <code class="docutils literal notranslate"><span class="pre">Outputs.ac</span></code>, W → kW), but does not include any
+Hercules control-based curtailment.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">power</span></code></strong> (kW): the <strong>delivered AC</strong> power after the Hercules controller.
+When the controller imposes an AC setpoint below <code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code>,
+<code class="docutils literal notranslate"><span class="pre">power</span></code> reflects the curtailed value; otherwise <code class="docutils literal notranslate"><span class="pre">power</span></code> equals
+<code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code>.</p></li>
+</ul>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>The solar module output is the DC power (<code class="docutils literal notranslate"><span class="pre">power</span></code>) in kW of the PV plant at each timestep.  Using DC power makes the parameters <code class="docutils literal notranslate"><span class="pre">inv_eff</span></code> and <code class="docutils literal notranslate"><span class="pre">dc_to_ac_ratio</span></code> irrelevant.  The <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> parameter represents the DC system capacity under Standard Test Conditions.</p>
+<p>At each time step, <code class="docutils literal notranslate"><span class="pre">h_dict[component_name]</span></code> is updated with <code class="docutils literal notranslate"><span class="pre">power</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code>, and <code class="docutils literal notranslate"><span class="pre">dc_power_available</span></code> (all in kW), as well as the
+weather/geometry diagnostics (<code class="docutils literal notranslate"><span class="pre">dni</span></code>, <code class="docutils literal notranslate"><span class="pre">poa</span></code>, <code class="docutils literal notranslate"><span class="pre">aoi</span></code>). All three power quantities
+can be selected for HDF5 logging via <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> (see below), though the <code class="docutils literal notranslate"><span class="pre">power</span></code> variable is always logged by default.</p>
+<p>The YAML <strong><code class="docutils literal notranslate"><span class="pre">system_capacity</span></code></strong> is the <strong>DC</strong> array capacity at STC (kW), as in PVWatts. Inverter sizing and AC clipping follow PVWatts <code class="docutils literal notranslate"><span class="pre">SystemDesign</span></code> (including <code class="docutils literal notranslate"><span class="pre">dc_ac_ratio</span></code>); defaults can be changed under <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> (see below).</p>
 <p>The PVWatts model is configured with the following default parameters for utility-scale installations:</p>
 <ul class="simple">
 <li><p><strong>Module type</strong>: Standard crystalline silicon (module_type = 0)</p></li>
@@ -505,19 +525,21 @@
 <span class="w">    </span><span class="nt">SystemDesign</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">array_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span><span class="w">  </span><span class="c1"># single axis backtracking</span>
 <span class="w">      </span><span class="nt">azimuth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">170.0</span>
-<span class="w">      </span><span class="nt">dc_ac_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">  </span><span class="c1"># Force to 1.0</span>
+<span class="w">      </span><span class="nt">dc_ac_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">      </span><span class="nt">module_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span><span class="w">  </span><span class="c1"># standard crystalline silicon</span>
 </pre></div>
 </div>
 <p>You can specify some or all of these parameters and the <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> parameters will always overwrite the defaults. These parameters represent the minimum parameters needed to define the solar model. For an exhaustive list of additional parameters you can set using this method, see <a class="reference external" href="https://h2integrate.readthedocs.io/en/stable/technology_models/pvwattsv8_solar_pv.html">this page</a>.</p>
-<p>The array tilt angle must be specified in the input configuration file.</p>
+<p>The <strong><code class="docutils literal notranslate"><span class="pre">tilt</span></code></strong> is the array tilt angle in degrees, measured from horizontal, and must be specified in the input configuration file. Together with <strong><code class="docutils literal notranslate"><span class="pre">system_capacity</span></code></strong> and <strong><code class="docutils literal notranslate"><span class="pre">losses</span></code></strong> (see below), it is one of the three required top-level keys for the solar component; all other PVWatts parameters fall back to Hercules defaults or can be overridden under <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code>.</p>
 </section>
 <section id="logging-configuration">
 <h2>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> parameter controls which outputs are written to the HDF5 output file. This is a list of channel names. The <code class="docutils literal notranslate"><span class="pre">power</span></code> channel is always logged, even if not explicitly specified.</p>
 <p><strong>Available Channels:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: DC power output in kW (always logged)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: delivered AC plant power in kW after control (always logged; same quantity as in <code class="docutils literal notranslate"><span class="pre">h_dict</span></code> after the step)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code>: post-inverter AC potential in kW, before control curtailment (add to the list to include in the HDF5 output)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dc_power_available</span></code>: pre-inverter DC potential of the arrays in kW (add to the list to include in the HDF5 output)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">poa</span></code>: Plane-of-array irradiance in W/m²</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dni</span></code>: Direct normal irradiance in W/m²</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aoi</span></code>: Angle of incidence in degrees</p></li>
@@ -537,26 +559,17 @@
 <p>If <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> is not specified, only <code class="docutils literal notranslate"><span class="pre">power</span></code> will be logged.</p>
 </section>
 <section id="efficiency-and-loss-parameters">
-<h2>Efficiency and Loss Parameters<a class="headerlink" href="#efficiency-and-loss-parameters" title="Link to this heading">#</a></h2>
-<p>Although the pysam model <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model, technically includes efficiency terms:</p>
+<h2>Efficiency and loss parameters<a class="headerlink" href="#efficiency-and-loss-parameters" title="Link to this heading">#</a></h2>
+<p>PVWatts <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> includes lumped and inverter-related loss terms. The loss/efficiency parameters exposed in typical Hercules YAML are:</p>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">inv_eff</span></code></strong> - Inverter efficiency as a percentage (0-99.5). (No longer used in Hercules)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">losses</span></code></strong> - System losses as a percentage (0-100). Default recommended value: <code class="docutils literal notranslate"><span class="pre">0</span></code> (no losses). This parameter affects the DC power generated by the PV panels, before any conversion to AC by the inverter.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">losses</span></code></strong>: system losses as a percentage (0–100). Affects the modeled <strong>DC</strong> side before the inverter in PVWatts. A common default is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> → <code class="docutils literal notranslate"><span class="pre">SystemDesign</span></code></strong>: e.g. <code class="docutils literal notranslate"><span class="pre">dc_ac_ratio</span></code>, <code class="docutils literal notranslate"><span class="pre">array_type</span></code>, <code class="docutils literal notranslate"><span class="pre">azimuth</span></code>, <code class="docutils literal notranslate"><span class="pre">module_type</span></code> (see PySAM / SAM documentation for the full set).</p></li>
 </ul>
-<p>The example folder <code class="docutils literal notranslate"><span class="pre">03_wind_and_solar</span></code> specifies:</p>
-<ul class="simple">
-<li><p>use of the <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> model with <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">&quot;SolarPySAMPVWatts&quot;</span></code></p></li>
-<li><p>weather conditions on May 10, 2018 measured at NLR’s Flatirons Campus</p></li>
-<li><p>latitude, longitude, and elevation of Golden, CO</p></li>
-<li><p>system design information for a 100 MW single-axis PV tracking system (with backtracking)</p></li>
-<li><p>inverter efficiency of 99.5% and system losses of 0%</p></li>
-</ul>
-<p>The system capacity can be changed in the <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file, but the DC/AC ratio is fixed at 1.0.</p>
-<p>For examples using the detailed <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVSam</span></code> model, see the test files in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">examples/03_wind_and_solar</span></code> case uses <code class="docutils literal notranslate"><span class="pre">SolarPySAMPVWatts</span></code> with a 30 MW DC STC <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code>, <code class="docutils literal notranslate"><span class="pre">losses:</span> <span class="pre">0</span></code>, and default single-axis backtracking. Location and weather are set in that example’s input YAML and resource files. Override <code class="docutils literal notranslate"><span class="pre">dc_ac_ratio</span></code> in <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> if you need a nameplate/clip point different from the default.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
-<p>PySAM. National Laboratory of the Rockies. Golden, CO. <a class="github reference external" href="https://github.com/nrel/pysam">nrel/pysam</a></p>
+<p>PySAM (NLR). <a class="github reference external" href="https://github.com/NatLabRockies/pysam">NatLabRockies/pysam</a></p>
 </section>
 </section>
 
@@ -627,9 +640,10 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-flow">Power Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and Loss Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-loss-parameters">Efficiency and loss parameters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>

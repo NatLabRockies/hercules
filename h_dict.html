@@ -597,15 +597,16 @@
 <h3>Solar Farm<a class="headerlink" href="#solar-farm" title="Link to this heading">#</a></h3>
 <p>| <code class="docutils literal notranslate"><span class="pre">component_type</span></code> | str | “SolarPySAMPVWatts” |
 | <strong>For SolarPySAMPVWatts:</strong> |
-| <code class="docutils literal notranslate"><span class="pre">pysam_model</span></code> | str | “pvwatts” |
 | <code class="docutils literal notranslate"><span class="pre">solar_input_filename</span></code> | str | Solar data file path |
-| <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> | float | DC system capacity in kW as defined by PVWatts - under Standard Test Conditions|
+| <code class="docutils literal notranslate"><span class="pre">system_capacity</span></code> | float | DC system capacity in kW (PVWatts STC) |
 | <code class="docutils literal notranslate"><span class="pre">tilt</span></code> | float | Array tilt angle in degrees (required) |
+| <code class="docutils literal notranslate"><span class="pre">losses</span></code> | float | System losses, % (0–100); see <a class="reference internal" href="solar_pv.html"><span class="std std-doc">Solar PV</span></a> |
+| <code class="docutils literal notranslate"><span class="pre">pysam_options</span></code> | dict | Optional; e.g. <code class="docutils literal notranslate"><span class="pre">SystemDesign:</span> <span class="pre">{dc_ac_ratio,</span> <span class="pre">array_type,</span> <span class="pre">...}</span></code> — see <a class="reference internal" href="solar_pv.html"><span class="std std-doc">Solar PV</span></a> |
 | <code class="docutils literal notranslate"><span class="pre">lat</span></code> | float | Latitude |
 | <code class="docutils literal notranslate"><span class="pre">lon</span></code> | float | Longitude |
 | <code class="docutils literal notranslate"><span class="pre">elev</span></code> | float | Elevation in meters |
-| <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> | list | List of channels to log (e.g., [“power”, “dni”, “poa”, “aoi”]) |
-| <code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code> | dict | Initial power, DNI, POA |</p>
+| <code class="docutils literal notranslate"><span class="pre">log_channels</span></code> | list | Channels to log (e.g. <code class="docutils literal notranslate"><span class="pre">power</span></code>, <code class="docutils literal notranslate"><span class="pre">ac_power_available</span></code>, <code class="docutils literal notranslate"><span class="pre">dc_power_available</span></code>, <code class="docutils literal notranslate"><span class="pre">dni</span></code>, <code class="docutils literal notranslate"><span class="pre">poa</span></code>, <code class="docutils literal notranslate"><span class="pre">aoi</span></code>) — see <a class="reference internal" href="solar_pv.html"><span class="std std-doc">Solar PV</span></a> |
+| <code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code> | dict | Initial <code class="docutils literal notranslate"><span class="pre">power</span></code>, <code class="docutils literal notranslate"><span class="pre">dni</span></code>, <code class="docutils literal notranslate"><span class="pre">poa</span></code> placeholders; modeled values are not all applied on init, and <code class="docutils literal notranslate"><span class="pre">power</span></code> is updated to the modeled AC value on the first <code class="docutils literal notranslate"><span class="pre">step()</span></code> |</p>
 </section>
 <section id="battery">
 <h3>Battery<a class="headerlink" href="#battery" title="Link to this heading">#</a></h3>
