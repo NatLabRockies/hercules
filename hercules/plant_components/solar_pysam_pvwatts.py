@@ -119,23 +119,35 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Execute the model once for all time steps
         self.system_model.execute()
 
-        # W -> kW: AC (post-inverter) and DC (pre-inverter) potential from PVWatts.
-        # Both are "available" power: the model output before any Hercules control curtailment.
-        self.ac_power_available_array = (
-            np.array(self.system_model.Outputs.ac, dtype=hercules_float_type) / 1000.0
-        )
-        self.dc_power_available_array = (
-            np.array(self.system_model.Outputs.dc, dtype=hercules_float_type) / 1000.0
-        )
+        # Pull all outputs at the compute-grid resolution, with W -> kW for the
+        # power channels. AC (post-inverter) and DC (pre-inverter) are
+        # "available" power: the model output before any Hercules control
+        # curtailment.
+        compute_outputs = {
+            "ac_power_available": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
+            / 1000.0,
+            "dc_power_available": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
+            / 1000.0,
+            "dni": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
+            "dhi": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
+            "ghi": np.array(self.system_model.Outputs.gh, dtype=hercules_float_type),
+            "aoi": np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type),
+            "poa": np.array(self.system_model.Outputs.poa, dtype=hercules_float_type),
+        }
+
+        # Upsample to the Hercules dt grid (no-op when compute_dt == dt).
+        hercules_outputs = self._upsample_outputs_to_hercules_dt(compute_outputs)
+
+        self.ac_power_available_array = hercules_outputs["ac_power_available"]
+        self.dc_power_available_array = hercules_outputs["dc_power_available"]
         self.ac_power_available = self.ac_power_available_array[0]
         self.dc_power_available = self.dc_power_available_array[0]
 
-        # Store other outputs as arrays for efficient access
-        self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
-        self.dhi_array_output = np.array(self.system_model.Outputs.df, dtype=hercules_float_type)
-        self.ghi_array_output = np.array(self.system_model.Outputs.gh, dtype=hercules_float_type)
-        self.aoi_array_output = np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type)
-        self.poa_array_output = np.array(self.system_model.Outputs.poa, dtype=hercules_float_type)
+        self.dni_array_output = hercules_outputs["dni"]
+        self.dhi_array_output = hercules_outputs["dhi"]
+        self.ghi_array_output = hercules_outputs["ghi"]
+        self.aoi_array_output = hercules_outputs["aoi"]
+        self.poa_array_output = hercules_outputs["poa"]
 
     def _get_step_outputs(self, step):
         """Get the outputs for a specific step from pre-computed arrays.
