@@ -1,10 +1,10 @@
 # Solar PV
 
-Hercules uses NREL [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) to drive NREL [System Advisor Model (SAM)](https://sam.nrel.gov) PV technology models.
+Hercules uses NLR [PySAM](https://nrel-pysam.readthedocs.io/en/main/overview.html) to drive NLR [System Advisor Model (SAM)](https://sam.nlr.gov) PV technology models.
 
 The only solar implementation currently in Hercules is:
 
-1. **`SolarPySAMPVWatts`** — [PVWatts](https://sam.nrel.gov/photovoltaic.html) via PySAM [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html). It is fast and suitable for long runs (e.g. about one year). Set `component_type: SolarPySAMPVWatts` in the component YAML. The section key is a user-chosen `component_name` (e.g. `solar_farm`); see [Component Names, Types, and Categories](component_types.md).
+1. **`SolarPySAMPVWatts`** — [PVWatts](https://sam.nlr.gov/photovoltaic.html) via PySAM [`Pvwattsv8`](https://nrel-pysam.readthedocs.io/en/main/modules/Pvwattsv8.html). It is fast and suitable for long runs (e.g. about one year). Set `component_type: SolarPySAMPVWatts` in the component YAML. The section key is a user-chosen `component_name` (e.g. `solar_farm`); see [Component Names, Types, and Categories](component_types.md).
 
 
 
@@ -50,7 +50,7 @@ corresponding to successive stages along the plant's electrical path:
 At each time step, `h_dict[component_name]` is updated with `power`,
 `ac_power_available`, and `dc_power_available` (all in kW), as well as the
 weather/geometry diagnostics (`dni`, `poa`, `aoi`). All three power quantities
-can be selected for HDF5 logging via `log_channels` (see below).
+can be selected for HDF5 logging via `log_channels` (see below), though the `power` variable is always logged by default.
 
 The YAML **`system_capacity`** is the **DC** array capacity at STC (kW), as in PVWatts. Inverter sizing and AC clipping follow PVWatts `SystemDesign` (including `dc_ac_ratio`); defaults can be changed under `pysam_options` (see below).
 
@@ -71,12 +71,12 @@ solar_farm:
     SystemDesign:
       array_type: 3.0  # single axis backtracking
       azimuth: 170.0
-      dc_ac_ratio: 1.0  # kWac nameplate / kWdc STC; common default
+      dc_ac_ratio: 1.0
       module_type: 0.0  # standard crystalline silicon
 ```
 You can specify some or all of these parameters and the `pysam_options` parameters will always overwrite the defaults. These parameters represent the minimum parameters needed to define the solar model. For an exhaustive list of additional parameters you can set using this method, see [this page](https://h2integrate.readthedocs.io/en/stable/technology_models/pvwattsv8_solar_pv.html).
 
-The array tilt angle must be specified in the input configuration file.
+The **`tilt`** is the array tilt angle in degrees, measured from horizontal, and must be specified in the input configuration file. Together with **`system_capacity`** and **`losses`** (see below), it is one of the three required top-level keys for the solar component; all other PVWatts parameters fall back to Hercules defaults or can be overridden under `pysam_options`.
 
 ## Logging Configuration
 
@@ -107,7 +107,7 @@ If `log_channels` is not specified, only `power` will be logged.
 
 ## Efficiency and loss parameters
 
-PVWatts `SolarPySAMPVWatts` includes lumped and inverter-related terms; the ones exposed in typical Hercules YAML are:
+PVWatts `SolarPySAMPVWatts` includes lumped and inverter-related loss terms. The loss/efficiency parameters exposed in typical Hercules YAML are:
 
 - **`losses`**: system losses as a percentage (0–100). Affects the modeled **DC** side before the inverter in PVWatts. A common default is `0`.
 - **`pysam_options` → `SystemDesign`**: e.g. `dc_ac_ratio`, `array_type`, `azimuth`, `module_type` (see PySAM / SAM documentation for the full set).
@@ -116,4 +116,4 @@ The `examples/03_wind_and_solar` case uses `SolarPySAMPVWatts` with a 30 MW DC S
 
 
 ## References
-PySAM (NREL). https://github.com/nrel/pysam
+PySAM (NLR). https://github.com/NatLabRockies/pysam

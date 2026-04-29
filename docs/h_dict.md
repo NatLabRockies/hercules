@@ -53,7 +53,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
 | `log_channels` | list | Channels to log (e.g. `power`, `ac_power_available`, `dc_power_available`, `dni`, `poa`, `aoi`) — see [Solar PV](solar_pv.md) |
-| `initial_conditions` | dict | Initial `power`, `dni`, `poa` (placeholders; PVWatts overwrites with modeled values on init) |
+| `initial_conditions` | dict | Initial `power`, `dni`, `poa` placeholders; modeled values are not all applied on init, and `power` is updated to the modeled AC value on the first `step()` |
 
 ### Battery
 | Key | Type | Description | Default |
