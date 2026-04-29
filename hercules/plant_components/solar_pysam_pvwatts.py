@@ -56,7 +56,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         hercules_defaults = {
             "array_type": 3.0,  # single axis backtracking
             "azimuth": 180.0,
-            "dc_ac_ratio": 1.0,  # default is 1.0 so there are no inverter losses.
+            "dc_ac_ratio": 1.0,
             "module_type": 0.0,  # standard crystalline silicon
         }
 
@@ -80,11 +80,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
             | h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign", {})
         )
 
-        sys_design = {
-            "ModelParams": {"SystemDesign": model_dict},
-        }
-
-        self.model_params = sys_design["ModelParams"]
+        self.model_params = {"SystemDesign": model_dict}
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -123,11 +119,16 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Execute the model once for all time steps
         self.system_model.execute()
 
-        # Store the pre-computed power array (convert from W to kW)
-        # Use DC power output directly from PVWatts
-        self.power_uncurtailed = (
+        # W -> kW: AC (post-inverter) and DC (pre-inverter) potential from PVWatts.
+        # Both are "available" power: the model output before any Hercules control curtailment.
+        self.ac_power_available_array = (
+            np.array(self.system_model.Outputs.ac, dtype=hercules_float_type) / 1000.0
+        )
+        self.dc_power_available_array = (
             np.array(self.system_model.Outputs.dc, dtype=hercules_float_type) / 1000.0
         )
+        self.ac_power_available = self.ac_power_available_array[0]
+        self.dc_power_available = self.dc_power_available_array[0]
 
         # Store other outputs as arrays for efficient access
         self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
