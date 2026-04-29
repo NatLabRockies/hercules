@@ -49,6 +49,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `tilt` | float | Array tilt angle in degrees (required) |
 | `losses` | float | System losses, % (0–100); see [Solar PV](solar_pv.md) |
 | `pysam_options` | dict | Optional; e.g. `SystemDesign: {dc_ac_ratio, array_type, ...}` — see [Solar PV](solar_pv.md) |
+| `use_native_solar_dt` | bool | Optional; default `true`. If the weather file's native dt is coarser than `dt`, run PySAM once at native resolution and upsample its outputs to the Hercules grid — see [Solar PV](solar_pv.md#native-resolution-pysam-execution-use_native_solar_dt) |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |

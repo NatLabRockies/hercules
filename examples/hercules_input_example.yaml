@@ -77,6 +77,7 @@ wind_farm:
 #   system_capacity: 100000  # DC system capacity in kW under Standard Test Conditions (required)
 #   tilt: 0  # Array tilt angle in degrees (required)
 #   losses: 0  # System losses as a percentage (0-100, default: 0)
+#   use_native_solar_dt: true  # Optional (default: true). When the weather file's native dt is coarser than `dt`, run PySAM once at native resolution and upsample its outputs to the Hercules grid (see docs/solar_pv.md).
 #   log_file_name: outputs/log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Delivered AC power in kW after control (always logged)
