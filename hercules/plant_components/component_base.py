@@ -17,6 +17,10 @@ class ComponentBase:
     ``component_name`` (the unique YAML key chosen by the user) is passed into ``__init__``
     and may differ from the category when multiple instances of the same type are present.
     ``component_type`` is always set automatically to the concrete class name.
+
+    Optional YAML field ``component_group`` defaults to ``component_name`` when omitted.
+    Hercules does not use it for physics or control; it is written back into ``h_dict`` so
+    companion tools (e.g. herc_analysis) can aggregate multiple instances under one label.
     """
 
     # Subclasses must override this with one of: "generator", "load", "storage"
@@ -51,6 +55,11 @@ class ComponentBase:
                 key).  For single-instance plants this is typically the category name (e.g.
                 ``"battery"``); for multi-instance plants it may be any user-chosen string
                 (e.g. ``"battery_unit_1"``).
+
+        Note:
+            Optional ``h_dict[component_name]["component_group"]`` (str) defaults to
+            ``component_name`` and is stored on ``self.component_group`` and written back to
+            ``h_dict`` for downstream metadata consumers.
         """
 
         # Store the component name (unique instance identifier from the YAML key)
@@ -58,6 +67,16 @@ class ComponentBase:
 
         # Derive component_type from the concrete class name — no hardcoding needed
         self.component_type = type(self).__name__
+
+        # Optional tag for post-processing (defaults to component_name)
+        component_group = h_dict[component_name].get("component_group", component_name)
+        if not isinstance(component_group, str):
+            raise TypeError(
+                f"component_group for '{component_name}' must be a string, "
+                f"got {type(component_group).__name__}: {component_group!r}"
+            )
+        self.component_group = component_group
+        h_dict[component_name]["component_group"] = component_group
 
         # Set up logging
         # Check if log_file_name is defined in the h_dict[component_name]
