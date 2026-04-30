@@ -53,3 +53,6 @@ parts:
     - file: examples/06_wind_and_hydrogen
     - file: examples/07_open_cycle_gas_turbine
     - file: examples/09_multiunit_thermal_plant
+  - caption: Post-Processing
+    chapters:
+    - file: herc_analysis

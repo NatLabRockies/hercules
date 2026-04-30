@@ -25,6 +25,8 @@ plant:
 # Wind farm configuration (comment out if not using wind)
 wind_farm:
   component_type: WindFarm  # Options: WindFarm, WindFarmSCADAPower
+  # Optional: tag for post-processing (herc_analysis); defaults to this section key if omitted
+  # component_group: wind_assets_north
   wake_method: dynamic  # Options: dynamic, precomputed, no_added_wakes
   floris_input_file: ../inputs/floris_input.yaml  # Path to FLORIS farm configuration file
   wind_input_filename: ../inputs/wind_input.ftr  # Path to wind resource data file (CSV, pickle, or feather format)

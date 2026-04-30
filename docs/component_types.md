@@ -1,8 +1,8 @@
 # Component Names, Types, and Categories
 
-Three related but distinct concepts govern how plant components are identified in Hercules: `component_name`, `component_type`, and `component_category`. Understanding the distinction is important for writing YAML input files and for programmatically working with `h_dict`.
+Related concepts govern how plant components are identified in Hercules: `component_name`, `component_type`, `component_category`, and optionally `component_group`. Understanding the distinction is important for writing YAML input files and for programmatically working with `h_dict`.
 
-## The Three Concepts
+## The concepts
 
 ### `component_name`
 
@@ -33,6 +33,14 @@ The **component category** is a class-level attribute defined in each component 
 
 Every `ComponentBase` subclass **must** define `component_category`; a `TypeError` is raised at class-definition time if it is missing.
 
+### `component_group`
+
+The **component group** is an optional string users may set in YAML to label several distinct components as one logical unit for post-processing (for example, summing their powers before reporting).
+
+- **Source**: optional `component_group:` field in the component's YAML block
+- **Default**: If omitted, Hercules sets `component_group` equal to `component_name` (the YAML key)
+- **Used by**: Not used inside Hercules physics or control; the resolved value is stored on each component as `self.component_group` and written into `h_dict[component_name]["component_group"]` (including in HDF5 metadata). Companion tools such as [herc_analysis](herc_analysis.md) use it to aggregate outputs across instances that share the same group label.
+
 ### Summary
 
 | Concept | Set by | Example value | Used for |
@@ -40,6 +48,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `component_name` | User (YAML key) | `"battery_unit_1"` | Accessing `h_dict[name]`; unique instance ID |
 | `component_type` | User (`component_type:` field) | `"BatterySimple"` | Registry lookup to select the Python class |
 | `component_category` | Developer (class variable) | `"storage"` | Generator classification; sign convention |
+| `component_group` | User (`component_group:` field, optional) | `"stage_a_storage"` | Post-processing grouping (defaults to `component_name`) |
 
 ---
 

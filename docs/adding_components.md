@@ -83,7 +83,7 @@ class MyComponent(ComponentBase):
 | Requirement | Description |
 |---|---|
 | `component_category` | Must be `"generator"`, `"storage"`, or `"load"`. Generators contribute to `locally_generated_power`. |
-| `super().__init__()` | Sets `self.component_name`, `self.component_type`, `self.dt`, `self.starttime`, and configures logging. |
+| `super().__init__()` | Sets `self.component_name`, `self.component_type`, `self.component_group` (defaulting `component_group` in `h_dict` to `component_name` when omitted), `self.dt`, `self.starttime`, and configures logging. |
 | `power` output | All components must write a `power` value to `h_dict[self.component_name]["power"]` in the `step` method. |
 | Return `h_dict` | Both `get_initial_conditions_and_meta_data` and `step` must return the modified `h_dict`. |
 
