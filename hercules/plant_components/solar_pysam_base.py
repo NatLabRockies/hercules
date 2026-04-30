@@ -122,6 +122,10 @@ class SolarPySAMBase(ComponentBase):
 
         # Determine the dt implied by the weather file (after sorting to be safe)
         df_solar = df_solar.sort_values("time").reset_index(drop=True)
+        if len(df_solar) < 2:
+            raise ValueError(
+                "Solar input file must contain at least two rows to infer the native solar timestep"
+            )
         self.dt_solar = float(df_solar["time"].iloc[1] - df_solar["time"].iloc[0])
 
         # Read the use_native_solar_dt option (default True). When True and the
@@ -137,18 +141,22 @@ class SolarPySAMBase(ComponentBase):
         )
 
         # Decide the compute (PySAM) grid. In the use_native_solar_dt case runPySAM
-        # at the native dt and upsample its outputs; the compute grid extends
-        # one native interval past endtime so the
-        # ``averaged_to_instantaneous`` upsample never has to extrapolate.
+        # at the native dt and upsample its outputs; use native weather-file
+        # stamps directly (instead of start + n*dt) so start-of-period averages
+        # keep their original interval alignment when starttime_utc is offset
+        # from the native reporting boundary. Include one point at/after endtime
+        # so the ``averaged_to_instantaneous`` upsample never extrapolates.
         # In the fallback (compute_dt == dt) the compute grid equals the
         # Hercules grid so downstream array lengths match step indexing
         # exactly, preserving the pre-existing behaviour.
         if self.use_native_solar_dt and self.dt_solar > self.dt:
             self._compute_dt = self.dt_solar
-            n_compute = max(int(np.ceil((self.endtime - self.starttime) / self._compute_dt)) + 1, 2)
-            self._compute_time_steps = self.starttime + np.arange(
-                n_compute, dtype=hercules_float_type
-            ) * hercules_float_type(self._compute_dt)
+            native_time = df_solar["time"].to_numpy(dtype=hercules_float_type)
+            i_start = max(np.searchsorted(native_time, self.starttime, side="right") - 1, 0)
+            i_end = min(
+                np.searchsorted(native_time, self.endtime, side="left"), len(native_time) - 1
+            )
+            self._compute_time_steps = native_time[i_start : i_end + 1]
             interpolation_method = "instantaneous_to_instantaneous"
         else:
             # Else compute at the Hercules dt

@@ -198,3 +198,73 @@ def test_use_native_solar_dt_false_forces_fallback(tmp_path):
 
     assert spv._compute_dt == pytest.approx(dt)
     assert spv.dt_solar == pytest.approx(dt_native)
+
+
+def test_native_dt_uses_native_timestamp_alignment_for_offset_start(tmp_path):
+    """Native path should anchor compute stamps to weather-file boundaries.
+
+    With an offset simulation start and coarse native weather timestamps, the
+    compute grid should use the native stamp immediately before starttime and
+    the native stamp at/after endtime (rather than start + n * dt_native).
+    """
+    file_start_utc = pd.to_datetime("2024-06-24T17:00:00Z")
+    sim_start_utc = pd.to_datetime("2024-06-24T17:00:30Z")
+    sim_end_utc = pd.to_datetime("2024-06-24T17:05:30Z")
+    dt = 1.0
+    dt_native = 60.0
+
+    solar_input = tmp_path / "solar_input.ftr"
+    _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
+
+    h_dict_native = _build_h_dict(
+        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True
+    )
+    spv_native = SolarPySAMPVWatts(h_dict_native, "solar_farm")
+
+    assert spv_native._compute_dt == pytest.approx(dt_native)
+    assert spv_native._compute_time_steps[0] == pytest.approx(-30.0)
+    assert spv_native._compute_time_steps[-1] == pytest.approx(330.0)
+    np.testing.assert_allclose(np.diff(spv_native._compute_time_steps), dt_native)
+
+
+def test_native_dt_matches_full_resolution_with_offset_start_within_tolerance(tmp_path):
+    """Native path should still match feature-off path with offset start/end.
+
+    This regression guards interval-alignment behavior when simulation start is
+    not on the weather file's native reporting boundary.
+    """
+    file_start_utc = pd.to_datetime("2024-06-24T17:00:00Z")
+    sim_start_utc = pd.to_datetime("2024-06-24T17:00:30Z")
+    sim_end_utc = pd.to_datetime("2024-06-24T17:10:30Z")
+    dt = 1.0
+    dt_native = 60.0
+
+    solar_input = tmp_path / "solar_input.ftr"
+    _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
+
+    h_dict_native = _build_h_dict(
+        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True
+    )
+    spv_native = SolarPySAMPVWatts(h_dict_native, "solar_farm")
+
+    h_dict_full = _build_h_dict(
+        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=False
+    )
+    spv_full = SolarPySAMPVWatts(h_dict_full, "solar_farm")
+
+    expected_n = int((spv_native.endtime - spv_native.starttime) / dt)
+    assert spv_native.ac_power_available_array.shape[0] == expected_n
+    assert spv_full.ac_power_available_array.shape[0] == expected_n
+
+    np.testing.assert_allclose(
+        spv_native.ac_power_available_array,
+        spv_full.ac_power_available_array,
+        rtol=1e-3,
+        atol=10.0,
+    )
+    np.testing.assert_allclose(
+        spv_native.dc_power_available_array,
+        spv_full.dc_power_available_array,
+        rtol=1e-3,
+        atol=10.0,
+    )
