@@ -227,6 +227,54 @@ def test_native_dt_uses_native_timestamp_alignment_for_offset_start(tmp_path):
     np.testing.assert_allclose(np.diff(spv_native._compute_time_steps), dt_native)
 
 
+def test_native_dt_includes_previous_stamp_when_start_aligns_to_native(tmp_path):
+    """Compute grid should include the native stamp before an aligned start.
+
+    When ``starttime_utc`` falls exactly on a native weather timestamp and
+    the file extends earlier, the compute grid must include that previous
+    native stamp so ``_upsample_outputs_to_hercules_dt`` has midpoints on
+    both sides of the first Hercules step (avoiding ``np.interp`` clamping
+    at the left edge).
+    """
+    file_start_utc = pd.to_datetime("2024-06-24T17:00:00Z")
+    sim_start_utc = pd.to_datetime("2024-06-24T17:01:00Z")
+    sim_end_utc = pd.to_datetime("2024-06-24T17:05:00Z")
+    dt = 1.0
+    dt_native = 60.0
+
+    solar_input = tmp_path / "solar_input.ftr"
+    _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
+
+    h_dict = _build_h_dict(solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True)
+    spv = SolarPySAMPVWatts(h_dict, "solar_farm")
+
+    assert spv._compute_dt == pytest.approx(dt_native)
+    assert spv._compute_time_steps[0] == pytest.approx(-dt_native)
+    assert spv._compute_time_steps[1] == pytest.approx(0.0)
+    np.testing.assert_allclose(np.diff(spv._compute_time_steps), dt_native)
+
+
+def test_native_dt_clamps_when_start_equals_file_first_stamp(tmp_path):
+    """Compute grid must clamp to index 0 when starttime equals the first stamp.
+
+    When ``starttime_utc`` equals the file's earliest timestamp there is no
+    earlier native point to include, so the compute grid should start at the
+    first native stamp (i.e. simulation time 0).
+    """
+    starttime_utc = pd.to_datetime("2024-06-24T17:00:00Z")
+    endtime_utc = pd.to_datetime("2024-06-24T17:05:00Z")
+    dt = 1.0
+    dt_native = 60.0
+
+    solar_input = tmp_path / "solar_input.ftr"
+    _build_synthetic_solar_file(solar_input, starttime_utc, endtime_utc, dt_native)
+
+    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=True)
+    spv = SolarPySAMPVWatts(h_dict, "solar_farm")
+
+    assert spv._compute_time_steps[0] == pytest.approx(0.0)
+
+
 def test_native_dt_matches_full_resolution_with_offset_start_within_tolerance(tmp_path):
     """Native path should still match feature-off path with offset start/end.
 

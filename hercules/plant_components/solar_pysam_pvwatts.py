@@ -125,9 +125,9 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # curtailment.
         compute_outputs = {
             "ac_power_available": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
-            / 1000.0,
+            / hercules_float_type(1000.0),
             "dc_power_available": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
-            / 1000.0,
+            / hercules_float_type(1000.0),
             "dni": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
             "dhi": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
             "ghi": np.array(self.system_model.Outputs.gh, dtype=hercules_float_type),

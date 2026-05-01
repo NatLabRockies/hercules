@@ -144,15 +144,21 @@ class SolarPySAMBase(ComponentBase):
         # at the native dt and upsample its outputs; use native weather-file
         # stamps directly (instead of start + n*dt) so start-of-period averages
         # keep their original interval alignment when starttime_utc is offset
-        # from the native reporting boundary. Include one point at/after endtime
-        # so the ``averaged_to_instantaneous`` upsample never extrapolates.
+        # from the native reporting boundary. Include one point strictly before
+        # starttime and one point at/after endtime when available so the
+        # downstream ``averaged_to_instantaneous`` upsample has midpoints on
+        # both sides of every Hercules time step (no edge clamping). For
+        # i_start we use ``side="left"`` so that when ``starttime`` falls
+        # exactly on a native stamp we still pick the previous one; this is a
+        # no-op for offsets falling strictly between native stamps and is
+        # clamped to 0 when ``starttime`` matches the file's first stamp.
         # In the fallback (compute_dt == dt) the compute grid equals the
         # Hercules grid so downstream array lengths match step indexing
         # exactly, preserving the pre-existing behaviour.
         if self.use_native_solar_dt and self.dt_solar > self.dt:
             self._compute_dt = self.dt_solar
             native_time = df_solar["time"].to_numpy(dtype=hercules_float_type)
-            i_start = max(np.searchsorted(native_time, self.starttime, side="right") - 1, 0)
+            i_start = max(np.searchsorted(native_time, self.starttime, side="left") - 1, 0)
             i_end = min(
                 np.searchsorted(native_time, self.endtime, side="left"), len(native_time) - 1
             )
