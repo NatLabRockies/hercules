@@ -48,15 +48,22 @@ No manual setup is required. The example uses only the OCGT component which requ
 To run the example, execute the following command in the terminal:
 
 ```bash
+python examples/07_open_cycle_gas_turbine/hercules_runscript.py
+
+# OR
+
+cd examples/07_open_cycle_gas_turbine
 python hercules_runscript.py
 ```
 
 ## Outputs
 
+The output files `hercules_output.h5` and `hercules_dict.echo` are written to the folder `examples/07_open_cycle_gas_turbine/outputs_07/` and log files are written to the folder `examples/07_open_cycle_gas_turbine/logger_outputs_07/`
+
 To plot the outputs, run:
 
 ```bash
-python plot_outputs.py
+python examples/07_open_cycle_gas_turbine/plot_outputs.py
 ```
 
 The plot shows:

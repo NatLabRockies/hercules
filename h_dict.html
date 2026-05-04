@@ -181,10 +181,11 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation and Contribution</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contributing to Hercules</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
@@ -514,6 +515,66 @@
 <td><p>Current simulation time</p></td>
 <td><p>starttime</p></td>
 </tr>
+<tr class="row-even"><td><p><strong>Output File Configuration</strong></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_dir</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Output folder name</p></td>
+<td><p>“outputs”</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Output HDF5 file name</p></td>
+<td><p>“hercules_output.h5”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">overwrite_outputs</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>If True, removes the existing output files in the <code class="docutils literal notranslate"><span class="pre">output_dir</span></code></p></td>
+<td><p>True</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Logging Configuration</strong></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logging</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Logging configuration</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">logging.logger_name</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Name of logger</p></td>
+<td><p>“hercules”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logging.logger_file</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>Log file name</p></td>
+<td><p>“log_hercules.log”</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">logging.console_output</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>Whether to log to console</p></td>
+<td><p>True</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logging.console_prefix</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Logger prefix</p></td>
+<td><p>“HERCULES”</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">logging.log_level</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Logging level</p></td>
+<td><p>“INFO”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logging.logging_dir</span></code></p></td>
+<td><p>str</p></td>
+<td><p>Logger output dir</p></td>
+<td><p>“outputs”</p></td>
+</tr>
 <tr class="row-even"><td><p><strong>Plant Configuration</strong></p></td>
 <td><p></p></td>
 <td><p></p></td>
@@ -549,32 +610,27 @@
 <td><p>Simulation description</p></td>
 <td><p>-</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code></p></td>
-<td><p>str</p></td>
-<td><p>Output HDF5 file path</p></td>
-<td><p>“outputs/hercules_output.h5”</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log_every_n</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log_every_n</span></code></p></td>
 <td><p>int</p></td>
 <td><p>Log every N simulation steps to output log (default: 1)</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">external_data</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">external_data</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>External data configuration</p></td>
 <td><p>-</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">external_data_file</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">external_data_file</span></code></p></td>
 <td><p>str</p></td>
 <td><p>External data file path (deprecated, use <code class="docutils literal notranslate"><span class="pre">external_data</span></code> instead)</p></td>
 <td><p>-</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">controller</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">controller</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>Controller configuration</p></td>
 <td><p>-</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Hybrid Plant Components</strong></p></td>
+<tr class="row-odd"><td><p><strong>Hybrid Plant Components</strong></p></td>
 <td><p></p></td>
 <td><p></p></td>
 <td><p></p></td>

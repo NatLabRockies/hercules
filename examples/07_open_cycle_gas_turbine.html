@@ -181,10 +181,11 @@
                 </a>
             </li>
         </ul>
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation and Contribution</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation instructions</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing to Hercules</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Running Hercules</span></p>
 <ul class="nav bd-sidenav">
@@ -600,14 +601,20 @@
 <section id="running">
 <h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
 <p>To run the example, execute the following command in the terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/07_open_cycle_gas_turbine/hercules_runscript.py
+
+<span class="c1"># OR</span>
+
+<span class="nb">cd</span><span class="w"> </span>examples/07_open_cycle_gas_turbine
+python<span class="w"> </span>hercules_runscript.py
 </pre></div>
 </div>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The output files <code class="docutils literal notranslate"><span class="pre">hercules_output.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">hercules_dict.echo</span></code> are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/07_open_cycle_gas_turbine/outputs_07/</span></code> and log files are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/07_open_cycle_gas_turbine/logger_outputs_07/</span></code></p>
 <p>To plot the outputs, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/07_open_cycle_gas_turbine/plot_outputs.py
 </pre></div>
 </div>
 <p>The plot shows:</p>
