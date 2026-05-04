@@ -833,8 +833,9 @@ def test_setup_logging_full_path():
     """Test setup_logging with full file path and use_outputs_dir=False."""
     with tempfile.TemporaryDirectory() as tmpdir:
         log_file = str(Path(tmpdir) / "custom_logs" / "test.log")
-
-        logger = setup_logging(logger_name="battery", log_file=log_file, use_outputs_dir=False)
+        log_dir = Path(log_file).parent
+        log_fname = Path(log_file).name
+        logger = setup_logging(logger_name="battery", log_file=log_fname, logging_dir=log_dir)
 
         # Verify log file was created at specified path
         assert Path(log_file).exists()
