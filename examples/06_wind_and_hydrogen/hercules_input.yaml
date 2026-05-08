@@ -5,7 +5,7 @@ name: example_06
 
 ###
 # Describe this simulation setup
-description: Wind and hydrogen 
+description: Wind and hydrogen
 
 dt: 1.0
 starttime_utc: "2024-06-24T16:59:08Z" # Jun 24, 2024 16:59:08 UTC (Zulu time)
@@ -40,18 +40,18 @@ wind_farm:
 electrolyzer: # The name of the py_sim object
 
   component_type: ElectrolyzerPlant
-  general: 
+  general:
     verbose: True # default
   initial_conditions:
-    # Initial power input to electrolyzer 
-    power_available_kw: 20000    
+    # Initial power input to electrolyzer
+    power_available_kw: 20000
   electrolyzer:
-    initialize: True 
+    initialize: True
     initial_power_kW: 20000
     supervisor:
       n_stacks: 40
       system_rating_MW: 40
-    stack: 
+    stack:
       cell_type: PEM
       # Maximum current of Stack (A)
       max_current: 2000
@@ -66,7 +66,7 @@ electrolyzer: # The name of the py_sim object
       # hydrogen_degradation_penalty: True
     # cell_params:
     #   cell_type: PEM
-      # max_current_density: 2 
+      # max_current_density: 2
       # PEM_params:
           # cell_area: 1000
           # turndown_ratio: 0.1
@@ -90,7 +90,7 @@ electrolyzer: # The name of the py_sim object
     controller:
       # Controller type for electrolyzer plant operation
       control_type: PowerSharingRotation
-      # policy: 
+      # policy:
       #   eager_on: False
       #   eager_off: False
       #   sequential: False
@@ -111,7 +111,3 @@ controller:
   hydrogen_controller_gain: 1
 
 external_data_file: inputs/hydrogen_ref_signal.csv
-
-
-
-

@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 import os
+import shutil
 import sys
 import time as _time
 from pathlib import Path
@@ -16,12 +17,11 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
+    make_unique_folder_name,
     setup_logging,
 )
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
-
-Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
 class HerculesModel:
@@ -35,14 +35,44 @@ class HerculesModel:
 
         """
 
-        # Make sure output folder exists
-        Path("outputs").mkdir(parents=True, exist_ok=True)
-
-        # Set up logging
-        self.logger = self._setup_logging()
-
         # Load and validate the input file
         h_dict = self._load_hercules_input(input_file)
+
+        # set default output directory to cwd / "outputs"
+        output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
+
+        # If the output directory exists, and overwrite_outputs is True
+        # The output folder will be deleted and recreated.
+        if h_dict.get("overwrite_outputs", True):
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
+        else:
+            # Make a unique foldername with the same basename as the output_dir
+            proposed_dirname = str(output_dir.name)
+            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
+            # If the proposed directory already existed and a new folder was proposed,
+            # update the logger directory to have the same unique number
+            if output_dir.name != proposed_dirname:
+                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
+                unique_folder_id = "".join(p for p in unique_folder_id_parts)
+                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
+                    if isinstance(h_dict["logging"]["logging_dir"], str):
+                        h_dict["logging"].update(
+                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
+                        )
+
+                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
+                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
+                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
+
+                    h_dict["logging"].update({"logging_dir": new_log_fpath})
+
+        # Make sure output folder exists
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        # Set up logging
+        logging_inputs = {"logging_dir": output_dir} | h_dict.get("logging", {})
+        self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -83,8 +113,19 @@ class HerculesModel:
             # Ensure .h5 extension
             if not self.output_file.endswith(".h5"):
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
+
+            if "/" in self.output_file:
+                # check if folder was specfied in output_file
+                if Path(self.output_file).parent != output_dir:
+                    # if folder of output_file does not match output_dir, then
+                    # just use the name of the output file
+                    self.output_file = output_dir / self.output_file.split("/")[-1]
+            else:
+                self.output_file = output_dir / self.output_file
         else:
-            self.output_file = "outputs/hercules_output.h5"
+            self.output_file = output_dir / "hercules_output.h5"
+
+        self.output_file = Path(self.output_file).absolute()
 
         # Initialize HDF5 output system
         self.hdf5_file = None
@@ -124,25 +165,28 @@ class HerculesModel:
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
 
-    def _setup_logging(self, logfile="log_hercules.log", console_output=True):
+    def _setup_logging(self, log_file_name="log_hercules.log", **kwargs):
         """Set up logging to file and console.
 
         Creates 'outputs' directory and configures file/console logging with timestamps.
         This method wraps the utilities.setup_logging function for backward compatibility.
 
         Args:
-            logfile (str, optional): Log file name. Defaults to "log_hercules.log".
-            console_output (bool, optional): Enable console output. Defaults to True.
+            log_file_name (str, optional): Log file name. Defaults to "log_hercules.log".
+            **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
             logging.Logger: Configured logger instance.
         """
-        return setup_logging(
-            logger_name="hercules",
-            log_file=logfile,
-            console_output=console_output,
-            console_prefix="HERCULES",
-        )
+
+        logging_defaults = {
+            "logger_name": "hercules",
+            "log_file": log_file_name,
+        }
+
+        # Update the defaults with any input kwargs
+        logging_inputs = logging_defaults | kwargs
+        return setup_logging(**logging_inputs)
 
     def _load_hercules_input(self, filename):
         """Load and validate Hercules input file.
@@ -172,10 +216,23 @@ class HerculesModel:
         """
         Read and interpolate external data from a CSV, feather, or pickle file.
 
-        This method reads external data from the specified file (CSV, feather, or pickle)
-        and interpolates it according to the simulation time steps. The external data must
-        include a 'time_utc' column which will be converted to simulation time.
-        The interpolated data is stored in self.external_signals_all.
+        This method reads external data from the specified file (CSV, feather, or
+        pickle) and upsamples it onto the simulation time grid using
+        ``"instantaneous_to_instantaneous"`` (linear interpolation between the
+        values at the supplied timestamps).
+
+        If zero-order-hold (piecewise-constant / step) behavior is desired --
+        for example, LMP prices that should be held constant across each
+        reporting interval -- the external data file must be pre-processed to
+        include an additional row at the end of each interval carrying the
+        same value.  Linear interpolation between each pair of identical
+        endpoints then reproduces the ZOH shape.  See
+        ``hercules.grid.grid_utilities.generate_locational_marginal_price_dataframe_from_gridstatus``
+        for a worked example of this endpoint-insertion pattern.
+
+        The external data must include a ``time_utc`` column which will be
+        converted to simulation time.  The interpolated data is stored in
+        ``self.external_signals_all``.
 
         Args:
             filename (str): Path to the file containing external data. Supported formats:
@@ -216,7 +273,9 @@ class HerculesModel:
         )
 
         # Interpolate using the utility function
-        df_interpolated = interpolate_df(df_ext, new_times)
+        df_interpolated = interpolate_df(
+            df_ext, new_times, interpolation_method="instantaneous_to_instantaneous"
+        )
 
         # Convert interpolated DataFrame to dictionary format
         for col in df_interpolated.columns:
@@ -377,6 +436,18 @@ class HerculesModel:
                     else:
                         raise ValueError(f"Output {c} not found in {component_name}")
 
+            if "units" in self.h_dict[component_name]:
+                for unit in component_obj.units:
+                    unit_name = unit.component_name
+                    for c in unit.log_channels:
+                        dataset_name = f"{component_name}.{unit_name}.{c}"
+                        self.hdf5_datasets[dataset_name] = components_group.create_dataset(
+                            dataset_name,
+                            shape=(total_rows,),
+                            dtype=hercules_float_type,
+                            **compression_params,
+                        )
+
         # Create external signals datasets
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:
             external_signals_group = data_group.create_group("external_signals")
@@ -410,7 +481,8 @@ class HerculesModel:
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        with open("outputs/h_dict.echo", "w") as f_i:
+        echo_file_fpath = self.output_file.parent / "h_dict.echo"
+        with open(echo_file_fpath, "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value
@@ -549,18 +621,12 @@ class HerculesModel:
             self.logger.info("=====================================")
             self.logger.info(
                 (
-                    "Total simulated time: ",
-                    f"{self.total_simulation_time} seconds ({self.total_simulation_days} days)",
+                    "Total simulated time: "
+                    f"{self.total_simulation_time:.1f} seconds ({self.total_simulation_days:.2f}"
+                    " days)"
                 )
             )
-            self.logger.info(f"Total wall time: {self.total_time_wall}")
-            self.logger.info(
-                (
-                    "Rate of simulation: ",
-                    f"{self.total_simulation_time / self.total_time_wall:.1f}",
-                    "x real time",
-                )
-            )
+            self.logger.info(f"Total wall time: {self.total_time_wall:.1f} seconds")
             self.logger.info("=====================================")
 
         except Exception as e:
@@ -711,6 +777,16 @@ class HerculesModel:
                             dataset_name = f"{component_name}.{c}"
                             if dataset_name in self.data_buffers:
                                 self.data_buffers[dataset_name][self.buffer_row] = output_value
+
+            if "units" in self.h_dict[component_name]:
+                for unit in component_obj.units:
+                    unit_name = unit.component_name
+                    for c in unit.log_channels:
+                        dataset_name = f"{component_name}.{unit_name}.{c}"
+                        if dataset_name in self.data_buffers:
+                            self.data_buffers[dataset_name][self.buffer_row] = self.h_dict[
+                                component_name
+                            ][unit_name][c]
 
         # Buffer external signals (only those specified in log_channels)
         if "external_signals" in self.h_dict and self.h_dict["external_signals"]:

@@ -14,10 +14,19 @@ verbose: False  # Enable verbose console output (True/False)
 log_every_n: 10  # Log output every N time steps (positive integer, default: 1)
 
 # Output file configuration
+output_dir: outputs # output folder
 output_file: outputs/hercules_output.h5  # Output HDF5 file path (automatically adds .h5 extension if missing)
+overwrite_outputs: True # if True, remove any files in output_dir prior to running, if False, creates a unique foldername
 output_use_compression: True  # Enable HDF5 compression (True/False, default: True)
 output_buffer_size: 50000  # Memory buffer size for writing data in rows (default: 50000)
 
+logging:
+  logger_name: "hercules"
+  log_file: "log_hercules.log"
+  console_output: True
+  console_prefix: "HERCULES"
+  log_level: "INFO"
+  logging_dir: "outputs" # folder to write the loggers to
 # Plant-level configuration
 plant:
   interconnect_limit: 201300  # kW - grid interconnection capacity limit
@@ -79,7 +88,9 @@ wind_farm:
 #   losses: 0  # System losses as a percentage (0-100, default: 0)
 #   log_file_name: outputs/log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
-#     - power  # DC power output in kW (always logged)
+#     - power  # Delivered AC power in kW after control (always logged)
+#     - ac_power_available  # Post-inverter AC potential in kW (before control curtailment)
+#     - dc_power_available  # Pre-inverter DC potential of the arrays in kW
 #     - poa  # Plane-of-array irradiance in W/m²
 #     - dni  # Direct normal irradiance in W/m²
 #     - aoi  # Angle of incidence in degrees
@@ -175,4 +186,3 @@ wind_farm:
 controller:
   # Add controller parameters here if using WHOC or other controllers
   # Example controller configuration would go here
-

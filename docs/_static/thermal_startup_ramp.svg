@@ -1,30 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 450" font-family="Arial, sans-serif">
   <!-- Background -->
   <rect width="920" height="450" fill="white"/>
-  
+
   <!-- Axes -->
   <line x1="80" y1="380" x2="800" y2="380" stroke="black" stroke-width="2"/>
   <line x1="80" y1="380" x2="80" y2="40" stroke="black" stroke-width="2"/>
-  
+
   <!-- Axis arrows -->
   <polygon points="800,380 790,375 790,385" fill="black"/>
   <polygon points="80,40 75,50 85,50" fill="black"/>
-  
+
   <!-- Y-axis label -->
   <text x="30" y="210" font-size="16" font-weight="bold" transform="rotate(-90, 30, 210)">Power (kW)</text>
-  
+
   <!-- X-axis label -->
   <text x="440" y="420" font-size="16" font-weight="bold">time</text>
-  
+
   <!-- P_max horizontal dashed line -->
   <line x1="80" y1="80" x2="700" y2="80" stroke="#00B4D8" stroke-width="2" stroke-dasharray="8,4"/>
   <text x="710" y="85" font-size="12" fill="#00B4D8" font-weight="bold">P_max = rated_capacity</text>
-  
+
   <!-- P_min horizontal dashed line -->
   <line x1="80" y1="200" x2="700" y2="200" stroke="#00B4D8" stroke-width="2" stroke-dasharray="8,4"/>
   <text x="710" y="205" font-size="12" fill="#00B4D8" font-weight="bold">P_min = rated_capacity ×</text>
   <text x="710" y="220" font-size="12" fill="#00B4D8" font-weight="bold">min_stable_load_fraction</text>
-  
+
   <!-- Power trajectory line (orange) -->
   <!-- Flat at 0 during readying time -->
   <line x1="80" y1="380" x2="250" y2="380" stroke="#E85D04" stroke-width="3"/>
@@ -32,40 +32,40 @@
   <line x1="250" y1="380" x2="420" y2="200" stroke="#E85D04" stroke-width="3"/>
   <!-- Normal operation ramp from P_min toward P_max -->
   <line x1="420" y1="200" x2="590" y2="80" stroke="#E85D04" stroke-width="3"/>
-  
+
   <!-- Vertical dashed line at hot_readying_time (ramp_start) -->
   <line x1="250" y1="380" x2="250" y2="310" stroke="#0077B6" stroke-width="1.5" stroke-dasharray="5,3"/>
-  
+
   <!-- Vertical dashed line at hot_startup_time -->
   <line x1="420" y1="200" x2="420" y2="310" stroke="#0077B6" stroke-width="1.5" stroke-dasharray="5,3"/>
-  
+
   <!-- Time labels on x-axis - offset to avoid overlap with dashed lines -->
   <!-- t = hot_readying_time -->
   <text x="170" y="330" font-size="11" fill="#0077B6" text-anchor="middle">t = hot_readying_time</text>
   <text x="170" y="345" font-size="10" fill="#0077B6" text-anchor="middle">(derived)</text>
-  
+
   <!-- t = hot_startup_time -->
   <text x="500" y="330" font-size="11" fill="#0077B6" text-anchor="middle">t = hot_startup_time</text>
   <text x="500" y="345" font-size="10" fill="#0077B6" text-anchor="middle">(input)</text>
-  
+
   <!-- ramp_time bracket -->
   <line x1="250" y1="395" x2="420" y2="395" stroke="#0077B6" stroke-width="1.5"/>
   <line x1="250" y1="390" x2="250" y2="400" stroke="#0077B6" stroke-width="1.5"/>
   <line x1="420" y1="390" x2="420" y2="400" stroke="#0077B6" stroke-width="1.5"/>
   <text x="335" y="412" font-size="11" fill="#0077B6" text-anchor="middle">ramp_time (derived)</text>
-  
+
   <!-- Run-Up Rate label with arrow -->
   <text x="280" y="265" font-size="13" fill="#E85D04" font-weight="bold">run_up_rate</text>
   <!-- Arrow pointing to run-up slope -->
   <line x1="320" y1="275" x2="310" y2="305" stroke="#E85D04" stroke-width="1.5"/>
   <polygon points="310,305 307,295 317,297" fill="#E85D04"/>
-  
+
   <!-- Ramp Rate label with arrow -->
   <text x="470" y="120" font-size="13" fill="#E85D04" font-weight="bold">ramp_rate</text>
   <!-- Arrow pointing to ramp slope -->
   <line x1="500" y1="130" x2="485" y2="155" stroke="#E85D04" stroke-width="1.5"/>
   <polygon points="485,155 482,145 492,147" fill="#E85D04"/>
-  
+
   <!-- Note about hot vs cold -->
   <text x="100" y="440" font-size="10" fill="#666">Note: Diagram shows hot startup. Cold startup uses cold_startup_time and cold_readying_time.</text>
 </svg>

@@ -2,9 +2,11 @@
 
 Hercules generates HDF5 output files containing simulation data for analysis and visualization. This page describes the file format, available utilities for reading the data, and how HerculesModel generates these files.
 
+All values in output files represent **instantaneous** quantities at each time step, not period averages. This differs from the convention used by input data files, where timestamps mark the start of a reporting period. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for details on this distinction and the midpoint correction applied during input interpolation.
+
 ## File Format
 
-Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.  
+Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.
 
 ## File Structure
 
@@ -24,7 +26,9 @@ hercules_output.h5
 │   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
 │   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
 │   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
-│   │   ├── solar_farm.power                  # Solar farm power output
+│   │   ├── solar_farm.power                  # Solar farm AC power after control (kW)
+│   │   ├── solar_farm.ac_power_available     # Post-inverter AC potential (kW) (if logged)
+│   │   ├── solar_farm.dc_power_available     # Pre-inverter DC potential (kW) (if logged)
 │   │   ├── solar_farm.dni                    # Direct normal irradiance (if logged)
 │   │   ├── solar_farm.poa                    # Plane-of-array irradiance (if logged)
 │   │   ├── battery.power                     # Battery power (if present)

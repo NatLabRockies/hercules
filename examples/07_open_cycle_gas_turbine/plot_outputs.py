@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from hercules import HerculesOutput
 
 # Read the Hercules output file using HerculesOutput
-ho = HerculesOutput("outputs/hercules_output.h5")
+ho = HerculesOutput("outputs_07/hercules_output.h5")
 
 # Print metadata information
 print("Simulation Metadata:")

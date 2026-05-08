@@ -12,12 +12,12 @@ h6 {
     margin: 1% 1%;
 }
 
-.one-fourth.column, .one-fourth-sub.column { 
-    width: 23%; 
+.one-fourth.column, .one-fourth-sub.column {
+    width: 23%;
 }
 
-.three-fourths.column { 
-    width: 75%; 
+.three-fourths.column {
+    width: 75%;
 }
 
 .three-fourths-sub.column {
@@ -58,7 +58,7 @@ h6 {
 
 #input-method-dd, #location-dd {
     color: #000;
-    
+
 }
 
 select {
@@ -180,7 +180,7 @@ div.Select-input, .dropdown-content  {
     }
     .app__content {
         display: block;
-    }    
+    }
     .app__menu__img {
         height: 30px;
         width: auto;

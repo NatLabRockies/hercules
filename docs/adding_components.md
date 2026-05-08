@@ -97,7 +97,7 @@ While only generator power is included in `locally_generated_power`, all categor
 
 ## Step 2: Register the Component
 
-Add the component to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py` (see [Hybrid Plant Components](hybrid_plant.md)).
+Add the component to `COMPONENT_REGISTRY` in `hercules/component_registry.py` (see [Hybrid Plant Components](hybrid_plant.md)).
 
 
 The key string (e.g., `"MyComponent"`) is the `component_type` value users will specify in their YAML input files.
@@ -142,9 +142,8 @@ pytest tests/my_component_test.py -v
 - [ ] Inherit from `ComponentBase`
 - [ ] Define `component_category` class attribute
 - [ ] Implement `__init__`, `step`, `get_initial_conditions_and_meta_data`
-- [ ] Import and add to `COMPONENT_REGISTRY` in `hercules/hybrid_plant.py`
+- [ ] Import and add to `COMPONENT_REGISTRY` in `hercules/component_registry.py`
 - [ ] Create tests in `tests/my_component_test.py`
 - [ ] Create `docs/my_component.md`
 - [ ] Add to `docs/_toc.yml`
 - [ ] Update reference tables in `hybrid_plant.md` and `component_types.md`
-

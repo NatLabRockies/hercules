@@ -1,9 +1,9 @@
 # Installation on Kestrel
 
 This document outlines the process for install hercules onto NLR's Kestrel
-computer.  
+computer.
 
-The initial steps for running on Kestrel are the same as those outlined in **Local installation instructions**.  Once those steps are complete, 
+The initial steps for running on Kestrel are the same as those outlined in **Local installation instructions**.  Once those steps are complete,
 Running hercules in full requires installing AMR-Wind (likely on Kestrel/HPC).
 The steps are detailed in section **HPC Installation**.
 
@@ -39,7 +39,7 @@ env_hercules()
 
         conda activate hercules
 }
-``` 
+```
 
 
 ## Middle Steps: Creating the Hercules conda enviroment
@@ -111,7 +111,7 @@ This module is used to implement controllers in the Hercules platform. Example 0
 
 Note: if you want the newest updates to the Hycon repository, you can checkout the develop branch instead of the main branch.
 
-Installation instructions: 
+Installation instructions:
 Go back to herc_root
 
 ```
@@ -123,7 +123,7 @@ pip install -e .
 
 ## Try an example!
 
-Look at 
+Look at
 herc_root/hercules/example_case_folders/02_amr_wind_standin_only
 
 (May need to edit the port from 32000 to 32001 in bash_script.sh)
@@ -132,7 +132,7 @@ herc_root/hercules/example_case_folders/02_amr_wind_standin_only
 source bash_script.sh
 ```
 
-## Final Steps: Setting up AMR-WIND 
+## Final Steps: Setting up AMR-WIND
 The easiest, and currently supported, way to set up AMR-Wind to run on Kestrel is to follow the instructions outlined in **Spack installation of AMR Wind code**.
 
 
@@ -157,29 +157,29 @@ Finally, if you want to run simulations with OpenFAST turbine models controlled 
 
 ## Running a job
 
-For an example of running hercules with AMR-Wind, `cd` to 
-hercules/example_case_folders/01_amr_wind_only/. 
+For an example of running hercules with AMR-Wind, `cd` to
+hercules/example_case_folders/01_amr_wind_only/.
 
-Change the line beginning `mpirun` to point to your compiled amr-wind 
+Change the line beginning `mpirun` to point to your compiled amr-wind
 executable. This will appear something like:
 ```
 mpirun -n 72 /path/to/amr-wind/build/amr_wind amr_input.inp >> logamr 2>&1
 ```
-Make any other necessary changes to batch_script.sh, and submit it to the 
+Make any other necessary changes to batch_script.sh, and submit it to the
 jobs queue using
 ```
 sbatch batch_script.sh
 ```
 
 <!--
-  ### Setting up AMR-WIND 
+  ### Setting up AMR-WIND
 
-First, `deactive` your conda environment using 
+First, `deactive` your conda environment using
 ```
 conda deactivate
 ```
 
-Then, clone AMR-Wind and install its required submodules. This can be done 
+Then, clone AMR-Wind and install its required submodules. This can be done
 using
 
 EITHER
@@ -188,9 +188,9 @@ git clone https://github.com/Exawind/amr-wind
 cd amr-wind
 git submodule update --init
 cd ..
-``` 
+```
 OR
-``` 
+```
 git clone --recursive https://github.com/Exawind/amr-wind
 ```
 
@@ -198,7 +198,7 @@ Now, create a new directory `build` within the main AMR-Wind repository
 ```
 mkdir amr-wind/build
 ```
-and copy amr-wind_buildme.sh from hercules into it, naming the copied file 
+and copy amr-wind_buildme.sh from hercules into it, naming the copied file
 buildme.sh
 ```
 cp hercules/amr-wind_buildme.sh amr-wind/build/buildme.sh
@@ -212,21 +212,21 @@ chmod +x buildme.sh
 ./buildme.sh
 ```
 
-This will begin compiling an AMR-Wind executable. The process could take 
-several minutes, during which progress updates will print to the terminal. 
+This will begin compiling an AMR-Wind executable. The process could take
+several minutes, during which progress updates will print to the terminal.
 Once complete, the build directory will contain an executable named amr_wind.
 
 ### Running a job
 
-For an example of running hercules with AMR-Wind, `cd` to 
-hercules/example_case_folders/example_sim_06/. 
+For an example of running hercules with AMR-Wind, `cd` to
+hercules/example_case_folders/example_sim_06/.
 
-Change the line beginning `mpirun` to point to your compiled amr-wind 
+Change the line beginning `mpirun` to point to your compiled amr-wind
 executable. This will appear something like:
 ```
 mpirun -n 72 /path/to/amr-wind/build/amr_wind amr_input.inp >> logamr 2>&1
 ```
-Make any other necessary changes to batch_script.sh, and submit it to the 
+Make any other necessary changes to batch_script.sh, and submit it to the
 jobs queue using
 ```
 sbatch batch_script.sh
@@ -248,7 +248,7 @@ cd OpenFAST
 git checkout tags/v3.4.1
 git switch -c v3.4.1
 mkdir build
-cd build 
+cd build
 ```
 
 Now run the following set of commands:
@@ -306,7 +306,7 @@ git submodule update --init --recursive
 git switch -c hercules-build
 ```
 
-Next you are going to paste the following code into a file ''build_script'' in the top-level folder of amr_wind.  
+Next you are going to paste the following code into a file ''build_script'' in the top-level folder of amr_wind.
 
 **It is important that before running the script you edit the locaiton of openfast to match your location**
 
@@ -387,4 +387,3 @@ env_hercules()
 }
 ```
 -->
-

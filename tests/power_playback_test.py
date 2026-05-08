@@ -46,8 +46,10 @@ def test_power_playback_step():
     step_h_dict["step"] = 1
     result = power_playback.step(step_h_dict)
 
-    # Verify power
-    assert np.isclose(result["power_playback"]["power"], 2000.0)
+    # With midpoint correction the value at t=1 is the average of period-0
+    # (midpoint = 0.5 seconds after starttime)
+    # (1000) and period-1 (2000) values (midpoint = 1.5 seconds after starttime)
+    assert np.isclose(result["power_playback"]["power"], 1500.0)
 
 
 def test_power_playback_raises_on_nan_in_power_columns():

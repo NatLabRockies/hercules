@@ -3,13 +3,13 @@ requires = ["setuptools >= 40.6.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hercules"
-version = "2"
+name = "nlr-hercules"
+version = "2.1"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-     { name = "Genevieve Starke", email = "Genevieve.Starke@nlr.gov" },
+    { name = "Genevieve Starke", email = "Genevieve.Starke@nlr.gov" },
     { name = "Michael (Misha) Sinner", email = "Michael.Sinner@nlr.gov" },
     { name = "Paul Fleming", email = "Paul.Fleming@nlr.gov" },
     { name = "Brooke Stanislawski", email = "Brooke.Stanislawski@nlr.gov" },
@@ -37,7 +37,7 @@ dependencies = [
 "polars~=1.0",
 "pyarrow",
 "h5py~=3.10",
-"NREL-rex[hsds]",
+"NLR-rex[hsds]",
 "utm",
 "cartopy",
 "openmeteo_requests",
@@ -55,7 +55,6 @@ develop = [
     "pytest",
     "pre-commit",
     "ruff",
-    "isort"
 ]
 
 [tool.setuptools.packages.find]
