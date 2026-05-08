@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 import os
+import shutil
 import sys
 import time as _time
 from pathlib import Path
@@ -16,12 +17,11 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
+    make_unique_folder_name,
     setup_logging,
 )
 
 LOGFILE = str(dt.datetime.now()).replace(":", "_").replace(" ", "_").replace(".", "_")
-
-Path("outputs").mkdir(parents=True, exist_ok=True)
 
 
 class HerculesModel:
@@ -35,14 +35,44 @@ class HerculesModel:
 
         """
 
-        # Make sure output folder exists
-        Path("outputs").mkdir(parents=True, exist_ok=True)
-
-        # Set up logging
-        self.logger = self._setup_logging()
-
         # Load and validate the input file
         h_dict = self._load_hercules_input(input_file)
+
+        # set default output directory to cwd / "outputs"
+        output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
+
+        # If the output directory exists, and overwrite_outputs is True
+        # The output folder will be deleted and recreated.
+        if h_dict.get("overwrite_outputs", True):
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
+        else:
+            # Make a unique foldername with the same basename as the output_dir
+            proposed_dirname = str(output_dir.name)
+            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
+            # If the proposed directory already existed and a new folder was proposed,
+            # update the logger directory to have the same unique number
+            if output_dir.name != proposed_dirname:
+                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
+                unique_folder_id = "".join(p for p in unique_folder_id_parts)
+                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
+                    if isinstance(h_dict["logging"]["logging_dir"], str):
+                        h_dict["logging"].update(
+                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
+                        )
+
+                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
+                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
+                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
+
+                    h_dict["logging"].update({"logging_dir": new_log_fpath})
+
+        # Make sure output folder exists
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        # Set up logging
+        logging_inputs = {"logging_dir": output_dir} | h_dict.get("logging", {})
+        self.logger = self._setup_logging(**logging_inputs)
 
         # Initialize the flattened h_dict
         self.h_dict_flat = {}
@@ -83,8 +113,19 @@ class HerculesModel:
             # Ensure .h5 extension
             if not self.output_file.endswith(".h5"):
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
+
+            if "/" in self.output_file:
+                # check if folder was specfied in output_file
+                if Path(self.output_file).parent != output_dir:
+                    # if folder of output_file does not match output_dir, then
+                    # just use the name of the output file
+                    self.output_file = output_dir / self.output_file.split("/")[-1]
+            else:
+                self.output_file = output_dir / self.output_file
         else:
-            self.output_file = "outputs/hercules_output.h5"
+            self.output_file = output_dir / "hercules_output.h5"
+
+        self.output_file = Path(self.output_file).absolute()
 
         # Initialize HDF5 output system
         self.hdf5_file = None
@@ -124,25 +165,28 @@ class HerculesModel:
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
 
-    def _setup_logging(self, logfile="log_hercules.log", console_output=True):
+    def _setup_logging(self, log_file_name="log_hercules.log", **kwargs):
         """Set up logging to file and console.
 
         Creates 'outputs' directory and configures file/console logging with timestamps.
         This method wraps the utilities.setup_logging function for backward compatibility.
 
         Args:
-            logfile (str, optional): Log file name. Defaults to "log_hercules.log".
-            console_output (bool, optional): Enable console output. Defaults to True.
+            log_file_name (str, optional): Log file name. Defaults to "log_hercules.log".
+            **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
             logging.Logger: Configured logger instance.
         """
-        return setup_logging(
-            logger_name="hercules",
-            log_file=logfile,
-            console_output=console_output,
-            console_prefix="HERCULES",
-        )
+
+        logging_defaults = {
+            "logger_name": "hercules",
+            "log_file": log_file_name,
+        }
+
+        # Update the defaults with any input kwargs
+        logging_inputs = logging_defaults | kwargs
+        return setup_logging(**logging_inputs)
 
     def _load_hercules_input(self, filename):
         """Load and validate Hercules input file.
@@ -437,7 +481,8 @@ class HerculesModel:
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        with open("outputs/h_dict.echo", "w") as f_i:
+        echo_file_fpath = self.output_file.parent / "h_dict.echo"
+        with open(echo_file_fpath, "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
             sys.stdout = original_stdout  # Reset the standard output to its original value

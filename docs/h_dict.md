@@ -16,6 +16,18 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `endtime` | float | Simulation end time in seconds | - |
 | `step` | int | Current simulation step | 0 |
 | `time` | float | Current simulation time | starttime |
+| **Output File Configuration** |
+| `output_dir` | str | Output folder name | "outputs" |
+| `output_file` | str | Output HDF5 file name | "hercules_output.h5" |
+| `overwrite_outputs` | bool | If True, removes the existing output files in the `output_dir` | True |
+| **Logging Configuration** |
+| `logging` | dict | Logging configuration | - |
+| `logging.logger_name` | str | Name of logger | "hercules" |
+| `logging.logger_file` | dict | Log file name | "log_hercules.log" |
+| `logging.console_output` | bool | Whether to log to console | True |
+| `logging.console_prefix` | str | Logger prefix | "HERCULES" |
+| `logging.log_level` | str | Logging level | "INFO" |
+| `logging.logging_dir` | str | Logger output dir | "outputs" |
 | **Plant Configuration** |
 | `plant` | dict | Plant-level configuration | - |
 | `plant.interconnect_limit` | float | Maximum power limit in kW | - |
@@ -23,7 +35,6 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `verbose` | bool | Enable verbose logging | False |
 | `name` | str | Simulation name | - |
 | `description` | str | Simulation description | - |
-| `output_file` | str | Output HDF5 file path | "outputs/hercules_output.h5" |
 | `log_every_n` | int | Log every N simulation steps to output log (default: 1) | 1 |
 | `external_data` | dict | External data configuration | - |
 | `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
