@@ -15,10 +15,7 @@ More information can be found at: https://github.com/NREL/hsds-examples.
 import os
 import sys
 
-from hercules.resource.wind_solar_resource_downloader import (
-    download_nsrdb_data,
-    download_wtk_data,
-)
+import hercules.resource as resource
 from matplotlib import pyplot as plt
 
 sys.path.append(".")
@@ -30,7 +27,9 @@ def run_small_example():
     # ARM Southern Great Plains coordinates
     target_lat = 36.607322
     target_lon = -97.487643
-    year = 2020
+    # Use 2022 for solar because the NSRDB TMY dataset only includes 2022-2024 data,
+    #   and we want to demonstrate using a non-default dataset.
+    year_solar = 2022
 
     # Create data directory
     data_dir = "data/small_wtk_nsrdb_example"
@@ -42,12 +41,13 @@ def run_small_example():
 
     # Download a small sample of NSRDB data with plotting
     try:
-        nsrdb_data = download_nsrdb_data(
+        nsrdb_data = resource.nsrdb_downloader.download_nsrdb_data(
             target_lat=target_lat,
             target_lon=target_lon,
-            year=year,
+            year=year_solar,
             variables=["ghi"],  # Just one variable
-            nsrdb_dataset_path="/nrel/nsrdb/conus",  # Demonstrating using a non-default dataset
+            nsrdb_dataset_path="/nrel/nsrdb/GOES/tmy/v4.0.0",  # Using a non-default dataset
+            nsrdb_filename_prefix="nsrdb_tmy-",  # Downloading a typical meteorological year dataset
             coord_delta=0.05,  # Small area
             output_dir=data_dir,
             filename_prefix="nsrdb_small_example",
@@ -70,11 +70,14 @@ def run_small_example():
     print("=" * 60)
 
     # Download a small sample of WTK data with plotting
+    # Use 2020 for wind because WTK data is only avaialable 2018-2020
+    year_wind = 2020
+
     try:
-        wtk_data = download_wtk_data(
+        wtk_data = resource.wtk_downloader.download_wtk_data(
             target_lat=target_lat,
             target_lon=target_lon,
-            year=year,
+            year=year_wind,
             variables=["windspeed_100m"],  # Just one variable
             coord_delta=0.05,  # Small area
             output_dir=data_dir,

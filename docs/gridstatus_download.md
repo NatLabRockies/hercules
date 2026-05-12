@@ -62,7 +62,7 @@ See `examples/grid/grid_status_download_example.py` for an example that download
 
 - **dataset**: The Grid Status dataset identifier (e.g., "spp_lmp_real_time_5_min", "spp_lmp_day_ahead_hourly"; see https://www.gridstatus.io/datasets for a complete list)
 - **start**: Start date in YYYY-MM-DD format
-- **end**: End date in YYYY-MM-DD format  
+- **end**: End date in YYYY-MM-DD format
 - **filter_column**: Column to filter on (usually "location" to select a node)
 - **filter_value**: Value to filter by (should be the name of a node of interest, e.g., "OKGE.FRONTIER"; all nodes listed here: https://www.gridstatus.io/nodes)
 - **QUERY_LIMIT**: Maximum number of rows to download (default: 20,000). Included to avoid accidentally using too much of account limit.

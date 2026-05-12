@@ -68,6 +68,43 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
+def make_unique_folder_name(parent_folder: str | Path, proposed_dirname: str):
+    """Generate a folder that does not already exist in a user-defined parent folder.
+
+    Args:
+        parent_folder (str | Path): directory that a folder is expected to be created in.
+        proposed_dirname (str): folder name to check for existence and
+            to use as the base folder description of a new an unique folder name.
+
+    Returns:
+        str: unique direcoty that does not yet exist in parent_folder.
+    """
+
+    # if folder(s) exist with the same base name, make a new unique directory name
+    # file_base = proposed_fname.split(fext)[0]
+    existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_dirname}*") if f.is_dir()]
+    if len(existing_files) == 0:
+        return Path(parent_folder) / proposed_dirname
+
+    # get past numbers that were used to make unique folders by matching
+    # folder names against the file base name followed by a number
+    past_numbers = [
+        int(re.findall(f"{proposed_dirname}[0-9]+", str(fname))[0].split(proposed_dirname)[-1])
+        for fname in existing_files
+        if len(re.findall(f"{proposed_dirname}[0-9]+", str(fname))) > 0
+    ]
+
+    if len(past_numbers) > 0:
+        # if multiple folders have the same basename followed by a number,
+        # take the maximum unique number and add one
+        unique_number = int(max(past_numbers) + 1)
+        return Path(parent_folder) / f"{proposed_dirname}{unique_number}"
+    else:
+        # if no folders have the same basename followed by a number,
+        # but do have the same basename, then add a zero to the folder basename
+        return Path(parent_folder) / f"{proposed_dirname}0"
+
+
 def _validate_utc_datetime_string(dt_str, field_name):
     """Validate that a datetime string represents UTC time.
 
@@ -212,15 +249,18 @@ def load_hercules_input(filename):
     # Define valid keys
     required_keys = ["dt", "starttime_utc", "endtime_utc", "plant"]
     # Lazy import to avoid circular dependency
-    from hercules.hybrid_plant import VALID_COMPONENT_TYPES
+    from hercules.component_registry import VALID_COMPONENT_TYPES
 
     valid_component_types = list(VALID_COMPONENT_TYPES)
     other_keys = [
         "name",
         "description",
+        "logging",
         "controller",
         "verbose",
+        "output_dir",
         "output_file",
+        "overwrite_outputs",
         "log_every_n",
         "external_data_file",
         "external_data",
@@ -403,7 +443,7 @@ def setup_logging(
     console_output=True,
     console_prefix=None,
     log_level=logging.INFO,
-    use_outputs_dir=True,
+    logging_dir=Path("outputs"),
 ):
     """Set up logging to file and console with flexible configuration.
 
@@ -420,25 +460,28 @@ def setup_logging(
             logger_name in uppercase. Defaults to None.
         log_level (int, optional): Logging level (e.g., logging.INFO, logging.DEBUG).
             Defaults to logging.INFO.
-        use_outputs_dir (bool, optional): If True and log_file is a simple filename
-            (no directory separators), automatically places it in 'outputs' directory.
-            If False, treats log_file as-is. Defaults to True.
+        logging_dir (str | Path): Folder to save log file to
 
     Returns:
         logging.Logger: Configured logger instance.
 
 
     """
+
+    if Path(log_file).suffix != ".log":
+        log_file += ".log"
+
     # Determine the log file path
-    if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
+    if os.sep not in log_file and "/" not in log_file:
         # Simple filename - use outputs directory
-        log_dir = os.path.join(os.getcwd(), "outputs")
-        os.makedirs(log_dir, exist_ok=True)
-        log_file_path = os.path.join(log_dir, log_file)
+        os.makedirs(logging_dir, exist_ok=True)
+        log_file_path = os.path.join(logging_dir, log_file)
     else:
-        # Full path or use_outputs_dir=False - use as-is but ensure directory exists
-        log_file_path = log_file
-        log_dir = Path(log_file_path).parent
+        # Partial path, use as subdirectories within logging_dir
+        log_file_parts = log_file.split("/")
+        log_fpath_parts = [logging_dir] + log_file_parts
+        log_file_path = Path(*log_fpath_parts)
+        log_dir = Path(log_file_path).parent.absolute()
         log_dir.mkdir(parents=True, exist_ok=True)
 
     # Get the logger
@@ -448,7 +491,11 @@ def setup_logging(
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    logger.setLevel(log_level)
+    if isinstance(log_level, str):
+        log_level_int = logging.getLevelName(log_level.upper())
+        logger.setLevel(log_level_int)
+    else:
+        logger.setLevel(log_level)
 
     # Add file handler
     file_handler = logging.FileHandler(log_file_path)
@@ -480,20 +527,57 @@ def close_logging(logger):
             logger.removeHandler(handler)
 
 
-def interpolate_df(df, new_time):
+_VALID_INTERPOLATION_METHODS = {
+    "averaged_to_instantaneous",
+    "instantaneous_to_instantaneous",
+}
+
+
+def interpolate_df(df, new_time, interpolation_method):
     """Interpolate DataFrame values to match new time axis.
 
-    Uses linear interpolation with Polars backend for better performance and memory efficiency.
-    Converts datetime columns to timestamps for interpolation.
+    The ``interpolation_method`` parameter controls how numeric columns are
+    resampled onto ``new_time``:
+
+    - ``"averaged_to_instantaneous"``: Input values are period averages whose
+      timestamps mark the **start** of each period.  Each value is assigned to
+      the midpoint of its interval and then linearly interpolated.  Use for
+      wind speed, solar irradiance, and similar time-averaged signals.
+    - ``"instantaneous_to_instantaneous"``: Input values already represent
+      instantaneous measurements.  Standard linear interpolation is performed
+      directly on the original timestamps with no midpoint shift.
+
+    Datetime columns (e.g. ``time_utc``) are always linearly interpolated on
+    the raw timestamps regardless of the chosen method, because they map
+    simulation time to wall-clock time directly.
+
+    Note:
+        A dedicated zero-order-hold (ZOH) mode is intentionally not provided.
+        If you need step/piecewise-constant behaviour (e.g. LMP prices that
+        should be held constant across each reporting interval), pre-process
+        the input DataFrame to include an extra row at the end of each
+        interval carrying the same value, and then call this function with
+        ``"instantaneous_to_instantaneous"``.  Linear interpolation between
+        each pair of identical endpoints reproduces the ZOH shape.  See
+        ``hercules.grid.grid_utilities.generate_locational_marginal_price_dataframe_from_gridstatus``
+        for an example of this endpoint-insertion pattern.
 
     Args:
         df (pd.DataFrame): DataFrame with 'time' column and data columns.
         new_time (array-like): New time points for interpolation.
+        interpolation_method (str): One of ``"averaged_to_instantaneous"`` or
+            ``"instantaneous_to_instantaneous"``.
 
     Returns:
         pd.DataFrame: DataFrame with new time axis and interpolated data columns.
+
     """
-    # Convert new_time to numpy array for consistency
+    if interpolation_method not in _VALID_INTERPOLATION_METHODS:
+        raise ValueError(
+            f"Unknown interpolation_method '{interpolation_method}'. "
+            f"Must be one of {sorted(_VALID_INTERPOLATION_METHODS)}."
+        )
+
     new_time = np.asarray(new_time)
 
     # Separate datetime and non-datetime columns for different processing
@@ -507,59 +591,28 @@ def interpolate_df(df, new_time):
             else:
                 numeric_cols.append(col)
 
-    return _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols)
+    # Sort by "time" once up front so that np.interp (which requires
+    # strictly-increasing x-coordinates) sees monotonic input for every
+    # column.  Applying the sort in one place keeps numeric and datetime
+    # columns consistently ordered.
+    df_pl = pl.from_pandas(df).sort("time")
+    result_pl = pl.DataFrame({"time": new_time})
 
+    time_values = df_pl["time"].to_numpy()
 
-def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
-    """Interpolate using Polars backend.
+    if interpolation_method == "averaged_to_instantaneous":
+        x_coords = _compute_interval_midpoints(time_values)
+    else:
+        x_coords = time_values
 
-    Args:
-        df (pd.DataFrame): Input DataFrame.
-        new_time (np.ndarray): New time points.
-        datetime_cols (list): Datetime column names.
-        numeric_cols (list): Numeric column names.
+    for col in numeric_cols:
+        col_values = df_pl[col].to_numpy()
+        interpolated_values = np.interp(new_time, x_coords, col_values).astype(hercules_float_type)
+        result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
 
-    Returns:
-        pd.DataFrame: Interpolated DataFrame.
-    """
-    # Convert to Polars for efficient processing
-    df_pl = pl.from_pandas(df)
-
-    # Create a Polars DataFrame for the new time points
-    new_time_pl = pl.DataFrame({"time": new_time})
-
-    # Start with the time column
-    result_pl = new_time_pl
-
-    # Process numeric columns using Polars' interpolation
-    if numeric_cols:
-        for col in numeric_cols:
-            # Use Polars' join_asof for efficient interpolation-like behavior
-            # This is more memory efficient than pandas for large datasets
-            col_data = df_pl.select(["time", col]).sort("time")
-
-            # Perform interpolation using Polars operations
-            # Note: Polars doesn't have direct linear interpolation, so we use numpy interp
-            # but with Polars' efficient data extraction
-            time_values = col_data["time"].to_numpy()
-            col_values = col_data[col].to_numpy()
-
-            # Linear interpolation with float32 precision
-            interpolated_values = np.interp(new_time, time_values, col_values).astype(
-                hercules_float_type
-            )
-
-            # Add interpolated column to result
-            result_pl = result_pl.with_columns(pl.lit(interpolated_values).alias(col))
-
-    # Process datetime columns
+    # Process datetime columns (use the same sorted frame as numeric cols)
     for col in datetime_cols:
-        # Extract datetime data using Polars
-        col_data = df_pl.select(["time", col]).sort("time")
-        time_values = col_data["time"].to_numpy()
-
-        # Convert datetime to timestamps for interpolation
-        datetime_values = col_data[col].to_pandas().astype("int64").values / 10**9
+        datetime_values = df_pl[col].to_pandas().astype("int64").values / 10**9
 
         # Interpolate timestamps (datetime precision doesn't need float32 constraint)
         interpolated_timestamps = np.interp(new_time, time_values, datetime_values)
@@ -570,6 +623,31 @@ def _interpolate_with_polars(df, new_time, datetime_cols, numeric_cols):
 
     # Convert back to pandas DataFrame
     return result_pl.to_pandas()
+
+
+def _compute_interval_midpoints(time_values):
+    """Compute the midpoints of consecutive time intervals.
+
+    For start-of-period timestamps, each value is best represented at the
+    center of its interval.  The last interval width is assumed equal to the
+    preceding one.
+
+    Args:
+        time_values (np.ndarray): Sorted array of start-of-period timestamps.
+
+    Returns:
+        np.ndarray: Array of interval midpoints, same length as *time_values*.
+    """
+    # Allow the edge case of a single time value by returning the time value itself
+    if len(time_values) < 2:
+        return time_values
+    # Compute midpoints
+    midpoints = np.empty_like(time_values, dtype=np.float64)
+    midpoints[:-1] = (time_values[:-1] + time_values[1:]) / 2.0
+    midpoints[-1] = (
+        time_values[-1] + (time_values[-1] - time_values[-2]) / 2.0
+    )  # Last interval is equal to the previous one
+    return midpoints
 
 
 def find_time_utc_value(df, time_value, time_column="time", time_utc_column="time_utc"):

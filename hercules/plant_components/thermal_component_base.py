@@ -124,24 +124,28 @@ class ThermalComponentBase(ComponentBase):
         self.min_up_time = component_dict["min_up_time"]  # s
         self.min_down_time = component_dict["min_down_time"]  # s
 
+        # Extract optional parameters for startup and shutdown fuel fractions
+        self.startup_fuel_fraction = component_dict.get("startup_fuel_fraction", None)
+        self.shutdown_fuel_fraction = component_dict.get("shutdown_fuel_fraction", None)
+
         # Check all required parameters are numbers
-        if not isinstance(self.rated_capacity, (int, float)):
+        if not isinstance(self.rated_capacity, (int, float, hercules_float_type)):
             raise ValueError("rated_capacity must be a number")
-        if not isinstance(self.min_stable_load_fraction, (int, float)):
+        if not isinstance(self.min_stable_load_fraction, (int, float, hercules_float_type)):
             raise ValueError("min_stable_load_fraction must be a number")
-        if not isinstance(self.ramp_rate_fraction, (int, float)):
+        if not isinstance(self.ramp_rate_fraction, (int, float, hercules_float_type)):
             raise ValueError("ramp_rate_fraction must be a number")
-        if not isinstance(self.run_up_rate_fraction, (int, float)):
+        if not isinstance(self.run_up_rate_fraction, (int, float, hercules_float_type)):
             raise ValueError("run_up_rate_fraction must be a number")
-        if not isinstance(self.hot_startup_time, (int, float)):
+        if not isinstance(self.hot_startup_time, (int, float, hercules_float_type)):
             raise ValueError("hot_startup_time must be a number")
-        if not isinstance(self.warm_startup_time, (int, float)):
+        if not isinstance(self.warm_startup_time, (int, float, hercules_float_type)):
             raise ValueError("warm_startup_time must be a number")
-        if not isinstance(self.cold_startup_time, (int, float)):
+        if not isinstance(self.cold_startup_time, (int, float, hercules_float_type)):
             raise ValueError("cold_startup_time must be a number")
-        if not isinstance(self.min_up_time, (int, float)):
+        if not isinstance(self.min_up_time, (int, float, hercules_float_type)):
             raise ValueError("min_up_time must be a number")
-        if not isinstance(self.min_down_time, (int, float)):
+        if not isinstance(self.min_down_time, (int, float, hercules_float_type)):
             raise ValueError("min_down_time must be a number")
 
         # Check parameters
@@ -221,7 +225,10 @@ class ThermalComponentBase(ComponentBase):
         else:
             self.state = self.STATES.OFF
             # Set time_in_state so the unit is immediately ready to start
-            self.time_in_state = float(self.min_down_time)  # s
+            if "time_in_shutdown" in initial_conditions:
+                self.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
+            else:
+                self.time_in_state = float(self.min_down_time)  # s
 
         # Extract efficiency table (HHV net efficiency), HHV, and fuel density
         # for fuel consumption calculations
@@ -230,13 +237,13 @@ class ThermalComponentBase(ComponentBase):
         efficiency_table = component_dict["efficiency_table"]
 
         # Validate hhv
-        if not isinstance(self.hhv, (int, float)):
+        if not isinstance(self.hhv, (int, float, hercules_float_type)):
             raise ValueError("hhv must be a number")
         if self.hhv <= 0:
             raise ValueError("hhv must be greater than 0")
 
         # Validate fuel_density
-        if not isinstance(self.fuel_density, (int, float)):
+        if not isinstance(self.fuel_density, (int, float, hercules_float_type)):
             raise ValueError("fuel_density must be a number")
         if self.fuel_density <= 0:
             raise ValueError("fuel_density must be greater than 0")
@@ -333,8 +340,10 @@ class ThermalComponentBase(ComponentBase):
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
         # Check that the power setpoint is a number
-        if not isinstance(power_setpoint, (int, float)):
+        if not isinstance(power_setpoint, (int, float, hercules_float_type)):
             raise ValueError("power_setpoint must be a number")
+        if np.isnan(power_setpoint):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
 
         # Update time in current state
         self.time_in_state += self.dt
@@ -593,7 +602,23 @@ class ThermalComponentBase(ComponentBase):
         return P_constrained
 
     def calculate_efficiency(self, power_output):
-        """Calculate HHV net efficiency based on current power output.
+        """Calculate HHV net efficiency based on current power output and state.
+
+        Args:
+            power_output (float): Current power output in kW.
+
+        Returns:
+            float: HHV net efficiency as a fraction (0-1).
+        """
+        fuel_consumption_rate = self.calculate_fuel_volume_rate(power_output)  # m³/s
+
+        if fuel_consumption_rate == 0:
+            return np.nan  # Efficiency is undefined when fuel consumption is zero
+
+        return (power_output * 1000.0) / (fuel_consumption_rate * self.hhv)
+
+    def interpolate_efficiency(self, power_output):
+        """Interpolate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
         table range are clamped to the nearest endpoint.
@@ -604,12 +629,13 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        if self.state == self.STATES.OFF:
-            # Efficiency is not defined when off
-            return np.nan
-        elif power_output <= 0:
-            # Efficiency is 0 when not producing power (but not off)
-            return 0.0
+        # NOTE: Not sure if we need this code
+        # if self.state == self.STATES.OFF:
+        #     # Efficiency is not defined when off
+        #     return np.nan
+        # elif power_output <= 0:
+        #     # Efficiency is 0 when not producing power (but not off)
+        #     return 0.0
 
         # Calculate power fraction
         power_fraction = power_output / self.rated_capacity
@@ -630,15 +656,36 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             float: Fuel volume flow rate in m³/s.
         """
-        if power_output <= 0:
-            return 0.0
+        rated_fuel_consumption_rate = (self.rated_capacity * 1000.0) / (
+            self.hhv * self.interpolate_efficiency(self.rated_capacity)
+        )  # m³/s at rated capacity
 
-        # Calculate current HHV net efficiency
-        efficiency = self.calculate_efficiency(power_output)
+        if self.state == self.STATES.OFF:
+            # When off, fuel flow is zero
+            return 0.0
+        elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:
+            # When stopping, use shutdown fuel fraction if provided
+            return max(
+                self.shutdown_fuel_fraction * rated_fuel_consumption_rate,
+                power_output * 1000.0 / (self.hhv * self.interpolate_efficiency(power_output)),
+            )
+
+        elif (
+            self.state
+            in [
+                self.STATES.HOT_STARTING,
+                self.STATES.WARM_STARTING,
+                self.STATES.COLD_STARTING,
+            ]
+            and self.startup_fuel_fraction is not None
+        ):
+            # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
+            return self.startup_fuel_fraction * rated_fuel_consumption_rate
+
+        # When on, calculate fuel rate based on current HHV net efficiency
+        efficiency = self.interpolate_efficiency(power_output)
 
         # Calculate fuel volume rate using HHV net efficiency
         # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
         # Convert power from kW to W (multiply by 1000)
-        fuel_m3_per_s = (power_output * 1000.0) / (efficiency * self.hhv)
-
-        return fuel_m3_per_s
+        return (power_output * 1000.0) / (efficiency * self.hhv)

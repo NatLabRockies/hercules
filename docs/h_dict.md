@@ -16,6 +16,18 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `endtime` | float | Simulation end time in seconds | - |
 | `step` | int | Current simulation step | 0 |
 | `time` | float | Current simulation time | starttime |
+| **Output File Configuration** |
+| `output_dir` | str | Output folder name | "outputs" |
+| `output_file` | str | Output HDF5 file name | "hercules_output.h5" |
+| `overwrite_outputs` | bool | If True, removes the existing output files in the `output_dir` | True |
+| **Logging Configuration** |
+| `logging` | dict | Logging configuration | - |
+| `logging.logger_name` | str | Name of logger | "hercules" |
+| `logging.logger_file` | dict | Log file name | "log_hercules.log" |
+| `logging.console_output` | bool | Whether to log to console | True |
+| `logging.console_prefix` | str | Logger prefix | "HERCULES" |
+| `logging.log_level` | str | Logging level | "INFO" |
+| `logging.logging_dir` | str | Logger output dir | "outputs" |
 | **Plant Configuration** |
 | `plant` | dict | Plant-level configuration | - |
 | `plant.interconnect_limit` | float | Maximum power limit in kW | - |
@@ -23,7 +35,6 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `verbose` | bool | Enable verbose logging | False |
 | `name` | str | Simulation name | - |
 | `description` | str | Simulation description | - |
-| `output_file` | str | Output HDF5 file path | "outputs/hercules_output.h5" |
 | `log_every_n` | int | Log every N simulation steps to output log (default: 1) | 1 |
 | `external_data` | dict | External data configuration | - |
 | `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
@@ -44,15 +55,16 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 ### Solar Farm
 | `component_type` | str | "SolarPySAMPVWatts" |
 | **For SolarPySAMPVWatts:** |
-| `pysam_model` | str | "pvwatts" |
 | `solar_input_filename` | str | Solar data file path |
-| `system_capacity` | float | DC system capacity in kW as defined by PVWatts - under Standard Test Conditions|
+| `system_capacity` | float | DC system capacity in kW (PVWatts STC) |
 | `tilt` | float | Array tilt angle in degrees (required) |
+| `losses` | float | System losses, % (0–100); see [Solar PV](solar_pv.md) |
+| `pysam_options` | dict | Optional; e.g. `SystemDesign: {dc_ac_ratio, array_type, ...}` — see [Solar PV](solar_pv.md) |
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
-| `log_channels` | list | List of channels to log (e.g., ["power", "dni", "poa", "aoi"]) |
-| `initial_conditions` | dict | Initial power, DNI, POA |
+| `log_channels` | list | Channels to log (e.g. `power`, `ac_power_available`, `dc_power_available`, `dni`, `poa`, `aoi`) — see [Solar PV](solar_pv.md) |
+| `initial_conditions` | dict | Initial `power`, `dni`, `poa` placeholders; modeled values are not all applied on init, and `power` is updated to the modeled AC value on the first `step()` |
 
 ### Battery
 | Key | Type | Description | Default |

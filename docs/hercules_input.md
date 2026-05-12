@@ -131,7 +131,7 @@ The old format is still supported for backward compatibility but will show a dep
 ### External Data File Format
 
 The CSV file must contain:
-- A `time_utc` column with UTC timestamps in ISO 8601 format
+- A `time_utc` column with UTC timestamps in ISO 8601 format. Unlike wind/solar/SCADA/playback inputs (which are treated as start-of-period period averages), external data values are treated as **instantaneous** samples at their timestamps and are upsampled to the simulation time grid via `"instantaneous_to_instantaneous"` (linear interpolation). If you need zero-order-hold (piecewise-constant) behaviour -- e.g. for LMP prices -- pre-process the file to include an extra row at the end of each interval carrying the previous value; see [Achieving zero-order-hold (ZOH) behaviour](timing.md#achieving-zero-order-hold-zoh-behaviour) and the [`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py) helper.
 - One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `lmp_rt`, `lmp_da`, `wind_forecast`, etc.
 
 Example `lmp_data.csv`:
@@ -156,7 +156,7 @@ class MyController:
         lmp_rt = h_dict["external_signals"]["lmp_rt"]
         lmp_da = h_dict["external_signals"]["lmp_da"]
         wind_forecast = h_dict["external_signals"]["wind_forecast"]
-        
+
         # Use signals for control logic
         if lmp_rt < 15:
             h_dict["battery"]["power_setpoint"] = -10000  # charge
@@ -164,7 +164,7 @@ class MyController:
             h_dict["battery"]["power_setpoint"] = 10000  # discharge
         else:
             h_dict["battery"]["power_setpoint"] = 0
-        
+
         return h_dict
 ```
 

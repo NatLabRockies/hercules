@@ -19,6 +19,8 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 | `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `HardCoalSteamTurbine` | `generator` | [Hard Coal Steam Turbine](hard_coal_steam_turbine.md) |
+| `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
 
 The YAML key for each section is a user-chosen `component_name` and is not required to match the category name. For example, a `BatterySimple` component could be named `battery`, `battery_unit_1`, or anything else.
 
@@ -28,7 +30,7 @@ The YAML key for each section is a user-chosen `component_name` and is not requi
 
 ## Component Registry
 
-All available component types are defined in `COMPONENT_REGISTRY` at the top of `hercules/hybrid_plant.py`. This dictionary maps `component_type` strings to their Python classes:
+All available component types are defined in `COMPONENT_REGISTRY` in `hercules/component_registry.py`. This dictionary maps `component_type` strings to their Python classes:
 
 ```python
 COMPONENT_REGISTRY = {

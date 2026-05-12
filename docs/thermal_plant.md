@@ -1,9 +1,8 @@
 # Thermal Plant
 
-The `ThermalPlant` class models generic single or multiunit thermal power plants. It expects to be assigned one or more thermal units, for example [`OpenCycleGasTurbine`s](open_cycle_gas_turbine.md). The individual units are established in the YAML configuration file,
-and may be repeats of the same type of units or heterogeneous units.
+The `ThermalPlant` class models generic single or multiunit thermal power plants. It expects to be assigned one or more thermal units, for example [`OpenCycleGasTurbine`s](open_cycle_gas_turbine.md). The individual units are established in the YAML configuration file, and may be repeats of the same type of units or heterogeneous units.
 
-Set `component_type: OpenCycleGasTurbine` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `open_cycle_gas_turbine`); see [Component Names, Types, and Categories](component_types.md) for details.
+In order to use the thermal plant model, set `component_type: ThermalPlant` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `my_thermal_plant`); see [Component Names, Types, and Categories](component_types.md) for details.
 
 For details on the state machine, startup/shutdown behavior, and base parameters, see {doc}`thermal_component_base`.
 
@@ -15,9 +14,9 @@ See the [YAML Configuration](#yaml-configuration) section below for examples of 
 
 ## YAML configuration
 
-The YAML configuration for the thermal plant includes list `units` and `unit_names`, as then as subdictionaries, list the configuration for each unit. The `component_type` of each unit must be a valid thermal component type, e.g. `OpenCycleGasTurbine`. See [Component Types](component_types.md) for the full list of available component types.
+The YAML configuration for the thermal plant includes lists `units` and `unit_names`, that define the configuration for each unit. The `component_type` of each unit must be a valid thermal component type, e.g. `OpenCycleGasTurbine`. See [Component Types](component_types.md) for the full list of available component types.
 
-The units listed under the `units` field are used to index the subdictionaries for each unit, which specify the parameters and initial conditions for each unit. For example, if `units: ["open_cycle_gas_turbine", "open_cycle_gas_turbine"]`, then the YAML file must include two subdictionaries with keys `open_cycle_gas_turbine:` that specify the parameters and initial conditions for each of the two gas turbines. The `unit_names` field is a list of unique names for each unit, which are used to identify the units in the HDF5 output file and in the `h_dict` passed to controllers. For example, if `unit_names: ["OCGT1", "OCGT2"]`, then the two gas turbines will be identified as `OCGT1` and `OCGT2` in the output file and in the `h_dict`.
+The units listed under the `units` field are used to index the subdictionaries for each unit, which specify the parameters and initial conditions for each unit. For example, if `units: ["open_cycle_gas_turbine", "open_cycle_gas_turbine"]`, then the YAML file must include a subdictionary with the key `open_cycle_gas_turbine:` that specify the parameters and initial conditions that will be used for both of the two gas turbines. Different subdictionaries can be defined for each, or a subset, of units by adding a subdictionary defining the desired parameters and initial conditions, and adding it to the appropriate place in the `units` list. This is illustrated in the below example, where the first two units use the `large_ocgt` subdictionary and the last unit uses the `small_ocgt` subdictionary. The `unit_names` field is a list of unique names for each unit, which are used to identify the units in the HDF5 output file and in the `h_dict` passed to controllers. For example, if `unit_names: ["OCGT1", "OCGT2"]`, then the two gas turbines will be identified as `OCGT1` and `OCGT2` in the output file and in the `h_dict`.
 
 ```yaml
 my_thermal_plant:

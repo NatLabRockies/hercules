@@ -19,7 +19,7 @@ The `efficiency_table` parameter is **optional**. If not provided, default value
 
 ## Default Parameter Values
 
-The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration.
+The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
@@ -135,6 +135,7 @@ open_cycle_gas_turbine:
     - power_setpoint
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
+    time_in_shutdown: 50000  # Adding this forces a warm startup (default initialization results in a hot start)
 ```
 
 ## Logging Configuration

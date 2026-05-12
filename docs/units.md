@@ -38,5 +38,3 @@ While internal calculations use kW/kWh, output plots and analysis may display re
 ## Historical Note
 
 Prior to this standardization, some components used MW/MWh units in their input specifications and performed internal conversions to kW/kWh. This approach has been deprecated to improve code clarity and maintainability.
-
-

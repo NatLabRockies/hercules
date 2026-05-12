@@ -1,6 +1,6 @@
 # Base class for plant components in Hercules.
 
-
+from pathlib import Path
 from typing import ClassVar
 
 from hercules.utilities import setup_logging
@@ -60,13 +60,32 @@ class ComponentBase:
         self.component_type = type(self).__name__
 
         # Set up logging
+        output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
+        # Get the default output folder
+        logging_inputs = {"logging_dir": output_dir} | {
+            "logging_dir": h_dict.get("logging", {}).get("logging_dir", output_dir)
+        }
+        if h_dict[component_name].get("logging", {}).get("logging_dir", None) is not None:
+            msg = (
+                f"Cannot specify log folder for component {component_name}, "
+                f"all log files will be saved to the logging_dir {logging_inputs['logging_dir']}"
+            )
+            raise ValueError(msg)
+
+        logging_inputs["logging_dir"] = Path(logging_inputs["logging_dir"]).absolute()
+        logging_inputs = (
+            logging_inputs | h_dict.get("logging", {}) | h_dict[component_name].get("logging", {})
+        )
         # Check if log_file_name is defined in the h_dict[component_name]
         if "log_file_name" in h_dict[component_name]:
             self.log_file_name = h_dict[component_name]["log_file_name"]
         else:
-            self.log_file_name = f"outputs/log_{component_name}.log"
+            self.log_file_name = f"log_{component_name}.log"
 
-        self.logger = self._setup_logging(self.log_file_name)
+        if "log_file" in logging_inputs:
+            logging_inputs["log_file"] = self.log_file_name
+
+        self.logger = self._setup_logging(self.log_file_name, **logging_inputs)
 
         # Parse log_channels from the h_dict
         if "log_channels" in h_dict[component_name]:
@@ -100,9 +119,10 @@ class ComponentBase:
 
         # Use the top-level verbose option
         self.verbose = h_dict["verbose"]
-        self.logger.info(f"read in verbose flag = {self.verbose}")
+        if self.verbose:
+            self.logger.info(f"Verbose flag = {self.verbose}")
 
-    def _setup_logging(self, log_file_name):
+    def _setup_logging(self, log_file_name, **kwargs):
         """Set up logging for the component.
 
 
@@ -111,18 +131,21 @@ class ComponentBase:
 
 
         Args:
-            log_file_name (str): Full path to the log file.
+            log_file_name (str): Filename of the logger
+            **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
             logging.Logger: Configured logger instance for the component.
         """
-        return setup_logging(
-            logger_name=self.component_name,
-            log_file=log_file_name,
-            console_output=True,
-            console_prefix=self.component_name.upper(),
-            use_outputs_dir=False,  # log_file_name is already a full path
-        )
+        logging_defaults = {
+            "logger_name": self.component_name,
+            "log_file": log_file_name,
+            "console_prefix": self.component_name.upper(),
+        }
+
+        # Update the defaults with any input kwargs
+        logging_inputs = logging_defaults | kwargs
+        return setup_logging(**logging_inputs)
 
     def __del__(self):
         """Cleanup method to properly close log file handlers."""

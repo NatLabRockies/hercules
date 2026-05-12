@@ -1,5 +1,6 @@
 import copy
 
+import numpy as np
 import pytest
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
@@ -136,6 +137,29 @@ def test_initial_conditions():
     h_dict["thermal_component"]["initial_conditions"]["power"] = 1100
     with pytest.raises(ValueError):
         ThermalComponentBase(h_dict, "thermal_component")
+
+    # Test that the optional `time_in_shutdown` parameter is initialized correctly when
+    #   the component is OFF
+    h_dict = copy.deepcopy(h_dict_thermal_component)
+    h_dict["thermal_component"]["initial_conditions"]["power"] = 0
+    h_dict["thermal_component"]["initial_conditions"]["time_in_shutdown"] = 30
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
+    assert tcb.power_output == 0
+    assert tcb.state == ThermalComponentBase.STATES.OFF
+    # When OFF, and time_in_shutdown is initialized, time_in_state should equal input value
+    assert tcb.time_in_state == 30
+
+    # Test that the optional `time_in_shutdown` parameter is initialized correctly when
+    #   the component is ON
+    h_dict = copy.deepcopy(h_dict_thermal_component)
+    h_dict["thermal_component"]["initial_conditions"]["power"] = 1000
+    h_dict["thermal_component"]["initial_conditions"]["time_in_shutdown"] = 30
+    tcb = ThermalComponentBase(h_dict, "thermal_component")
+    assert tcb.power_output == 1000
+    assert tcb.state == ThermalComponentBase.STATES.ON
+    # When ON, time_in_state should equal min_up_time (ready to stop)
+    # time_in_shutdown should not be initialized when unit is ON
+    assert tcb.time_in_state == tcb.min_up_time
 
 
 def test_power_setpoint_in_normal_operation():
@@ -412,7 +436,7 @@ def test_efficiency_clamping():
 
     # Test at zero power (should return zero efficiency, not extrapolate below the table)
     eff_0 = tcb.calculate_efficiency(0)
-    assert eff_0 == pytest.approx(0.0)
+    assert np.isnan(eff_0)
 
 
 def test_efficiency_interpolation():

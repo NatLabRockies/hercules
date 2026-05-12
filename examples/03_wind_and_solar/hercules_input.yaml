@@ -37,6 +37,12 @@ solar_farm: # The name of component object 1
   system_capacity: 30000  # kW (30 MW)
   tilt: 0  # degrees
   losses: 0
+  pysam_options:
+    SystemDesign:
+      array_type: 3.0  # single axis backtracking
+      azimuth: 180.0
+      dc_ac_ratio: 1.0  # Force to 1.0
+      module_type: 0.0  # standard crystalline silicon
   log_channels:
     - power
 

@@ -334,6 +334,8 @@ class BatteryLithiumIon(ComponentBase):
         """
 
         P_signal = h_dict[self.component_name]["power_setpoint"]  # [kW] requested power
+        if np.isnan(P_signal):
+            raise ValueError(f"{self.component_name}: power_setpoint is NaN")
         if self.allow_grid_power_consumption:
             P_avail = np.inf
         else:
