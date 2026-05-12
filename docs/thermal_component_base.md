@@ -89,6 +89,8 @@ All parameters below are defined in the Hercules input YAML file. The base class
 ### Optional Parameters
 | Parameter | Units | Description |
 |-----------|-------|-------------|
+| `startup_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during startup, as a fraction of rated fuel consumption. Defaults to 0 |
+| `shutdown_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during shutdown, as a fraction of rated fuel consumption. Defaults to 0 |
 | `initial_conditions.time_in_shutdown` | s | An optional parameter to set the `time_in_state` variable if the component is OFF. This can be used to adjust the behavior of a component, e.g. force a warm start at the beginning of the simulation |
 
 ### Derived Parameters
