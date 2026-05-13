@@ -106,8 +106,8 @@ wind_farm:
 #   energy_capacity: 200000  # Total energy capacity in kWh (required)
 #   charge_rate: 50000  # Maximum charge rate in kW (required)
 #   discharge_rate: 50000  # Maximum discharge rate in kW (required)
-#   max_SOC: 0.9  # Maximum state of charge (0-1, required)
-#   min_SOC: 0.1  # Minimum state of charge (0-1, required)
+#   # max_SOC: 1.0  # Maximum state of charge (0-1, default 1.0). Values < 1 indicate degradation.
+#   # min_SOC: 0.0  # Minimum state of charge (0-1, default 0.0). Values > 0 indicate degradation.
 #   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
 #   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
@@ -130,8 +130,8 @@ wind_farm:
 #   energy_capacity: 200000  # Total energy capacity in kWh (required)
 #   charge_rate: 50000  # Maximum charge rate in kW (required)
 #   discharge_rate: 50000  # Maximum discharge rate in kW (required)
-#   max_SOC: 0.9  # Maximum state of charge (0-1, required)
-#   min_SOC: 0.1  # Minimum state of charge (0-1, required)
+#   # max_SOC: 1.0  # Maximum state of charge (0-1, default 1.0). Values < 1 indicate degradation.
+#   # min_SOC: 0.0  # Minimum state of charge (0-1, default 0.0). Values > 0 indicate degradation.
 #   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
 #   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
