@@ -35,8 +35,8 @@ plant:
       - 1.0
       - 0.0
 
-hard_coal_steam_turbine:
-  component_type: HardCoalSteamTurbine
+steam_turbine:
+  component_type: SteamTurbine
   rated_capacity: 500000  # kW (500 MW)
   min_stable_load_fraction: 0.3  # 30% minimum operating point
   ramp_rate_fraction: 0.03  # 3%/min ramp rate

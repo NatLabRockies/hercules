@@ -34,7 +34,6 @@ parts:
     - file: open_cycle_gas_turbine
     - file: steam_turbine
     - file: combined_cycle_plant
-    - file: hard_coal_steam_turbine
     - file: thermal_plant
   - caption: Inputs
     chapters:
