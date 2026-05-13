@@ -67,6 +67,7 @@ solar_farm:  # User-chosen component_name
   elev: 1829
   system_capacity: 10000  # kW (10 MW)
   tilt: 0  # degrees
+  # use_resource_solar_dt: true  # optional; default true. See solar_pv.md.
   log_channels:
     - power
     - dni
