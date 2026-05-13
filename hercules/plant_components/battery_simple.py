@@ -115,10 +115,6 @@ class BatterySimple(ComponentBase):
         self.SOC_max = h_dict[self.component_name]["max_SOC"]
         self.SOC_min = h_dict[self.component_name]["min_SOC"]
 
-        # Charge (Energy) limits [kJ]
-        self.E_min = kWh2kJ(self.SOC_min * self.energy_capacity)
-        self.E_max = kWh2kJ(self.SOC_max * self.energy_capacity)
-
         charge_rate = h_dict[self.component_name]["charge_rate"]  # [kW]
         discharge_rate = h_dict[self.component_name]["discharge_rate"]  # [kW]
 
@@ -145,6 +141,15 @@ class BatterySimple(ComponentBase):
         else:
             self.eta_charge = 1
             self.eta_discharge = 1
+
+        # Internal energy capacity accounts for efficiency losses so that
+        # discharge duration = energy_capacity / discharge_rate regardless of RTE.
+        # energy_capacity is the user-specified deliverable energy.
+        self.internal_energy_capacity = self.energy_capacity / self.eta_discharge
+
+        # Charge (Energy) limits [kJ]
+        self.E_min = kWh2kJ(self.SOC_min * self.internal_energy_capacity)
+        self.E_max = kWh2kJ(self.SOC_max * self.internal_energy_capacity)
 
         if "self_discharge_time_constant" in h_dict[self.component_name].keys():
             self.tau_self_discharge = h_dict[self.component_name]["self_discharge_time_constant"]
@@ -194,12 +199,12 @@ class BatterySimple(ComponentBase):
 
         self.build_SS()
         self.x = np.array(
-            [[initial_conditions["SOC"] * self.energy_capacity * 3600]], dtype=hercules_float_type
+            [[initial_conditions["SOC"] * self.internal_energy_capacity * 3600]],
+            dtype=hercules_float_type,
         )
         self.y = None
 
-        # self.total_battery_capacity = 3600 * self.energy_capacity / self.dt
-        self.current_batt_state = self.SOC * self.energy_capacity
+        self.current_batt_state = self.SOC * self.internal_energy_capacity
         self.E = kWh2kJ(self.current_batt_state)
 
         self.power_kw = 0
@@ -268,7 +273,7 @@ class BatterySimple(ComponentBase):
         self.current_batt_state = kJ2kWh(self.E)
 
         self.power_kw = P_charge
-        self.SOC = self.current_batt_state / self.energy_capacity
+        self.SOC = self.current_batt_state / self.internal_energy_capacity
 
         self.P_charge_storage.append(P_charge)
         self.E_store.append(self.E)
