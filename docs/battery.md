@@ -16,15 +16,15 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 
 #### Required Parameters
 - `component_type`: `"BatterySimple"` or `"BatteryLithiumIon"`
-- `energy_capacity`: Energy capacity in kWh
+- `energy_capacity`: Deliverable energy capacity in kWh. This is the energy the battery can deliver at rated discharge power — i.e., a 4 MWh / 1 MW battery will discharge for exactly 4 hours regardless of roundtrip efficiency.
 - `charge_rate`: Maximum charge rate in kW
 - `discharge_rate`: Maximum discharge rate in kW
-- `max_SOC`: Maximum state of charge (between 0 and 1)
-- `min_SOC`: Minimum state of charge (between 0 and 1)
 - `initial_conditions`
   - `SOC`: Initial state of charge (between `min_SOC` and `max_SOC`)
 
 #### Optional Parameters
+- `max_SOC`: Maximum state of charge (0-1, default 1.0). Values below 1.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
+- `min_SOC`: Minimum state of charge (0-1, default 0.0). Values above 0.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
 - `allow_grid_power_consumption`: True or False (defaults to False)
 - `roundtrip_efficiency`: Roundtrip efficiency (0-1, applies to BatterySimple only)
 - `self_discharge_time_constant`: Self-discharge time constant in seconds (BatterySimple only)
@@ -77,11 +77,13 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 ```yaml
 battery:
   component_type: BatterySimple
-  energy_capacity: 100.0  # kWh
+  energy_capacity: 100.0  # kWh (deliverable energy at rated power)
   charge_rate: 50.0  # kW
   discharge_rate: 50.0  # kW
-  max_SOC: 0.9
-  min_SOC: 0.1
+  # max_SOC and min_SOC default to 1.0 and 0.0 respectively.
+  # Set them only to model degradation or other nameplate deviations:
+  # max_SOC: 0.9
+  # min_SOC: 0.1
   log_channels:
     - power
     - soc
@@ -97,6 +99,7 @@ If `log_channels` is not specified, only `power` will be logged.
 
 `BatterySimple` is a basic energy storage model with the following features:
 
+- **Deliverable Energy Convention**: The `energy_capacity` parameter represents the energy the battery can deliver at its rated discharge power. Internally, the battery stores slightly more energy to account for discharge efficiency losses, ensuring that `discharge_duration = energy_capacity / discharge_rate` holds regardless of roundtrip efficiency.
 - **Energy Integration**: $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$
 - **Efficiency Losses**: Separate charge and discharge efficiencies (from roundtrip efficiency)
 - **Self-Discharge**: Exponential energy loss with configurable time constant

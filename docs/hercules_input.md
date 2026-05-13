@@ -83,8 +83,8 @@ battery:  # User-chosen component_name
   energy_capacity: 100.0  # MWh
   charge_rate: 50.0  # MW
   discharge_rate: 50.0  # MW
-  max_SOC: 0.95
-  min_SOC: 0.05
+  # max_SOC: 1.0  # default; set < 1 to model degradation
+  # min_SOC: 0.0  # default; set > 0 to model degradation
   log_channels:
     - power
     - soc
