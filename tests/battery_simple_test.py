@@ -435,3 +435,40 @@ def test_SB_roundtrip_efficiency_various_values():
             f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, "
             f"Relative error: {relative_error:.3f}"
         )
+
+
+def test_SB_discharge_duration_invariant():
+    """Test that discharge duration equals energy_capacity / discharge_rate regardless of RTE.
+
+    A 4 MWh battery with 1 MW discharge rate should take exactly 4 hours to fully
+    discharge, even when roundtrip efficiency < 1. The RTE losses should not reduce
+    the deliverable energy duration.
+    """
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
+    test_h_dict["battery"]["charge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["discharge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
+    test_h_dict["battery"]["max_SOC"] = 1.0
+    test_h_dict["battery"]["min_SOC"] = 0.0
+    test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
+    test_h_dict["battery"]["allow_grid_power_consumption"] = True
+    test_h_dict["dt"] = 1.0
+
+    SB = BatterySimple(test_h_dict, "battery")
+
+    # Discharge at full rated power and count how many steps until empty
+    expected_steps = 14400  # 4 hours * 3600 s/hr / 1 s/step
+    steps_taken = 0
+    for i in range(expected_steps + 1000):  # Run extra to find when it empties
+        SB.step(step_inputs(P_avail=0, P_signal=-1000))
+        steps_taken += 1
+        if SB.SOC <= 0.0:
+            break
+
+    # The battery should discharge in exactly 4 hours (14400 steps), not sooner
+    assert abs(steps_taken - expected_steps) <= 1, (
+        f"Battery should take {expected_steps} steps (4 hours) to fully discharge "
+        f"at 1 MW from 4 MWh with RTE=0.9, but took {steps_taken} steps "
+        f"({steps_taken / 3600:.3f} hours)."
+    )
