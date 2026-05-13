@@ -10,7 +10,7 @@ from .test_inputs.h_dict import (
 
 
 def test_init_from_dict():
-    # Set up a system with one OCGT and one hard coal steam turbine.
+    # Set up a system with one OCGT and one steam turbine.
     h_dict = copy.deepcopy(h_dict_thermal_plant)
     ThermalPlant(h_dict, "thermal_power_plant")
 
@@ -60,8 +60,8 @@ def test_unit_copies():
     # Check that there are three units of the correct types
     assert len(tp.units) == 3
     assert tp.units[0].component_type == "OpenCycleGasTurbine"
-    assert tp.units[1].component_type == "HardCoalSteamTurbine"
-    assert tp.units[2].component_type == "HardCoalSteamTurbine"
+    assert tp.units[1].component_type == "SteamTurbine"
+    assert tp.units[2].component_type == "SteamTurbine"
 
 
 def test_h_dict_structure():

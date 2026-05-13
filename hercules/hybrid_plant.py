@@ -25,7 +25,6 @@ from hercules.component_registry import COMPONENT_REGISTRY
 #     "ElectrolyzerPlant": ElectrolyzerPlant,
 #     "OpenCycleGasTurbine": OpenCycleGasTurbine,
 #     "ThermalPlant": ThermalPlant,
-#     "HardCoalSteamTurbine": HardCoalSteamTurbine,
 #     "PowerPlayback": PowerPlayback,
 #     "SteamTurbine": SteamTurbine,
 #     "CombinedCyclePlant": CombinedCyclePlant,
