@@ -20,7 +20,7 @@ The solar component requires a weather time-series file. Supported formats are C
 
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
-## Native-resolution PySAM execution (`use_native_solar_dt`)
+## Native-resolution PySAM execution (`use_resource_solar_dt`)
 
 By default, when the solar weather file is at a coarser time step than the
 Hercules `dt`, PySAM is executed **once** at the native weather resolution
@@ -33,7 +33,7 @@ The behavior is controlled by an opt-out flag:
 
 ```yaml
 solar_farm:
-  use_native_solar_dt: true   # default
+  use_resource_solar_dt: false   # defaults to true, opt out by using false
 ```
 
 - The feature only activates when the file's native dt is strictly greater
@@ -44,7 +44,7 @@ solar_farm:
   between consecutive sorted timestamps).
 - The PySAM outputs are upsampled to Hercules dt using
   `"averaged_to_instantaneous"` (the same midpoint-corrected interpolation
-  introduced in PR #249). This is the single boundary crossing from the
+  introduced in PR \#249). This is the single boundary crossing from the
   raw start-of-period averaged convention to the Hercules instantaneous
   convention - see [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values).
 
@@ -62,17 +62,13 @@ and the
 irradiance/temperature inputs, performing the single
 "averaged → instantaneous" boundary crossing on the PVWatts *outputs* (at
 Hercules dt) is numerically equivalent to performing it on the *inputs* (at
-Hercules dt and then running PVWatts at every Hercules step) in the
-linear-PVWatts limit. The new path also slightly cleans up a labeling
-mismatch that existed in the prior implementation, where instantaneous
-weather values were handed to PVWatts which then interpreted them as
-start-of-period averages over `dt_hercules`.
-
+Hercules dt) and then running PVWatts at every Hercules step in the
+linear-PVWatts limit.
 The one remaining numerical effect of the toggle is that PVWatts'
 internal sun-position half-step now operates at `dt_compute / 2` rather
 than `dt_hercules / 2`. For hourly native data near sunrise/sunset this
 can introduce a small bias relative to the prior path; setting
-`use_native_solar_dt: false` recovers the prior behaviour exactly.
+`use_resource_solar_dt: false` recovers the prior behaviour exactly.
 
 
 ## Power Flow

@@ -128,19 +128,19 @@ class SolarPySAMBase(ComponentBase):
             )
         self.dt_solar = float(df_solar["time"].iloc[1] - df_solar["time"].iloc[0])
 
-        # Read the use_native_solar_dt option (default True). When True and the
+        # Read the use_resource_solar_dt option (default True). When True and the
         # solar file is at a coarser dt than Hercules, PySAM is run on the
         # native-resolution grid and its outputs are upsampled to the Hercules
         # grid via ``_upsample_outputs_to_hercules_dt`` (the av_to_instant
         # happens there instead of on the weather inputs).
-        self.use_native_solar_dt = h_dict[self.component_name].get("use_native_solar_dt", True)
+        self.use_resource_solar_dt = h_dict[self.component_name].get("use_resource_solar_dt", True)
 
         # Hercules-grid time steps (used by the upsample helper).
         self._hercules_time_steps = np.arange(
             self.starttime, self.endtime, self.dt, dtype=hercules_float_type
         )
 
-        # Decide the compute (PySAM) grid. In the use_native_solar_dt case runPySAM
+        # Decide the compute (PySAM) grid. In the use_resource_solar_dt case runPySAM
         # at the native dt and upsample its outputs; use native weather-file
         # stamps directly (instead of start + n*dt) so start-of-period averages
         # keep their original interval alignment when starttime_utc is offset
@@ -155,7 +155,7 @@ class SolarPySAMBase(ComponentBase):
         # In the fallback (compute_dt == dt) the compute grid equals the
         # Hercules grid so downstream array lengths match step indexing
         # exactly, preserving the pre-existing behaviour.
-        if self.use_native_solar_dt and self.dt_solar > self.dt:
+        if self.use_resource_solar_dt and self.dt_solar > self.dt:
             self._compute_dt = self.dt_solar
             native_time = df_solar["time"].to_numpy(dtype=hercules_float_type)
             i_start = max(np.searchsorted(native_time, self.starttime, side="left") - 1, 0)
@@ -171,7 +171,7 @@ class SolarPySAMBase(ComponentBase):
             interpolation_method = "averaged_to_instantaneous"
 
         # Interpolate df_solar onto the compute grid. The method is conditional:
-        # in the use_native_solar_dt case (compute_dt > dt) we keep PVWatts-bound weather
+        # in the use_resource_solar_dt case (compute_dt > dt) we keep PVWatts-bound weather
         # in the raw start-of-period averaged convention via ``i_to_i`` and
         # defer the av_to_i to the post-PVWatts upsample. In the
         # fallback (compute_dt == dt) we cross the av_to_i boundary here, exactly as

@@ -1,4 +1,4 @@
-"""Tests for the use_native_solar_dt path in SolarPySAMPVWatts.
+"""Tests for the use_resource_solar_dt path in SolarPySAMPVWatts.
 
 These tests exercise the new feature added to ``SolarPySAMBase`` /
 ``SolarPySAMPVWatts`` that runs PySAM once on the native-resolution weather
@@ -62,7 +62,7 @@ def _build_synthetic_solar_file(path, starttime_utc, endtime_utc, dt_seconds):
     return df
 
 
-def _build_h_dict(solar_input_filename, starttime_utc, endtime_utc, dt, use_native_solar_dt):
+def _build_h_dict(solar_input_filename, starttime_utc, endtime_utc, dt, use_resource_solar_dt):
     """Build a minimal h_dict for instantiating SolarPySAMPVWatts.
 
     Args:
@@ -70,7 +70,7 @@ def _build_h_dict(solar_input_filename, starttime_utc, endtime_utc, dt, use_nati
         starttime_utc (pd.Timestamp): Simulation start (UTC).
         endtime_utc (pd.Timestamp): Simulation end (UTC).
         dt (float): Hercules time step in seconds.
-        use_native_solar_dt (bool): Value of the new YAML toggle.
+        use_resource_solar_dt (bool): Value of the new YAML toggle.
 
     Returns:
         dict: An h_dict suitable for ``SolarPySAMPVWatts`` construction.
@@ -95,7 +95,7 @@ def _build_h_dict(solar_input_filename, starttime_utc, endtime_utc, dt, use_nati
             "system_capacity": 30000.0,
             "tilt": 0,
             "losses": 0,
-            "use_native_solar_dt": use_native_solar_dt,
+            "use_resource_solar_dt": use_resource_solar_dt,
             "log_channels": ["power"],
             "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
         },
@@ -121,12 +121,12 @@ def test_native_dt_matches_full_resolution_within_tolerance(tmp_path):
     _build_synthetic_solar_file(solar_input, starttime_utc, endtime_utc, dt_native)
 
     h_dict_native = _build_h_dict(
-        solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=True
+        solar_input, starttime_utc, endtime_utc, dt, use_resource_solar_dt=True
     )
     spv_native = SolarPySAMPVWatts(h_dict_native, "solar_farm")
 
     h_dict_full = _build_h_dict(
-        solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=False
+        solar_input, starttime_utc, endtime_utc, dt, use_resource_solar_dt=False
     )
     spv_full = SolarPySAMPVWatts(h_dict_full, "solar_farm")
 
@@ -170,7 +170,7 @@ def test_native_dt_is_no_op_when_dt_solar_equals_dt(tmp_path):
     solar_input = tmp_path / "solar_input.ftr"
     _build_synthetic_solar_file(solar_input, starttime_utc, endtime_utc, dt_native)
 
-    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=True)
+    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_resource_solar_dt=True)
     spv = SolarPySAMPVWatts(h_dict, "solar_farm")
 
     assert spv._compute_dt == pytest.approx(dt)
@@ -179,10 +179,10 @@ def test_native_dt_is_no_op_when_dt_solar_equals_dt(tmp_path):
     assert spv._compute_time_steps is spv._hercules_time_steps
 
 
-def test_use_native_solar_dt_false_forces_fallback(tmp_path):
+def test_use_resource_solar_dt_false_forces_fallback(tmp_path):
     """Explicit opt-out forces the existing path even on coarse-native data.
 
-    With ``use_native_solar_dt: False``, ``_compute_dt`` must equal ``dt``
+    With ``use_resource_solar_dt: False``, ``_compute_dt`` must equal ``dt``
     regardless of how coarse the input file is.
     """
     starttime_utc = pd.to_datetime("2024-06-24T17:00:00Z")
@@ -193,7 +193,7 @@ def test_use_native_solar_dt_false_forces_fallback(tmp_path):
     solar_input = tmp_path / "solar_input.ftr"
     _build_synthetic_solar_file(solar_input, starttime_utc, endtime_utc, dt_native)
 
-    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=False)
+    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_resource_solar_dt=False)
     spv = SolarPySAMPVWatts(h_dict, "solar_farm")
 
     assert spv._compute_dt == pytest.approx(dt)
@@ -217,7 +217,7 @@ def test_native_dt_uses_native_timestamp_alignment_for_offset_start(tmp_path):
     _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
 
     h_dict_native = _build_h_dict(
-        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True
+        solar_input, sim_start_utc, sim_end_utc, dt, use_resource_solar_dt=True
     )
     spv_native = SolarPySAMPVWatts(h_dict_native, "solar_farm")
 
@@ -245,7 +245,7 @@ def test_native_dt_includes_previous_stamp_when_start_aligns_to_native(tmp_path)
     solar_input = tmp_path / "solar_input.ftr"
     _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
 
-    h_dict = _build_h_dict(solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True)
+    h_dict = _build_h_dict(solar_input, sim_start_utc, sim_end_utc, dt, use_resource_solar_dt=True)
     spv = SolarPySAMPVWatts(h_dict, "solar_farm")
 
     assert spv._compute_dt == pytest.approx(dt_native)
@@ -269,7 +269,7 @@ def test_native_dt_clamps_when_start_equals_file_first_stamp(tmp_path):
     solar_input = tmp_path / "solar_input.ftr"
     _build_synthetic_solar_file(solar_input, starttime_utc, endtime_utc, dt_native)
 
-    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_native_solar_dt=True)
+    h_dict = _build_h_dict(solar_input, starttime_utc, endtime_utc, dt, use_resource_solar_dt=True)
     spv = SolarPySAMPVWatts(h_dict, "solar_farm")
 
     assert spv._compute_time_steps[0] == pytest.approx(0.0)
@@ -291,12 +291,12 @@ def test_native_dt_matches_full_resolution_with_offset_start_within_tolerance(tm
     _build_synthetic_solar_file(solar_input, file_start_utc, sim_end_utc, dt_native)
 
     h_dict_native = _build_h_dict(
-        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=True
+        solar_input, sim_start_utc, sim_end_utc, dt, use_resource_solar_dt=True
     )
     spv_native = SolarPySAMPVWatts(h_dict_native, "solar_farm")
 
     h_dict_full = _build_h_dict(
-        solar_input, sim_start_utc, sim_end_utc, dt, use_native_solar_dt=False
+        solar_input, sim_start_utc, sim_end_utc, dt, use_resource_solar_dt=False
     )
     spv_full = SolarPySAMPVWatts(h_dict_full, "solar_farm")
 
