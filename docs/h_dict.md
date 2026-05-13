@@ -41,7 +41,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
 
-Any top-level `h_dict` entry whose value is a dict containing a `component_type` key is auto-discovered as a plant component. The key is a user-chosen `component_name` (e.g. `wind_farm`, `battery_unit_1`) — it does not need to match the category name. See [Component Names, Types, and Categories](component_types.md) for details.
+Any top-level `h_dict` entry whose value is a dict containing a `component_type` key is auto-discovered as a plant component. The key is a user-chosen `component_name` (e.g. `wind_farm`, `battery_unit_1`) — it does not need to match the category name. Each such dict may optionally include `component_group` (string); if absent, Hercules sets it to `component_name` when the component is constructed. See [Component Names, Types, and Categories](component_types.md) for details.
 
 ### Wind Farm
 | `component_type` | str | Must be "WindFarm" or "WindFarmSCADAPower" |

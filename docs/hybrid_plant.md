@@ -6,7 +6,7 @@ The `HybridPlant` class manages all plant components in Hercules. It handles ini
 
 `HybridPlant` auto-discovers components from the [h_dict](h_dict.md) at initialization time. Any top-level `h_dict` entry whose value is a dict containing a `component_type` key is treated as a plant component. The YAML key becomes the component's `component_name` (a user-chosen instance identifier), and the `component_type` value determines which Python class is instantiated.
 
-See [Component Names, Types, and Categories](component_types.md) for a full explanation of how `component_name`, `component_type`, and `component_category` relate to each other.
+See [Component Names, Types, and Categories](component_types.md) for a full explanation of how `component_name`, `component_type`, `component_category`, and optional `component_group` relate to each other.
 
 ## Available Components
 

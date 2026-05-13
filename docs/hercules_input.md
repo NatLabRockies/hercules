@@ -12,7 +12,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 
 - **Top level parameters**: `dt`, `starttime_utc`, `endtime_utc` (see [timing](timing.md) for details)
 - **Plant configuration**: `interconnect_limit`
-- **Plant component sections**: any number of user-named sections, each containing a `component_type` key that identifies the component class to use (see [Component Names, Types, and Categories](component_types.md))
+- **Plant component sections**: any number of user-named sections, each containing a `component_type` key that identifies the component class to use (see [Component Names, Types, and Categories](component_types.md)). Optionally include `component_group` (string) to tag instances for post-processing in [herc_analysis](herc_analysis.md); if omitted, it defaults to the section name (`component_name`).
 - **External data**: `external_data` for external time series data (e.g., LMP prices, weather forecasts)
 - **Optional settings**: `verbose`, `name`, `description`, `output_file`
 
