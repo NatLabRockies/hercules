@@ -546,6 +546,12 @@ time                 value
 Querying at 13:00 yields 150 (halfway between midpoints).
 </pre></div>
 </div>
+<p>The same <code class="docutils literal notranslate"><span class="pre">&quot;averaged_to_instantaneous&quot;</span></code> mechanism is also applied to the
+<strong>outputs</strong> of the PySAM solar model when <code class="docutils literal notranslate"><span class="pre">use_resource_solar_dt</span></code> is active
+(its default).  In that mode PySAM is executed once on the resource weather
+grid and its power/diagnostic outputs are upsampled to the Hercules grid
+via this single boundary crossing - see
+<a class="reference internal" href="solar_pv.html#resource-resolution-pysam-execution-use_resource_solar_dt"><span class="std std-ref">Resource-resolution PySAM execution</span></a>.</p>
 </section>
 <section id="instantaneous-to-instantaneous">
 <h4><code class="docutils literal notranslate"><span class="pre">&quot;instantaneous_to_instantaneous&quot;</span></code><a class="headerlink" href="#instantaneous-to-instantaneous" title="Link to this heading">#</a></h4>

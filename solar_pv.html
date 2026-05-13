@@ -447,6 +447,10 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resource-resolution-pysam-execution-use-resource-solar-dt">Resource-resolution PySAM execution (<code class="docutils literal notranslate"><span class="pre">use_resource_solar_dt</span></code>)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pvwatts-time-convention-why-this-is-safe">PVWatts time convention (why this is safe)</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-flow">Power Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
@@ -480,6 +484,55 @@
 <li><p>Air temperature (dry-bulb)</p></li>
 </ul>
 <p>The system location (latitude, longitude, and elevation) is specified in the input <code class="docutils literal notranslate"><span class="pre">yaml</span></code> file.</p>
+</section>
+<section id="resource-resolution-pysam-execution-use-resource-solar-dt">
+<h2>Resource-resolution PySAM execution (<code class="docutils literal notranslate"><span class="pre">use_resource_solar_dt</span></code>)<a class="headerlink" href="#resource-resolution-pysam-execution-use-resource-solar-dt" title="Link to this heading">#</a></h2>
+<p>By default, when the solar weather file is at a coarser time step than the
+Hercules <code class="docutils literal notranslate"><span class="pre">dt</span></code>, PySAM is executed <strong>once</strong> at the resource weather resolution
+and its power and diagnostic outputs are upsampled to the Hercules grid.
+This avoids re-running PySAM tens of thousands of times against
+essentially-identical interpolated weather, which becomes the dominant cost
+once bifacial modeling is enabled.</p>
+<p>The behavior is controlled by an opt-out flag:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">solar_farm</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">use_resource_solar_dt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># defaults to true, opt out by using false</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The feature only activates when the file’s resource dt is strictly greater
+than <code class="docutils literal notranslate"><span class="pre">dt</span></code>. When the resource dt equals <code class="docutils literal notranslate"><span class="pre">dt</span></code> (or the flag is set to <code class="docutils literal notranslate"><span class="pre">false</span></code>),
+Hercules falls back to the existing path that runs PySAM once per Hercules
+step.</p></li>
+<li><p>Resource dt is auto-detected from the loaded weather file (the difference
+between consecutive sorted timestamps).</p></li>
+<li><p>The PySAM outputs are upsampled to Hercules dt using
+<code class="docutils literal notranslate"><span class="pre">&quot;averaged_to_instantaneous&quot;</span></code> (the same midpoint-corrected interpolation
+introduced in PR #249). This is the single boundary crossing from the
+raw start-of-period averaged convention to the Hercules instantaneous
+convention - see <a class="reference internal" href="timing.html#time-interpretation-inputs-vs-internal-values"><span class="std std-ref">Time Interpretation</span></a>.</p></li>
+</ul>
+<section id="pvwatts-time-convention-why-this-is-safe">
+<h3>PVWatts time convention (why this is safe)<a class="headerlink" href="#pvwatts-time-convention-why-this-is-safe" title="Link to this heading">#</a></h3>
+<p>PVWatts is <strong>convention-preserving</strong>: each input row is interpreted as a
+start-of-period average over the model’s current time step, and each output
+row is reported under the same convention. The only mid-step shift PVWatts
+applies is internal sun-position math, which it computes at the midpoint of
+each input time step (see the SAM help page on
+<a class="reference external" href="https://samrepo.nlr.gov/help/weather_time_convention.html">Time and Sun Position</a>
+and the
+<a class="reference external" href="https://docs.nrel.gov/docs/fy14osti/62641.pdf">PVWatts Version 5 Manual</a>
+§”Sun Position”). Because PVWatts does not shift the <em>values</em> of the
+irradiance/temperature inputs, performing the single
+“averaged → instantaneous” boundary crossing on the PVWatts <em>outputs</em> (at
+Hercules dt) is numerically equivalent to performing it on the <em>inputs</em> (at
+Hercules dt) and then running PVWatts at every Hercules step in the
+linear-PVWatts limit.
+The one remaining numerical effect of the toggle is that PVWatts’
+internal sun-position half-step now operates at <code class="docutils literal notranslate"><span class="pre">dt_compute</span> <span class="pre">/</span> <span class="pre">2</span></code> rather
+than <code class="docutils literal notranslate"><span class="pre">dt_hercules</span> <span class="pre">/</span> <span class="pre">2</span></code>. For hourly resource data near sunrise/sunset this
+can introduce a small bias relative to the prior path; setting
+<code class="docutils literal notranslate"><span class="pre">use_resource_solar_dt:</span> <span class="pre">false</span></code> recovers the prior behaviour exactly.</p>
+</section>
 </section>
 <section id="power-flow">
 <h2>Power Flow<a class="headerlink" href="#power-flow" title="Link to this heading">#</a></h2>
@@ -641,6 +694,10 @@ can be selected for HDF5 logging via <code class="docutils literal notranslate">
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inputs">Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resource-resolution-pysam-execution-use-resource-solar-dt">Resource-resolution PySAM execution (<code class="docutils literal notranslate"><span class="pre">use_resource_solar_dt</span></code>)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pvwatts-time-convention-why-this-is-safe">PVWatts time convention (why this is safe)</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#power-flow">Power Flow</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
