@@ -20,10 +20,10 @@ The solar component requires a weather time-series file. Supported formats are C
 
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
-## Native-resolution PySAM execution (`use_resource_solar_dt`)
+## Resource-resolution PySAM execution (`use_resource_solar_dt`)
 
 By default, when the solar weather file is at a coarser time step than the
-Hercules `dt`, PySAM is executed **once** at the native weather resolution
+Hercules `dt`, PySAM is executed **once** at the resource weather resolution
 and its power and diagnostic outputs are upsampled to the Hercules grid.
 This avoids re-running PySAM tens of thousands of times against
 essentially-identical interpolated weather, which becomes the dominant cost
@@ -36,11 +36,11 @@ solar_farm:
   use_resource_solar_dt: false   # defaults to true, opt out by using false
 ```
 
-- The feature only activates when the file's native dt is strictly greater
-  than `dt`. When the native dt equals `dt` (or the flag is set to `false`),
+- The feature only activates when the file's resource dt is strictly greater
+  than `dt`. When the resource dt equals `dt` (or the flag is set to `false`),
   Hercules falls back to the existing path that runs PySAM once per Hercules
   step.
-- Native dt is auto-detected from the loaded weather file (the difference
+- Resource dt is auto-detected from the loaded weather file (the difference
   between consecutive sorted timestamps).
 - The PySAM outputs are upsampled to Hercules dt using
   `"averaged_to_instantaneous"` (the same midpoint-corrected interpolation
@@ -66,7 +66,7 @@ Hercules dt) and then running PVWatts at every Hercules step in the
 linear-PVWatts limit.
 The one remaining numerical effect of the toggle is that PVWatts'
 internal sun-position half-step now operates at `dt_compute / 2` rather
-than `dt_hercules / 2`. For hourly native data near sunrise/sunset this
+than `dt_hercules / 2`. For hourly resource data near sunrise/sunset this
 can introduce a small bias relative to the prior path; setting
 `use_resource_solar_dt: false` recovers the prior behaviour exactly.
 
