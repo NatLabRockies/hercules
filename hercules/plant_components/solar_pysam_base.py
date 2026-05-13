@@ -120,10 +120,65 @@ class SolarPySAMBase(ComponentBase):
         # Set starttime_utc (zero_time_utc is redundant since time=0 corresponds to starttime_utc)
         self.starttime_utc = starttime_utc
 
-        # Interpolate df_solar on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
+        # Determine the dt implied by the weather file (after sorting to be safe)
+        df_solar = df_solar.sort_values("time").reset_index(drop=True)
+        if len(df_solar) < 2:
+            raise ValueError(
+                "Solar input file must contain at least "
+                "two rows to infer the resource solar timestep"
+            )
+        self.dt_solar = float(df_solar["time"].iloc[1] - df_solar["time"].iloc[0])
+
+        # Read the use_resource_solar_dt option (default True). When True and the
+        # solar file is at a coarser dt than Hercules, PySAM is run on the
+        # resource-resolution grid and its outputs are upsampled to the Hercules
+        # grid via ``_upsample_outputs_to_hercules_dt`` (the av_to_instant
+        # happens there instead of on the weather inputs).
+        self.use_resource_solar_dt = h_dict[self.component_name].get("use_resource_solar_dt", True)
+
+        # Hercules-grid time steps (used by the upsample helper).
+        self._hercules_time_steps = np.arange(
+            self.starttime, self.endtime, self.dt, dtype=hercules_float_type
+        )
+
+        # Decide the compute (PySAM) grid. In the use_resource_solar_dt case runPySAM
+        # at the resource dt and upsample its outputs; use resource weather-file
+        # stamps directly (instead of start + n*dt) so start-of-period averages
+        # keep their original interval alignment when starttime_utc is offset
+        # from the resource reporting boundary. Include one point strictly before
+        # starttime and one point at/after endtime when available so the
+        # downstream ``averaged_to_instantaneous`` upsample has midpoints on
+        # both sides of every Hercules time step (no edge clamping). For
+        # i_start we use ``side="left"`` so that when ``starttime`` falls
+        # exactly on a resource stamp we still pick the previous one; this is a
+        # no-op for offsets falling strictly between resource stamps and is
+        # clamped to 0 when ``starttime`` matches the file's first stamp.
+        # In the fallback (compute_dt == dt) the compute grid equals the
+        # Hercules grid so downstream array lengths match step indexing
+        # exactly, preserving the pre-existing behaviour.
+        if self.use_resource_solar_dt and self.dt_solar > self.dt:
+            self._compute_dt = self.dt_solar
+            resource_time = df_solar["time"].to_numpy(dtype=hercules_float_type)
+            i_start = max(np.searchsorted(resource_time, self.starttime, side="left") - 1, 0)
+            i_end = min(
+                np.searchsorted(resource_time, self.endtime, side="left"), len(resource_time) - 1
+            )
+            self._compute_time_steps = resource_time[i_start : i_end + 1]
+            interpolation_method = "instantaneous_to_instantaneous"
+        else:
+            # Else compute at the Hercules dt
+            self._compute_dt = self.dt
+            self._compute_time_steps = self._hercules_time_steps
+            interpolation_method = "averaged_to_instantaneous"
+
+        # Interpolate df_solar onto the compute grid. The method is conditional:
+        # in the use_resource_solar_dt case (compute_dt > dt) we keep PVWatts-bound weather
+        # in the raw start-of-period averaged convention via ``i_to_i`` and
+        # defer the av_to_i to the post-PVWatts upsample. In the
+        # fallback (compute_dt == dt) we cross the av_to_i boundary here, exactly as
+        # the existing PR #249 path does.
         df_solar = interpolate_df(
-            df_solar, time_steps_all, interpolation_method="averaged_to_instantaneous"
+            df_solar, self._compute_time_steps, interpolation_method=interpolation_method
         )
 
         # Can now save the input data as simple columns
@@ -152,6 +207,33 @@ class SolarPySAMBase(ComponentBase):
             if column_substring in column:
                 return df_[column].values
         raise ValueError(f"Could not find column with substring {column_substring} in df_solar")
+
+    def _upsample_outputs_to_hercules_dt(self, output_arrays):
+        """Upsample model outputs from the compute dt to the Hercules dt.
+
+        PVWatts is convention-preserving: its outputs are start-of-period
+        averaged at the compute-grid stamps, so the single PR #249
+        ``"averaged_to_instantaneous"`` boundary crossing happens here. When
+        the compute and Hercules grids match (feature off or resource_dt <= dt),
+        this is a no-op.
+
+        Args:
+            output_arrays (dict): Mapping of output name to 1-D array on the
+                compute grid (length ``len(self._compute_time_steps)``).
+
+        Returns:
+            dict: Same keys, arrays resampled onto ``self._hercules_time_steps``
+            and cast to ``hercules_float_type``.
+        """
+        if self._compute_dt == self.dt:
+            return output_arrays
+        df = pd.DataFrame({"time": self._compute_time_steps, **output_arrays})
+        df_up = interpolate_df(
+            df,
+            self._hercules_time_steps,
+            interpolation_method="averaged_to_instantaneous",
+        )
+        return {k: df_up[k].values.astype(hercules_float_type) for k in output_arrays}
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.

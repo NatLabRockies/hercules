@@ -20,6 +20,56 @@ The solar component requires a weather time-series file. Supported formats are C
 
 The system location (latitude, longitude, and elevation) is specified in the input `yaml` file.
 
+## Resource-resolution PySAM execution (`use_resource_solar_dt`)
+
+By default, when the solar weather file is at a coarser time step than the
+Hercules `dt`, PySAM is executed **once** at the resource weather resolution
+and its power and diagnostic outputs are upsampled to the Hercules grid.
+This avoids re-running PySAM tens of thousands of times against
+essentially-identical interpolated weather, which becomes the dominant cost
+once bifacial modeling is enabled.
+
+The behavior is controlled by an opt-out flag:
+
+```yaml
+solar_farm:
+  use_resource_solar_dt: false   # defaults to true, opt out by using false
+```
+
+- The feature only activates when the file's resource dt is strictly greater
+  than `dt`. When the resource dt equals `dt` (or the flag is set to `false`),
+  Hercules falls back to the existing path that runs PySAM once per Hercules
+  step.
+- Resource dt is auto-detected from the loaded weather file (the difference
+  between consecutive sorted timestamps).
+- The PySAM outputs are upsampled to Hercules dt using
+  `"averaged_to_instantaneous"` (the same midpoint-corrected interpolation
+  introduced in PR \#249). This is the single boundary crossing from the
+  raw start-of-period averaged convention to the Hercules instantaneous
+  convention - see [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values).
+
+### PVWatts time convention (why this is safe)
+
+PVWatts is **convention-preserving**: each input row is interpreted as a
+start-of-period average over the model's current time step, and each output
+row is reported under the same convention. The only mid-step shift PVWatts
+applies is internal sun-position math, which it computes at the midpoint of
+each input time step (see the SAM help page on
+[Time and Sun Position](https://samrepo.nlr.gov/help/weather_time_convention.html)
+and the
+[PVWatts Version 5 Manual](https://docs.nrel.gov/docs/fy14osti/62641.pdf)
+§"Sun Position"). Because PVWatts does not shift the *values* of the
+irradiance/temperature inputs, performing the single
+"averaged → instantaneous" boundary crossing on the PVWatts *outputs* (at
+Hercules dt) is numerically equivalent to performing it on the *inputs* (at
+Hercules dt) and then running PVWatts at every Hercules step in the
+linear-PVWatts limit.
+The one remaining numerical effect of the toggle is that PVWatts'
+internal sun-position half-step now operates at `dt_compute / 2` rather
+than `dt_hercules / 2`. For hourly resource data near sunrise/sunset this
+can introduce a small bias relative to the prior path; setting
+`use_resource_solar_dt: false` recovers the prior behaviour exactly.
+
 
 ## Power Flow
 
