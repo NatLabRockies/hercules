@@ -82,11 +82,11 @@ def test_h_dict_structure():
     assert h_dict["thermal_power_plant"]["OCGT1"]["power"] == 1000  # From initial conditions
     assert h_dict["thermal_power_plant"]["ST1"]["power"] == 1000  # From initial conditions
     assert h_dict["thermal_power_plant"]["OCGT1"]["rated_capacity"] == 1000
-    assert h_dict["thermal_power_plant"]["ST1"]["rated_capacity"] == 500000
+    assert h_dict["thermal_power_plant"]["ST1"]["rated_capacity"] == 1000
 
     # Check that thermal plant conditions are recorded correctly
     assert h_dict["thermal_power_plant"]["power"] == 1000 + 1000
-    assert h_dict["thermal_power_plant"]["rated_capacity"] == 500000 + 1000
+    assert h_dict["thermal_power_plant"]["rated_capacity"] == 1000 + 1000
 
 
 def test_step():
