@@ -160,7 +160,7 @@ open_cycle_gas_turbine = {
 
 steam_turbine = {
     "component_type": "SteamTurbine",
-    "rated_capacity": 500000,  # kW (500 MW)
+    "rated_capacity": 1000,  # kW (1 MW)
     "min_stable_load_fraction": 0.3,  # 30% minimum operating point
     "ramp_rate_fraction": 0.04,  # 4%/min ramp rate
     "run_up_rate_fraction": 0.02,  # 2%/min run up rate

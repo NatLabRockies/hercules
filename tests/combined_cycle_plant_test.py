@@ -78,8 +78,6 @@ def test_step():
     power_ocgt = h_dict["combined_cycle_plant"]["OCGT"]["power"]
     power_steam = h_dict["combined_cycle_plant"]["ST"]["power"]
 
-    print(h_dict["combined_cycle_plant"])
-
     assert power_ocgt < 1000  # Reacts to power setpoint
     assert power_steam < 1000  # Reacts to power setpoint
 
