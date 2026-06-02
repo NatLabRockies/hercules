@@ -53,5 +53,5 @@ parts:
     - file: examples/04_wind_and_storage
     - file: examples/05_wind_and_storage_with_lmp
     - file: examples/06_wind_and_hydrogen
-    - file: examples/07_open_cycle_gas_turbine
-    - file: examples/09_multiunit_thermal_plant
+    - file: examples/07_thermal_plants
+    - file: examples/08_multi_unit_thermal_plants
