@@ -78,4 +78,3 @@ thermal_power_plant:
       power: 100000  # Start ON at rated capacity (100 MW)
 
 controller:
-

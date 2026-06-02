@@ -24,7 +24,7 @@ The default HHV net plant efficiency table is based on approximate readings from
 
 | Power Fraction | HHV Net Efficiency |
 |---------------|-------------------|
-| 1.0           | 0.53  | 
+| 1.0           | 0.53  |
 | 0.95          | 0.515 |
 | 0.90          | 0.52  |
 | 0.85          | 0.52  |
