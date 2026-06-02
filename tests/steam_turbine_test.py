@@ -11,9 +11,8 @@ from .test_inputs.h_dict import (
 
 def test_init_from_dict():
     """Test that SteamTurbine can be initialized from a dictionary."""
-    hcst = SteamTurbine(
-        copy.deepcopy(h_dict_steam_turbine), "steam_turbine"
-    )
+    hcst = SteamTurbine(copy.deepcopy(h_dict_steam_turbine), "steam_turbine")
+
     assert hcst is not None
 
 
