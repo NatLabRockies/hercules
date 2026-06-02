@@ -2,7 +2,7 @@
 
 The `CombinedCyclePlant` class models an combined-cycle gas turbine (CCGT), which pairs a gas turbine (or sometimes 2 gas turbines) with a steam turbine to increase efficiency. It therefore combines the units of the {doc}`OpenCycleGasTurbine <open_cycle_gas_turbine>` and {doc}`SteamTurbine <steam_turbine>`. It is a subclass of {doc}`ThermalPlant <thermal_plant>` and inherits most state machine behavior, ramp constraints, and operational logic from the base class. What makes this class different from the regular `ThermalPlant`, is that it includes the dependencies between the gas and steam turbine associated with a CCGT (i.e., the steam turbine can only run if the gas turbine is producing power).
 
-Set `component_type: CombinedCyclePlant` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `combined_cycle_plant`); see [Component Names, Types, and Categories](component_types.md) for details.
+To use this model, set `component_type: CombinedCyclePlant` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `combined_cycle_plant`); see [Component Names, Types, and Categories](component_types.md) for details.
 
 For details on the state machine, startup/shutdown behavior, and base parameters of the individual units, see {doc}`thermal_component_base`.
 

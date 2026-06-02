@@ -7,7 +7,7 @@ plot_outputs.py script.
 The following thermal power plants are currently available for simulation:
 - Combined Cycle Gas Turbine modeled as individual gas and steam turbines
     with a coupling constraint (MU-CCGT)
-- Multi-unit thermal plant with 2 OCGTs (MUTP)
+- Multi-unit thermal plant with 3 OCGTs (MUTP)
 """
 
 from hercules.hercules_model import HerculesModel
@@ -20,8 +20,11 @@ prepare_output_directory()
 # Currenctly available:
 # - hercules_input_mu-ccgt.yaml: Combined Cycle Gas Turbine (CCGT) modeled as
 #       individual gas and steam turbines with a coupling constraint
-# - hercules_inputs_mutp.yaml: Multi-unit thermal plants with 2 OCGTs
+# - hercules_inputs_mutp.yaml: Multi-unit thermal plants with 3 OCGTs
+
+# Version 1: CCGT with coupling constraint
 # hmodel = HerculesModel("input_files/hercules_input_mu-ccgt.yaml")
+# Version 2: Multi-unit thermal plant with 3 OCGTs
 hmodel = HerculesModel("input_files/hercules_input_mutp.yaml")
 
 

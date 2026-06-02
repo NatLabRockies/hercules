@@ -40,7 +40,7 @@ The default HHV net plant efficiency table is based on [2,3]:
 | Power Fraction | HHV Net Efficiency |
 |---------------|-------------------|
 | 1.00 | 0.35 (35%) |
-| 0.5o | 0.32 (32%) |
+| 0.50 | 0.32 (32%) |
 | 0.30 | 0.30 (30%) |
 
 ## HCST Outputs
