@@ -21,7 +21,8 @@ prepare_output_directory()
 # - hercules_input_mu-ccgt.yaml: Combined Cycle Gas Turbine (CCGT) modeled as
 #       individual gas and steam turbines with a coupling constraint
 # - hercules_inputs_mutp.yaml: Multi-unit thermal plants with 2 OCGTs
-hmodel = HerculesModel("input_files/hercules_input_mu-ccgt.yaml")
+# hmodel = HerculesModel("input_files/hercules_input_mu-ccgt.yaml")
+hmodel = HerculesModel("input_files/hercules_input_mutp.yaml")
 
 
 class ControllerTPP:
