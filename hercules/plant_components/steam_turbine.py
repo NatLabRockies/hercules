@@ -2,8 +2,8 @@
 Steam Turbine Class.
 
 Steam turbine model is a subclass of the ThermalComponentBase class.
-The default values represent a hard coal steam turbine, based on the literature on coal plant 
-flexibility and typical coal plant parameters. However, the subclass can also be used for 
+The default values represent a hard coal steam turbine, based on the literature on coal plant
+flexibility and typical coal plant parameters. However, the subclass can also be used for
 other types of steam turbines by changing the default values as desired.
 It implements the model as presented in [1], [2], [3], and [4].
 
