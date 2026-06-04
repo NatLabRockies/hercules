@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Example 09: Multi-unit Thermal Plant &#8212; HERCULES</title>
+    <title>Example 07: Thermal Plants &#8212; HERCULES</title>
   
   
   
@@ -73,10 +73,11 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/09_multiunit_thermal_plant';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/07_thermal_plants';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Example 07: Open Cycle Gas Turbine (OCGT)" href="07_open_cycle_gas_turbine.html" />
+    <link rel="next" title="Example 08: Multi-unit Thermal Plants" href="08_multi_unit_thermal_plants.html" />
+    <link rel="prev" title="Example 06: Wind and hydrogen hybrid plant" href="06_wind_and_hydrogen.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -212,7 +213,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../electrolyzer.html">Electrolyzer Plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../thermal_component_base.html">Thermal Component Base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../hard_coal_steam_turbine.html">Hard Coal Steam Turbine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../steam_turbine.html">Steam Turbine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../combined_cycle_plant.html">Combined Cycle Gas Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../thermal_plant.html">Thermal Plant</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
@@ -234,8 +236,8 @@
 <li class="toctree-l1"><a class="reference internal" href="04_wind_and_storage.html">Example 04: Wind and storage hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="07_open_cycle_gas_turbine.html">Example 07: Open Cycle Gas Turbine (OCGT)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 09: Multi-unit Thermal Plant</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 07: Thermal Plants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="08_multi_unit_thermal_plants.html">Example 08: Multi-unit Thermal Plants</a></li>
 </ul>
 
     </div>
@@ -312,7 +314,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/09_multiunit_thermal_plant.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/07_thermal_plants.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -329,7 +331,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/09_multiunit_thermal_plant.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/07_thermal_plants.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -359,7 +361,7 @@
       
       
       
-      <li><a href="../_sources/examples/09_multiunit_thermal_plant.md" target="_blank"
+      <li><a href="../_sources/examples/07_thermal_plants.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -435,7 +437,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Example 09: Multi-unit Thermal Plant</h1>
+    <h1>Example 07: Thermal Plants</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -446,6 +448,11 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenario">Scenario</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-behaviors-demonstrated">Key Behaviors Demonstrated</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 </ul>
@@ -459,28 +466,73 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="example-09-multi-unit-thermal-plant">
-<h1>Example 09: Multi-unit Thermal Plant<a class="headerlink" href="#example-09-multi-unit-thermal-plant" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="example-07-thermal-plants">
+<h1>Example 07: Thermal Plants<a class="headerlink" href="#example-07-thermal-plants" title="Link to this heading">#</a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>Demonstrates a multi-unit thermal plant with three Open Cycle Gas Turbine (OCGT) units. Each unit has its own state machine and ramp behavior, but they share a common controller that issues power setpoints for all units simultaneously. The example illustrates how the plant responds to changes in setpoints while respecting constraints such as minimum up/down times, ramp rates, and minimum stable load of the individual units. The first two individual units are identical, but their commands and responses are tracked separately in the outputs. The third unit is also an Open Cycle Gas Turbine, but it has half the ramp rate of the first two units. It is given the same power set points as the second unit, demonstrating the effect of the ramp rate parameter. This example demonstrates how to both use the same unit definition for two units (OCGT1 &amp; OCGT2), and how to define a unit with its own definition (OCGT3).</p>
+<p>This example demonstrates multiple thermal power plant configurations and their integrated operation within a Hercules framework. The example showcases various thermal components including open-cycle gas turbines (OCGTs) and steam turbines, and their state machine behaviors including startup sequences, power ramping, minimum stable load constraints, and shutdown sequences. The default example simulates an OCGT, but the user can simulate the steam turbine example by changing the input file used in <code class="docutils literal notranslate"><span class="pre">hercules_runscript.py</span></code> from <code class="docutils literal notranslate"><span class="pre">hercules_input_ocgt.yaml</span></code> to <code class="docutils literal notranslate"><span class="pre">hearcules_input_hcst.yaml</span></code>.</p>
+<p>For details on thermal component parameters and configuration, see <a class="reference internal" href="../open_cycle_gas_turbine.html"><span class="doc">Open Cycle Gas Turbine</span></a>, <a class="reference internal" href="../steam_turbine.html"><span class="doc">Steam Turbine</span></a>, <a class="reference internal" href="../combined_cycle_plant.html"><span class="doc">Combined Cycle Gas Turbine</span></a>, and <a class="reference internal" href="../thermal_plant.html"><span class="doc">Thermal Plant</span></a>. For details on the underlying state machine and ramp behavior, see <a class="reference internal" href="../thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
+</section>
+<section id="scenario">
+<h2>Scenario<a class="headerlink" href="#scenario" title="Link to this heading">#</a></h2>
+<p>The simulation runs for 6 hours with 1-minute time steps. A controller commands the turbine through several operating phases. The table below shows both <strong>control commands</strong> (setpoint changes) and <strong>state transitions</strong> (responses to commands based on constraints).</p>
+<!-- ### Timeline
+
+| Time (min) | Event Type | Setpoint | State | Description |
+|------------|------------|----------|-------|-------------|
+| 0 | Initial | 0 | OFF (0) | Turbine starts off, `time_in_state` begins counting |
+| 40 | Command | → 100 MW | OFF (0) | Setpoint changes to full power, but `min_down_time` (60 min) not yet satisfied—turbine remains off |
+| 60 | State | 100 MW | → HOT STARTING (1) | `min_down_time` satisfied, turbine begins hot starting sequence |
+| ~64 | State | 100 MW | HOT STARTING (1) | `hot_readying_time` (~4.2 min) complete, run-up ramp begins |
+| ~68 | State | 100 MW | → ON (4) | Power reaches P_min (20 MW) after `hot_startup_time` (~8.2 min), turbine now operational |
+| ~76 | Ramp | 100 MW | ON (4) | Power reaches 100 MW (ramped at 10 MW/min from P_min) |
+| 120 | Command | → 50 MW | ON (4) | Setpoint reduced to 50% capacity |
+| ~125 | Ramp | 50 MW | ON (4) | Power reaches 50 MW (ramped down at 10 MW/min) |
+| 180 | Command | → 10 MW | ON (4) | Setpoint reduced to 10% (below P_min), power clamped to P_min |
+| ~183 | Ramp | 10 MW | ON (4) | Power reaches P_min (20 MW), cannot go lower |
+| 210 | Command | → 100 MW | ON (4) | Setpoint increased to full power |
+| ~218 | Ramp | 100 MW | ON (4) | Power reaches 100 MW |
+| 240 | Command + State | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` satisfied (~172 min on), begins stopping sequence |
+| ~250 | State | 0 | → OFF (0) | Power reaches 0 (ramped down at 10 MW/min), turbine off |
+| 360 | End | 0 | OFF (0) | Simulation ends | -->
+<section id="key-behaviors-demonstrated">
+<h3>Key Behaviors Demonstrated<a class="headerlink" href="#key-behaviors-demonstrated" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Minimum down time</strong>: The turbine cannot start until <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> (60 min) is satisfied, even though the command is issued at 40 min</p></li>
+<li><p><strong>Hot startup sequence</strong>: After <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code>, the turbine enters HOT STARTING, waits through <code class="docutils literal notranslate"><span class="pre">hot_readying_time</span></code>, then ramps to P_min using <code class="docutils literal notranslate"><span class="pre">run_up_rate</span></code></p></li>
+<li><p><strong>Ramp rate constraints</strong>: All power changes in ON state are limited by <code class="docutils literal notranslate"><span class="pre">ramp_rate</span></code> (10 MW/min)</p></li>
+<li><p><strong>Minimum stable load</strong>: When commanded to 10 MW (below P_min = 20 MW), power is clamped to P_min</p></li>
+<li><p><strong>Minimum up time</strong>: Shutdown is allowed immediately at 240 min because <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> (60 min) was satisfied long ago</p></li>
+<li><p><strong>Stopping sequence</strong>: The turbine ramps down to zero at <code class="docutils literal notranslate"><span class="pre">ramp_rate</span></code> before transitioning to OFF</p></li>
+</ul>
+</section>
+</section>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
+<p>No manual setup is required. The example uses only the OCGT component which requires no external data files.</p>
 </section>
 <section id="running">
 <h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
 <p>To run the example, execute the following command in the terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/07_thermal_plants/hercules_runscript.py
+
+<span class="c1"># OR</span>
+
+<span class="nb">cd</span><span class="w"> </span>examples/07_thermal_plants
+python<span class="w"> </span>hercules_runscript.py
 </pre></div>
 </div>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The output files <code class="docutils literal notranslate"><span class="pre">hercules_output.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">hercules_dict.echo</span></code> are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/07_thermal_plants/outputs_07/</span></code> and log files are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/07_thermal_plants/logger_outputs_07/</span></code></p>
 <p>To plot the outputs, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/07_thermal_plants/plot_outputs.py
 </pre></div>
 </div>
-<p>The plot shows (for the all units separately):</p>
+<p>The plot shows:</p>
 <ul class="simple">
-<li><p>Power output over time (demonstrating ramp constraints and minimum stable load in response to setpoint changes for the individual units), as well as total plant power output</p></li>
+<li><p>Power output over time (demonstrating ramp constraints and minimum stable load)</p></li>
 <li><p>Operating state transitions</p></li>
 <li><p>Fuel consumption tracking</p></li>
 <li><p>Heat rate variation with load</p></li>
@@ -519,13 +571,22 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="07_open_cycle_gas_turbine.html"
+       href="06_wind_and_hydrogen.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Example 07: Open Cycle Gas Turbine (OCGT)</p>
+        <p class="prev-next-title">Example 06: Wind and hydrogen hybrid plant</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="08_multi_unit_thermal_plants.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Example 08: Multi-unit Thermal Plants</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -546,6 +607,11 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenario">Scenario</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-behaviors-demonstrated">Key Behaviors Demonstrated</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running">Running</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 </ul>
