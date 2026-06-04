@@ -434,7 +434,7 @@ def test_efficiency_clamping():
     eff_200 = tcb.calculate_efficiency(200)  # 200 kW = 20% load (below table min of 0.25)
     assert eff_200 == pytest.approx(0.30)
 
-    # Test at zero power (should return first efficiency value)
+    # Test at zero power (should return zero efficiency, not extrapolate below the table)
     eff_0 = tcb.calculate_efficiency(0)
     assert np.isnan(eff_0)
 

@@ -266,6 +266,7 @@ def load_hercules_input(filename):
         "external_data",
         "output_use_compression",
         "output_buffer_size",
+        "power_setpoint_schedule",
     ]
 
     # Discover component entries: any top-level dict entry containing "component_type"
@@ -307,6 +308,37 @@ def load_hercules_input(filename):
 
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
+
+    # Pass through optional power setpoint schedule
+    if "power_setpoint_schedule" in h_dict["plant"]:
+        schedule = h_dict["plant"]["power_setpoint_schedule"]
+        if not isinstance(schedule, dict):
+            raise ValueError(
+                f"power_setpoint_schedule must be a dictionary in input file {filename}"
+            )
+        if "time" not in schedule or "power_setpoint_fraction" not in schedule:
+            raise ValueError(
+                f"power_setpoint_schedule must contain 'time' and 'power_setpoint_fraction' keys "
+                f"in input file {filename}"
+            )
+        if len(schedule["time"]) != len(schedule["power_setpoint_fraction"]):
+            raise ValueError(
+                f"'time' and 'power_setpoint_fraction' lists in power_setpoint_schedule "
+                f"must be the same length in input file {filename}"
+            )
+        # Validate time and power_setpoint types
+        if not all(isinstance(t, (float, int)) for t in schedule["time"]):
+            raise ValueError(
+                f"All entries in power_setpoint_schedule 'time' list must be floats or ints "
+                f"in input file {filename}"
+            )
+        if not all(
+            isinstance(p, (float, int, list, tuple)) for p in schedule["power_setpoint_fraction"]
+        ):
+            raise ValueError(
+                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list "
+                f"must be floats, ints, lists, or tuples in input file {filename}"
+            )
 
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:

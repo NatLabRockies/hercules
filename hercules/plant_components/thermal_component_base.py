@@ -428,7 +428,10 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         if self.state == self.STATES.OFF:
             # Check if we can start (min_down_time satisfied)
-            can_start = self.time_in_state >= self.min_down_time
+            if not hasattr(self, "can_start"):
+                can_start = self.time_in_state >= self.min_down_time
+            else:
+                can_start = self.can_start
 
             if power_setpoint > 0 and can_start:
                 self.n_total_starts += 1
@@ -443,6 +446,8 @@ class ThermalComponentBase(ComponentBase):
                     self.state = self.STATES.COLD_STARTING
                     self.n_cold_starts += 1
                 self.time_in_state = 0.0
+                if hasattr(self, "can_start"):
+                    del self.can_start
 
             return 0.0  # Power is always 0 when off
 
@@ -624,6 +629,14 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
+        # NOTE: Not sure if we need this code
+        # if self.state == self.STATES.OFF:
+        #     # Efficiency is not defined when off
+        #     return np.nan
+        # elif power_output <= 0:
+        #     # Efficiency is 0 when not producing power (but not off)
+        #     return 0.0
+
         # Calculate power fraction
         power_fraction = power_output / self.rated_capacity
 

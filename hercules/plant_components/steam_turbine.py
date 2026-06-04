@@ -1,7 +1,10 @@
 """
-Hard Coal Steam Turbine Class.
+Steam Turbine Class.
 
-Hard coal steam turbine model is a subclass of the ThermalComponentBase class.
+Steam turbine model is a subclass of the ThermalComponentBase class.
+The default values represent a hard coal steam turbine, based on the literature on coal plant
+flexibility and typical coal plant parameters. However, the subclass can also be used for
+other types of steam turbines by changing the default values as desired.
 It implements the model as presented in [1], [2], [3], and [4].
 
 Like other subclasses of ThermalComponentBase, it inherits the main control functions,
@@ -24,10 +27,10 @@ References:
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 
-class HardCoalSteamTurbine(ThermalComponentBase):
-    """Hard coal steam turbine model.
+class SteamTurbine(ThermalComponentBase):
+    """Steam turbine model.
 
-    This model represents a hard coal steam turbine with state
+    This model represents a steam turbine with state
     management, ramp rate constraints, minimum stable load, and fuel consumption
     tracking.  Note it is a subclass of the ThermalComponentBase class.
 
@@ -38,7 +41,7 @@ class HardCoalSteamTurbine(ThermalComponentBase):
     """
 
     def __init__(self, h_dict, component_name):
-        """Initialize the HardCoalSteamTurbine class.
+        """Initialize the SteamTurbine class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
