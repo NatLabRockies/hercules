@@ -2,7 +2,7 @@
 # Explicitly specify the parameters for demonstration purposes
 
 # Name
-name: example_07
+name: example_07_2
 
 ###
 # Describe this simulation setup
@@ -22,6 +22,25 @@ logging:
 
 plant:
   interconnect_limit: 100000  # kW (100 MW)
+
+  # Define the power setpoint schedule for the plant
+  power_setpoint_schedule:
+    time: # Time in seconds from start
+      - 0
+      - 600
+      - 2400
+      - 7200
+      - 10800
+      - 12600
+      - 14400
+    power_setpoint_fraction:
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.5
+      - 0.1
+      - 1.0
+      - 0.0
 
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine

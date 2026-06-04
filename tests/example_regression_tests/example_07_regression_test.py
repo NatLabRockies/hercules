@@ -82,10 +82,12 @@ def test_specified_output_dir():
     test_n = "01"
     # what happens with non-default output dir and all default logging logic
 
-    output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
-    logger_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
+    output_dir = HERCULES_EXAMPLE_DIR / "07_thermal_plants" / f"outputs_test{test_n}"
+    logger_dir = HERCULES_EXAMPLE_DIR / "07_thermal_plants" / f"outputs_test{test_n}"
 
-    hercules_fpath = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / "hercules_input.yaml"
+    hercules_fpath = (
+        HERCULES_EXAMPLE_DIR / "07_thermal_plants" / "input_files" / "hercules_input_ocgt.yaml"
+    )
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
     hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
@@ -110,10 +112,12 @@ def test_specified_main_logger_dir():
     test_n = "02"
     # what happens with non-default output dir and a different logging dir
 
-    output_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"outputs_test{test_n}"
-    logger_dir = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / f"loggers_{test_n}"
+    output_dir = HERCULES_EXAMPLE_DIR / "07_thermal_plants" / f"outputs_test{test_n}"
+    logger_dir = HERCULES_EXAMPLE_DIR / "07_thermal_plants" / f"loggers_{test_n}"
 
-    hercules_fpath = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / "hercules_input.yaml"
+    hercules_fpath = (
+        HERCULES_EXAMPLE_DIR / "07_thermal_plants" / "input_files" / "hercules_input_ocgt.yaml"
+    )
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
     hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
@@ -147,7 +151,9 @@ def test_dont_overwrite_outputs():
         output_dir = Path(tmpdir, "outputs")
         logger_dir = Path(tmpdir, "loggers")
 
-        hercules_fpath = HERCULES_EXAMPLE_DIR / "07_open_cycle_gas_turbine" / "hercules_input.yaml"
+        hercules_fpath = (
+            HERCULES_EXAMPLE_DIR / "07_thermal_plants" / "input_files" / "hercules_input_ocgt.yaml"
+        )
         hercules_dict = load_yaml(hercules_fpath)
         hercules_dict["output_dir"] = output_dir
         hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
