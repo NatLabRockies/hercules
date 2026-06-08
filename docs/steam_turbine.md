@@ -1,8 +1,8 @@
-# Hard Coal Steam Turbine
+# Steam Turbine
 
-The `HardCoalSteamTurbine` (HCST) class models a hard coal power production plant using steam turbines. This class is a subclass of {doc}`ThermalComponentBase <thermal_component_base>` and inherits all state machine behavior, ramp constraints, and operational logic from the base class.
+The `SteamTurbine` (HCST) class models a power production plant using steam turbines, for example using hard coal as fuel. This class is a subclass of {doc}`ThermalComponentBase <thermal_component_base>` and inherits all state machine behavior, ramp constraints, and operational logic from the base class.
 
-Set `component_type: HardCoalSteamTurbine` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `hard_coal_steam_turbine`); see [Component Names, Types, and Categories](component_types.md) for details.
+Set `component_type: SteamTurbine` in the component's YAML section. The section key is a user-chosen `component_name` (e.g. `steam_turbine`); see [Component Names, Types, and Categories](component_types.md) for details.
 
 For details on the state machine, startup/shutdown behavior, and base parameters, see {doc}`thermal_component_base`.
 
@@ -19,7 +19,7 @@ The `efficiency_table` parameter is **optional**. If not provided, default value
 
 ## Default Parameter Values
 
-The `HardCoalSteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
+The `SteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
@@ -42,7 +42,7 @@ The default HHV net plant efficiency table is based on [2,3]:
 | Power Fraction | HHV Net Efficiency |
 |---------------|-------------------|
 | 1.00 | 0.35 (35%) |
-| 0.5o | 0.32 (32%) |
+| 0.50 | 0.32 (32%) |
 | 0.30 | 0.30 (30%) |
 
 ## HCST Outputs
@@ -89,8 +89,8 @@ Where:
 Required parameters only (uses defaults for `hhv`, `efficiency_table`, and other parameters):
 
 ```yaml
-hard_coal_steam_turbine:
-  component_type: HardCoalSteamTurbine
+steam_turbine:
+  component_type: SteamTurbine
   rated_capacity: 100000  # kW (100 MW)
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
@@ -101,8 +101,8 @@ hard_coal_steam_turbine:
 All parameters explicitly specified:
 
 ```yaml
-hard_coal_steam_turbine:
-  component_type: HardCoalSteamTurbine
+steam_turbine:
+  component_type: SteamTurbine
   rated_capacity: 500000  # kW (500 MW)
   min_stable_load_fraction: 0.3  # 30% minimum operating point
   ramp_rate_fraction: 0.03  # 3%/min ramp rate

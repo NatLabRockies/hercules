@@ -1,16 +1,16 @@
-# Example 07: Open Cycle Gas Turbine (OCGT)
+# Example 07: Thermal Plants
 
 ## Description
 
-This example demonstrates a standalone open-cycle gas turbine (OCGT) simulation. The example showcases the turbine's state machine behavior including startup sequences, power ramping, minimum stable load constraints, and shutdown sequences.
+This example demonstrates multiple thermal power plant configurations and their integrated operation within a Hercules framework. The example showcases various thermal components including open-cycle gas turbines (OCGTs) and steam turbines, and their state machine behaviors including startup sequences, power ramping, minimum stable load constraints, and shutdown sequences. The default example simulates an OCGT, but the user can simulate the steam turbine example by changing the input file used in `hercules_runscript.py` from `hercules_input_ocgt.yaml` to `hearcules_input_hcst.yaml`.
 
-For details on OCGT parameters and configuration, see {doc}`../open_cycle_gas_turbine`. For details on the underlying state machine and ramp behavior, see {doc}`../thermal_component_base`.
+For details on thermal component parameters and configuration, see {doc}`../open_cycle_gas_turbine`, {doc}`../steam_turbine`, {doc}`../combined_cycle_plant`, and {doc}`../thermal_plant`. For details on the underlying state machine and ramp behavior, see {doc}`../thermal_component_base`.
 
 ## Scenario
 
 The simulation runs for 6 hours with 1-minute time steps. A controller commands the turbine through several operating phases. The table below shows both **control commands** (setpoint changes) and **state transitions** (responses to commands based on constraints).
 
-### Timeline
+<!-- ### Timeline
 
 | Time (min) | Event Type | Setpoint | State | Description |
 |------------|------------|----------|-------|-------------|
@@ -28,7 +28,7 @@ The simulation runs for 6 hours with 1-minute time steps. A controller commands 
 | ~218 | Ramp | 100 MW | ON (4) | Power reaches 100 MW |
 | 240 | Command + State | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` satisfied (~172 min on), begins stopping sequence |
 | ~250 | State | 0 | → OFF (0) | Power reaches 0 (ramped down at 10 MW/min), turbine off |
-| 360 | End | 0 | OFF (0) | Simulation ends |
+| 360 | End | 0 | OFF (0) | Simulation ends | -->
 
 ### Key Behaviors Demonstrated
 
@@ -48,15 +48,22 @@ No manual setup is required. The example uses only the OCGT component which requ
 To run the example, execute the following command in the terminal:
 
 ```bash
+python examples/07_thermal_plants/hercules_runscript.py
+
+# OR
+
+cd examples/07_thermal_plants
 python hercules_runscript.py
 ```
 
 ## Outputs
 
+The output files `hercules_output.h5` and `hercules_dict.echo` are written to the folder `examples/07_thermal_plants/outputs_07/` and log files are written to the folder `examples/07_thermal_plants/logger_outputs_07/`
+
 To plot the outputs, run:
 
 ```bash
-python plot_outputs.py
+python examples/07_thermal_plants/plot_outputs.py
 ```
 
 The plot shows:

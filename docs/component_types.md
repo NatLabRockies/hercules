@@ -56,7 +56,8 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
 | `LinearGenerator` | `generator` | [Linear Generator](linear_generator.md) |
-| `HardCoalSteamTurbine` | `generator` | [Hard Coal Steam Turbine](hard_coal_steam_turbine.md) |
+| `SteamTurbine` | `generator` | [Steam Turbine](steam_turbine.md) |
+| `CombinedCyclePlant` | `generator` | [Multi-unit Combined Cycle Gas Turbine](combined_cycle_plant.md) |
 | `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
 
 Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.

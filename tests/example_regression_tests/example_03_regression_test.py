@@ -22,8 +22,8 @@ EXAMPLE_DESCRIPTION = "Wind and Solar"
 # Test configuration
 NUM_TIME_STEPS = 5
 EXPECTED_FINAL_WIND_POWER = 14321  # Updated for midpoint interpolation correction
-EXPECTED_FINAL_SOLAR_POWER = 21054  # Updated for midpoint interpolation correction
-EXPECTED_FINAL_PLANT_POWER = 35375  # Wind + Solar (14321 + 21054)
+EXPECTED_FINAL_SOLAR_POWER = 20165  # AC PVWatts output (post-inverter)
+EXPECTED_FINAL_PLANT_POWER = 34486  # Wind + Solar (14321 + 20165)
 
 # File names
 INPUT_FILE = "hercules_input.yaml"

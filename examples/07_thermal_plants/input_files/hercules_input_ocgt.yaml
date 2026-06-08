@@ -2,20 +2,45 @@
 # Explicitly specify the parameters for demonstration purposes
 
 # Name
-name: example_07
+name: example_07_2
 
 ###
 # Describe this simulation setup
 description: Open Cycle Gas Turbine (OCGT) Example
 
-dt: 60.0  # 1 minute time step
+dt: 10.0  # 1 minute time step
 starttime_utc: "2020-01-01T00:00:00Z"  # Midnight Jan 1, 2020 UTC
 endtime_utc: "2020-01-01T06:00:00Z"  # 6 hours later
 verbose: False
 log_every_n: 1
 
+output_dir: "outputs_07"
+overwrite_outputs: True
+logging:
+  logging_dir: "logger_outputs_07"
+  log_file: "log_hercules_ex_07.log"
+
 plant:
   interconnect_limit: 100000  # kW (100 MW)
+
+  # Define the power setpoint schedule for the plant
+  power_setpoint_schedule:
+    time: # Time in seconds from start
+      - 0
+      - 600
+      - 2400
+      - 7200
+      - 10800
+      - 12600
+      - 14400
+    power_setpoint_fraction:
+      - 1.0
+      - 0.0
+      - 1.0
+      - 0.5
+      - 0.1
+      - 1.0
+      - 0.0
 
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
@@ -32,6 +57,10 @@ open_cycle_gas_turbine:
   # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
   hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
   fuel_density: 0.768  # kg/m³ for natural gas [6]
+  # Optional startup/shutdown fuel fractions (as fractions of rated fuel flow)
+  # Approximated using case SC1A described in Exhibits 3-70, 3-71, and 3-173 of [5]
+  startup_fuel_fraction: 0.35  # 35% of rated fuel flow for startup
+  shutdown_fuel_fraction: 0.30  # 30% of rated fuel flow for shutdown
   efficiency_table:
     power_fraction:
       - 1.0

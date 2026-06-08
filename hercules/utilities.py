@@ -68,6 +68,43 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
+def make_unique_folder_name(parent_folder: str | Path, proposed_dirname: str):
+    """Generate a folder that does not already exist in a user-defined parent folder.
+
+    Args:
+        parent_folder (str | Path): directory that a folder is expected to be created in.
+        proposed_dirname (str): folder name to check for existence and
+            to use as the base folder description of a new an unique folder name.
+
+    Returns:
+        str: unique direcoty that does not yet exist in parent_folder.
+    """
+
+    # if folder(s) exist with the same base name, make a new unique directory name
+    # file_base = proposed_fname.split(fext)[0]
+    existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_dirname}*") if f.is_dir()]
+    if len(existing_files) == 0:
+        return Path(parent_folder) / proposed_dirname
+
+    # get past numbers that were used to make unique folders by matching
+    # folder names against the file base name followed by a number
+    past_numbers = [
+        int(re.findall(f"{proposed_dirname}[0-9]+", str(fname))[0].split(proposed_dirname)[-1])
+        for fname in existing_files
+        if len(re.findall(f"{proposed_dirname}[0-9]+", str(fname))) > 0
+    ]
+
+    if len(past_numbers) > 0:
+        # if multiple folders have the same basename followed by a number,
+        # take the maximum unique number and add one
+        unique_number = int(max(past_numbers) + 1)
+        return Path(parent_folder) / f"{proposed_dirname}{unique_number}"
+    else:
+        # if no folders have the same basename followed by a number,
+        # but do have the same basename, then add a zero to the folder basename
+        return Path(parent_folder) / f"{proposed_dirname}0"
+
+
 def _validate_utc_datetime_string(dt_str, field_name):
     """Validate that a datetime string represents UTC time.
 
@@ -218,14 +255,18 @@ def load_hercules_input(filename):
     other_keys = [
         "name",
         "description",
+        "logging",
         "controller",
         "verbose",
+        "output_dir",
         "output_file",
+        "overwrite_outputs",
         "log_every_n",
         "external_data_file",
         "external_data",
         "output_use_compression",
         "output_buffer_size",
+        "power_setpoint_schedule",
     ]
 
     # Discover component entries: any top-level dict entry containing "component_type"
@@ -267,6 +308,37 @@ def load_hercules_input(filename):
 
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
+
+    # Pass through optional power setpoint schedule
+    if "power_setpoint_schedule" in h_dict["plant"]:
+        schedule = h_dict["plant"]["power_setpoint_schedule"]
+        if not isinstance(schedule, dict):
+            raise ValueError(
+                f"power_setpoint_schedule must be a dictionary in input file {filename}"
+            )
+        if "time" not in schedule or "power_setpoint_fraction" not in schedule:
+            raise ValueError(
+                f"power_setpoint_schedule must contain 'time' and 'power_setpoint_fraction' keys "
+                f"in input file {filename}"
+            )
+        if len(schedule["time"]) != len(schedule["power_setpoint_fraction"]):
+            raise ValueError(
+                f"'time' and 'power_setpoint_fraction' lists in power_setpoint_schedule "
+                f"must be the same length in input file {filename}"
+            )
+        # Validate time and power_setpoint types
+        if not all(isinstance(t, (float, int)) for t in schedule["time"]):
+            raise ValueError(
+                f"All entries in power_setpoint_schedule 'time' list must be floats or ints "
+                f"in input file {filename}"
+            )
+        if not all(
+            isinstance(p, (float, int, list, tuple)) for p in schedule["power_setpoint_fraction"]
+        ):
+            raise ValueError(
+                f"All entries in power_setpoint_schedule 'power_setpoint_fraction' list "
+                f"must be floats, ints, lists, or tuples in input file {filename}"
+            )
 
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:
@@ -371,7 +443,7 @@ def setup_logging(
     console_output=True,
     console_prefix=None,
     log_level=logging.INFO,
-    use_outputs_dir=True,
+    logging_dir=Path("outputs"),
 ):
     """Set up logging to file and console with flexible configuration.
 
@@ -388,25 +460,28 @@ def setup_logging(
             logger_name in uppercase. Defaults to None.
         log_level (int, optional): Logging level (e.g., logging.INFO, logging.DEBUG).
             Defaults to logging.INFO.
-        use_outputs_dir (bool, optional): If True and log_file is a simple filename
-            (no directory separators), automatically places it in 'outputs' directory.
-            If False, treats log_file as-is. Defaults to True.
+        logging_dir (str | Path): Folder to save log file to
 
     Returns:
         logging.Logger: Configured logger instance.
 
 
     """
+
+    if Path(log_file).suffix != ".log":
+        log_file += ".log"
+
     # Determine the log file path
-    if use_outputs_dir and (os.sep not in log_file and "/" not in log_file):
+    if os.sep not in log_file and "/" not in log_file:
         # Simple filename - use outputs directory
-        log_dir = os.path.join(os.getcwd(), "outputs")
-        os.makedirs(log_dir, exist_ok=True)
-        log_file_path = os.path.join(log_dir, log_file)
+        os.makedirs(logging_dir, exist_ok=True)
+        log_file_path = os.path.join(logging_dir, log_file)
     else:
-        # Full path or use_outputs_dir=False - use as-is but ensure directory exists
-        log_file_path = log_file
-        log_dir = Path(log_file_path).parent
+        # Partial path, use as subdirectories within logging_dir
+        log_file_parts = log_file.split("/")
+        log_fpath_parts = [logging_dir] + log_file_parts
+        log_file_path = Path(*log_fpath_parts)
+        log_dir = Path(log_file_path).parent.absolute()
         log_dir.mkdir(parents=True, exist_ok=True)
 
     # Get the logger
@@ -416,7 +491,11 @@ def setup_logging(
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    logger.setLevel(log_level)
+    if isinstance(log_level, str):
+        log_level_int = logging.getLevelName(log_level.upper())
+        logger.setLevel(log_level_int)
+    else:
+        logger.setLevel(log_level)
 
     # Add file handler
     file_handler = logging.FileHandler(log_file_path)
