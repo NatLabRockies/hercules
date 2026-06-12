@@ -332,6 +332,9 @@ class ThermalComponentBase(ComponentBase):
         self.n_warm_starts = 0
         self.n_cold_starts = 0
 
+        # Saved off-duration before a startup attempt (for restore on abort)
+        self._time_off_before_start = None
+
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add initial conditions and meta data to the h_dict.
 
@@ -486,6 +489,7 @@ class ThermalComponentBase(ComponentBase):
                 else:
                     self.state = self.STATES.COLD_STARTING
                     self.n_cold_starts += 1
+                self._time_off_before_start = self.time_in_state
                 self.time_in_state = 0.0
                 if hasattr(self, "can_start"):
                     del self.can_start
@@ -498,8 +502,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.HOT_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
                 self.state = self.STATES.OFF_HOT
-                self.time_in_state = 0.0
                 self.power_output = 0.0
                 return 0.0
 
@@ -514,6 +519,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
@@ -527,8 +533,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.WARM_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state = self.STATES.OFF_WARM
-                self.time_in_state = self.hot_to_warm_time
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
+                self._classify_off_state()
                 self.power_output = 0.0
                 return 0.0
 
@@ -543,6 +550,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
@@ -556,8 +564,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.COLD_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state = self.STATES.OFF_COLD
-                self.time_in_state = self.hot_to_cold_time
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
+                self._classify_off_state()
                 self.power_output = 0.0
                 return 0.0
 
@@ -572,6 +581,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
