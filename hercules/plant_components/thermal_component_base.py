@@ -701,7 +701,7 @@ class ThermalComponentBase(ComponentBase):
             self.hhv * self.interpolate_efficiency(self.rated_capacity)
         )  # m³/s at rated capacity
 
-        if self.state == self.STATES.OFF:
+        if self._is_off():
             # When off, fuel flow is zero
             return 0.0
         elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:
