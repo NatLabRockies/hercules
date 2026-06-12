@@ -671,7 +671,7 @@ class ThermalComponentBase(ComponentBase):
             float: HHV net efficiency as a fraction (0-1).
         """
         # NOTE: Not sure if we need this code
-        # if self.state == self.STATES.OFF:
+        # if self.state == self._is_off():
         #     # Efficiency is not defined when off
         #     return np.nan
         # elif power_output <= 0:
