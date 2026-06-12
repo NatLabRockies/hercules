@@ -48,10 +48,18 @@ ax = axarr[1]
 ax.plot(time_minutes, df["linear_generator.state"], label="State", color="k")
 ax.set_ylabel("State")
 ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7])
-ax.set_yticklabels([
-    "Off (Hot)", "Hot Starting", "Warm Starting", "Cold Starting",
-    "On", "Stopping", "Off (Warm)", "Off (Cold)",
-])
+ax.set_yticklabels(
+    [
+        "Off (Hot)",
+        "Hot Starting",
+        "Warm Starting",
+        "Cold Starting",
+        "On",
+        "Stopping",
+        "Off (Warm)",
+        "Off (Cold)",
+    ]
+)
 ax.set_title("Generator State")
 ax.grid(True)
 
