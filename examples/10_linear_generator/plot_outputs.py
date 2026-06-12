@@ -47,11 +47,12 @@ ax.grid(True)
 ax = axarr[1]
 ax.plot(time_minutes, df["linear_generator.state"], label="State", color="k")
 ax.set_ylabel("State")
-ax.set_yticks([0, 1, 2, 3, 4, 5])
-ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
-ax.set_title(
-    "Generator State (0=Off, 1=Hot Starting, 2=Warm Starting, 3=Cold Starting, 4=On, 5=Stopping)"
-)
+ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7])
+ax.set_yticklabels([
+    "Off (Hot)", "Hot Starting", "Warm Starting", "Cold Starting",
+    "On", "Stopping", "Off (Warm)", "Off (Cold)",
+])
+ax.set_title("Generator State")
 ax.grid(True)
 
 # Plot the efficiency
