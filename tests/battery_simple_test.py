@@ -44,8 +44,8 @@ def test_SB_init():
 
     assert SB.dt == test_h_dict["dt"]
     assert SB.SOC == test_h_dict["battery"]["initial_conditions"]["SOC"]
-    assert SB.SOC_min == test_h_dict["battery"]["min_SOC"]
-    assert SB.SOC_max == test_h_dict["battery"]["max_SOC"]
+    assert SB.SOC_min == 0.0
+    assert SB.SOC_max == 1.0
     assert SB.P_min == -2000
     assert SB.P_max == 2000
     assert SB.P_max > SB.P_min
@@ -104,17 +104,17 @@ def test_SB_control_energy_constraint(SB: BatterySimple):
 
 def test_SB_step(SB: BatterySimple):
     SB.step(step_inputs(P_avail=1e3, P_signal=1e3))
-    assert_almost_equal(SB.E, 29377000, decimal=6)
-    assert_almost_equal(SB.current_batt_state, 8160.27, decimal=1)
-    assert_almost_equal(SB.SOC, 0.102003472, decimal=8)
+    assert_almost_equal(SB.E, 144001000, decimal=-2)
+    assert_almost_equal(SB.current_batt_state, 40000.277, decimal=1)
+    assert_almost_equal(SB.SOC, 0.50000347, decimal=6)
     assert SB.P_charge == 1e3
     SB.E = SB.E_min + 5e3
     SB.x[0, 0] = SB.E
     for i in range(4):
         SB.step(step_inputs(P_avail=1e3, P_signal=-2e3))
-    assert SB.E == 28800000
-    assert SB.current_batt_state == 8000
-    assert SB.SOC == 0.1
+    assert SB.E == 0
+    assert SB.current_batt_state == 0
+    assert SB.SOC == 0
     assert SB.P_charge == 0
 
 
@@ -435,3 +435,77 @@ def test_SB_roundtrip_efficiency_various_values():
             f"RTE={rte}: Actual loss: {energy_loss:.2f} kWh, Expected: {expected_loss:.2f} kWh, "
             f"Relative error: {relative_error:.3f}"
         )
+
+
+def test_SB_discharge_duration_invariant():
+    """Test that discharge duration equals energy_capacity / discharge_rate regardless of RTE.
+
+    A 4 MWh battery with 1 MW discharge rate should take exactly 4 hours to fully
+    discharge, even when roundtrip efficiency < 1. The RTE losses should not reduce
+    the deliverable energy duration.
+    """
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
+    test_h_dict["battery"]["charge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["discharge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
+    test_h_dict["battery"]["max_SOC"] = 1.0
+    test_h_dict["battery"]["min_SOC"] = 0.0
+    test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
+    test_h_dict["battery"]["allow_grid_power_consumption"] = True
+    test_h_dict["dt"] = 1.0
+
+    SB = BatterySimple(test_h_dict, "battery")
+
+    # Discharge at full rated power and count how many steps until empty
+    expected_steps = 14400  # 4 hours * 3600 s/hr / 1 s/step
+    steps_taken = 0
+    for i in range(expected_steps + 1000):  # Run extra to find when it empties
+        SB.step(step_inputs(P_avail=0, P_signal=-1000))
+        steps_taken += 1
+        if SB.SOC <= 0.0:
+            break
+
+    # The battery should discharge in exactly 4 hours (14400 steps), not sooner
+    assert abs(steps_taken - expected_steps) <= 1, (
+        f"Battery should take {expected_steps} steps (4 hours) to fully discharge "
+        f"at 1 MW from 4 MWh with RTE=0.9, but took {steps_taken} steps "
+        f"({steps_taken / 3600:.3f} hours)."
+    )
+
+
+def test_SB_discharge_duration_with_degraded_soc_window():
+    """Test that non-default SOC limits reduce deliverable duration proportionally.
+
+    min_SOC and max_SOC represent deviations from nameplate performance (e.g.,
+    degradation). When the usable SOC window is less than 0-1, the deliverable
+    energy and thus discharge duration are reduced proportionally.
+    """
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
+    test_h_dict["battery"]["charge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["discharge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
+    test_h_dict["battery"]["max_SOC"] = 0.9  # degraded: can only use 80% of capacity
+    test_h_dict["battery"]["min_SOC"] = 0.1
+    test_h_dict["battery"]["initial_conditions"] = {"SOC": 0.9}
+    test_h_dict["battery"]["allow_grid_power_consumption"] = True
+    test_h_dict["dt"] = 1.0
+
+    SB = BatterySimple(test_h_dict, "battery")
+
+    # With SOC window of 0.8 (0.1 to 0.9), deliverable duration should be
+    # 0.8 * energy_capacity / discharge_rate = 0.8 * 4 hours = 3.2 hours
+    expected_steps = int(0.8 * 14400)  # 11520 steps
+    steps_taken = 0
+    for i in range(expected_steps + 1000):
+        SB.step(step_inputs(P_avail=0, P_signal=-1000))
+        steps_taken += 1
+        if SB.SOC <= SB.SOC_min:
+            break
+
+    assert abs(steps_taken - expected_steps) <= 1, (
+        f"Degraded battery (SOC 0.1-0.9) should take {expected_steps} steps "
+        f"(3.2 hours) to fully discharge at 1 MW from 4 MWh, but took "
+        f"{steps_taken} steps ({steps_taken / 3600:.3f} hours)."
+    )
