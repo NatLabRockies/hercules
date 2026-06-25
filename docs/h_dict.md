@@ -71,11 +71,11 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
 | `component_type` | str | "BatterySimple" or "BatteryLithiumIon" | Required |
-| `energy_capacity` | float | Total capacity in kWh | Required |
+| `energy_capacity` | float | Deliverable energy capacity in kWh | Required |
 | `charge_rate` | float | Maximum charge rate in kW | Required |
 | `discharge_rate` | float | Maximum discharge rate in kW | Required |
-| `max_SOC` | float | Maximum state of charge (0-1) | Required |
-| `min_SOC` | float | Minimum state of charge (0-1) | Required |
+| `max_SOC` | float | Maximum state of charge (0-1). Values < 1 indicate degradation. | 1.0 |
+| `min_SOC` | float | Minimum state of charge (0-1). Values > 0 indicate degradation. | 0.0 |
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
 | `log_channels` | list | List of channels to log (e.g., ["power", "soc", "power_setpoint"]) | ["power"] |

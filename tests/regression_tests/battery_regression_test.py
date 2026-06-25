@@ -120,12 +120,12 @@ soc_base_lib = np.array(
 
 usage_calc_base_dict = {
     "out_power": 1800,
-    "SB.total_cycle_usage": 0.02193261935938851,
-    "SB.cycle_usage_perc": 0.43865238718777017,
+    "SB.total_cycle_usage": 0.02193554708461804,
+    "SB.cycle_usage_perc": 0.43871094169236086,
     "SB.total_time_usage": 20.0,
     "SB.time_usage_perc": 63.41958396752917,
-    "SB.SOC (1)": 0.18644728149025358,
-    "SB.SOC (2)": 0.15097155977675195,
+    "SB.SOC (1)": 0.18643651054788266,
+    "SB.SOC (2)": 0.15096283896030407,
 }
 
 

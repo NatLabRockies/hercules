@@ -84,10 +84,8 @@ simple_battery = {
     "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
     "charge_rate": 2000,  # charge rate in kW (2 MW)
     "discharge_rate": 2000,  # discharge rate in kW (2 MW)
-    "max_SOC": 0.9,  # upper boundary on battery SOC
-    "min_SOC": 0.1,  # lower boundary on battery SOC
     "log_channels": ["power", "soc", "power_setpoint"],
-    "initial_conditions": {"SOC": 0.102},
+    "initial_conditions": {"SOC": 0.5},
 }
 
 lib_battery = {
