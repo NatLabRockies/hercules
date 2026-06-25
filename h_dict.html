@@ -684,7 +684,7 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">energy_capacity</span></code></p></td>
 <td><p>float</p></td>
-<td><p>Total capacity in kWh</p></td>
+<td><p>Deliverable energy capacity in kWh</p></td>
 <td><p>Required</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">charge_rate</span></code></p></td>
@@ -699,13 +699,13 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_SOC</span></code></p></td>
 <td><p>float</p></td>
-<td><p>Maximum state of charge (0-1)</p></td>
-<td><p>Required</p></td>
+<td><p>Maximum state of charge (0-1). Values &lt; 1 indicate degradation.</p></td>
+<td><p>1.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_SOC</span></code></p></td>
 <td><p>float</p></td>
-<td><p>Minimum state of charge (0-1)</p></td>
-<td><p>Required</p></td>
+<td><p>Minimum state of charge (0-1). Values &gt; 0 indicate degradation.</p></td>
+<td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code></p></td>
 <td><p>dict</p></td>
