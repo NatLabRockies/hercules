@@ -56,4 +56,4 @@ parts:
     - file: examples/06_wind_and_hydrogen
     - file: examples/07_thermal_plants
     - file: examples/08_multi_unit_thermal_plants
-    - file: examples/10_linear_generator
+    - file: examples/09_linear_generator

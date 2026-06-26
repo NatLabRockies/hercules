@@ -19,14 +19,15 @@ The thermal component operates as a state machine with eight states:
 stateDiagram-v2
     direction TB
 
-    state "OFF_HOT (0)" as OffHot
-    state "HOT STARTING (1)" as Hot
-    state "WARM STARTING (2)" as Warm
-    state "COLD STARTING (3)" as Cold
-    state "ON (4)" as On
-    state "STOPPING (5)" as Stop
-    state "OFF_WARM (6)" as OffWarm
-    state "OFF_COLD (7)" as OffCold
+    state "OFF_COLD (0)" as OffCold
+    state "COLD STARTING (1)" as Cold
+    state "OFF_WARM (2)" as OffWarm
+    state "WARM STARTING (3)" as Warm
+    state "OFF_HOT (4)" as OffHot
+    state "HOT STARTING (5)" as Hot
+    state "ON (6)" as On
+    state "STOPPING (7)" as Stop
+
 
     [*] --> OffHot
 
@@ -57,19 +58,19 @@ The decision between hot, warm, and cold starting is based on how long the unit 
 
 | From State | To State | Diagram Label | Condition |
 |------------|----------|---------------|-----------|
-| OFF_HOT (0) | HOT STARTING (1) | start (hot) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state < hot_to_warm_time` |
-| OFF_WARM (6) | WARM STARTING (2) | start (warm) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_warm_time` AND `time_in_state < hot_to_cold_time` |
-| OFF_COLD (7) | COLD STARTING (3) | start (cold) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_cold_time` |
-| HOT STARTING (1) | OFF_HOT (0) | abort | `power_setpoint <= 0` |
-| HOT STARTING (1) | ON (4) | P >= P_min | `power_output >= P_min` (after `hot_startup_time`) |
-| WARM STARTING (2) | OFF_WARM (6) | abort | `power_setpoint <= 0` |
-| WARM STARTING (2) | ON (4) | P >= P_min | `power_output >= P_min` (after `warm_startup_time`) |
-| COLD STARTING (3) | OFF_COLD (7) | abort | `power_setpoint <= 0` |
-| COLD STARTING (3) | ON (4) | P >= P_min | `power_output >= P_min` (after `cold_startup_time`) |
-| ON (4) | STOPPING (5) | shutdown | `power_setpoint <= 0` AND `time_in_state >= min_up_time` |
-| STOPPING (5) | OFF_HOT (0) | P = 0 | `power_output <= 0` |
-| OFF_HOT (0) | OFF_WARM (6) | time >= hot_to_warm_time | `time_in_state >= hot_to_warm_time` |
-| OFF_WARM (6) | OFF_COLD (7) | time >= hot_to_cold_time | `time_in_state >= hot_to_cold_time` |
+| OFF_HOT (4) | HOT STARTING (5) | start (hot) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state < hot_to_warm_time` |
+| OFF_WARM (2) | WARM STARTING (3) | start (warm) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_warm_time` AND `time_in_state < hot_to_cold_time` |
+| OFF_COLD (0) | COLD STARTING (1) | start (cold) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_cold_time` |
+| HOT STARTING (5) | OFF_HOT (4) | abort | `power_setpoint <= 0` |
+| HOT STARTING (5) | ON (6) | P >= P_min | `power_output >= P_min` (after `hot_startup_time`) |
+| WARM STARTING (3) | OFF_WARM (2) | abort | `power_setpoint <= 0` |
+| WARM STARTING (3) | ON (6) | P >= P_min | `power_output >= P_min` (after `warm_startup_time`) |
+| COLD STARTING (1) | OFF_COLD (0) | abort | `power_setpoint <= 0` |
+| COLD STARTING (1) | ON (6) | P >= P_min | `power_output >= P_min` (after `cold_startup_time`) |
+| ON (6) | STOPPING (7) | shutdown | `power_setpoint <= 0` AND `time_in_state >= min_up_time` |
+| STOPPING (7) | OFF_HOT (4) | P = 0 | `power_output <= 0` |
+| OFF_HOT (4) | OFF_WARM (2) | time >= hot_to_warm_time | `time_in_state >= hot_to_warm_time` |
+| OFF_WARM (2) | OFF_COLD (0) | time >= hot_to_cold_time | `time_in_state >= hot_to_cold_time` |
 
 ## Parameters
 
