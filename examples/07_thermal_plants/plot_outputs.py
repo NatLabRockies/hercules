@@ -56,11 +56,20 @@ ax.grid(True)
 ax = axarr[1]
 ax.plot(time_minutes, df[f"{component_name}.state"], label="State", color="k")
 ax.set_ylabel("State")
-ax.set_yticks([0, 1, 2, 3, 4, 5])
-ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
-ax.set_title(
-    "Turbine State (0=Off, 1=Hot Starting, 2=Warm Starting, 3=Cold Starting, 4=On, 5=Stopping)"
+ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7])
+ax.set_yticklabels(
+    [
+        "Off (Cold)",
+        "Cold Starting",
+        "Off (Warm)",
+        "Warm Starting",
+        "Off (Hot)",
+        "Hot Starting",
+        "On",
+        "Stopping",
+    ]
 )
+ax.set_title("Turbine State")
 ax.grid(True)
 
 # Plot the efficiency

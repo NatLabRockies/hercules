@@ -54,8 +54,19 @@ for k, unit_name in enumerate(unit_names):
         time_minutes, df[f"{component_name}.{unit_name}.state"], label=unit_name, color="C" + str(k)
     )
     ax.set_ylabel("State")
-    ax.set_yticks([0, 1, 2, 3, 4, 5])
-    ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
+    ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7])
+    ax.set_yticklabels(
+        [
+            "Off (Cold)",
+            "Cold Starting",
+            "Off (Warm)",
+            "Warm Starting",
+            "Off (Hot)",
+            "Hot Starting",
+            "On",
+            "Stopping",
+        ]
+    )
     ax.grid(True)
     ax.legend()
 

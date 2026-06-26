@@ -72,14 +72,14 @@ class ThermalComponentBase(ComponentBase):
     class STATES(IntEnum):
         """Enumeration of thermal component operating states."""
 
-        OFF_HOT = 0
-        HOT_STARTING = 1
-        WARM_STARTING = 2
-        COLD_STARTING = 3
-        ON = 4
-        STOPPING = 5
-        OFF_WARM = 6
-        OFF_COLD = 7
+        OFF_COLD = 0
+        COLD_STARTING = 1
+        OFF_WARM = 2
+        WARM_STARTING = 3
+        OFF_HOT = 4
+        HOT_STARTING = 5
+        ON = 6
+        STOPPING = 7
 
     def _is_off(self):
         """Return True if the unit is in any OFF substate."""

@@ -92,9 +92,13 @@ class LinearGenerator(ThermalComponentBase):
                     Default: 0.768 kg/m³ [3]
                 - efficiency_table: Optional, dictionary with power_fraction and
                     efficiency arrays (both as fractions 0-1). Efficiency values must
-                    be HHV net plant efficiencies. Default values from [1]:
-                    power_fraction = [1.0, 0.0],
-                    efficiency = [0.4144, 0.4144].
+                    be HHV net plant efficiencies. Default values from [1], which
+                    reports a single peak efficiency value (41.44% HHV) valid across
+                    most of the operating range. For defaults, a modest drop-off is
+                    applied at extremes to reflect fixed losses at low load and
+                    thermal losses at high load:
+                    power_fraction = [1.00, 0.90, 0.30, 0.20],
+                    efficiency = [0.40, 0.4144, 0.4144, 0.35].
             component_name (str): Unique name for this instance (the YAML top-level key).
         """
 
