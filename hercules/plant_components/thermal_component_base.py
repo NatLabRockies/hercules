@@ -49,7 +49,8 @@ class ThermalComponentBase(ComponentBase):
 
     State Machine:
         state values (IntEnum) and their meanings:
-        - 0 (OFF): Thermal Component is off, no power output
+        - 0 (OFF_HOT): Thermal Component is off and still hot
+            (time_in_state < hot_to_warm_time)
         - 1 (HOT_STARTING): Thermal Component is readying or ramping up to minimum
             stable load from off state (hot start)
         - 2 (WARM_STARTING): Thermal Component is readying or ramping up to minimum
@@ -58,6 +59,10 @@ class ThermalComponentBase(ComponentBase):
             stable load from off state (cold start)
         - 4 (ON): Thermal Component is operating normally
         - 5 (STOPPING): Thermal Component is ramping down to shutdown
+        - 6 (OFF_WARM): Thermal Component is off and warm
+            (hot_to_warm_time <= time_in_state < hot_to_cold_time)
+        - 7 (OFF_COLD): Thermal Component is off and cold
+            (time_in_state >= hot_to_cold_time)
 
 
     """
@@ -67,18 +72,36 @@ class ThermalComponentBase(ComponentBase):
     class STATES(IntEnum):
         """Enumeration of thermal component operating states."""
 
-        OFF = 0
-        HOT_STARTING = 1
-        WARM_STARTING = 2
-        COLD_STARTING = 3
-        ON = 4
-        STOPPING = 5
+        OFF_COLD = 0
+        COLD_STARTING = 1
+        OFF_WARM = 2
+        WARM_STARTING = 3
+        OFF_HOT = 4
+        HOT_STARTING = 5
+        ON = 6
+        STOPPING = 7
 
-    # Time constants
-    #       Note the time definitions for cold versus warm versus hot starting are hard
-    #   coded and based on the values in [5].
-    HOT_START_TIME = 8 * 60 * 60  # 8 hours (less than 8 hours triggers a hot start)
-    WARM_START_TIME = 48 * 60 * 60  # 48 hours (less than 48 hours triggers a warm start)
+        @property
+        def label(self):
+            """Return a human-readable label for the state."""
+            return self.name.replace("_", " ").title()
+
+    def _is_off(self):
+        """Return True if the unit is in any OFF substate."""
+        return self.state in (
+            self.STATES.OFF_HOT,
+            self.STATES.OFF_WARM,
+            self.STATES.OFF_COLD,
+        )
+
+    def _classify_off_state(self):
+        """Set the OFF substate based on time_in_state and cooldown thresholds."""
+        if self.time_in_state < self.hot_to_warm_time:
+            self.state = self.STATES.OFF_HOT
+        elif self.time_in_state < self.hot_to_cold_time:
+            self.state = self.STATES.OFF_WARM
+        else:
+            self.state = self.STATES.OFF_COLD
 
     def __init__(self, h_dict, component_name):
         """Initialize the ThermalComponentBase class.
@@ -99,6 +122,10 @@ class ThermalComponentBase(ComponentBase):
                     Includes both readying time and ramping time.
                 - min_up_time: Minimum time unit must remain on in s.
                 - min_down_time: Minimum time unit must remain off in s.
+                - hot_to_warm_time: Optional, time after shutdown before the unit
+                    transitions from hot to warm state in s. Default: 28800.0 (8 hours).
+                - hot_to_cold_time: Optional, time after shutdown before the unit
+                    transitions from warm to cold state in s. Default: 172800.0 (48 hours).
                 - initial_conditions: Dictionary with initial power (state is
                     derived automatically: power > 0 means ON, power == 0 means OFF)
                 - hhv: Higher heating value of fuel in J/m³
@@ -124,6 +151,9 @@ class ThermalComponentBase(ComponentBase):
         self.min_up_time = component_dict["min_up_time"]  # s
         self.min_down_time = component_dict["min_down_time"]  # s
 
+        # Cooldown threshold times (optional, with defaults matching [5])
+        self.hot_to_warm_time = component_dict.get("hot_to_warm_time", 28800.0)  # s (8h)
+        self.hot_to_cold_time = component_dict.get("hot_to_cold_time", 172800.0)  # s (48h)
         # Extract optional parameters for startup and shutdown fuel fractions
         self.startup_fuel_fraction = component_dict.get("startup_fuel_fraction", None)
         self.shutdown_fuel_fraction = component_dict.get("shutdown_fuel_fraction", None)
@@ -147,6 +177,10 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("min_up_time must be a number")
         if not isinstance(self.min_down_time, (int, float, hercules_float_type)):
             raise ValueError("min_down_time must be a number")
+        if not isinstance(self.hot_to_warm_time, (int, float, hercules_float_type)):
+            raise ValueError("hot_to_warm_time must be a number")
+        if not isinstance(self.hot_to_cold_time, (int, float, hercules_float_type)):
+            raise ValueError("hot_to_cold_time must be a number")
 
         # Check parameters
         if self.rated_capacity <= 0:
@@ -167,6 +201,12 @@ class ThermalComponentBase(ComponentBase):
             raise ValueError("min_up_time must be greater than or equal to 0")
         if self.min_down_time < 0:
             raise ValueError("min_down_time must be greater than or equal to 0")
+        if self.hot_to_warm_time < 0:
+            raise ValueError("hot_to_warm_time must be greater than or equal to 0")
+        if self.hot_to_cold_time < 0:
+            raise ValueError("hot_to_cold_time must be greater than or equal to 0")
+        if self.hot_to_cold_time < self.hot_to_warm_time:
+            raise ValueError("hot_to_cold_time must be greater than or equal to hot_to_warm_time")
 
         # Compute derived power limits
         self.P_min = self.min_stable_load_fraction * self.rated_capacity  # kW
@@ -223,12 +263,13 @@ class ThermalComponentBase(ComponentBase):
             # Set time_in_state so the unit is immediately ready to stop
             self.time_in_state = float(self.min_up_time)  # s
         else:
-            self.state = self.STATES.OFF
             # Set time_in_state so the unit is immediately ready to start
             if "time_in_shutdown" in initial_conditions:
                 self.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
             else:
                 self.time_in_state = float(self.min_down_time)  # s
+            # Classify into the appropriate OFF substate
+            self._classify_off_state()
 
         # Extract efficiency table (HHV net efficiency), HHV, and fuel density
         # for fuel consumption calculations
@@ -296,6 +337,9 @@ class ThermalComponentBase(ComponentBase):
         self.n_warm_starts = 0
         self.n_cold_starts = 0
 
+        # Saved off-duration before a startup attempt (for restore on abort)
+        self._time_off_before_start = None
+
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add initial conditions and meta data to the h_dict.
 
@@ -351,6 +395,10 @@ class ThermalComponentBase(ComponentBase):
         # Determine actual power output based on constraints and state
         self.power_output = self._control(power_setpoint)
 
+        # Re-classify OFF substate based on time_in_state
+        if self._is_off():
+            self._classify_off_state()
+
         # Calculate HHV net efficiency and fuel consumption rate
         self.efficiency = self.calculate_efficiency(self.power_output)
         self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power_output)
@@ -378,33 +426,34 @@ class ThermalComponentBase(ComponentBase):
         Handles state transitions, startup/shutdown ramps, and power constraints
         based on the current state (state) and time in that state.
 
-        Note the time definitions for cold versus warm versus hot starting are hard
-        coded and based on the values in [5].
+        The startup type (hot/warm/cold) is determined by the parameterized
+        cooldown thresholds hot_to_warm_time and hot_to_cold_time.
 
         State Machine:
-            STATE_OFF (0):
-                - If setpoint > 0 and min_down_time satisfied and time_in_state < 8 hours:
-                  begin HOT_STARTING
-                - If setpoint > 0 and min_down_time satisfied and time_in_state >= 48 hours:
-                  begin COLD_STARTING
-                - If setpoint > 0 and min_down_time satisfied and time_in_state >= 8 hours
-                  and time_in_state < 48 hours: begin WARM_STARTING
+            STATE_OFF_HOT/OFF_WARM/OFF_COLD (0/6/7):
+                - If setpoint > 0 and min_down_time satisfied and
+                  time_in_state < hot_to_warm_time: begin HOT_STARTING
+                - If setpoint > 0 and min_down_time satisfied and
+                  time_in_state >= hot_to_cold_time: begin COLD_STARTING
+                - If setpoint > 0 and min_down_time satisfied and
+                  time_in_state >= hot_to_warm_time and
+                  time_in_state < hot_to_cold_time: begin WARM_STARTING
                 - Otherwise: remain OFF, output 0
 
             STATE_HOT_STARTING (1):
-                - If setpoint <= 0: abort startup, return to OFF
+                - If setpoint <= 0: abort startup, return to OFF_HOT
                 - If time in state is less than hot_readying_time output 0
                 - After hot_readying_time, ramp up to P_min using run_up_rate
                 - When power output >= P_min: transition to STATE_ON
 
             STATE_WARM_STARTING (2):
-                - If setpoint <= 0: abort startup, return to OFF
+                - If setpoint <= 0: abort startup, return to OFF_HOT
                 - If time in state is less than warm_readying_time output 0
                 - After warm_readying_time, ramp up to P_min using run_up_rate
                 - When power output >= P_min: transition to STATE_ON
 
             STATE_COLD_STARTING (3):
-                - If setpoint <= 0: abort startup, return to OFF
+                - If setpoint <= 0: abort startup, return to OFF_HOT
                 - If time in state is less than cold_readying_time output 0
                 - After cold_readying_time, ramp up to P_min using run_up_rate
                 - When power output >= P_min: transition to STATE_ON
@@ -415,7 +464,7 @@ class ThermalComponentBase(ComponentBase):
 
             STATE_STOPPING (5):
                 - Ramp to 0 using ramp_rate
-                - When power output <= 0: transition to STATE_OFF
+                - When power output <= 0: transition to STATE_OFF_HOT
 
         Args:
             power_setpoint (float): Desired power output in kW.
@@ -424,9 +473,9 @@ class ThermalComponentBase(ComponentBase):
             float: Actual constrained power output in kW.
         """
         # ====================================================================
-        # STATE: OFF
+        # STATE: OFF (OFF_HOT, OFF_WARM, OFF_COLD)
         # ====================================================================
-        if self.state == self.STATES.OFF:
+        if self._is_off():
             # Check if we can start (min_down_time satisfied)
             if not hasattr(self, "can_start"):
                 can_start = self.time_in_state >= self.min_down_time
@@ -436,15 +485,16 @@ class ThermalComponentBase(ComponentBase):
             if power_setpoint > 0 and can_start:
                 self.n_total_starts += 1
                 # Check if hot, warm, or cold starting is implied
-                if self.time_in_state < self.HOT_START_TIME:
+                if self.time_in_state < self.hot_to_warm_time:
                     self.state = self.STATES.HOT_STARTING
                     self.n_hot_starts += 1
-                elif self.time_in_state < self.WARM_START_TIME:
+                elif self.time_in_state < self.hot_to_cold_time:
                     self.state = self.STATES.WARM_STARTING
                     self.n_warm_starts += 1
                 else:
                     self.state = self.STATES.COLD_STARTING
                     self.n_cold_starts += 1
+                self._time_off_before_start = self.time_in_state
                 self.time_in_state = 0.0
                 if hasattr(self, "can_start"):
                     del self.can_start
@@ -457,8 +507,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.HOT_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state = self.STATES.OFF
-                self.time_in_state = 0.0
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
+                self.state = self.STATES.OFF_HOT
                 self.power_output = 0.0
                 return 0.0
 
@@ -473,6 +524,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
@@ -486,8 +538,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.WARM_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state = self.STATES.OFF
-                self.time_in_state = 0.0
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
+                self._classify_off_state()
                 self.power_output = 0.0
                 return 0.0
 
@@ -502,6 +555,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
@@ -515,8 +569,9 @@ class ThermalComponentBase(ComponentBase):
         elif self.state == self.STATES.COLD_STARTING:
             # Check if startup should be aborted
             if power_setpoint <= 0:
-                self.state = self.STATES.OFF
-                self.time_in_state = 0.0
+                # Restore off-duration: saved pre-start time + time spent starting
+                self.time_in_state = self._time_off_before_start + self.time_in_state
+                self._classify_off_state()
                 self.power_output = 0.0
                 return 0.0
 
@@ -531,6 +586,7 @@ class ThermalComponentBase(ComponentBase):
             if startup_power >= self.P_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
+                self._time_off_before_start = None
                 return startup_power
 
             # Limit to below P_max (edge case)
@@ -555,7 +611,7 @@ class ThermalComponentBase(ComponentBase):
 
                 # Check if shutdown is complete in this timestep
                 if shutdown_power <= 0:
-                    self.state = self.STATES.OFF
+                    self.state = self.STATES.OFF_HOT
                     self.time_in_state = 0.0
                     return 0.0
 
@@ -573,7 +629,7 @@ class ThermalComponentBase(ComponentBase):
 
             # Check if shutdown is complete
             if shutdown_power <= 0:
-                self.state = self.STATES.OFF
+                self.state = self.STATES.OFF_HOT
                 self.time_in_state = 0.0
                 return 0.0
 
@@ -630,7 +686,7 @@ class ThermalComponentBase(ComponentBase):
             float: HHV net efficiency as a fraction (0-1).
         """
         # NOTE: Not sure if we need this code
-        # if self.state == self.STATES.OFF:
+        # if self.state == self._is_off():
         #     # Efficiency is not defined when off
         #     return np.nan
         # elif power_output <= 0:
@@ -660,7 +716,7 @@ class ThermalComponentBase(ComponentBase):
             self.hhv * self.interpolate_efficiency(self.rated_capacity)
         )  # m³/s at rated capacity
 
-        if self.state == self.STATES.OFF:
+        if self._is_off():
             # When off, fuel flow is zero
             return 0.0
         elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:

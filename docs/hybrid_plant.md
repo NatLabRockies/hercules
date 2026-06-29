@@ -19,6 +19,7 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 | `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `LinearGenerator` | `generator` | Yes | [Linear Generator](linear_generator.md) |
 | `SteamTurbine` | `generator` | [Steam Turbine](steam_turbine.md) |
 | `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
 

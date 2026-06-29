@@ -87,7 +87,7 @@ def test_HerculesModel_instantiation():
 
     # Test with external data file and custom output file
     test_h_dict_2 = h_dict_solar.copy()
-    test_h_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict_2["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
     test_h_dict_2["output_file"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
     # Remove preset start/end and adjust endtime_utc to preserve prior behavior
@@ -242,7 +242,7 @@ def test_log_data_to_hdf5_with_external_signals():
     test_h_dict.pop("step", None)
 
     # Add external data file
-    test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
     test_h_dict["dt"] = 1.0
 
     hmodel = HerculesModel(test_h_dict)

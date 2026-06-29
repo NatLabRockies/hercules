@@ -2,6 +2,7 @@ from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.combined_cycle_plant import CombinedCyclePlant
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
+from hercules.plant_components.linear_generator import LinearGenerator
 from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
 from hercules.plant_components.power_playback import PowerPlayback
 from hercules.plant_components.solar_pysam_pvwatts import SolarPySAMPVWatts
@@ -19,6 +20,7 @@ COMPONENT_REGISTRY = {
     "BatterySimple": BatterySimple,
     "BatteryLithiumIon": BatteryLithiumIon,
     "ElectrolyzerPlant": ElectrolyzerPlant,
+    "LinearGenerator": LinearGenerator,
     "OpenCycleGasTurbine": OpenCycleGasTurbine,
     "ThermalPlant": ThermalPlant,
     "SteamTurbine": SteamTurbine,

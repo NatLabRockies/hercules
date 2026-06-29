@@ -103,6 +103,12 @@ class OpenCycleGasTurbine(ThermalComponentBase):
         if "min_down_time" not in h_dict[component_name]:
             h_dict[component_name]["min_down_time"] = 3600.0
 
+        # Default cooldown threshold times (8 hours / 48 hours) from [5]
+        if "hot_to_warm_time" not in h_dict[component_name]:
+            h_dict[component_name]["hot_to_warm_time"] = 28800.0  # 8 hours
+        if "hot_to_cold_time" not in h_dict[component_name]:
+            h_dict[component_name]["hot_to_cold_time"] = 172800.0  # 48 hours
+
         # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
         if "run_up_rate_fraction" not in h_dict[component_name]:
             h_dict[component_name]["run_up_rate_fraction"] = h_dict[component_name][
