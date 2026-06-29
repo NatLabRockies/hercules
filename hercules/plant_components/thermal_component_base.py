@@ -81,6 +81,11 @@ class ThermalComponentBase(ComponentBase):
         ON = 6
         STOPPING = 7
 
+        @property
+        def label(self):
+            """Return a human-readable label for the state."""
+            return self.name.replace("_", " ").title()
+
     def _is_off(self):
         """Return True if the unit is in any OFF substate."""
         return self.state in (

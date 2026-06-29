@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from hercules import HerculesOutput
+from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 # Read the Hercules output file using HerculesOutput
 ho = HerculesOutput("outputs/hercules_output.h5")
@@ -54,19 +55,9 @@ for k, unit_name in enumerate(unit_names):
         time_minutes, df[f"{component_name}.{unit_name}.state"], label=unit_name, color="C" + str(k)
     )
     ax.set_ylabel("State")
-    ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7])
-    ax.set_yticklabels(
-        [
-            "Off (Cold)",
-            "Cold Starting",
-            "Off (Warm)",
-            "Warm Starting",
-            "Off (Hot)",
-            "Hot Starting",
-            "On",
-            "Stopping",
-        ]
-    )
+    STATES = ThermalComponentBase.STATES
+    ax.set_yticks([s.value for s in STATES])
+    ax.set_yticklabels([s.label for s in STATES])
     ax.grid(True)
     ax.legend()
 
