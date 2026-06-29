@@ -1,4 +1,4 @@
-# Example 10: Linear Generator
+# Example 09: Linear Generator
 
 ## Description
 
