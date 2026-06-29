@@ -1,4 +1,4 @@
-"""Example 10: Linear Generator simulation.
+"""Example 09: Linear Generator Simulation.
 
 This example demonstrates a Mainspring linear generator that:
 - Starts ON at rated capacity (250 kW)
