@@ -218,6 +218,7 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Steam Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="combined_cycle_plant.html">Combined Cycle Gas Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="thermal_plant.html">Thermal Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="linear_generator.html">Linear Generator</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
@@ -240,6 +241,7 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/07_thermal_plants.html">Example 07: Thermal Plants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/08_multi_unit_thermal_plants.html">Example 08: Multi-unit Thermal Plants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/09_linear_generator.html">Example 09: Linear Generator</a></li>
 </ul>
 
     </div>
@@ -551,6 +553,14 @@
 <td><p>48 hours</p></td>
 <td><p>[2]</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code></p></td>
+<td><p>28800 s (8 hours)</p></td>
+<td><p>[5]</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code></p></td>
+<td><p>172800 s (48 hours)</p></td>
+<td><p>[5]</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code></p></td>
 <td><p>Average plant efficiency</p></td>
 <td><p>[2,3]</p></td>
@@ -599,7 +609,7 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
 <td><p>integer</p></td>
-<td><p>Operating state number (0-5), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></td>
+<td><p>Operating state number (0-7), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code></p></td>
 <td><p>fraction (0-1)</p></td>
@@ -670,6 +680,8 @@
 <span class="w">  </span><span class="nt">cold_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27000.0</span><span class="w">  </span><span class="c1"># 7.5 hours</span>
 <span class="w">  </span><span class="nt">min_up_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172800</span><span class="w">  </span><span class="c1"># 48 hours</span>
 <span class="w">  </span><span class="nt">min_down_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172800</span><span class="w">  </span><span class="c1"># 48 hour</span>
+<span class="w">  </span><span class="nt">hot_to_warm_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28800.0</span><span class="w">  </span><span class="c1"># 8 hours</span>
+<span class="w">  </span><span class="nt">hot_to_cold_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172800.0</span><span class="w">  </span><span class="c1"># 48 hours</span>
 <span class="w">  </span><span class="nt">hhv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">29310000000</span><span class="w">  </span><span class="c1"># J/m³ for bituminous coal (29.31 MJ/m³) [4]</span>
 <span class="w">  </span><span class="nt">fuel_density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">  </span><span class="c1"># kg/m³ for bituminous coal</span>
 <span class="w">  </span><span class="nt">efficiency_table</span><span class="p">:</span>
@@ -700,7 +712,7 @@
 <p><strong>Available Channels:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual power output in kW (always logged)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Operating state number (0-5), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Operating state number (0-7), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fuel_volume_rate</span></code>: Fuel volume flow rate in m³/s</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fuel_mass_rate</span></code>: Fuel mass flow rate in kg/s</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code>: Current HHV net plant efficiency (0-1)</p></li>

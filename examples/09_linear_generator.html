@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Example 08: Multi-unit Thermal Plants &#8212; HERCULES</title>
+    <title>Example 09: Linear Generator &#8212; HERCULES</title>
   
   
   
@@ -73,11 +73,10 @@
                 gtag('config', 'G-3V1BDK8KEJ');
             </script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/08_multi_unit_thermal_plants';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/09_linear_generator';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Example 09: Linear Generator" href="09_linear_generator.html" />
-    <link rel="prev" title="Example 07: Thermal Plants" href="07_thermal_plants.html" />
+    <link rel="prev" title="Example 08: Multi-unit Thermal Plants" href="08_multi_unit_thermal_plants.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -238,8 +237,8 @@
 <li class="toctree-l1"><a class="reference internal" href="05_wind_and_storage_with_lmp.html">Example 05: Wind and storage with LMP-based control</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_wind_and_hydrogen.html">Example 06: Wind and hydrogen hybrid plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="07_thermal_plants.html">Example 07: Thermal Plants</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 08: Multi-unit Thermal Plants</a></li>
-<li class="toctree-l1"><a class="reference internal" href="09_linear_generator.html">Example 09: Linear Generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="08_multi_unit_thermal_plants.html">Example 08: Multi-unit Thermal Plants</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example 09: Linear Generator</a></li>
 </ul>
 
     </div>
@@ -316,7 +315,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/08_multi_unit_thermal_plants.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/examples/09_linear_generator.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -333,7 +332,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/08_multi_unit_thermal_plants.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fexamples/09_linear_generator.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -363,7 +362,7 @@
       
       
       
-      <li><a href="../_sources/examples/08_multi_unit_thermal_plants.md" target="_blank"
+      <li><a href="../_sources/examples/09_linear_generator.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -439,7 +438,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Example 08: Multi-unit Thermal Plants</h1>
+    <h1>Example 09: Linear Generator</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -451,6 +450,7 @@
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenario">Scenario</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timeline">Timeline</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-behaviors-demonstrated">Key Behaviors Demonstrated</a></li>
 </ul>
 </li>
@@ -468,64 +468,156 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="example-08-multi-unit-thermal-plants">
-<h1>Example 08: Multi-unit Thermal Plants<a class="headerlink" href="#example-08-multi-unit-thermal-plants" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="example-09-linear-generator">
+<h1>Example 09: Linear Generator<a class="headerlink" href="#example-09-linear-generator" title="Link to this heading">#</a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>This example demonstrates the operation of multiple thermal power plant units within a Hercules framework. The example showcases how different thermal generators (e.g., multiple OCGTs or combined cycle untis) can operate collectively to meet demand setpoints, including their coordinated startup and shutdown sequences, individual unit ramping constraints, and aggregate power output management. This builds upon Example 07 by illustrating how multiple thermal units with different characteristics can be simulated individually within a thermal plant.</p>
-<p>For details on thermal component parameters and configuration, see <a class="reference internal" href="../open_cycle_gas_turbine.html"><span class="doc">Open Cycle Gas Turbine</span></a>, <a class="reference internal" href="../steam_turbine.html"><span class="doc">Steam Turbine</span></a>, <a class="reference internal" href="../combined_cycle_plant.html"><span class="doc">Combined Cycle Gas Turbine</span></a>, and <a class="reference internal" href="../thermal_plant.html"><span class="doc">Thermal Plant</span></a>. For details on the underlying state machine and ramp behavior, see <a class="reference internal" href="../thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
+<p>This example demonstrates a standalone Mainspring linear generator simulation. It highlights three key characteristics that distinguish the linear generator from other thermal components:</p>
+<ol class="arabic simple">
+<li><p><strong>Fast ramp rate</strong> (120%/min) — power changes are effectively instantaneous at 1-minute time steps</p></li>
+<li><p><strong>No minimum stable load</strong> — the generator can operate at any fraction of rated capacity, including very low loads, without shutting down</p></li>
+<li><p><strong>Flat efficiency</strong> — HHV net efficiency is constant at 41.44% regardless of load level</p></li>
+</ol>
+<p>For details on linear generator parameters and configuration, see <a class="reference internal" href="../linear_generator.html"><span class="doc">Linear Generator</span></a>. For details on the underlying state machine and ramp behavior, see <a class="reference internal" href="../thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
 </section>
 <section id="scenario">
 <h2>Scenario<a class="headerlink" href="#scenario" title="Link to this heading">#</a></h2>
-<p>The simulation demonstrates multiple thermal units responding to changing power demand setpoints over a specified time horizon. Each unit independently manages its operational state (off, starting, on, stopping) and power output, subject to individual constraints. The controller coordinates the collective output of all units to track the demand profile. Key aspects that this functionality can be used for include:</p>
-<ul class="simple">
-<li><p><strong>Multi-unit coordination</strong>: Units start and stop based on demand requirements and individual constraint timelines</p></li>
-<li><p><strong>Aggregate ramp rate limitations</strong>: Combined ramp rates of multiple units can be managed for grid compliance</p></li>
-<li><p><strong>Minimum load considerations</strong>: Multiple units provide flexibility to maintain system minimum load requirements</p></li>
-<li><p><strong>Economic dispatch</strong>: Units may be prioritized based on efficiency characteristics (fuel consumption, heat rate)</p></li>
-</ul>
+<p>The simulation runs for 7 hours with 1-minute time steps on a 250 kW unit.</p>
+<section id="timeline">
+<h3>Timeline<a class="headerlink" href="#timeline" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Time (min)</p></th>
+<th class="head"><p>Event Type</p></th>
+<th class="head"><p>Setpoint</p></th>
+<th class="head"><p>State</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Initial</p></td>
+<td><p>250 kW</p></td>
+<td><p>ON (6)</p></td>
+<td><p>Generator starts on at rated capacity; <code class="docutils literal notranslate"><span class="pre">time_in_state</span></code> pre-set to <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p>Command</p></td>
+<td><p>→ 0</p></td>
+<td><p>→ STOPPING (7)</p></td>
+<td><p>Shutdown command; <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> pre-satisfied, stopping begins immediately</p></td>
+</tr>
+<tr class="row-even"><td><p>~10</p></td>
+<td><p>State</p></td>
+<td><p>0</p></td>
+<td><p>→ OFF_HOT (4)</p></td>
+<td><p>Power reaches 0 within one time step (ramp rate of 120%/min exceeds rated capacity), <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> begins counting</p></td>
+</tr>
+<tr class="row-odd"><td><p>~15</p></td>
+<td><p>State</p></td>
+<td><p>0</p></td>
+<td><p>OFF_HOT (4)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> (5 min) satisfied</p></td>
+</tr>
+<tr class="row-even"><td><p>20</p></td>
+<td><p>Command</p></td>
+<td><p>→ 250 kW</p></td>
+<td><p>→ HOT_STARTING (5)</p></td>
+<td><p>ON command issued; <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> already satisfied, hot start begins immediately</p></td>
+</tr>
+<tr class="row-odd"><td><p>~21–22</p></td>
+<td><p>State</p></td>
+<td><p>—</p></td>
+<td><p>HOT_STARTING (5)</p></td>
+<td><p>Hot start in progress; <code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code> is 90 s, which spans 2 time steps at dt=60 s</p></td>
+</tr>
+<tr class="row-even"><td><p>~22</p></td>
+<td><p>State</p></td>
+<td><p>250 kW</p></td>
+<td><p>→ ON (6)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code> complete; power ramps to 250 kW within one time step</p></td>
+</tr>
+<tr class="row-odd"><td><p>90</p></td>
+<td><p>Command</p></td>
+<td><p>→ 125 kW</p></td>
+<td><p>ON (6)</p></td>
+<td><p>Setpoint reduced to 50%; power reaches 125 kW within one time step</p></td>
+</tr>
+<tr class="row-even"><td><p>120</p></td>
+<td><p>Command</p></td>
+<td><p>→ 50 kW</p></td>
+<td><p>ON (6)</p></td>
+<td><p>Setpoint reduced to 20%; power reaches 50 kW — note no minimum stable load constraint</p></td>
+</tr>
+<tr class="row-odd"><td><p>180</p></td>
+<td><p>Command</p></td>
+<td><p>→ 0</p></td>
+<td><p>→ STOPPING (7)</p></td>
+<td><p>Shutdown command; <code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> satisfied (~153 min on), stopping begins</p></td>
+</tr>
+<tr class="row-even"><td><p>~180</p></td>
+<td><p>State</p></td>
+<td><p>0</p></td>
+<td><p>→ OFF_HOT (4)</p></td>
+<td><p>Power reaches 0 within one time step</p></td>
+</tr>
+<tr class="row-odd"><td><p>~225</p></td>
+<td><p>State</p></td>
+<td><p>0</p></td>
+<td><p>→ OFF_WARM (2)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> (45 min) elapsed since shutdown; unit transitions from hot to warm</p></td>
+</tr>
+<tr class="row-even"><td><p>~360</p></td>
+<td><p>State</p></td>
+<td><p>0</p></td>
+<td><p>→ OFF_COLD (0)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code> (3 hours) elapsed since shutdown; unit transitions from warm to cold</p></td>
+</tr>
+<tr class="row-odd"><td><p>420</p></td>
+<td><p>End</p></td>
+<td><p>0</p></td>
+<td><p>OFF_COLD (0)</p></td>
+<td><p>Simulation ends</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="key-behaviors-demonstrated">
 <h3>Key Behaviors Demonstrated<a class="headerlink" href="#key-behaviors-demonstrated" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><strong>Parallel unit operation</strong>: Multiple thermal units operate independently with their own state machines and constraints</p></li>
-<li><p><strong>Coordinated startup</strong>: Units are brought online sequentially or in parallel based on demand and minimum down-time constraints</p></li>
-<li><p><strong>Demand following</strong>: Collective output of all units tracks the requested power setpoint</p></li>
-<li><p><strong>Individual unit constraints</strong>: Each unit respects its own minimum up/down times, ramp rates, and minimum stable loads</p></li>
-<li><p><strong>Shutdown sequencing</strong>: Units are taken offline based on dispatch logic and minimum up-time satisfaction</p></li>
-<li><p><strong>Efficiency considerations</strong>: Combined operation shows how multiple units can improve overall plant heat rate and fuel efficiency</p></li>
+<li><p><strong>Fast ramp</strong>: Load changes while ON complete within a single 1-minute time step — the ramp rate (120%/min) exceeds rated capacity, so any setpoint change is met immediately</p></li>
+<li><p><strong>Hot startup duration</strong>: <code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code> is 90 s, which spans 2 timesteps at dt=60 s; power is not available until the startup sequence completes</p></li>
+<li><p><strong>No minimum stable load</strong>: The generator operates at 20% (50 kW) without clamping or shutdown, unlike a gas turbine which typically has a 30–40% minimum</p></li>
+<li><p><strong>Flat efficiency</strong>: Efficiency remains 41.44% at 100%, 50%, and 20% load — fuel consumption scales linearly with power output</p></li>
+<li><p><strong>Minimum down time</strong>: After shutdown at t=10 min, <code class="docutils literal notranslate"><span class="pre">min_down_time</span></code> (5 min) is satisfied by t=15 min, so the ON command at t=20 min starts the hot start sequence immediately</p></li>
+<li><p><strong>Cooldown state transitions</strong>: After the final shutdown at t=180 min, the unit progresses through OFF_HOT → OFF_WARM (at t≈225 min, after <code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> of 45 min) → OFF_COLD (at t≈360 min, after <code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code> of 3 hours)</p></li>
 </ul>
 </section>
 </section>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
-<p>No manual setup is required. The example uses multiple thermal components (OCGTs and/or steam turbines) configured in the input file. Configuration details for each unit are specified in the YAML input file.</p>
+<p>No manual setup is required. The example uses only the <code class="docutils literal notranslate"><span class="pre">LinearGenerator</span></code> component which requires no external data files.</p>
 </section>
 <section id="running">
 <h2>Running<a class="headerlink" href="#running" title="Link to this heading">#</a></h2>
 <p>To run the example, execute the following command in the terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/08_multi_unit_thermal_plants/hercules_runscript.py
-
-<span class="c1"># OR</span>
-
-<span class="nb">cd</span><span class="w"> </span>examples/08_multi_unit_thermal_plants
-python<span class="w"> </span>hercules_runscript.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>hercules_runscript.py
 </pre></div>
 </div>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
-<p>The output files <code class="docutils literal notranslate"><span class="pre">hercules_output.h5</span></code> and <code class="docutils literal notranslate"><span class="pre">hercules_dict.echo</span></code> are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/08_multi_unit_thermal_plants/outputs_08/</span></code> and log files are written to the folder <code class="docutils literal notranslate"><span class="pre">examples/08_multi_unit_thermal_plants/logger_outputs_08/</span></code></p>
 <p>To plot the outputs, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/08_multi_unit_thermal_plants/plot_outputs.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>plot_outputs.py
 </pre></div>
 </div>
-<p>The plots show:</p>
+<p>The plot shows:</p>
 <ul class="simple">
-<li><p>Aggregate power output over time for all units combined</p></li>
-<li><p>Individual unit power output and state transitions</p></li>
-<li><p>Fuel consumption across all units</p></li>
-<li><p>Heat rate variation with load for the multi-unit plant</p></li>
-<li><p>Unit commitment status and startup/shutdown events</p></li>
+<li><p>Power output and setpoint over time (demonstrating fast ramp and no minimum stable load)</p></li>
+<li><p>Operating state transitions</p></li>
+<li><p>Thermal efficiency over time (flat at 41.44% across all load levels)</p></li>
+<li><p>Fuel volume rate over time</p></li>
 </ul>
 </section>
 </section>
@@ -561,22 +653,13 @@ python<span class="w"> </span>hercules_runscript.py
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="07_thermal_plants.html"
+       href="08_multi_unit_thermal_plants.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Example 07: Thermal Plants</p>
+        <p class="prev-next-title">Example 08: Multi-unit Thermal Plants</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="09_linear_generator.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Example 09: Linear Generator</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -598,6 +681,7 @@ python<span class="w"> </span>hercules_runscript.py
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenario">Scenario</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timeline">Timeline</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-behaviors-demonstrated">Key Behaviors Demonstrated</a></li>
 </ul>
 </li>

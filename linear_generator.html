@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Open Cycle Gas Turbine &#8212; HERCULES</title>
+    <title>Linear Generator &#8212; HERCULES</title>
   
   
   
@@ -75,11 +75,11 @@
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'open_cycle_gas_turbine';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'linear_generator';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Steam Turbine" href="steam_turbine.html" />
-    <link rel="prev" title="Thermal Component Base" href="thermal_component_base.html" />
+    <link rel="next" title="Hercules Input Files" href="hercules_input.html" />
+    <link rel="prev" title="Thermal Plant" href="thermal_plant.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -214,11 +214,11 @@
 <li class="toctree-l1"><a class="reference internal" href="battery.html">Battery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="electrolyzer.html">Electrolyzer Plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="thermal_component_base.html">Thermal Component Base</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Open Cycle Gas Turbine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="open_cycle_gas_turbine.html">Open Cycle Gas Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="steam_turbine.html">Steam Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="combined_cycle_plant.html">Combined Cycle Gas Turbine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="thermal_plant.html">Thermal Plant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="linear_generator.html">Linear Generator</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Linear Generator</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Inputs</span></p>
 <ul class="nav bd-sidenav">
@@ -318,7 +318,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/open_cycle_gas_turbine.md" target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/edit/develop/docs/linear_generator.md" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -335,7 +335,7 @@
       
       
       
-      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Fopen_cycle_gas_turbine.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NatLabRockies/hercules/issues/new?title=Issue%20on%20page%20%2Flinear_generator.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -365,7 +365,7 @@
       
       
       
-      <li><a href="_sources/open_cycle_gas_turbine.md" target="_blank"
+      <li><a href="_sources/linear_generator.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -441,7 +441,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Open Cycle Gas Turbine</h1>
+    <h1>Linear Generator</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -451,18 +451,19 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ocgt-specific-parameters">OCGT-Specific Parameters</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-parameter-values">Default Parameter Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-linear-generator-specific-parameter-values">Default Linear Generator-Specific Parameter Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#estimating-hot-to-warm-time-and-hot-to-cold-time">Estimating <code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> and <code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-generator-fuel-parameters">Linear Generator Fuel Parameters</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#default-efficiency-table">Default Efficiency Table</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ocgt-outputs">OCGT Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-fuel-rate">Efficiency and Fuel Rate</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-generator-outputs">Linear Generator Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-configuration">YAML Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#minimal-configuration">Minimal Configuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-configuration">Full Configuration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-unit-configuration-via-thermalplant">Multi-Unit Configuration (via ThermalPlant)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
@@ -478,14 +479,151 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="open-cycle-gas-turbine">
-<h1>Open Cycle Gas Turbine<a class="headerlink" href="#open-cycle-gas-turbine" title="Link to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code> class models an open-cycle gas turbine (OCGT), also known as a peaker plant or simple-cycle gas turbine. Since this class is focused on peaker plant behavior, this class was developed based on aeroderivative engines. It is a subclass of <a class="reference internal" href="thermal_component_base.html"><span class="doc">ThermalComponentBase</span></a> and inherits all state machine behavior, ramp constraints, and operational logic from the base class.</p>
-<p>Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">OpenCycleGasTurbine</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">open_cycle_gas_turbine</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="linear-generator">
+<h1>Linear Generator<a class="headerlink" href="#linear-generator" title="Link to this heading">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">LinearGenerator</span></code> class models a Mainspring linear generator — a free-piston linear engine that burns fuel to produce electricity directly, without a rotating shaft. It is a subclass of <a class="reference internal" href="thermal_component_base.html"><span class="doc">ThermalComponentBase</span></a> and inherits all state machine behavior, ramp constraints, and operational logic from the base class.</p>
+<p>Set <code class="docutils literal notranslate"><span class="pre">component_type:</span> <span class="pre">LinearGenerator</span></code> in the component’s YAML section. The section key is a user-chosen <code class="docutils literal notranslate"><span class="pre">component_name</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">linear_generator</span></code>); see <a class="reference internal" href="component_types.html"><span class="std std-doc">Component Names, Types, and Categories</span></a> for details.</p>
 <p>For details on the state machine, startup/shutdown behavior, and base parameters, see <a class="reference internal" href="thermal_component_base.html"><span class="doc">Thermal Component Base</span></a>.</p>
-<section id="ocgt-specific-parameters">
-<h2>OCGT-Specific Parameters<a class="headerlink" href="#ocgt-specific-parameters" title="Link to this heading">#</a></h2>
-<p>The OCGT class provides default values for natural gas properties from [6]:</p>
+<section id="default-linear-generator-specific-parameter-values">
+<h2>Default Linear Generator-Specific Parameter Values<a class="headerlink" href="#default-linear-generator-specific-parameter-values" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">LinearGenerator</span></code> class provides default values for all base class parameters. Only <code class="docutils literal notranslate"><span class="pre">rated_capacity</span></code> and <code class="docutils literal notranslate"><span class="pre">initial_conditions</span></code> are required in the YAML configuration. All defaults are defined in the class-level <code class="docutils literal notranslate"><span class="pre">DEFAULTS</span></code> dict.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Source</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_stable_load_fraction</span></code></p></td>
+<td><p>0.0 (0%)</p></td>
+<td><p>—</p></td>
+<td><p>Minimum stable load fraction of the generator</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
+<td><p>1.2 (120%/min)</p></td>
+<td><p>[2]</p></td>
+<td><p>Ramp rate fraction of the generator</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">run_up_rate_fraction</span></code></p></td>
+<td><p>Same as <code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
+<td><p>—</p></td>
+<td><p>Run-up rate fraction of the generator</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code></p></td>
+<td><p>90 s (1.5 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Time required for a hot start</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">warm_startup_time</span></code></p></td>
+<td><p>450 s (7.5 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Time required for a warm start</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cold_startup_time</span></code></p></td>
+<td><p>900 s (15 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Time required for a cold start</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_up_time</span></code></p></td>
+<td><p>300 s (5 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Note below</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_down_time</span></code></p></td>
+<td><p>300 s (5 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Minimum down time of the generator</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code></p></td>
+<td><p>2700 s (45 minutes)</p></td>
+<td><p>—</p></td>
+<td><p>Assumptions documented below</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code></p></td>
+<td><p>10800 s (3 hours)</p></td>
+<td><p>—</p></td>
+<td><p>Assumptions documented below</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code></p></td>
+<td><p>39050000 J/m³ (39.05 MJ/m³)</p></td>
+<td><p>[3]</p></td>
+<td><p>Higher heating value of the fuel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code></p></td>
+<td><p>0.768 kg/m³</p></td>
+<td><p>[3]</p></td>
+<td><p>Density of the fuel</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code></p></td>
+<td><p>41.44% HHV peak, with roll-off at extremes (see below)</p></td>
+<td><p>[1]</p></td>
+<td><p>Efficiency of the generator, converted from LHV</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">min_up_time</span></code> is often determined by thermal and mechanical stress management considerations, as the generator may need to remain on for a minimum duration to avoid excessive wear from frequent cycling.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> and <code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code> are estimated based on catalyst cooling characteristics; see the section below for details on how these values were derived.</p></li>
+</ul>
+<section id="estimating-hot-to-warm-time-and-hot-to-cold-time">
+<h3>Estimating <code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> and <code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code><a class="headerlink" href="#estimating-hot-to-warm-time-and-hot-to-cold-time" title="Link to this heading">#</a></h3>
+<p>These two parameters can be interpreted as catalyst cooling thresholds, similar to the <code class="docutils literal notranslate"><span class="pre">\tau_{hot}</span></code> and <code class="docutils literal notranslate"><span class="pre">\tau_{warm}</span></code> transition times used in conventional unit commitment startup models:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code>: time offline after which a hot start can no longer be assumed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code>: time offline after which a cold start must be assumed</p></li>
+</ul>
+<p>For the linear generator, a reasonable first estimate is based on how long the catalyst takes to cool below its light-off temperature, typically about 200-300 °C. A simple lumped thermal model treats the catalyst assembly as cooling approximately exponentially after shutdown:</p>
+<div class="math notranslate nohighlight">
+\[
+T(t) = T_{amb} + (T_{op} - T_{amb}) e^{-t/\tau}
+\]</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">T_amb</span></code> is ambient temperature, <code class="docutils literal notranslate"><span class="pre">T_op</span></code> is the catalyst operating temperature, and <code class="docutils literal notranslate"><span class="pre">\tau</span></code> is the thermal time constant of the catalyst assembly, approximately equal to thermal mass divided by heat loss conductance.</p>
+<p>Using rough screening values:</p>
+<ul class="simple">
+<li><p>catalyst operating temperature: 400-600 °C</p></li>
+<li><p>ambient temperature: about 20 °C</p></li>
+<li><p>catalyst light-off temperature: about 250 °C</p></li>
+<li><p>catalyst thermal time constant: about 30-60 minutes for a relatively small, modestly insulated substrate</p></li>
+</ul>
+<p>For example, if the catalyst is at 500 °C when the unit shuts down and the hot-to-warm threshold is taken as 250 °C, then:</p>
+<div class="math notranslate nohighlight">
+\[
+250 = 20 + (500 - 20)e^{-t/\tau}
+\]</div>
+<p>which gives:</p>
+<div class="math notranslate nohighlight">
+\[
+\frac{230}{480} = e^{-t/\tau}, \qquad
+t = \tau \ln\left(\frac{480}{230}\right) \approx 0.74\tau
+\]</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">\tau</span> <span class="pre">=</span> <span class="pre">45</span></code> minutes, this yields a hot-to-warm transition time of about 33 minutes after shutdown. The warm-to-cold transition, defined more conservatively as the catalyst approaching near-ambient conditions such as within 50 °C of ambient, would usually occur after several time constants, on the order of 2-4 hours.</p>
+<p>This supports a reasonable first-guess range of:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Transition</p></th>
+<th class="head"><p>Estimated threshold</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Hot -&gt; Warm</p></td>
+<td><p>30-60 minutes offline</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warm -&gt; Cold</p></td>
+<td><p>2-4 hours offline</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These thresholds are much shorter than those of many conventional thermal generators because the catalyst assembly has much lower thermal mass. More accurate values would require vendor-specific information about catalyst substrate mass, heat capacity, insulation, and enclosure heat loss.</p>
+</section>
+</section>
+<section id="linear-generator-fuel-parameters">
+<h2>Linear Generator Fuel Parameters<a class="headerlink" href="#linear-generator-fuel-parameters" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">LinearGenerator</span></code> class currently uses default values for natural gas properties from [3]:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
@@ -498,87 +636,21 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code></p></td>
 <td><p>J/m³</p></td>
 <td><p>39050000</p></td>
-<td><p>Higher heating value of natural gas (39.05 MJ/m³) [6]</p></td>
+<td><p>Higher heating value of natural gas (39.05 MJ/m³) [3]</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code></p></td>
 <td><p>kg/m³</p></td>
 <td><p>0.768</p></td>
-<td><p>Fuel density for mass calculations [6]</p></td>
+<td><p>Fuel density for mass calculations [3]</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> parameter is <strong>optional</strong>. If not provided, default values based on approximate readings from the SC1A curve in Exhibit ES-4 of [5] are used. All efficiency values are <strong>HHV (Higher Heating Value) net plant efficiencies</strong>. See <a class="reference internal" href="thermal_component_base.html"><span class="doc">Thermal Component Base</span></a> for details on the efficiency table format.</p>
-</section>
-<section id="default-parameter-values">
-<h2>Default Parameter Values<a class="headerlink" href="#default-parameter-values" title="Link to this heading">#</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">OpenCycleGasTurbine</span></code> class provides default values for base class parameters based on References [1-5]. Only <code class="docutils literal notranslate"><span class="pre">rated_capacity</span></code> and <code class="docutils literal notranslate"><span class="pre">initial_conditions.power</span></code> are required in the YAML configuration.</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Default Value</p></th>
-<th class="head"><p>Source</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_stable_load_fraction</span></code></p></td>
-<td><p>0.40 (40%)</p></td>
-<td><p>[4]</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
-<td><p>0.10 (10%/min)</p></td>
-<td><p>[1]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">run_up_rate_fraction</span></code></p></td>
-<td><p>Same as <code class="docutils literal notranslate"><span class="pre">ramp_rate_fraction</span></code></p></td>
-<td><p>—</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_startup_time</span></code></p></td>
-<td><p>420 s (7 minutes)</p></td>
-<td><p>[1], [5]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">warm_startup_time</span></code></p></td>
-<td><p>480 s (8 minutes)</p></td>
-<td><p>[1], [5]</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cold_startup_time</span></code></p></td>
-<td><p>480 s (8 minutes)</p></td>
-<td><p>[1], [5]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_up_time</span></code></p></td>
-<td><p>1800 s (30 minutes)</p></td>
-<td><p>[4]</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_down_time</span></code></p></td>
-<td><p>3600 s (1 hour)</p></td>
-<td><p>[4]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code></p></td>
-<td><p>28800 s (8 hours)</p></td>
-<td><p>[5]</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code></p></td>
-<td><p>172800 s (48 hours)</p></td>
-<td><p>[5]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code></p></td>
-<td><p>39050000 J/m³ (39.05 MJ/m³)</p></td>
-<td><p>[6]</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code></p></td>
-<td><p>0.768 kg/m³</p></td>
-<td><p>[6]</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code></p></td>
-<td><p>SC1A HHV net efficiency (see below)</p></td>
-<td><p>Exhibit ES-4 of [5]</p></td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>Linear generators are also capable of mixed-fuel operation. To model a different fuel, simply override the <code class="docutils literal notranslate"><span class="pre">hhv</span></code> and <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> parameters in the YAML configuration; in this case the <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> should also be updated to reflect the new fuel’s combustion characteristics.
+The <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> parameter is <strong>optional</strong>. If not provided, the default HHV net plant efficiency from the Mainspring Energy Linear Generator datasheet [1] is used. All efficiency values are <strong>HHV (Higher Heating Value) net plant efficiencies</strong>. See <a class="reference internal" href="thermal_component_base.html"><span class="doc">Thermal Component Base</span></a> for details on the efficiency table format.</p>
 <section id="default-efficiency-table">
 <h3>Default Efficiency Table<a class="headerlink" href="#default-efficiency-table" title="Link to this heading">#</a></h3>
-<p>The default HHV net plant efficiency table is based on approximate readings from the SC1A (simple cycle) curve in Exhibit ES-4 of [5]:</p>
+<p>The default HHV net plant efficiency table is sourced from the Mainspring Energy Linear Generator datasheet [1]:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Power Fraction</p></th>
@@ -587,25 +659,26 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>1.00</p></td>
-<td><p>0.39 (39%)</p></td>
+<td><p>0.40 (40%)</p></td>
 </tr>
-<tr class="row-odd"><td><p>0.75</p></td>
-<td><p>0.37 (37%)</p></td>
+<tr class="row-odd"><td><p>0.90</p></td>
+<td><p>0.4144 (41.44%)</p></td>
 </tr>
-<tr class="row-even"><td><p>0.50</p></td>
-<td><p>0.325 (32.5%)</p></td>
+<tr class="row-even"><td><p>0.30</p></td>
+<td><p>0.4144 (41.44%)</p></td>
 </tr>
-<tr class="row-odd"><td><p>0.25</p></td>
-<td><p>0.245 (24.5%)</p></td>
+<tr class="row-odd"><td><p>0.20</p></td>
+<td><p>0.35 (35%)</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>Mainspring reports a single peak efficiency value of 41.44% HHV, which is representative of most of the operating range. The table adds a modest drop-off at the extremes: a small reduction at high load (above ~90% of rated) reflecting thermal losses, and a larger reduction at low load (below ~30% of rated) reflecting fixed auxiliary and parasitic losses. The boundary values at 0.90 and 0.30 are chosen conservatively to preserve the reported peak efficiency across the broad mid-load range; the actual roll-off shape is uncertain without part-load test data, so users with site-specific measurements should override the <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code> accordingly.</p>
 </section>
 </section>
-<section id="ocgt-outputs">
-<h2>OCGT Outputs<a class="headerlink" href="#ocgt-outputs" title="Link to this heading">#</a></h2>
-<p>The OCGT model provides the following outputs (inherited from base class):</p>
+<section id="linear-generator-outputs">
+<h2>Linear Generator Outputs<a class="headerlink" href="#linear-generator-outputs" title="Link to this heading">#</a></h2>
+<p>The linear generator model provides the following outputs (inherited from base class):</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Output</p></th>
@@ -632,46 +705,20 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fuel_mass_rate</span></code></p></td>
 <td><p>kg/s</p></td>
-<td><p>Fuel mass flow rate (computed using <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> [6])</p></td>
+<td><p>Fuel mass flow rate (computed using <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> [3])</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<section id="efficiency-and-fuel-rate">
-<h3>Efficiency and Fuel Rate<a class="headerlink" href="#efficiency-and-fuel-rate" title="Link to this heading">#</a></h3>
-<p>HHV net plant efficiency varies with load based on the <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code>. The fuel volume rate is calculated as:</p>
-<div class="math notranslate nohighlight">
-\[
-\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
-\]</div>
-<p>Where:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">power</span></code> is in W (converted from kW internally)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code> is the HHV net efficiency interpolated from the efficiency table</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hhv</span></code> is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])</p></li>
-<li><p>Result is fuel volume rate in m³/s</p></li>
-</ul>
-<p>The fuel mass rate is then computed from the volume rate using the fuel density [6]:</p>
-<div class="math notranslate nohighlight">
-\[
-\text{fuel\_mass\_rate} = \text{fuel\_volume\_rate} \times \text{fuel\_density}
-\]</div>
-<p>Where:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">fuel_volume_rate</span></code> is in m³/s</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> is in kg/m³ (default 0.768 kg/m³ for natural gas [6])</p></li>
-<li><p>Result is fuel mass rate in kg/s</p></li>
-</ul>
-</section>
 </section>
 <section id="yaml-configuration">
 <h2>YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Link to this heading">#</a></h2>
 <section id="minimal-configuration">
 <h3>Minimal Configuration<a class="headerlink" href="#minimal-configuration" title="Link to this heading">#</a></h3>
-<p>Required parameters only (uses defaults for <code class="docutils literal notranslate"><span class="pre">hhv</span></code>, <code class="docutils literal notranslate"><span class="pre">efficiency_table</span></code>, and other parameters):</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">open_cycle_gas_turbine</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenCycleGasTurbine</span>
-<span class="w">  </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span><span class="w">  </span><span class="c1"># kW (100 MW)</span>
+<p>Required parameters only (uses all defaults):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">linear_generator</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LinearGenerator</span>
+<span class="w">  </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span><span class="w">  </span><span class="c1"># kW</span>
 <span class="w">  </span><span class="nt">initial_conditions</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># 0 kW means OFF; power &gt; 0 means ON</span>
 </pre></div>
@@ -680,32 +727,32 @@
 <section id="full-configuration">
 <h3>Full Configuration<a class="headerlink" href="#full-configuration" title="Link to this heading">#</a></h3>
 <p>All parameters explicitly specified:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">open_cycle_gas_turbine</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OpenCycleGasTurbine</span>
-<span class="w">  </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span><span class="w">  </span><span class="c1"># kW (100 MW)</span>
-<span class="w">  </span><span class="nt">min_stable_load_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4</span><span class="w">  </span><span class="c1"># 40% minimum operating point</span>
-<span class="w">  </span><span class="nt">ramp_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span><span class="w">  </span><span class="c1"># 10%/min ramp rate</span>
-<span class="w">  </span><span class="nt">run_up_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w">  </span><span class="c1"># 5%/min run up rate</span>
-<span class="w">  </span><span class="nt">hot_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">420.0</span><span class="w">  </span><span class="c1"># 7 minutes</span>
-<span class="w">  </span><span class="nt">warm_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480.0</span><span class="w">  </span><span class="c1"># 8 minutes</span>
-<span class="w">  </span><span class="nt">cold_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480.0</span><span class="w">  </span><span class="c1"># 8 minutes</span>
-<span class="w">  </span><span class="nt">min_up_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1800</span><span class="w">  </span><span class="c1"># 30 minutes</span>
-<span class="w">  </span><span class="nt">min_down_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600</span><span class="w">  </span><span class="c1"># 1 hour</span>
-<span class="w">  </span><span class="nt">hot_to_warm_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28800.0</span><span class="w">  </span><span class="c1"># 8 hours</span>
-<span class="w">  </span><span class="nt">hot_to_cold_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172800.0</span><span class="w">  </span><span class="c1"># 48 hours</span>
-<span class="w">  </span><span class="nt">hhv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">39050000</span><span class="w">  </span><span class="c1"># J/m³ for natural gas (39.05 MJ/m³) [6]</span>
-<span class="w">  </span><span class="nt">fuel_density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.768</span><span class="w">  </span><span class="c1"># kg/m³ for natural gas [6]</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">linear_generator</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LinearGenerator</span>
+<span class="w">  </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span><span class="w">  </span><span class="c1"># kW</span>
+<span class="w">  </span><span class="nt">min_stable_load_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="nt">ramp_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2</span><span class="w">  </span><span class="c1"># 120%/min</span>
+<span class="w">  </span><span class="nt">run_up_rate_fraction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2</span><span class="w">  </span><span class="c1"># 120%/min</span>
+<span class="w">  </span><span class="nt">hot_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">90.0</span><span class="w">  </span><span class="c1"># 1.5 minutes</span>
+<span class="w">  </span><span class="nt">warm_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">450.0</span><span class="w">  </span><span class="c1"># 7.5 minutes</span>
+<span class="w">  </span><span class="nt">cold_startup_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">900.0</span><span class="w">  </span><span class="c1"># 15 minutes</span>
+<span class="w">  </span><span class="nt">min_up_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">  </span><span class="c1"># 5 minutes</span>
+<span class="w">  </span><span class="nt">min_down_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">  </span><span class="c1"># 5 minutes</span>
+<span class="w">  </span><span class="nt">hot_to_warm_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2700.0</span><span class="w">  </span><span class="c1"># 45 minutes</span>
+<span class="w">  </span><span class="nt">hot_to_cold_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10800.0</span><span class="w">  </span><span class="c1"># 3 hours</span>
+<span class="w">  </span><span class="nt">hhv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">39050000</span><span class="w">  </span><span class="c1"># J/m³ for natural gas (39.05 MJ/m³) [3]</span>
+<span class="w">  </span><span class="nt">fuel_density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.768</span><span class="w">  </span><span class="c1"># kg/m³ for natural gas [3]</span>
 <span class="w">  </span><span class="nt">efficiency_table</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">power_fraction</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.75</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.50</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
-<span class="w">    </span><span class="nt">efficiency</span><span class="p">:</span><span class="w">  </span><span class="c1"># HHV net plant efficiency from SC1A in Exhibit ES-4 of [5]</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.39</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.37</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.325</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.245</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.00</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.90</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.30</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.20</span>
+<span class="w">    </span><span class="nt">efficiency</span><span class="p">:</span><span class="w">  </span><span class="c1"># HHV net plant efficiency from [1]; peak ±roll-off at extremes</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.40</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4144</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4144</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.35</span>
 <span class="w">  </span><span class="nt">log_channels</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fuel_volume_rate</span>
@@ -714,8 +761,23 @@
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">efficiency</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">power_setpoint</span>
 <span class="w">  </span><span class="nt">initial_conditions</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># 0 kW means OFF; power &gt; 0 means ON</span>
-<span class="w">    </span><span class="nt">time_in_shutdown</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50000</span><span class="w">  </span><span class="c1"># Adding this forces a warm startup (default initialization results in a hot start)</span>
+<span class="w">    </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span><span class="w">  </span><span class="c1"># kW; power &gt; 0 means ON</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-unit-configuration-via-thermalplant">
+<h3>Multi-Unit Configuration (via ThermalPlant)<a class="headerlink" href="#multi-unit-configuration-via-thermalplant" title="Link to this heading">#</a></h3>
+<p>Multiple linear generators can be combined using the <code class="docutils literal notranslate"><span class="pre">ThermalPlant</span></code> component:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">thermal_power_plant</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ThermalPlant</span>
+<span class="w">  </span><span class="nt">units</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;linear_generator_ms&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;linear_generator_ms&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;linear_generator_ms&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;linear_generator_ms&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">unit_names</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;lg_1&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;lg_2&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;lg_3&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;lg_4&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="nt">linear_generator_ms</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">component_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LinearGenerator</span>
+<span class="w">    </span><span class="nt">rated_capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span><span class="w">  </span><span class="c1"># kW</span>
+<span class="w">    </span><span class="nt">initial_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">power</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span><span class="w">  </span><span class="c1"># Start ON at rated capacity</span>
 </pre></div>
 </div>
 </section>
@@ -728,7 +790,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">power</span></code>: Actual power output in kW (always logged)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Operating state number (0-7), corresponding to the <code class="docutils literal notranslate"><span class="pre">STATES</span></code> enum</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">fuel_volume_rate</span></code>: Fuel volume flow rate in m³/s</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fuel_mass_rate</span></code>: Fuel mass flow rate in kg/s (computed using <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> [6])</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel_mass_rate</span></code>: Fuel mass flow rate in kg/s (computed using <code class="docutils literal notranslate"><span class="pre">fuel_density</span></code> [3])</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">efficiency</span></code>: Current HHV net plant efficiency (0-1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">power_setpoint</span></code>: Requested power setpoint in kW</p></li>
 </ul>
@@ -736,12 +798,11 @@
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Agora Energiewende (2017): “Flexibility in thermal power plants - With a focus on existing coal-fired power plants.”</p></li>
-<li><p>“Impact of Detailed Parameter Modeling of Open-Cycle Gas Turbines on Production Cost Simulation”, NREL/CP-6A40-87554, National Renewable Energy Laboratory, 2024.</p></li>
-<li><p>Deane, J.P., G. Drayton, and B.P. Ó Gallachóir. “The Impact of Sub-Hourly Modelling in Power Systems with Significant Levels of Renewable Generation.” Applied Energy 113 (January 2014): 152–58. <a class="reference external" href="https://doi.org/10.1016/j.apenergy.2013.07.027">https://doi.org/10.1016/j.apenergy.2013.07.027</a>.</p></li>
-<li><p>IRENA (2019), Innovation landscape brief: Flexibility in conventional power plants, International Renewable Energy Agency, Abu Dhabi.</p></li>
-<li><p>M. Oakes, M. Turner, “Cost and Performance Baseline for Fossil Energy Plants, Volume 5: Natural Gas Electricity Generating Units for Flexible Operation,” National Energy Technology Laboratory, Pittsburgh, May 5, 2023.</p></li>
-<li><p>I. Staffell, “The Energy and Fuel Data Sheet,” University of Birmingham, March 2011. <a class="reference external" href="https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf">https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf</a></p></li>
+<li><p>Mainspring Energy, “Linear Generator Datasheet,” Rev. R30313.3, March 16, 2026.
+<a class="reference external" href="https://linear-power.files.svdcdn.com/production/Mainspring-Linear-Generator-Datasheet-R30313.3_2026-03-16-205457_psod.pdf">https://linear-power.files.svdcdn.com/production/Mainspring-Linear-Generator-Datasheet-R30313.3_2026-03-16-205457_psod.pdf</a></p></li>
+<li><p><a class="reference external" href="https://www.energy.ca.gov/sites/default/files/2024-05/CEC-500-2024-037.pdf">https://www.energy.ca.gov/sites/default/files/2024-05/CEC-500-2024-037.pdf</a></p></li>
+<li><p>I. Staffell, “The Energy and Fuel Data Sheet,” University of Birmingham, March 2011.
+<a class="reference external" href="https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf">https://claverton-energy.com/cms4/wp-content/uploads/2012/08/the_energy_and_fuel_data_sheet.pdf</a></p></li>
 </ol>
 </section>
 </section>
@@ -777,20 +838,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="thermal_component_base.html"
+       href="thermal_plant.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Thermal Component Base</p>
+        <p class="prev-next-title">Thermal Plant</p>
       </div>
     </a>
     <a class="right-next"
-       href="steam_turbine.html"
+       href="hercules_input.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Steam Turbine</p>
+        <p class="prev-next-title">Hercules Input Files</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -812,18 +873,19 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ocgt-specific-parameters">OCGT-Specific Parameters</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-parameter-values">Default Parameter Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-linear-generator-specific-parameter-values">Default Linear Generator-Specific Parameter Values</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#estimating-hot-to-warm-time-and-hot-to-cold-time">Estimating <code class="docutils literal notranslate"><span class="pre">hot_to_warm_time</span></code> and <code class="docutils literal notranslate"><span class="pre">hot_to_cold_time</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-generator-fuel-parameters">Linear Generator Fuel Parameters</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#default-efficiency-table">Default Efficiency Table</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ocgt-outputs">OCGT Outputs</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#efficiency-and-fuel-rate">Efficiency and Fuel Rate</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-generator-outputs">Linear Generator Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-configuration">YAML Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#minimal-configuration">Minimal Configuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-configuration">Full Configuration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-unit-configuration-via-thermalplant">Multi-Unit Configuration (via ThermalPlant)</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-configuration">Logging Configuration</a></li>
