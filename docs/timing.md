@@ -9,6 +9,112 @@ Timing in Hercules is specified using two complementary representations:
 - `time` (float): Simulation time in seconds, where `time=0` corresponds to `starttime_utc`
 - `time_utc` (datetime): Absolute UTC timestamp
 
+## Time Interpretation: Inputs vs. Internal Values
+
+### Input files: start-of-period convention
+
+In external data sources such as weather files, SCADA records, and resource
+databases, each `time_utc` timestamp marks the **beginning** of a reporting
+period and the associated values (irradiance, wind speed, power, etc.)
+represent an average or aggregate over that period.  For example, an hourly
+weather file with a row at `2020-06-15T12:00:00Z` and GHI = 735 W/m² means
+that 735 W/m² is the average GHI from 12:00 to 13:00.
+
+### Hercules internal values: instantaneous convention
+
+Inside the simulation, values at a given time step represent **instantaneous**
+quantities at that moment.  All Hercules output values follow this same
+instantaneous convention.
+
+### Interpolation methods
+
+The `interpolate_df` function in `utilities.py` accepts a mandatory
+`interpolation_method` parameter that controls how numeric columns are
+resampled onto the simulation time grid.  Two methods are available:
+
+#### `"averaged_to_instantaneous"` (wind, solar, and similar resource and power signals)
+
+Input values are period averages whose timestamps mark the **start** of each
+period.  The best single-point estimate of a period-averaged value is at the
+**midpoint** of its interval, not the start.  For example, the hourly average
+from 12:00-13:00 is most representative of conditions at 12:30. This also ensures that an average of the signal back to the original time interval will match the original data.
+
+1. Each numeric value is assigned to the midpoint of its input interval
+   (using `_compute_interval_midpoints`).
+2. Linear interpolation is then performed between these midpoints to produce
+   values at the simulation time steps.
+
+```
+Input file (start-of-period):
+
+time_utc             value
+12:00                100        ← average over [12:00, 13:00)
+13:00                200        ← average over [13:00, 14:00)
+
+After midpoint correction:
+
+time                 value
+12:30                100        ← midpoint of [12:00, 13:00)
+13:30                200        ← midpoint of [13:00, 14:00)
+
+Querying at 13:00 yields 150 (halfway between midpoints).
+```
+
+The same `"averaged_to_instantaneous"` mechanism is also applied to the
+**outputs** of the PySAM solar model when `use_resource_solar_dt` is active
+(its default).  In that mode PySAM is executed once on the resource weather
+grid and its power/diagnostic outputs are upsampled to the Hercules grid
+via this single boundary crossing - see
+[Resource-resolution PySAM execution](solar_pv.md#resource-resolution-pysam-execution-use_resource_solar_dt).
+
+#### `"instantaneous_to_instantaneous"`
+
+Input values already represent instantaneous measurements at their
+timestamps.  Standard linear interpolation is performed directly on the
+original timestamps with no midpoint shift.
+
+---
+
+In both methods, datetime columns (e.g. `time_utc`) are linearly
+interpolated on the raw timestamps without any shift, because they are
+instantaneous coordinate mappings between simulation time and wall-clock
+time, not period-averaged measurements.
+
+#### Achieving zero-order-hold (ZOH) behaviour
+
+`interpolate_df` does not provide a dedicated zero-order-hold mode.  If you
+need step/piecewise-constant values -- for example, LMP prices that
+should be held constant across each reporting interval -- pre-process your
+input data to include an additional row at the end of each interval that
+carries the same value as the start-of-interval row, and then use
+`"instantaneous_to_instantaneous"`.  Linear interpolation between each pair
+of identical endpoints reproduces the ZOH shape.
+
+```
+Original data (start-of-interval only):
+
+time_utc             value
+12:00                100
+13:00                200
+
+After inserting end-of-interval rows (just before the next start):
+
+time_utc             value
+12:00                100
+12:59:59             100   ← added endpoint
+13:00                200
+13:59:59             200   ← added endpoint
+
+Querying at 12:30 with "instantaneous_to_instantaneous" yields 100.
+Querying at 13:00 yields 200.
+```
+
+See
+[`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py)
+in `hercules/grid/grid_utilities.py` for a worked example of this
+endpoint-insertion pattern (it shifts a copy of the data by `dt - 1` seconds
+and merges it back in before handing the frame to Hercules).
+
 ## Input Requirements
 
 All Hercules input files must specify start and end times using UTC datetime strings:
@@ -113,7 +219,20 @@ For the example above, `endtime` would be 3600.0 seconds.
 
 ### Wind and Solar Input Data
 
-Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps:
+Both wind and solar input CSV/Feather/Parquet files must contain a `time_utc` column with UTC timestamps.  Each `time_utc` value marks the **start of a reporting period**; the data values on that row are treated as period averages.  These are interpolated with `"averaged_to_instantaneous"`.  See [Interpolation methods](#interpolation-methods) above for details.
+
+### External Data (LMP, etc.)
+
+External data files loaded via `_read_external_data_file` are upsampled onto
+the simulation time grid with `"instantaneous_to_instantaneous"` (linear
+interpolation between the supplied timestamps).  If you want zero-order-hold
+(piecewise-constant) behaviour for signals like LMP prices, pre-process the
+file to include end-of-interval rows that repeat the previous value as
+described in [Achieving zero-order-hold (ZOH) behaviour](#achieving-zero-order-hold-zoh-behaviour).
+The helper
+[`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py)
+in `hercules/grid/grid_utilities.py` is a concrete example of adding those
+endpoint rows for LMP data.
 
 ```text
 time_utc,wd_mean,ws_000,ws_001,ws_002
@@ -144,6 +263,8 @@ Key Points:
 ```
 
 ## Output Files
+
+All values in Hercules output files represent **instantaneous** quantities at each time step, not period averages.  See [Time Interpretation](#time-interpretation-inputs-vs-internal-values) for the distinction from input files.
 
 Hercules output HDF5 files store:
 

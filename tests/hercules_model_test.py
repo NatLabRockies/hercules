@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from hercules.hercules_model import HerculesModel
@@ -79,13 +81,13 @@ def test_HerculesModel_instantiation():
     hmodel = HerculesModel(test_h_dict)
 
     # Check default settings
-    assert hmodel.output_file == "outputs/hercules_output.h5"
+    assert hmodel.output_file == Path("outputs/hercules_output.h5").absolute()
     assert hmodel.log_every_n == 1
     assert hmodel.external_signals_all == {}
 
     # Test with external data file and custom output file
     test_h_dict_2 = h_dict_solar.copy()
-    test_h_dict_2["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict_2["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
     test_h_dict_2["output_file"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
     # Remove preset start/end and adjust endtime_utc to preserve prior behavior
@@ -107,7 +109,66 @@ def test_HerculesModel_instantiation():
     assert hmodel.external_signals_all["power_reference"][-1] == 1000  # At time 6.0
 
     # Check custom output file
-    assert hmodel.output_file == "test_output.h5"
+    assert hmodel.output_file.name == "test_output.h5"
+
+
+def test_specified_outputs_dir():
+    """Test that a user-specified output directory can be used for log files and output files"""
+    import os
+    import shutil
+
+    import hercules
+
+    HERCULES_ROOT = Path(hercules.__file__).parent.parent
+    TEST_DIR = HERCULES_ROOT / "tests"
+
+    starting_cwd = str(Path.cwd().absolute())
+
+    temp_test_folder = HERCULES_ROOT / "tmp_tests"
+
+    # If temp testing folder already exists, remove all existing files
+    if temp_test_folder.exists():
+        shutil.rmtree(temp_test_folder)
+    Path(temp_test_folder).mkdir(parents=True, exist_ok=True)
+
+    # change cwd to test folder
+    os.chdir(temp_test_folder)
+
+    test_h_dict = h_dict_solar.copy()
+    # Enforce new loader policy: remove preset start/end and rely on *_utc
+    test_h_dict.pop("starttime", None)
+    test_h_dict.pop("endtime", None)
+    test_h_dict.pop("time", None)
+    test_h_dict.pop("step", None)
+
+    outputs_folder_name = "nondefault_output_dirname"
+    test_h_dict["output_dir"] = outputs_folder_name
+    test_h_dict["output_file"] = f"{outputs_folder_name}/hercules_test_output.h5"
+    test_h_dict["solar_farm"]["solar_input_filename"] = str(
+        Path(TEST_DIR / "test_inputs" / "solar_pysam_data.csv").absolute()
+    )
+
+    expected_hercules_log = temp_test_folder / outputs_folder_name / "log_hercules.log"
+    expected_solar_log_fpath = temp_test_folder / outputs_folder_name / "log_solar_farm.log"
+
+    hmodel = HerculesModel(test_h_dict)
+
+    folders = [f for f in temp_test_folder.iterdir()]
+
+    assert len(folders) == 1
+    assert folders[0] == temp_test_folder / outputs_folder_name
+    assert expected_hercules_log.exists()
+    assert expected_solar_log_fpath.exists()
+    assert (
+        hmodel.output_file.absolute()
+        == temp_test_folder / outputs_folder_name / "hercules_test_output.h5"
+    )
+
+    # Reset cwd
+    os.chdir(Path(starting_cwd))
+
+    # Remove all files and folders from temporary test dir
+    shutil.rmtree(temp_test_folder)
 
 
 def test_log_data_to_hdf5():
@@ -181,7 +242,7 @@ def test_log_data_to_hdf5_with_external_signals():
     test_h_dict.pop("step", None)
 
     # Add external data file
-    test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
+    test_h_dict["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
     test_h_dict["dt"] = 1.0
 
     hmodel = HerculesModel(test_h_dict)

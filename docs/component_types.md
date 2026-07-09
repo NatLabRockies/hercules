@@ -55,7 +55,9 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
-| `HardCoalSteamTurbine` | `generator` | [Hard Coal Steam Turbine](hard_coal_steam_turbine.md) |
+| `LinearGenerator` | `generator` | [Linear Generator](linear_generator.md) |
+| `SteamTurbine` | `generator` | [Steam Turbine](steam_turbine.md) |
+| `CombinedCyclePlant` | `generator` | [Multi-unit Combined Cycle Gas Turbine](combined_cycle_plant.md) |
 | `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
 
 Components with `component_category == "generator"` contribute to `h_dict["plant"]["locally_generated_power"]`.
@@ -74,8 +76,10 @@ battery_unit_1:
   energy_capacity: 100.0  # kWh
   charge_rate: 50.0       # kW
   discharge_rate: 50.0    # kW
-  max_SOC: 0.9
-  min_SOC: 0.1
+  # max_SOC and min_SOC default to 1.0 and 0.0 (full nameplate).
+  # Set to other values to model degradation:
+  # max_SOC: 0.9
+  # min_SOC: 0.1
   initial_conditions:
     SOC: 0.5
 
@@ -84,8 +88,8 @@ battery_unit_2:
   energy_capacity: 200.0  # kWh
   charge_rate: 100.0      # kW
   discharge_rate: 100.0   # kW
-  max_SOC: 0.95
-  min_SOC: 0.05
+  max_SOC: 0.95  # degraded from nameplate
+  min_SOC: 0.05  # degraded from nameplate
   initial_conditions:
     SOC: 0.8
 ```

@@ -43,7 +43,7 @@ No manual setup is required - all necessary input files will be automatically ge
 
 ## Additional Resource Downloading and Upsampling Examples
 
-Examples are provided in the `examples/inputs/` folder demonstrating how to download wind and solar data using the `hercules.resource.wind_solar_resource_downloader` module and upsample wind data using the `hercules.resource.upsample_wind_data` module to create inputs for Hercules simulations.
+Examples are provided in the `examples/inputs/` folder demonstrating how to download wind and solar data using the `hercules.resource.nsrdb_downloader`, `hercules.resource.wtk_downloader`, and `hercules.resource.openmeteo_downloader` modules and upsample wind data using the `hercules.resource.upsample_wind_data` module to create inputs for Hercules simulations.
 
 - [03: Download NSRDB and WIND Toolkit Solar and Wind Data](../examples/inputs/03_download_small_nsrdb_wtk_solar_wind_example.py) - Downloads a subset of solar and wind data for a small grid of locations for a single year from the NSRDB and WIND Toolkit datasets, respectively
 - [04: Download and Upsample WIND Toolkit Wind Data](../examples/inputs/04_download_and_upsample_wtk_wind_example.py) - Downloads wind speed and direction for a small grid of locations for a single year from the WIND Toolkit dataset, then spatially interpolates the data at specific wind turbine locations and temporally upsamples the times series with added turbulence

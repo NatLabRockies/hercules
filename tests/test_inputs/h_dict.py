@@ -84,10 +84,8 @@ simple_battery = {
     "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
     "charge_rate": 2000,  # charge rate in kW (2 MW)
     "discharge_rate": 2000,  # discharge rate in kW (2 MW)
-    "max_SOC": 0.9,  # upper boundary on battery SOC
-    "min_SOC": 0.1,  # lower boundary on battery SOC
     "log_channels": ["power", "soc", "power_setpoint"],
-    "initial_conditions": {"SOC": 0.102},
+    "initial_conditions": {"SOC": 0.5},
 }
 
 lib_battery = {
@@ -114,6 +112,8 @@ thermal_component = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -142,6 +142,8 @@ open_cycle_gas_turbine = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -158,9 +160,37 @@ open_cycle_gas_turbine = {
     },
 }
 
-hard_coal_steam_turbine = {
-    "component_type": "HardCoalSteamTurbine",
-    "rated_capacity": 500000,  # kW (500 MW)
+linear_generator = {
+    "component_type": "LinearGenerator",
+    "rated_capacity": 250,  # kW
+    "min_stable_load_fraction": 0.1,  # non-default (default is 0.0)
+    "ramp_rate_fraction": 0.5,  # non-default (default is 1.2)
+    "run_up_rate_fraction": 0.3,  # non-default (default is ramp_rate_fraction)
+    "hot_startup_time": 120.0,  # s; non-default (default is 420.0)
+    "warm_startup_time": 120.0,  # s; non-default (default is 480.0)
+    "cold_startup_time": 120.0,  # s; non-default (default is 480.0)
+    "min_up_time": 10.0,  # s; non-default (default is 3600.0)
+    "min_down_time": 10.0,  # s; non-default (default is 3600.0)
+    "hot_to_warm_time": 2700.0,  # s (45 minutes); non-default (default is 2700.0)
+    "hot_to_cold_time": 10800.0,  # s (3 hours); non-default (default is 10800.0)
+    "log_channels": [
+        "power",
+        "state",
+        "efficiency",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
+    ],
+    "initial_conditions": {"power": 250},  # power > 0 implies ON state
+    "hhv": 39050000,  # J/m³ (natural gas HHV)
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.0],
+        "efficiency": [0.4144, 0.4144],
+    },
+}
+
+steam_turbine = {
+    "component_type": "SteamTurbine",
+    "rated_capacity": 1000,  # kW (1 MW)
     "min_stable_load_fraction": 0.3,  # 30% minimum operating point
     "ramp_rate_fraction": 0.04,  # 4%/min ramp rate
     "run_up_rate_fraction": 0.02,  # 2%/min run up rate
@@ -169,6 +199,8 @@ hard_coal_steam_turbine = {
     "cold_startup_time": 27000.0,  # 7.5 hours
     "min_up_time": 172800,  # 48 hours
     "min_down_time": 172800,  # 48 hour
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "hhv": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
     "fuel_density": 1000,  # kg/m³ for bituminous coal
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
@@ -404,6 +436,19 @@ h_dict_thermal_component = {
     "thermal_component": thermal_component,
 }
 
+h_dict_linear_generator = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "linear_generator": linear_generator,
+}
+
 h_dict_open_cycle_gas_turbine = {
     "dt": 1.0,
     "starttime": 0.0,
@@ -417,7 +462,7 @@ h_dict_open_cycle_gas_turbine = {
     "open_cycle_gas_turbine": open_cycle_gas_turbine,
 }
 
-h_dict_hard_coal_steam_turbine = {
+h_dict_steam_turbine = {
     "dt": 1.0,
     "starttime": 0.0,
     "endtime": 10.0,
@@ -427,7 +472,7 @@ h_dict_hard_coal_steam_turbine = {
     "step": 0,
     "time": 0.0,
     "plant": plant,
-    "hard_coal_steam_turbine": hard_coal_steam_turbine,
+    "steam_turbine": steam_turbine,
 }
 
 h_dict_thermal_plant = {
@@ -442,9 +487,28 @@ h_dict_thermal_plant = {
     "plant": plant,
     "thermal_power_plant": {
         "component_type": "ThermalPlant",
-        "unit_names": ["OCGT1", "HARD_COAL1"],
-        "units": ["open_cycle_gas_turbine", "hard_coal_steam_turbine"],
+        "unit_names": ["OCGT1", "ST1"],
+        "units": ["open_cycle_gas_turbine", "steam_turbine"],
         "open_cycle_gas_turbine": open_cycle_gas_turbine,
-        "hard_coal_steam_turbine": hard_coal_steam_turbine,
+        "steam_turbine": steam_turbine,
+    },
+}
+
+h_dict_combined_cycle_plant = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "combined_cycle_plant": {
+        "component_type": "CombinedCyclePlant",
+        "unit_names": ["OCGT", "ST"],
+        "units": ["open_cycle_gas_turbine", "steam_turbine"],
+        "open_cycle_gas_turbine": open_cycle_gas_turbine,
+        "steam_turbine": steam_turbine,
     },
 }

@@ -32,7 +32,7 @@ power_unit_1:
 
 The input file must contain the following columns:
 
-- `time_utc`: Timestamps in UTC (ISO 8601 format or parseable datetime strings)
+- `time_utc`: Timestamps in UTC (ISO 8601 format or parseable datetime strings). Each timestamp marks the **start of a reporting period**; the power value on that row is treated as the period average. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for how Hercules converts these to instantaneous values.
 - `power`: Power output in kW
 
 Supported file formats: `.csv`, `.p`, `.pkl` (pickle), `.f`, `.ftr` (feather).

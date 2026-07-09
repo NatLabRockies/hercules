@@ -43,21 +43,44 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # This represents the DC system capacity under Standard Test Conditions
         system_capacity = h_dict[self.component_name]["system_capacity"]  # (in kW)
 
-        sys_design = {
-            "ModelParams": {
-                "SystemDesign": {
-                    "array_type": 3.0,  # single axis backtracking
-                    "azimuth": 180.0,
-                    "dc_ac_ratio": 1.0,  # Force to 1.0
-                    "losses": h_dict[self.component_name]["losses"],
-                    "module_type": 0.0,  # standard crystalline silicon (hardcoded)
-                    "system_capacity": system_capacity,
-                    "tilt": h_dict[self.component_name]["tilt"],
-                },
-            },
+        # These values are always provided at the top level of the solar model input.
+        top_level_dict = {
+            "losses": h_dict[self.component_name]["losses"],
+            "tilt": h_dict[self.component_name]["tilt"],
+            "system_capacity": system_capacity,
+        }
+        top_level_set = set(top_level_dict.keys())
+
+        # These values are the Hercules defaults for the PVWatts model and will be used if
+        #   not provided in the PySAM options in the input.
+        hercules_defaults = {
+            "array_type": 3.0,  # single axis backtracking
+            "azimuth": 180.0,
+            "dc_ac_ratio": 1.0,
+            "module_type": 0.0,  # standard crystalline silicon
         }
 
-        self.model_params = sys_design["ModelParams"]
+        # Check if any PySAM options for SystemDesign are provided in the input.
+        if h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign") is not None:
+            pysam_options_set = set(h_dict[self.component_name]["pysam_options"]["SystemDesign"])
+            self.logger.info(
+                "PySAM model options provided in input are being used to define the PVWatts system."
+            )
+            common_keys = pysam_options_set.intersection(top_level_set)
+            if len(common_keys) > 0:
+                raise ValueError(
+                    f"Error: The following parameters are provided in both the top-level input\
+                        and the PySAM options: {common_keys}. Please remove these parameters\
+                        from the PySAM options."
+                )
+
+        model_dict = (
+            hercules_defaults
+            | top_level_dict
+            | h_dict[self.component_name].get("pysam_options", {}).get("SystemDesign", {})
+        )
+
+        self.model_params = {"SystemDesign": model_dict}
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -96,18 +119,35 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Execute the model once for all time steps
         self.system_model.execute()
 
-        # Store the pre-computed power array (convert from W to kW)
-        # Use DC power output directly from PVWatts
-        self.power_uncurtailed = (
-            np.array(self.system_model.Outputs.dc, dtype=hercules_float_type) / 1000.0
-        )
+        # Pull all outputs at the compute-grid resolution, with W -> kW for the
+        # power channels. AC (post-inverter) and DC (pre-inverter) are
+        # "available" power: the model output before any Hercules control
+        # curtailment.
+        compute_outputs = {
+            "ac_power_available": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
+            / hercules_float_type(1000.0),
+            "dc_power_available": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
+            / hercules_float_type(1000.0),
+            "dni": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
+            "dhi": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
+            "ghi": np.array(self.system_model.Outputs.gh, dtype=hercules_float_type),
+            "aoi": np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type),
+            "poa": np.array(self.system_model.Outputs.poa, dtype=hercules_float_type),
+        }
 
-        # Store other outputs as arrays for efficient access
-        self.dni_array_output = np.array(self.system_model.Outputs.dn, dtype=hercules_float_type)
-        self.dhi_array_output = np.array(self.system_model.Outputs.df, dtype=hercules_float_type)
-        self.ghi_array_output = np.array(self.system_model.Outputs.gh, dtype=hercules_float_type)
-        self.aoi_array_output = np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type)
-        self.poa_array_output = np.array(self.system_model.Outputs.poa, dtype=hercules_float_type)
+        # Upsample to the Hercules dt grid (no-op when compute_dt == dt).
+        hercules_outputs = self._upsample_outputs_to_hercules_dt(compute_outputs)
+
+        self.ac_power_available_array = hercules_outputs["ac_power_available"]
+        self.dc_power_available_array = hercules_outputs["dc_power_available"]
+        self.ac_power_available = self.ac_power_available_array[0]
+        self.dc_power_available = self.dc_power_available_array[0]
+
+        self.dni_array_output = hercules_outputs["dni"]
+        self.dhi_array_output = hercules_outputs["dhi"]
+        self.ghi_array_output = hercules_outputs["ghi"]
+        self.aoi_array_output = hercules_outputs["aoi"]
+        self.poa_array_output = hercules_outputs["poa"]
 
     def _get_step_outputs(self, step):
         """Get the outputs for a specific step from pre-computed arrays.

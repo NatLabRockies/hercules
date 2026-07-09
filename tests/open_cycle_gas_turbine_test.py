@@ -71,6 +71,17 @@ def test_default_inputs():
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
     assert ocgt.min_down_time == 60 * 60.0
 
+    # Test cooldown threshold defaults
+    h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
+    del h_dict["open_cycle_gas_turbine"]["hot_to_warm_time"]
+    ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
+    assert ocgt.hot_to_warm_time == 28800.0  # 8 hours
+
+    h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
+    del h_dict["open_cycle_gas_turbine"]["hot_to_cold_time"]
+    ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
+    assert ocgt.hot_to_cold_time == 172800.0  # 48 hours
+
 
 def test_default_hhv():
     """Test that OpenCycleGasTurbine provides default HHV for natural gas from [6]."""

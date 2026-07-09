@@ -64,8 +64,8 @@ def generate_locational_marginal_price_dataframe_from_gridstatus(
     # Merge on time_utc
     df = pd.merge(df_da, df_rt, on="time_utc", how="outer").ffill()
 
-    # Get time step for merged data
-    dt = (df["time_utc"].iloc[1] - df["time_utc"].iloc[0]).total_seconds()
+    # Get time step for the real-time data to determine how many periods per hour
+    dt = df_rt["time_utc"].diff().dt.total_seconds().mode()[0]
 
     # Create 24 rolling hourly columns (forward-looking)
     periods_per_hour = 3600 / dt

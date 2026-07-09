@@ -2,9 +2,10 @@
 
 import matplotlib.pyplot as plt
 from hercules import HerculesOutput
+from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 # Read the Hercules output file using HerculesOutput
-ho = HerculesOutput("outputs/hercules_output.h5")
+ho = HerculesOutput("outputs_07/hercules_output.h5")
 
 # Print metadata information
 print("Simulation Metadata:")
@@ -16,6 +17,7 @@ df = ho.df
 
 # Get the h_dict from metadata
 h_dict = ho.h_dict
+component_name = h_dict["component_names"][0]
 
 # Convert time to minutes for easier reading
 time_minutes = df["time"] / 60
@@ -24,49 +26,48 @@ fig, axarr = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
 
 # Plot the power output and setpoint
 ax = axarr[0]
-ax.plot(time_minutes, df["open_cycle_gas_turbine.power"] / 1000, label="Power Output", color="b")
+ax.plot(time_minutes, df[f"{component_name}.power"] / 1000, label="Power Output", color="b")
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.power_setpoint"] / 1000,
+    df[f"{component_name}.power_setpoint"] / 1000,
     label="Power Setpoint",
     color="r",
     linestyle="--",
 )
 ax.axhline(
-    h_dict["open_cycle_gas_turbine"]["rated_capacity"] / 1000,
+    h_dict[component_name]["rated_capacity"] / 1000,
     color="gray",
     linestyle=":",
     label="Rated Capacity",
 )
 ax.axhline(
-    h_dict["open_cycle_gas_turbine"]["min_stable_load_fraction"]
-    * h_dict["open_cycle_gas_turbine"]["rated_capacity"]
+    h_dict[component_name]["min_stable_load_fraction"]
+    * h_dict[component_name]["rated_capacity"]
     / 1000,
     color="gray",
     linestyle="--",
     label="Minimum Stable Load",
 )
 ax.set_ylabel("Power [MW]")
-ax.set_title("Open Cycle Gas Turbine Power Output")
+ax.set_title("Thermal Power Plant Output")
 ax.legend()
 ax.grid(True)
 
 # Plot the state
 ax = axarr[1]
-ax.plot(time_minutes, df["open_cycle_gas_turbine.state"], label="State", color="k")
+ax.plot(time_minutes, df[f"{component_name}.state"], label="State", color="k")
 ax.set_ylabel("State")
-ax.set_yticks([0, 1, 2, 3, 4, 5])
-ax.set_yticklabels(["Off", "Hot Starting", "Warm Starting", "Cold Starting", "On", "Stopping"])
-ax.set_title(
-    "Turbine State (0=Off, 1=Hot Starting, 2=Warm Starting, 3=Cold Starting, 4=On, 5=Stopping)"
-)
+STATES = ThermalComponentBase.STATES
+ax.set_yticks([s.value for s in STATES])
+ax.set_yticklabels([s.label for s in STATES])
+ax.set_title("Turbine State")
 ax.grid(True)
 
 # Plot the efficiency
 ax = axarr[2]
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.efficiency"] * 100,
+    df[f"{component_name}.efficiency"] * 100,
     label="Efficiency",
     color="g",
 )
@@ -78,7 +79,7 @@ ax.grid(True)
 ax = axarr[3]
 ax.plot(
     time_minutes,
-    df["open_cycle_gas_turbine.fuel_volume_rate"],
+    df[f"{component_name}.fuel_volume_rate"],
     label="Fuel Volume Rate",
     color="orange",
 )

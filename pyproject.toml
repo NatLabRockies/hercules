@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nlr-hercules"
-version = "2.1"
+version = "2.2"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,7 +37,7 @@ dependencies = [
 "polars~=1.0",
 "pyarrow",
 "h5py~=3.10",
-"NREL-rex[hsds]",
+"NLR-rex[hsds]",
 "utm",
 "cartopy",
 "openmeteo_requests",
@@ -55,7 +55,6 @@ develop = [
     "pytest",
     "pre-commit",
     "ruff",
-    "isort"
 ]
 
 [tool.setuptools.packages.find]

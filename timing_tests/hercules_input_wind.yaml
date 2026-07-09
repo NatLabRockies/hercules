@@ -16,7 +16,7 @@ plant:
   interconnect_limit: 250000 # kW
 
 wind_farm:
-  
+
   component_type: WindFarm
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.p
@@ -31,10 +31,3 @@ wind_farm:
 
 
 controller:
-
-
-
-
-
-
-

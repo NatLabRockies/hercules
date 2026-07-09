@@ -1,7 +1,10 @@
 """
-Hard Coal Steam Turbine Class.
+Steam Turbine Class.
 
-Hard coal steam turbine model is a subclass of the ThermalComponentBase class.
+Steam turbine model is a subclass of the ThermalComponentBase class.
+The default values represent a hard coal steam turbine, based on the literature on coal plant
+flexibility and typical coal plant parameters. However, the subclass can also be used for
+other types of steam turbines by changing the default values as desired.
 It implements the model as presented in [1], [2], [3], and [4].
 
 Like other subclasses of ThermalComponentBase, it inherits the main control functions,
@@ -24,10 +27,10 @@ References:
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
 
-class HardCoalSteamTurbine(ThermalComponentBase):
-    """Hard coal steam turbine model.
+class SteamTurbine(ThermalComponentBase):
+    """Steam turbine model.
 
-    This model represents a hard coal steam turbine with state
+    This model represents a steam turbine with state
     management, ramp rate constraints, minimum stable load, and fuel consumption
     tracking.  Note it is a subclass of the ThermalComponentBase class.
 
@@ -38,7 +41,7 @@ class HardCoalSteamTurbine(ThermalComponentBase):
     """
 
     def __init__(self, h_dict, component_name):
-        """Initialize the HardCoalSteamTurbine class.
+        """Initialize the SteamTurbine class.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
@@ -93,6 +96,12 @@ class HardCoalSteamTurbine(ThermalComponentBase):
             h_dict[component_name]["min_up_time"] = 172800.0
         if "min_down_time" not in h_dict[component_name]:
             h_dict[component_name]["min_down_time"] = 172800.0
+
+        # Default cooldown threshold times (8 hours / 48 hours) from [1]
+        if "hot_to_warm_time" not in h_dict[component_name]:
+            h_dict[component_name]["hot_to_warm_time"] = 28800.0  # 8 hours
+        if "hot_to_cold_time" not in h_dict[component_name]:
+            h_dict[component_name]["hot_to_cold_time"] = 172800.0  # 48 hours
 
         # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
         if "run_up_rate_fraction" not in h_dict[component_name]:

@@ -1,5 +1,6 @@
 import copy
 
+import numpy as np
 import pytest
 from hercules.plant_components.thermal_component_base import ThermalComponentBase
 
@@ -124,7 +125,7 @@ def test_initial_conditions():
     h_dict["thermal_component"]["initial_conditions"]["power"] = 0
     tcb = ThermalComponentBase(h_dict, "thermal_component")
     assert tcb.power_output == 0
-    assert tcb.state == ThermalComponentBase.STATES.OFF
+    assert tcb.state == ThermalComponentBase.STATES.OFF_HOT
     # When OFF, time_in_state should equal min_down_time (ready to start)
     assert tcb.time_in_state == tcb.min_down_time
 
@@ -144,7 +145,7 @@ def test_initial_conditions():
     h_dict["thermal_component"]["initial_conditions"]["time_in_shutdown"] = 30
     tcb = ThermalComponentBase(h_dict, "thermal_component")
     assert tcb.power_output == 0
-    assert tcb.state == ThermalComponentBase.STATES.OFF
+    assert tcb.state == ThermalComponentBase.STATES.OFF_HOT
     # When OFF, and time_in_shutdown is initialized, time_in_state should equal input value
     assert tcb.time_in_state == 30
 
@@ -292,7 +293,7 @@ def test_transition_on_to_off():
     # Sixth step (Transition to off)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 0.0
-    assert out["thermal_component"]["state"] == tcb.STATES.OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF_HOT
     assert out["thermal_component"]["power"] == 0
 
 
@@ -328,7 +329,7 @@ def test_transition_off_to_on():
     tcb = ThermalComponentBase(h_dict, "thermal_component")
 
     # Initial state: OFF with time_in_state = min_down_time (3s, ready to start)
-    assert tcb.state == tcb.STATES.OFF
+    assert tcb.state == tcb.STATES.OFF_HOT
     assert tcb.power_output == 0
     assert tcb.time_in_state == 3.0
 
@@ -350,13 +351,13 @@ def test_transition_off_to_on():
     # First step (still waiting for min_down_time)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 1.0
-    assert out["thermal_component"]["state"] == tcb.STATES.OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF_HOT
     assert out["thermal_component"]["power"] == 0
 
     # Second step (still waiting for min_down_time)
     out = tcb.step(copy.deepcopy(h_dict))
     assert tcb.time_in_state == 2.0
-    assert out["thermal_component"]["state"] == tcb.STATES.OFF
+    assert out["thermal_component"]["state"] == tcb.STATES.OFF_HOT
     assert out["thermal_component"]["power"] == 0
 
     # Third step (min_down_time satisfied, transition to hot starting)
@@ -433,9 +434,9 @@ def test_efficiency_clamping():
     eff_200 = tcb.calculate_efficiency(200)  # 200 kW = 20% load (below table min of 0.25)
     assert eff_200 == pytest.approx(0.30)
 
-    # Test at zero power (should return first efficiency value)
+    # Test at zero power (should return zero efficiency, not extrapolate below the table)
     eff_0 = tcb.calculate_efficiency(0)
-    assert eff_0 == pytest.approx(0.30)
+    assert np.isnan(eff_0)
 
 
 def test_efficiency_interpolation():

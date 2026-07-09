@@ -4,9 +4,10 @@
 format: jb-book
 root: index
 parts:
-  - caption: Installation
+  - caption: Installation and Contribution
     chapters:
     - file: install
+    - file: contribute
   - caption: Running Hercules
     chapters:
     - file: running_hercules
@@ -31,8 +32,10 @@ parts:
     - file: electrolyzer
     - file: thermal_component_base
     - file: open_cycle_gas_turbine
-    - file: hard_coal_steam_turbine
+    - file: steam_turbine
+    - file: combined_cycle_plant
     - file: thermal_plant
+    - file: linear_generator
   - caption: Inputs
     chapters:
     - file: hercules_input
@@ -51,5 +54,6 @@ parts:
     - file: examples/04_wind_and_storage
     - file: examples/05_wind_and_storage_with_lmp
     - file: examples/06_wind_and_hydrogen
-    - file: examples/07_open_cycle_gas_turbine
-    - file: examples/09_multiunit_thermal_plant
+    - file: examples/07_thermal_plants
+    - file: examples/08_multi_unit_thermal_plants
+    - file: examples/09_linear_generator
