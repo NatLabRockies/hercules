@@ -112,6 +112,8 @@ thermal_component = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -140,6 +142,8 @@ open_cycle_gas_turbine = {
     "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
     "min_up_time": 10.0,  # s
     "min_down_time": 10.0,  # s
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -156,6 +160,34 @@ open_cycle_gas_turbine = {
     },
 }
 
+linear_generator = {
+    "component_type": "LinearGenerator",
+    "rated_capacity": 250,  # kW
+    "min_stable_load_fraction": 0.1,  # non-default (default is 0.0)
+    "ramp_rate_fraction": 0.5,  # non-default (default is 1.2)
+    "run_up_rate_fraction": 0.3,  # non-default (default is ramp_rate_fraction)
+    "hot_startup_time": 120.0,  # s; non-default (default is 420.0)
+    "warm_startup_time": 120.0,  # s; non-default (default is 480.0)
+    "cold_startup_time": 120.0,  # s; non-default (default is 480.0)
+    "min_up_time": 10.0,  # s; non-default (default is 3600.0)
+    "min_down_time": 10.0,  # s; non-default (default is 3600.0)
+    "hot_to_warm_time": 2700.0,  # s (45 minutes); non-default (default is 2700.0)
+    "hot_to_cold_time": 10800.0,  # s (3 hours); non-default (default is 10800.0)
+    "log_channels": [
+        "power",
+        "state",
+        "efficiency",
+        "fuel_volume_rate",
+        "fuel_mass_rate",
+    ],
+    "initial_conditions": {"power": 250},  # power > 0 implies ON state
+    "hhv": 39050000,  # J/m³ (natural gas HHV)
+    "efficiency_table": {
+        "power_fraction": [1.0, 0.0],
+        "efficiency": [0.4144, 0.4144],
+    },
+}
+
 steam_turbine = {
     "component_type": "SteamTurbine",
     "rated_capacity": 1000,  # kW (1 MW)
@@ -167,6 +199,8 @@ steam_turbine = {
     "cold_startup_time": 27000.0,  # 7.5 hours
     "min_up_time": 172800,  # 48 hours
     "min_down_time": 172800,  # 48 hour
+    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
+    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
     "hhv": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
     "fuel_density": 1000,  # kg/m³ for bituminous coal
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
@@ -400,6 +434,19 @@ h_dict_thermal_component = {
     "time": 0.0,
     "plant": plant,
     "thermal_component": thermal_component,
+}
+
+h_dict_linear_generator = {
+    "dt": 1.0,
+    "starttime": 0.0,
+    "endtime": 10.0,
+    "starttime_utc": pd.to_datetime("2018-05-10 12:31:00", utc=True),
+    "endtime_utc": pd.to_datetime("2018-05-10 12:31:10", utc=True),
+    "verbose": False,
+    "step": 0,
+    "time": 0.0,
+    "plant": plant,
+    "linear_generator": linear_generator,
 }
 
 h_dict_open_cycle_gas_turbine = {

@@ -1,4 +1,4 @@
-"""Example 07: Thermal power plant simulation.
+"""Example 08: Multi-unit thermal power plant simulation.
 
 This example demonstrates simple thermal units that follow a reference power setpoint.
 The power setpoint schedule is defined in the hercules_input_[unit].yaml file and the

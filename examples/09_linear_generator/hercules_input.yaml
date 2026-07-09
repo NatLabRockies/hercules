@@ -1,0 +1,57 @@
+# Input YAML for hercules
+# Explicitly specify the parameters for demonstration purposes
+
+# Name
+name: 09_linear_generator
+
+###
+# Describe this simulation setup
+description: Linear Generator Example
+
+dt: 60.0  # 1 minute time step
+starttime_utc: "2020-01-20T00:00:00Z"  # Midnight Jan 20, 2020 UTC
+endtime_utc: "2020-01-20T07:00:00Z"  # 7 hours later
+verbose: False
+log_every_n: 1
+
+plant:
+  interconnect_limit: 500  # kW
+
+linear_generator:
+  component_type: LinearGenerator
+  rated_capacity: 250  # kW
+  min_stable_load_fraction: 0.0  # Can operate at any load level
+  ramp_rate_fraction: 1.2  # 120%/min — effectively instantaneous at 1-min time steps
+  hot_startup_time: 90.0  # 1.5 minutes
+  warm_startup_time: 450.0  # 7.5 minutes
+  cold_startup_time: 900.0  # 15 minutes
+  min_up_time: 300  # 5 minutes
+  min_down_time: 300  # 5 minutes
+  hot_to_warm_time: 2700.0  # 45 minutes (±15 minutes)
+  hot_to_cold_time: 10800.0  # 3 hours (±1 hour)
+  # Natural gas properties from [3] Staffell, "The Energy and Fuel Data Sheet", 2011
+  # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
+  hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
+  fuel_density: 0.768  # kg/m³ for natural gas [3]
+  efficiency_table:
+    power_fraction:
+      - 1.00
+      - 0.90
+      - 0.30
+      - 0.20
+    efficiency:  # HHV net plant efficiency from [1]; peak across mid-load, roll-off at extremes
+      - 0.40
+      - 0.4144
+      - 0.4144
+      - 0.35
+  log_channels:
+    - power
+    - fuel_volume_rate
+    - fuel_mass_rate
+    - state
+    - efficiency
+    - power_setpoint
+  initial_conditions:
+    power: 250  # Start ON at rated capacity (250 kW)
+
+controller:

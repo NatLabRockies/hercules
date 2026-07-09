@@ -186,7 +186,7 @@ class CombinedCyclePlant(ComponentBase):
                 # Set time_in_state so the unit is immediately ready to stop
                 unit.time_in_state = float(unit.min_up_time)  # s
             else:
-                unit.state = unit.STATES.OFF
+                unit.state = unit._is_off()
                 # Set time_in_state so the unit is immediately ready to start
                 if "time_in_shutdown" in initial_conditions:
                     unit.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
@@ -299,7 +299,7 @@ class CombinedCyclePlant(ComponentBase):
         elif (
             self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON
             and self.units[self.steam_turbine_index].state
-            == self.units[self.steam_turbine_index].STATES.OFF
+            == self.units[self.steam_turbine_index]._is_off()
         ):
             # If the gas turbine just turned on and the steam turbine is still off,
             # we need to start up the steam turbine
@@ -331,7 +331,7 @@ class CombinedCyclePlant(ComponentBase):
             float: HHV net efficiency as a fraction (0-1).
         """
         if self.units[self.gas_turbine_index].state == (
-            self.units[self.gas_turbine_index].STATES.OFF
+            self.units[self.gas_turbine_index]._is_off()
         ):
             # Efficiency is not defined when off
             return np.nan
@@ -345,7 +345,7 @@ class CombinedCyclePlant(ComponentBase):
             return 0.0
         elif (
             self.units[self.steam_turbine_index].state
-            == self.units[self.steam_turbine_index].STATES.OFF
+            == self.units[self.steam_turbine_index]._is_off()
         ):
             # If the steam turbine is not on, we are just running the gas turbine,
             # so efficiency is based on gas turbine power output

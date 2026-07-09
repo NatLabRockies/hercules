@@ -35,6 +35,7 @@ parts:
     - file: steam_turbine
     - file: combined_cycle_plant
     - file: thermal_plant
+    - file: linear_generator
   - caption: Inputs
     chapters:
     - file: hercules_input
@@ -55,3 +56,4 @@ parts:
     - file: examples/06_wind_and_hydrogen
     - file: examples/07_thermal_plants
     - file: examples/08_multi_unit_thermal_plants
+    - file: examples/09_linear_generator

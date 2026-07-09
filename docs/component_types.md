@@ -55,6 +55,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
+| `LinearGenerator` | `generator` | [Linear Generator](linear_generator.md) |
 | `SteamTurbine` | `generator` | [Steam Turbine](steam_turbine.md) |
 | `CombinedCyclePlant` | `generator` | [Multi-unit Combined Cycle Gas Turbine](combined_cycle_plant.md) |
 | `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
