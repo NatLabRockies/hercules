@@ -82,7 +82,6 @@ def test_HerculesModel_instantiation():
 
     # Check default settings
     assert hmodel.output_file == Path("outputs/hercules_output.h5").absolute()
-    assert hmodel.log_every_n == 1
     assert hmodel.external_signals_all == {}
 
     # Test with external data file and custom output file
@@ -356,7 +355,7 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
 
 
 def test_hdf5_output_configuration():
-    """Test HDF5 output configuration options: downsampling and chunking."""
+    """Test HDF5 output configuration options: per-step logging and chunking."""
     import os
     import tempfile
 
@@ -365,7 +364,7 @@ def test_hdf5_output_configuration():
     # Use h_dict_solar as base for testing
     test_h_dict = h_dict_solar.copy()
 
-    # Test 1: HDF5 format with downsampling
+    # Test 1: HDF5 format with every step logged
     with tempfile.TemporaryDirectory() as temp_dir:
         test_h_dict_hdf5 = test_h_dict.copy()
         test_h_dict_hdf5["output_file"] = os.path.join(temp_dir, "test_output.h5")
@@ -397,7 +396,7 @@ def test_hdf5_output_configuration():
         # Verify file exists and is readable
         assert os.path.exists(hmodel.output_file)
         df_hdf5 = read_hercules_hdf5(hmodel.output_file)
-        # 5 steps with default log_every_n=1 should give 5 rows
+        # 5 steps should give 5 rows (every step is logged)
         assert len(df_hdf5) == 5
         assert df_hdf5["time"].iloc[0] == 0.0
         assert df_hdf5["time"].iloc[1] == 1.0
@@ -441,109 +440,6 @@ def test_hdf5_output_configuration():
         assert os.path.exists(hmodel.output_file)
         df_hdf5 = read_hercules_hdf5(hmodel.output_file)
         assert len(df_hdf5) == 5
-
-
-def test_log_every_n_option():
-    """Test that the log_every_n option works correctly."""
-    import os
-    import tempfile
-
-    from hercules.utilities import read_hercules_hdf5
-
-    # Use h_dict_solar as base for testing
-    test_h_dict = h_dict_solar.copy()
-
-    # Test with log_every_n = 2
-    with tempfile.TemporaryDirectory() as temp_dir:
-        test_h_dict_log = test_h_dict.copy()
-        test_h_dict_log["output_file"] = os.path.join(temp_dir, "test_output.h5")
-        test_h_dict_log["log_every_n"] = 2  # Log every 2 steps
-        test_h_dict_log["dt"] = 1.0
-        test_h_dict_log.pop("starttime", None)
-        test_h_dict_log.pop("endtime", None)
-        test_h_dict_log.pop("time", None)
-        test_h_dict_log.pop("step", None)
-        # For 6 steps total, duration=5s
-        test_h_dict_log["endtime_utc"] = test_h_dict_log["starttime_utc"] + pd.to_timedelta(
-            5.0, unit="s"
-        )
-
-        hmodel = HerculesModel(test_h_dict_log)
-        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_log))
-
-        # Check configuration
-        assert hmodel.log_every_n == 2
-        assert hmodel.dt_log == 2.0
-
-        # Run simulation and write output
-        for step in range(6):  # 6 steps (0-5) for dt=1.0, endtime=6.0, starttime=0.0
-            hmodel.step = step
-            hmodel.time = step * hmodel.dt
-            hmodel.h_dict["time"] = hmodel.time
-            hmodel.h_dict["step"] = step
-            hmodel.h_dict = hmodel.controller.step(hmodel.h_dict)
-            hmodel.h_dict = hmodel.hybrid_plant.step(hmodel.h_dict)
-            hmodel._log_data_to_hdf5()
-
-        hmodel.close()
-
-        # Verify file exists and is readable
-        assert os.path.exists(hmodel.output_file)
-        df_hdf5 = read_hercules_hdf5(hmodel.output_file)
-        # 6 steps with log_every_n=2 should give 3 rows (0, 2, 4)
-        assert len(df_hdf5) == 3
-        assert df_hdf5["time"].iloc[0] == 0.0
-        assert df_hdf5["time"].iloc[1] == 2.0
-        assert df_hdf5["time"].iloc[2] == 4.0
-        assert df_hdf5["step"].iloc[0] == 0
-        assert df_hdf5["step"].iloc[1] == 2
-        assert df_hdf5["step"].iloc[2] == 4
-
-    # Test with log_every_n = 3
-    with tempfile.TemporaryDirectory() as temp_dir:
-        test_h_dict_log2 = test_h_dict.copy()
-        test_h_dict_log2["output_file"] = os.path.join(temp_dir, "test_output.h5")
-        test_h_dict_log2["log_every_n"] = 3  # Log every 3 steps
-        test_h_dict_log2["dt"] = 1.0
-        test_h_dict_log2.pop("starttime", None)
-        test_h_dict_log2.pop("endtime", None)
-        test_h_dict_log2.pop("time", None)
-        test_h_dict_log2.pop("step", None)
-        # For 7 steps total, duration=6s
-        test_h_dict_log2["endtime_utc"] = test_h_dict_log2["starttime_utc"] + pd.to_timedelta(
-            6.0, unit="s"
-        )
-
-        hmodel = HerculesModel(test_h_dict_log2)
-        hmodel.assign_controller(SimpleControllerSolar(test_h_dict_log2))
-
-        # Check configuration
-        assert hmodel.log_every_n == 3
-        assert hmodel.dt_log == 3.0
-
-        # Run simulation and write output
-        for step in range(7):  # 7 steps (0-6)
-            hmodel.step = step
-            hmodel.time = step * hmodel.dt
-            hmodel.h_dict["time"] = hmodel.time
-            hmodel.h_dict["step"] = step
-            hmodel.h_dict = hmodel.controller.step(hmodel.h_dict)
-            hmodel.h_dict = hmodel.hybrid_plant.step(hmodel.h_dict)
-            hmodel._log_data_to_hdf5()
-
-        hmodel.close()
-
-        # Verify file exists and is readable
-        assert os.path.exists(hmodel.output_file)
-        df_hdf5 = read_hercules_hdf5(hmodel.output_file)
-        # 7 steps with log_every_n=3 should give 3 rows (0, 3, 6)
-        assert len(df_hdf5) == 3
-        assert df_hdf5["time"].iloc[0] == 0.0
-        assert df_hdf5["time"].iloc[1] == 3.0
-        assert df_hdf5["time"].iloc[2] == 6.0
-        assert df_hdf5["step"].iloc[0] == 0
-        assert df_hdf5["step"].iloc[1] == 3
-        assert df_hdf5["step"].iloc[2] == 6
 
 
 def test_log_selective_array_element():

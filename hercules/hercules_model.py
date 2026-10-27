@@ -86,10 +86,6 @@ class HerculesModel:
         self.starttime_utc = h_dict["starttime_utc"]
         self.endtime_utc = h_dict["endtime_utc"]
 
-        # Initialize logging configuration
-        self.log_every_n = h_dict.get("log_every_n", 1)
-        self.dt_log = self.dt * self.log_every_n
-
         # Initialize the hybrid plant
         self.hybrid_plant = HybridPlant(h_dict)
 
@@ -311,8 +307,6 @@ class HerculesModel:
         metadata_group.attrs["starttime"] = self.starttime
         metadata_group.attrs["endtime"] = self.endtime
         metadata_group.attrs["dt_sim"] = self.dt
-        metadata_group.attrs["dt_log"] = self.dt_log
-        metadata_group.attrs["log_every_n"] = self.log_every_n
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
@@ -326,10 +320,8 @@ class HerculesModel:
         # Create data group
         data_group = self.hdf5_file.create_group("data")
 
-        # Calculate total number of rows with logging stride
-        total_rows = self.n_steps // self.log_every_n
-        if self.n_steps % self.log_every_n != 0:
-            total_rows += 1
+        # Every simulation step is logged
+        total_rows = self.n_steps
 
         # Set compression parameters based on configuration
         if self.use_compression:
@@ -717,10 +709,6 @@ class HerculesModel:
         # Initialize HDF5 file on first call
         if not self.output_structure_determined:
             self._initialize_hdf5_file()
-
-        # Apply  logging stride
-        if self.step % self.log_every_n != 0:
-            return
 
         # Initialize buffers on first call
         if not self.data_buffers:
