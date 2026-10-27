@@ -636,6 +636,14 @@ class HerculesModel:
             raise
 
         finally:
+            # Add controller logs to main Hercules log
+            if hasattr(self.controller, "get_log"):
+                controller_log = self.controller.get_log()
+                print(controller_log.head())
+            else:
+                controller_log = None
+                print("No controller log available.")
+
             # Ensure output data is written to file
             self.logger.info("Finalizing HDF5 output file")
             self._finalize_hdf5_file()
