@@ -339,6 +339,12 @@ def load_hercules_input(filename):
                 f"must be floats, ints, lists, or tuples in input file {filename}"
             )
 
+    if "log_every_n" in h_dict:
+        raise ValueError(
+            f"log_every_n was removed in Hercules v3 (found in input file {filename}). "
+            "Every simulation step is now logged; handle any downsampling in postprocessing."
+        )
+
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
