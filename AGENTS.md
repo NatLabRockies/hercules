@@ -46,7 +46,6 @@ This file contains additional guidance for AI agents and other AI editors includ
 
 ## Tests
 
-- Tests use the `*_test.py` pattern, not `test_*.py`.
 - Write self-contained test functions, comprehensible to a human reviewer, with simple
   inline inputs (no fixtures) and a short comment stating the purpose.
 - Focus on core behavior and catching regressions rather than exhaustive edge cases;
