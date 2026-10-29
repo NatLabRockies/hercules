@@ -27,7 +27,6 @@ This file contains additional guidance for AI agents and other AI editors includ
 
 ## Commands
 
-- Install: `pip install -e ".[develop]" && pre-commit install`
 - Test: `.venv/bin/python -m pytest tests/` when `.venv/` exists; otherwise `pytest tests/` (or a single file, e.g. `pytest tests/battery_simple_test.py`).
 - Lint/format: `ruff check --fix . && ruff format .`
 - Pre-commit: `pre-commit run --all-files`
