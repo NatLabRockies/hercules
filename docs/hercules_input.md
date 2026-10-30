@@ -202,7 +202,7 @@ This is useful when you want external data available for control decisions but d
 
 Hercules supports several output configuration options to optimize file size and write performance.
 
-Every simulation step is logged to the output file; the logging time step always equals the simulation time step `dt`. To reduce output size, use a larger `dt`, limit `log_channels`, or downsample during post-processing.
+Every simulation step is logged to the output file; the logging time step always equals the simulation time step `dt`. To reduce output size limit `log_channels`, or downsample during post-processing.
 
 ### output_file
 Specifies the output file path. Hercules automatically ensures the file has a `.h5` extension for HDF5 format.
