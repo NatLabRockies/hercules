@@ -115,7 +115,7 @@ class HerculesModel:
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
 
             if "/" in self.output_file:
-                # check if folder was specfied in output_file
+                # check if folder was specified in output_file
                 if Path(self.output_file).parent != output_dir:
                     # if folder of output_file does not match output_dir, then
                     # just use the name of the output file
@@ -636,6 +636,16 @@ class HerculesModel:
             raise
 
         finally:
+            # Add controller logs to main Hercules log, if they exist
+            if hasattr(self.controller, "write_log"):
+                self.logger.info("Writing controller log file")
+                controller_log_file = self.output_file.with_name(
+                    self.output_file.stem + "_controller_log.pkl"
+                )
+                self.controller.write_log(controller_log_file, output_type="pickle")
+            else:
+                self.logger.info("No controller log available")
+
             # Ensure output data is written to file
             self.logger.info("Finalizing HDF5 output file")
             self._finalize_hdf5_file()
