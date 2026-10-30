@@ -11,7 +11,6 @@ dt: 1.0  # Simulation time step (seconds)
 starttime_utc: "2020-01-01T00:00:00Z"  # Simulation start time in UTC (ISO 8601 format)
 endtime_utc: "2020-01-31T23:59:59Z"  # Simulation end time in UTC (ISO 8601 format)
 verbose: False  # Enable verbose console output (True/False)
-log_every_n: 10  # Log output every N time steps (positive integer, default: 1)
 
 # Output file configuration
 output_dir: outputs # output folder

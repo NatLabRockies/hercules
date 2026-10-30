@@ -62,7 +62,7 @@ class HerculesOutput:
 
         print(f"  Total Simulation Time (seconds): {total_simulation_time_s}")
         print(f"   Total Simulation Time: {time_str}")
-        print(f"   Time Step: {self.metadata.get('dt_log', 'Not available')} seconds")
+        print(f"   Time Step: {self.metadata.get('dt_sim', 'Not available')} seconds")
         print(f"   Num Steps: {len(self.df)}")
 
         # Wall time information

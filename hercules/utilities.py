@@ -261,7 +261,6 @@ def load_hercules_input(filename):
         "output_dir",
         "output_file",
         "overwrite_outputs",
-        "log_every_n",
         "external_data_file",
         "external_data",
         "output_use_compression",
@@ -340,6 +339,12 @@ def load_hercules_input(filename):
                 f"must be floats, ints, lists, or tuples in input file {filename}"
             )
 
+    if "log_every_n" in h_dict:
+        raise ValueError(
+            f"log_every_n was removed in Hercules v3 (found in input file {filename}). "
+            "Every simulation step is now logged; handle any downsampling in postprocessing."
+        )
+
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
@@ -363,11 +368,6 @@ def load_hercules_input(filename):
         h_dict["verbose"] = False
     elif not isinstance(h_dict["verbose"], bool):
         raise ValueError(f"Verbose must be a boolean in input file {filename}")
-
-    # Validate log_every_n if present
-    if "log_every_n" in h_dict:
-        if not isinstance(h_dict["log_every_n"], int) or h_dict["log_every_n"] <= 0:
-            raise ValueError(f"log_every_n must be a positive integer in input file {filename}")
 
     # Validate no components have verbose key
     for key in component_names:
