@@ -17,7 +17,7 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
-    make_unique_folder_name,
+    make_unique_name,
     setup_logging,
 )
 
@@ -46,26 +46,27 @@ class HerculesModel:
         if h_dict.get("overwrite_outputs", True):
             if output_dir.exists():
                 shutil.rmtree(output_dir)
-        else:
-            # Make a unique foldername with the same basename as the output_dir
-            proposed_dirname = str(output_dir.name)
-            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
-            # If the proposed directory already existed and a new folder was proposed,
-            # update the logger directory to have the same unique number
-            if output_dir.name != proposed_dirname:
-                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
-                unique_folder_id = "".join(p for p in unique_folder_id_parts)
-                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
-                    if isinstance(h_dict["logging"]["logging_dir"], str):
-                        h_dict["logging"].update(
-                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
-                        )
+        # else:
+        #     # Make a unique foldername with the same basename as the output_dir
+        #     proposed_dirname = str(output_dir.name)
+        #     output_dir = make_unique_name(output_dir.parent, output_dir.name, "folder")
+        #     # If the proposed directory already existed and a new folder was proposed,
+        #     # update the logger directory to have the same unique number
+        #     if output_dir.name != proposed_dirname:
+        #         unique_folder_id_parts = output_dir.name.split(proposed_dirname)
+        #         unique_folder_id = "".join(p for p in unique_folder_id_parts)
+        #         if h_dict.get("logging", {}).get("logging_dir", None) is not None:
+        #             if isinstance(h_dict["logging"]["logging_dir"], str):
+        #                 h_dict["logging"].update(
+        #                     {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
+        #                 )
 
-                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
-                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
-                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
+        #             logging_parent_dir = h_dict["logging"]["logging_dir"].parent
+        #             logging_dir_basename = h_dict["logging"]["logging_dir"].name
+        #             new_log_fpath = logging_parent_dir /
+        #                               f"{logging_dir_basename}{unique_folder_id}"
 
-                    h_dict["logging"].update({"logging_dir": new_log_fpath})
+        #             h_dict["logging"].update({"logging_dir": new_log_fpath})
 
         # Make sure output folder exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -110,6 +111,17 @@ class HerculesModel:
         # Initialize HDF5 output configuration
         if "output_file" in self.h_dict:
             self.output_file = self.h_dict["output_file"]
+
+            if not h_dict.get("overwrite_outputs", False):
+                output_file_unique = make_unique_name(output_dir, self.output_file, "file")
+                self.output_file = output_file_unique.name
+                print("hi?")
+                print(f"Unique output file: {self.output_file}")
+                print(f"Output directory: {output_dir}")
+
+            # # Extract file name from function return value
+            # self.output_file_name = Path(self.output_file).name
+
             # Ensure .h5 extension
             if not self.output_file.endswith(".h5"):
                 self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
@@ -122,6 +134,7 @@ class HerculesModel:
                     self.output_file = output_dir / self.output_file.split("/")[-1]
             else:
                 self.output_file = output_dir / self.output_file
+
         else:
             self.output_file = output_dir / "hercules_output.h5"
 

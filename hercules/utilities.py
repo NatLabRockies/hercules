@@ -68,41 +68,63 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
-def make_unique_folder_name(parent_folder: str | Path, proposed_dirname: str):
-    """Generate a folder that does not already exist in a user-defined parent folder.
+def make_unique_name(parent_folder: str | Path, proposed_name: str, input_type: str):
+    """Generate a folder or file name that does not already exist in a user-defined parent folder.
 
     Args:
         parent_folder (str | Path): directory that a folder is expected to be created in.
-        proposed_dirname (str): folder name to check for existence and
-            to use as the base folder description of a new an unique folder name.
+        proposed_name (str): folder or file name to check for existence and
+            to use as the base folder or file description of a new an unique folder or file name.
+        input_type (str): Type of input requesting the unique name ["folder" or "file"]
 
     Returns:
-        str: unique direcoty that does not yet exist in parent_folder.
+        str: unique directory or file name that does not yet exist in parent_folder.
     """
 
-    # if folder(s) exist with the same base name, make a new unique directory name
+    # if folder(s) or file(s) exist with the same base name, make a new unique directory name
     # file_base = proposed_fname.split(fext)[0]
-    existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_dirname}*") if f.is_dir()]
+
+    if input_type == "folder":
+        existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_dir()]
+    elif input_type == "file":
+        # Split proposed name at the period, if there is one,
+        #   to insert the unique number before the extension
+        if "." in proposed_name:
+            name_parts = proposed_name.rsplit(".", 1)
+            proposed_name = name_parts[0]
+
+        existing_files = [
+            f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_file()
+        ]
+    else:
+        raise ValueError(f"Invalid input_type: {input_type}. Must be 'folder' or 'file'.")
+
     if len(existing_files) == 0:
-        return Path(parent_folder) / proposed_dirname
+        return Path(parent_folder) / proposed_name
 
     # get past numbers that were used to make unique folders by matching
     # folder names against the file base name followed by a number
     past_numbers = [
-        int(re.findall(f"{proposed_dirname}[0-9]+", str(fname))[0].split(proposed_dirname)[-1])
+        int(re.findall(f"{proposed_name}[0-9]+", str(fname))[0].split(proposed_name)[-1])
         for fname in existing_files
-        if len(re.findall(f"{proposed_dirname}[0-9]+", str(fname))) > 0
+        if len(re.findall(f"{proposed_name}[0-9]+", str(fname))) > 0
     ]
 
     if len(past_numbers) > 0:
         # if multiple folders have the same basename followed by a number,
         # take the maximum unique number and add one
         unique_number = int(max(past_numbers) + 1)
-        return Path(parent_folder) / f"{proposed_dirname}{unique_number}"
+        if input_type == "file":
+            proposed_name = f"{proposed_name}{unique_number}"
+            return Path(parent_folder) / proposed_name
+        return Path(parent_folder) / f"{proposed_name}{unique_number}"
     else:
         # if no folders have the same basename followed by a number,
         # but do have the same basename, then add a zero to the folder basename
-        return Path(parent_folder) / f"{proposed_dirname}0"
+        if input_type == "file":
+            proposed_name = f"{proposed_name}0"
+            return Path(parent_folder) / proposed_name
+        return Path(parent_folder) / f"{proposed_name}0"
 
 
 def _validate_utc_datetime_string(dt_str, field_name):
