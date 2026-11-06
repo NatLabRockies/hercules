@@ -26,12 +26,8 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 - `max_SOC`: Maximum state of charge (0-1, default 1.0). Values below 1.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
 - `min_SOC`: Minimum state of charge (0-1, default 0.0). Values above 0.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
 - `allow_grid_power_consumption`: True or False (defaults to False)
-- `roundtrip_efficiency`: Roundtrip efficiency (0-1, applies to BatterySimple only)
-- `self_discharge_time_constant`: Self-discharge time constant in seconds (BatterySimple only)
-- `track_usage`: Enable usage tracking for degradation modeling (BatterySimple only)
-- `usage_calc_interval`: Interval for usage calculations in seconds (BatterySimple only)
-- `usage_lifetime`: Battery lifetime in years for time-based degradation (BatterySimple only)
-- `usage_cycles`: Number of cycles until replacement for cycle-based degradation (BatterySimple only)
+- `roundtrip_efficiency`: Roundtrip efficiency (0-1, default 1.0), applied on charging (BatterySimple only)
+- `self_discharge_time_constant`: Self-discharge time constant in seconds (default inf, BatterySimple only)
 - `log_channels`: List of output channels to log (see [Logging Configuration](battery-logging-configuration) below)
 
 
@@ -54,14 +50,9 @@ h_dict = {
 ### Outputs
 Outputs are returned as a dict containing the following values:
 - `power`: Actual battery power in kW
-- `reject`: Rejected power due to constraints in kW (positive when power cannot be absorbed, negative when required power unavailable)
 - `soc`: Battery state of charge (0-1)
 - `power_setpoint`: Requested power setpoint in kW
-
-#### Additional Outputs (BatterySimple only when track_usage=True)
-- `usage_in_time`: Time-based usage percentage
-- `usage_in_cycles`: Cycle-based usage percentage
-- `total_cycles`: Total equivalent cycles completed
+- `reject`: Rejected power due to constraints in kW (BatteryLithiumIon only; positive when power cannot be absorbed, negative when required power unavailable)
 
 (battery-logging-configuration)=
 ### Logging Configuration
@@ -97,20 +88,24 @@ If `log_channels` is not specified, only `power` will be logged.
 
 ## `BatterySimple`
 
-`BatterySimple` is a basic energy storage model with the following features:
+`BatterySimple` is an energy-reservoir model with power and energy limits, roundtrip efficiency losses and optional self-discharge. Only `power` and `soc` are output.
 
-- **Deliverable Energy Convention**: The `energy_capacity` parameter represents the energy the battery can deliver at its rated discharge power. Internally, the battery stores slightly more energy to account for discharge efficiency losses, ensuring that `discharge_duration = energy_capacity / discharge_rate` holds regardless of roundtrip efficiency.
-- **Energy Integration**: $E_t = \sum_{k=0}^t P_k \Delta t$, where $E_t$ is the energy stored and $P_t$ is the charging/discharging power at time $t$
-- **Efficiency Losses**: Separate charge and discharge efficiencies (from roundtrip efficiency)
-- **Self-Discharge**: Exponential energy loss with configurable time constant
-- **Usage Tracking**: Optional rainflow cycle counting for degradation modeling
-- **Constraints**: Both energy and power are constrained by upper and lower limits:
+**Efficiency convention.** All roundtrip efficiency ($\eta_{RT}$) losses are applied on charging, so the stored energy equals the energy deliverable at the terminals. This matches the convention used in NLR's ReEDS model. As a result:
 
-$\underline{E} \leq E \leq \overline{E}$
+- Full discharge time at `discharge_rate` $P_d$: $E_{cap} / P_d$
+- Full charge time at `charge_rate` $P_c$: $E_{cap} / (\eta_{RT} P_c)$
 
-$\underline{P} \leq P \leq \overline{P}$
+Splitting the losses between charge and discharge (e.g., $\sqrt{\eta_{RT}}$ each, with a correspondingly larger internal capacity) produces identical power and SOC trajectories, but the internal SOC of a real battery management system may differ.
 
-The model uses a state-space representation to handle self-discharge and efficiency losses in a unified framework.
+**State update.** With charging power $P > 0$ (battery sign convention), time step $\Delta t$ in hours and self-discharge time constant $\tau$, each step:
+
+$$
+E_d = E_t\, e^{-\Delta t / \tau}, \qquad
+E_{t+1} = E_d + \begin{cases} \eta_{RT} P \Delta t & P > 0 \\ P \Delta t & P \le 0 \end{cases}, \qquad
+\mathrm{SOC} = E / E_{cap}
+$$
+
+**Constraints.** $P$ is the setpoint clipped to the most restrictive of the power limits ($-P_d \le P \le P_c$), the available power for charging (unless `allow_grid_power_consumption` is True), and the energy limits $\mathrm{SOC}_{min} E_{cap} \le E_{t+1} \le \mathrm{SOC}_{max} E_{cap}$.
 
 
 ## `BatteryLithiumIon`
