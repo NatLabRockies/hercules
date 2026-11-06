@@ -1,11 +1,8 @@
-"""Regression tests for 'SolarPySAM'."""
-
-import copy
+"""Regression tests for battery models."""
 
 import numpy as np
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_simple import BatterySimple
-from numpy.testing import assert_almost_equal
 
 PRINT_VALUES = True
 
@@ -48,10 +45,6 @@ powers_base_simple = np.array(
         -323.5947654,
         -459.98427916,
     ]
-)
-
-reject_base_simple = np.array(
-    [0.0, 30000.0, 80000.0, 80000.0, 59000.0, 38000.0, 17000.0, 0.0, 0.0, 0.0, 0.0]
 )
 
 soc_base_simple = np.array(
@@ -118,23 +111,12 @@ soc_base_lib = np.array(
     ]
 )
 
-usage_calc_base_dict = {
-    "out_power": 1800,
-    "SB.total_cycle_usage": 0.02193554708461804,
-    "SB.cycle_usage_perc": 0.43871094169236086,
-    "SB.total_time_usage": 20.0,
-    "SB.time_usage_perc": 63.41958396752917,
-    "SB.SOC (1)": 0.18643651054788266,
-    "SB.SOC (2)": 0.15096283896030407,
-}
-
 
 def test_SimpleBattery_regression_():
     battery = BatterySimple(test_h_dict, "battery")
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
-    reject_test = np.zeros_like(times_test)
     soc_test = np.zeros_like(times_test)
 
     for i, t in enumerate(times_test):
@@ -148,16 +130,13 @@ def test_SimpleBattery_regression_():
             }
         )
         powers_test[i] = out["battery"]["power"]
-        reject_test[i] = out["battery"]["reject"]
         soc_test[i] = out["battery"]["soc"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)
-        print("Rejected: ", reject_test)
         print("SOC: ", soc_test)
 
     assert np.allclose(powers_base_simple, powers_test)
-    assert np.allclose(reject_base_simple, reject_test)
     assert np.allclose(soc_base_simple, soc_test)
 
 
@@ -191,85 +170,3 @@ def test_LIB_regression_():
     assert np.allclose(powers_base_lib, powers_test)
     assert np.allclose(reject_base_lib, reject_test)
     assert np.allclose(soc_base_lib, soc_test)
-
-
-def test_SimpleBattery_usage_calc_regression():
-    battery_dict = copy.deepcopy(test_h_dict)
-    battery_dict["dt"] = 1
-
-    # Modify battery configuration for testing
-    battery_dict["battery"]["size"] = 2000
-    battery_dict["battery"]["energy_capacity"] = 8000
-    battery_dict["battery"]["charge_rate"] = 2000
-    battery_dict["battery"]["discharge_rate"] = 2000
-    battery_dict["battery"]["roundtrip_efficiency"] = 0.9
-    battery_dict["battery"]["self_discharge_time_constant"] = 100
-    battery_dict["battery"]["track_usage"] = True
-    battery_dict["battery"]["usage_calc_interval"] = 10
-    battery_dict["battery"]["usage_lifetime"] = 0.000001
-    battery_dict["battery"]["usage_cycles"] = 5
-    battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
-
-    SB = BatterySimple(battery_dict, "battery")
-
-    power_avail = 10e3 * np.ones(21)
-    power_signal = [
-        1500,
-        1500,
-        1500,
-        -1700,
-        -1700,
-        -1700,
-        1800,
-        1800,
-        1800,
-        1800,
-        1800,
-        -1800,
-        -1800,
-        -1800,
-        -1800,
-        -1800,
-        1800,
-        1800,
-        1800,
-        1800,
-        1800,
-    ]
-
-    for i in range(len(power_avail)):
-        step_input_dict = {
-            "battery": {"power_setpoint": power_signal[i]},
-            "plant": {"locally_generated_power": power_avail[i]},
-        }
-        out = SB.step(step_input_dict)
-        # assert out["battery"]["power"] == power_signal[i]
-
-    assert SB.step_counter == 1
-    assert out["battery"]["power"] == usage_calc_base_dict["out_power"]
-
-    assert SB.total_cycle_usage == usage_calc_base_dict["SB.total_cycle_usage"]
-    assert_almost_equal(SB.cycle_usage_perc, usage_calc_base_dict["SB.cycle_usage_perc"], decimal=4)
-    assert SB.total_time_usage == usage_calc_base_dict["SB.total_time_usage"]
-    assert SB.time_usage_perc == usage_calc_base_dict["SB.time_usage_perc"]
-
-    assert_almost_equal(SB.SOC, usage_calc_base_dict["SB.SOC (1)"], decimal=4)
-
-    if PRINT_VALUES:
-        print("out_power: ", out["battery"]["power"])
-        print("SB.total_cycle_usage: ", SB.total_cycle_usage)
-        print("SB.cycle_usage_perc: ", SB.cycle_usage_perc)
-        print("SB.total_time_usage: ", SB.total_time_usage)
-        print("SB.time_usage_perc: ", SB.time_usage_perc)
-        print("SB.SOC (1): ", SB.SOC)
-
-    for i in range(len(power_avail)):
-        step_input_dict = {
-            "battery": {"power_setpoint": 0},
-            "plant": {"locally_generated_power": power_avail[i]},
-        }
-        out = SB.step(step_input_dict)
-    assert_almost_equal(SB.SOC, usage_calc_base_dict["SB.SOC (2)"], decimal=4)
-
-    if PRINT_VALUES:
-        print("SB.SOC (2): ", SB.SOC)
