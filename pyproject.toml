@@ -32,7 +32,6 @@ dependencies = [
 "nrel-pysam>=6,<8",
 "jupyter",
 "netCDF4",
-"rainflow~=3.2",
 "tqdm~=4.66",
 "polars~=1.0",
 "pyarrow",
