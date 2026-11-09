@@ -14,7 +14,7 @@ verbose: False  # Enable verbose console output (True/False)
 
 # Output file configuration
 output_dir: outputs # output folder
-output_file: outputs/hercules_output.h5  # Output HDF5 file path (automatically adds .h5 extension if missing)
+output_file: hercules_output.h5  # Output HDF5 file path (automatically adds .h5 extension if missing)
 auto_increment_filenames: False # Append an index instead of replacing existing output (AI)
 output_use_compression: True  # Enable HDF5 compression (True/False, default: True)
 output_buffer_size: 50000  # Memory buffer size for writing data in rows (default: 50000)
@@ -37,7 +37,7 @@ wind_farm:
   floris_input_file: ../inputs/floris_input.yaml  # Path to FLORIS farm configuration file
   wind_input_filename: ../inputs/wind_input.ftr  # Path to wind resource data file (CSV, pickle, or feather format)
   turbine_file_name: ../inputs/turbine_filter_model.yaml  # Path to turbine model configuration file
-  log_file_name: outputs/log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
+  log_file_name: log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
   floris_update_time_s: 300.0  # How often to update FLORIS wake calculations in seconds (for "dynamic" wake_method) or precomputation cadence (for "precomputed" wake_method)
   log_channels:  # List of output channels to log (power is always logged even if not specified)
     - power  # Total wind farm power output (kW) - always logged
@@ -59,7 +59,7 @@ wind_farm:
 # wind_farm:
 #   component_type: WindFarmSCADAPower  # Uses SCADA power measurements directly
 #   scada_filename: ../inputs/scada_data.ftr  # Path to SCADA data file (CSV, pickle, or feather format)
-#   log_file_name: outputs/log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
+#   log_file_name: log_wind_farm.log  # Path to wind farm log file (default: outputs/log_wind_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Total wind farm power output (kW) - always logged
 #     - wind_speed_mean_background  # Farm-average background wind speed (m/s) - equals wind_speed_mean_withwakes for this model
@@ -86,7 +86,7 @@ wind_farm:
 #   tilt: 0  # Array tilt angle in degrees (required)
 #   losses: 0  # System losses as a percentage (0-100, default: 0)
 #   use_resource_solar_dt: true  # Optional (default: true). When the weather file's resource dt is coarser than `dt`, run PySAM once at resource resolution and upsample its outputs to the Hercules grid (see docs/solar_pv.md).
-#   log_file_name: outputs/log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
+#   log_file_name: log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Delivered AC power in kW after control (always logged)
 #     - ac_power_available  # Post-inverter AC potential in kW (before control curtailment)
@@ -108,7 +108,7 @@ wind_farm:
 #   # max_SOC: 1.0  # Maximum state of charge (0-1, default 1.0). Values < 1 indicate degradation.
 #   # min_SOC: 0.0  # Minimum state of charge (0-1, default 0.0). Values > 0 indicate degradation.
 #   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
-#   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
+#   log_file_name: log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Actual battery power output in kW (always logged, positive=discharge, negative=charge)
 #     - soc  # State of charge (0-1)
@@ -132,7 +132,7 @@ wind_farm:
 #   # max_SOC: 1.0  # Maximum state of charge (0-1, default 1.0). Values < 1 indicate degradation.
 #   # min_SOC: 0.0  # Minimum state of charge (0-1, default 0.0). Values > 0 indicate degradation.
 #   allow_grid_power_consumption: False  # Allow battery to consume grid power for charging (True/False, default: False)
-#   log_file_name: outputs/log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
+#   log_file_name: log_battery.log  # Path to battery log file (default: outputs/log_battery.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Actual battery power output in kW (always logged, positive=discharge, negative=charge)
 #     - soc  # State of charge (0-1)
@@ -146,7 +146,7 @@ wind_farm:
 #   initialize: True  # Initialize electrolyzer (True/False, required)
 #   initial_power_kW: 3000  # Initial power in kW (required)
 #   allow_grid_power_consumption: False  # Allow electrolyzer to consume grid power (True/False, default: False)
-#   log_file_name: outputs/log_electrolyzer.log  # Path to electrolyzer log file (default: outputs/log_electrolyzer.log)
+#   log_file_name: log_electrolyzer.log  # Path to electrolyzer log file (default: outputs/log_electrolyzer.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Electrolyzer power consumption in kW (always logged)
 #   supervisor:  # Supervisor configuration (required)

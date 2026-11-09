@@ -51,7 +51,7 @@ wind_farm:  # User-chosen component_name; component_type determines the class
   floris_input_file: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
   turbine_file_name: inputs/turbine_filter_model.yaml
-  log_file_name: outputs/log_wind_sim.log
+  log_file_name: log_wind_sim.log
   log_channels:
     - power
     - wind_speed_mean_background
@@ -95,7 +95,8 @@ battery:  # User-chosen component_name
 controller:
   # Controller configuration here
 
-output_file: outputs/hercules_output.h5
+output_folder: outputs
+output_file: hercules_output.h5
 ```
 
 ## External Data Configuration
