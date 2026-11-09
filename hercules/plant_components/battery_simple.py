@@ -138,9 +138,10 @@ class BatterySimple(ComponentBase):
             self.tau_self_discharge = np.inf
 
         self.build_SS()
+        # float64 so small increments are not lost against a large stored energy (AI)
         self.x = np.array(
             [[initial_conditions["SOC"] * self.energy_capacity * 3600]],
-            dtype=hercules_float_type,
+            dtype=np.float64,
         )
         self.y = None
 

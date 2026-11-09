@@ -116,6 +116,17 @@ def test_SB_step(SB: BatterySimple):
     assert SB.P_charge == 0
 
 
+def test_SB_small_charge_is_stored():
+    # A 2 kW charge on an 80 MWh battery must still accumulate energy (no float32 rounding)
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
+    SB = BatterySimple(test_h_dict, "battery")
+    E0 = SB.x[0, 0]
+    for _ in range(10):
+        SB.step(step_inputs(P_avail=1e6, P_signal=2.0))
+    assert_almost_equal(SB.x[0, 0] - E0, 10 * 2.0 * 0.9 * test_h_dict["dt"], decimal=6)
+
+
 def test_LI_init():
     """Test init"""
     test_h_dict = copy.deepcopy(h_dict_lib_battery)
@@ -332,8 +343,6 @@ def test_SB_roundtrip_efficiency():
     """
     # Test with 90% round-trip efficiency
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    # Coarse steps keep float32 state quantization small relative to the losses
-    test_h_dict["dt"] = 60.0
     test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
@@ -430,8 +439,6 @@ def test_SB_roundtrip_efficiency_various_values():
 
     for rte in efficiency_values:
         test_h_dict = copy.deepcopy(h_dict_simple_battery)
-        # Coarse steps keep float32 state quantization small relative to the losses
-        test_h_dict["dt"] = 60.0
         test_h_dict["battery"]["roundtrip_efficiency"] = rte
         test_h_dict["battery"]["allow_grid_power_consumption"] = True
         test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
