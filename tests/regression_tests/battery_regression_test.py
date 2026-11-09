@@ -1,8 +1,12 @@
 """Regression tests for battery models."""
 
+import copy
+
 import numpy as np
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
+from hercules.plant_components.battery_reservoir import BatteryReservoir
 from hercules.plant_components.battery_simple import BatterySimple
+from numpy.testing import assert_almost_equal
 
 PRINT_VALUES = True
 
@@ -45,6 +49,10 @@ powers_base_simple = np.array(
         -323.5947654,
         -459.98427916,
     ]
+)
+
+reject_base_simple = np.array(
+    [0.0, 30000.0, 80000.0, 80000.0, 59000.0, 38000.0, 17000.0, 0.0, 0.0, 0.0, 0.0]
 )
 
 soc_base_simple = np.array(
@@ -111,9 +119,48 @@ soc_base_lib = np.array(
     ]
 )
 
+# Baselines from the pre-refactor model (RTE split as sqrt on charge and discharge)
+rte_self_discharge_base_dict = {
+    "out_power": 1800,
+    "SB.SOC (1)": 0.18643651054788266,
+    "SB.SOC (2)": 0.15096283896030407,
+}
+
 
 def test_SimpleBattery_regression_():
     battery = BatterySimple(test_h_dict, "battery")
+
+    times_test = np.arange(0, 5.5, test_h_dict["dt"])
+    powers_test = np.zeros_like(times_test)
+    reject_test = np.zeros_like(times_test)
+    soc_test = np.zeros_like(times_test)
+
+    for i, t in enumerate(times_test):
+        out = battery.step(
+            {
+                "time": t,
+                "battery": {
+                    "power_setpoint": powers_requested[i],
+                },
+                "plant": {"locally_generated_power": powers_requested[i]},
+            }
+        )
+        powers_test[i] = out["battery"]["power"]
+        reject_test[i] = out["battery"]["reject"]
+        soc_test[i] = out["battery"]["soc"]
+
+    if PRINT_VALUES:
+        print("Powers: ", powers_test)
+        print("Rejected: ", reject_test)
+        print("SOC: ", soc_test)
+
+    assert np.allclose(powers_base_simple, powers_test)
+    assert np.allclose(reject_base_simple, reject_test)
+    assert np.allclose(soc_base_simple, soc_test)
+
+
+def test_BatteryReservoir_regression_():
+    battery = BatteryReservoir(test_h_dict, "battery")
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -136,6 +183,7 @@ def test_SimpleBattery_regression_():
         print("Powers: ", powers_test)
         print("SOC: ", soc_test)
 
+    # Identical to BatterySimple at unit efficiency without self-discharge
     assert np.allclose(powers_base_simple, powers_test)
     assert np.allclose(soc_base_simple, soc_test)
 
@@ -170,3 +218,36 @@ def test_LIB_regression_():
     assert np.allclose(powers_base_lib, powers_test)
     assert np.allclose(reject_base_lib, reject_test)
     assert np.allclose(soc_base_lib, soc_test)
+
+
+def test_SimpleBattery_rte_self_discharge_regression():
+    # Charge-only RTE must reproduce the pre-refactor SOC with RTE and self-discharge
+    battery_dict = copy.deepcopy(test_h_dict)
+    battery_dict["dt"] = 1
+    battery_dict["battery"]["energy_capacity"] = 8000
+    battery_dict["battery"]["charge_rate"] = 2000
+    battery_dict["battery"]["discharge_rate"] = 2000
+    battery_dict["battery"]["roundtrip_efficiency"] = 0.9
+    battery_dict["battery"]["self_discharge_time_constant"] = 100
+    battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
+
+    SB = BatterySimple(battery_dict, "battery")
+
+    power_signal = [1500] * 3 + [-1700] * 3 + [1800] * 5 + [-1800] * 5 + [1800] * 5
+    for setpoint in power_signal:
+        out = SB.step(
+            {
+                "battery": {"power_setpoint": setpoint},
+                "plant": {"locally_generated_power": 10e3},
+            }
+        )
+
+    assert out["battery"]["power"] == rte_self_discharge_base_dict["out_power"]
+    assert_almost_equal(SB.SOC, rte_self_discharge_base_dict["SB.SOC (1)"], decimal=4)
+
+    for _ in range(len(power_signal)):
+        SB.step({"battery": {"power_setpoint": 0}, "plant": {"locally_generated_power": 10e3}})
+    assert_almost_equal(SB.SOC, rte_self_discharge_base_dict["SB.SOC (2)"], decimal=4)
+
+    if PRINT_VALUES:
+        print("SB.SOC (2): ", SB.SOC)

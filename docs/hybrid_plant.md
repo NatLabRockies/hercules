@@ -16,6 +16,7 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 | `WindFarmSCADAPower` | `generator` | Yes | [Wind](wind.md) |
 | `SolarPySAMPVWatts` | `generator` | Yes | [Solar PV](solar_pv.md) |
 | `BatterySimple` | `storage` | No | [Battery](battery.md) |
+| `BatteryReservoir` | `storage` | No | [Battery](battery.md) |
 | `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | Yes | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
@@ -39,6 +40,7 @@ COMPONENT_REGISTRY = {
     "WindFarmSCADAPower": WindFarmSCADAPower,
     "SolarPySAMPVWatts": SolarPySAMPVWatts,
     "BatterySimple": BatterySimple,
+    "BatteryReservoir": BatteryReservoir,
     "BatteryLithiumIon": BatteryLithiumIon,
     "ElectrolyzerPlant": ElectrolyzerPlant,
     "OpenCycleGasTurbine": OpenCycleGasTurbine,
