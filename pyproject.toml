@@ -29,7 +29,7 @@ dependencies = [
 "matplotlib~=3.8",
 "pandas~=2.0",
 "floris~=4.3",
-"NLR-PySAM>=7.0.0",
+"nlr-pysam>=6,<9",
 "jupyter",
 "netCDF4",
 "rainflow~=3.2",
