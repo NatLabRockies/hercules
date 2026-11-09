@@ -67,9 +67,7 @@ def create_example_hdf5_file(filename: str):
         external_signals_group["external_signals.temperature"] = temperature
 
         # Add metadata
-        f["metadata"].attrs["dt_sim"] = 1.0
-        f["metadata"].attrs["dt_log"] = 300.0
-        f["metadata"].attrs["log_every_n"] = 300
+        f["metadata"].attrs["dt_sim"] = 300.0
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567890.0 + 21600
         f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
@@ -77,7 +75,7 @@ def create_example_hdf5_file(filename: str):
 
         # Add h_dict as JSON string
         example_h_dict = {
-            "simulation": {"dt_sim": 1.0, "dt_log": 300.0, "t_final": 21600.0},
+            "simulation": {"dt_sim": 300.0, "t_final": 21600.0},
             "plant": {"name": "example_hybrid_plant", "components": ["wind_farm", "solar_farm"]},
             "wind_farm": {"type": "wind_meso_to_power", "capacity_mw": 100.0},
             "solar_farm": {"type": "solar_pysam_pvwatts", "capacity_mw": 50.0},
@@ -108,8 +106,6 @@ def main():
         # Access metadata with dot notation
         print("Metadata Access:")
         print(f"  Simulation time step: {ho.dt_sim} seconds")
-        print(f"  Logging time step: {ho.dt_log} seconds")
-        print(f"  Log every N steps: {ho.log_every_n}")
         print(f"  Simulation duration: {ho.end_clock_time - ho.start_clock_time:.1f} seconds")
         print()
 

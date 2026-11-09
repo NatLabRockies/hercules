@@ -96,7 +96,6 @@ controller:
   # Controller configuration here
 
 output_file: outputs/hercules_output.h5
-log_every_n: 1
 ```
 
 ## External Data Configuration
@@ -201,13 +200,9 @@ This is useful when you want external data available for control decisions but d
 
 ## Output Configuration Options
 
-Hercules supports several output configuration options to optimize file size and write performance:
+Hercules supports several output configuration options to optimize file size and write performance.
 
-### log_every_n
-Controls how often simulation data is logged to the output file:
-- Default: 1 (log every simulation step)
-- Example: `log_every_n: 60` logs data every 60 simulation steps
-- This reduces output file size and improves performance for long simulations
+Every simulation step is logged to the output file; the logging time step always equals the simulation time step `dt`. To reduce output size limit `log_channels`, or downsample during post-processing.
 
 ### output_file
 Specifies the output file path. Hercules automatically ensures the file has a `.h5` extension for HDF5 format.
@@ -226,8 +221,6 @@ dt: 1.0
 starttime_utc: "2020-06-15T12:00:00Z"
 endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
 
-# Log every 60 seconds (1 minute) to reduce file size
-log_every_n: 60
 output_file: outputs/my_simulation.h5
 output_use_compression: true
 output_buffer_size: 10000
@@ -263,7 +256,6 @@ The `load_hercules_input()` function performs strict validation on input files t
 - Valid component types and configurations
 - Numeric validation for timing and power parameters
 - File existence checks for referenced input files
-- Output configuration validation (`log_every_n` must be a positive integer)
 - Component-specific validation (e.g., `log_channels` must be a list of valid channel names)
 
 Invalid configurations will raise descriptive `ValueError` exceptions to help with debugging.

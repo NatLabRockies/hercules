@@ -12,7 +12,6 @@ dt: 60.0  # 1 minute time step
 starttime_utc: "2020-01-20T00:00:00Z"  # Midnight Jan 20, 2020 UTC
 endtime_utc: "2020-01-20T07:00:00Z"  # 7 hours later
 verbose: False
-log_every_n: 1
 
 plant:
   interconnect_limit: 500  # kW

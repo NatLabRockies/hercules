@@ -35,7 +35,6 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `verbose` | bool | Enable verbose logging | False |
 | `name` | str | Simulation name | - |
 | `description` | str | Simulation description | - |
-| `log_every_n` | int | Log every N simulation steps to output log (default: 1) | 1 |
 | `external_data` | dict | External data configuration | - |
 | `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
 | `controller` | dict | Controller configuration | - |

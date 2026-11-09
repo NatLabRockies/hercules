@@ -45,8 +45,6 @@ def create_test_hdf5_file(filename: str):
 
         # Add metadata
         f["metadata"].attrs["dt_sim"] = 1.0
-        f["metadata"].attrs["dt_log"] = 5.0
-        f["metadata"].attrs["log_every_n"] = 5
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567895.0
         f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
@@ -55,7 +53,7 @@ def create_test_hdf5_file(filename: str):
         import json
 
         test_h_dict = {
-            "simulation": {"dt_sim": 1.0, "dt_log": 5.0, "t_final": 30.0},
+            "simulation": {"dt_sim": 1.0, "t_final": 30.0},
             "plant": {"name": "test_plant"},
         }
         f["metadata"].attrs["h_dict"] = json.dumps(test_h_dict)
@@ -90,8 +88,6 @@ def test_hercules_output_metadata_access():
 
         # Test dot notation access
         assert ho.dt_sim == 1.0
-        assert ho.dt_log == 5.0
-        assert ho.log_every_n == 5
         assert ho.start_clock_time == 1234567890.0
         assert ho.end_clock_time == 1234567895.0
 

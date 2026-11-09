@@ -4,6 +4,8 @@ Hercules generates HDF5 output files containing simulation data for analysis and
 
 All values in output files represent **instantaneous** quantities at each time step, not period averages. This differs from the convention used by input data files, where timestamps mark the start of a reporting period. See [Time Interpretation](timing.md#time-interpretation-inputs-vs-internal-values) for details on this distinction and the midpoint correction applied during input interpolation.
 
+Every simulation step is written to the output file, so the output time step always equals the simulation time step (`dt_sim`).
+
 ## File Format
 
 Hercules outputs simulation data in HDF5 (Hierarchical Data Format 5) format.
@@ -38,9 +40,7 @@ hercules_output.h5
 │       └── ...                 # Other external signals
 └── metadata/
     ├── h_dict                  # Simulation configuration (JSON string)
-    ├── dt_sim                  # Simulation time step (seconds)
-    ├── dt_log                  # Logging time step (seconds)
-    ├── log_every_n             # Logging stride value
+    ├── dt_sim                  # Simulation (and output) time step (seconds)
     ├── starttime               # Simulation start time (always 0.0 seconds)
     ├── endtime                 # Simulation end time (duration in seconds)
     ├── start_clock_time        # Simulation start wall clock time
@@ -114,7 +114,6 @@ ho = HerculesOutput("outputs/hercules_output.h5")
 
 # Access metadata with dot notation
 print(f"Simulation time step: {ho.dt_sim}")
-print(f"Logging time step: {ho.dt_log}")
 print(f"Simulation configuration: {ho.h_dict}")
 
 # Access full data

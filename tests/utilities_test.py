@@ -385,33 +385,6 @@ def test_load_h_dict_from_text_not_a_dict():
         os.unlink(temp_file)
 
 
-def test_output_configuration_validation():
-    """Test validation of new output configuration options."""
-
-    base_h_dict = {
-        "dt": 1.0,
-        "starttime_utc": "2018-05-10 12:31:00",
-        "endtime_utc": "2018-05-10 12:31:10",
-        "plant": {"interconnect_limit": 5000},
-        "solar_farm": {"component_type": "SolarPySAMPVWatts"},
-    }
-
-    # Test valid log_every_n
-    test_dict = base_h_dict.copy()
-    test_dict["log_every_n"] = 2
-    result = load_hercules_input_from_dict(test_dict)
-    assert result["log_every_n"] == 2
-
-    test_dict["log_every_n"] = 5
-    result = load_hercules_input_from_dict(test_dict)
-    assert result["log_every_n"] == 5
-
-    # Test invalid log_every_n
-    test_dict["log_every_n"] = 0
-    with pytest.raises(ValueError, match="log_every_n must be a positive integer"):
-        load_hercules_input_from_dict(test_dict)
-
-
 def test_load_hercules_input_utc_validation():
     """Test UTC datetime string validation.
 
