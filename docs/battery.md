@@ -115,11 +115,11 @@ The energy limits constrain the commanded power: the battery will not discharge 
 
 `BatteryReservoir` is an energy-reservoir model with the same inputs and power/SOC behavior as `BatterySimple`, written in a minimal form. It tracks energy in kWh, applies self-discharge as an exact exponential decay, and outputs only `power` and `soc`.
 
-**State update.** With charging power $P > 0$ (battery sign convention), time step $\Delta t$ in hours and self-discharge time constant $\tau$, each step:
+**State update.** With charging power $P > 0$ in kW (battery sign convention), stored energy $E$ in kWh, and time step $\Delta t$ and self-discharge time constant $\tau$ both in seconds, each step:
 
 $$
 E_d = E_t\, e^{-\Delta t / \tau}, \qquad
-E_{t+1} = E_d + \begin{cases} \eta_{RT} P \Delta t & P > 0 \\ P \Delta t & P \le 0 \end{cases}, \qquad
+E_{t+1} = E_d + \frac{\Delta t}{3600} \begin{cases} \eta_{RT} P & P > 0 \\ P & P \le 0 \end{cases}, \qquad
 \mathrm{SOC} = E / E_{cap}
 $$
 
