@@ -14,7 +14,7 @@ endtime_utc: "2020-01-01T06:00:00Z"  # 6 hours later
 verbose: False
 
 output_dir: "outputs_07"
-output_file: "hercules_output_test.h5"
+output_file: "hercules_output.h5"
 auto_increment_filenames: False
 logging:
   logging_dir: "logger_outputs_07"

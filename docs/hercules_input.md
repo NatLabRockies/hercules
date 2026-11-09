@@ -204,8 +204,11 @@ Hercules supports several output configuration options to optimize file size and
 
 Every simulation step is logged to the output file; the logging time step always equals the simulation time step `dt`. To reduce output size limit `log_channels`, or downsample during post-processing.
 
+### output_folder
+Specifies where the Hercules output files should be written. This is an optional input. If it is not specified, then the output file will be written in a folder called `outputs` in the run directory.
+
 ### output_file
-Specifies the output file path. Hercules automatically ensures the file has a `.h5` extension for HDF5 format.
+Specifies the output file name. Hercules automatically ensures the file has a `.h5` extension for HDF5 format. This is an optional input. Note that this input only specifies the output file name. If you include a folder in this input, Hercules will ignore all previous entries except the last file name, and will write the output to the output folder location.
 
 ### output_use_compression
 Controls HDF5 compression (default: True). Disable for faster writes if storage space is not a concern.
@@ -221,7 +224,7 @@ dt: 1.0
 starttime_utc: "2020-06-15T12:00:00Z"
 endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
 
-output_file: outputs/my_simulation.h5
+output_file: my_simulation.h5
 output_use_compression: true
 output_buffer_size: 10000
 
