@@ -7,7 +7,7 @@ name = "nlr-hercules"
 version = "2.2"
 description = "Hybrid plant emulation tool."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     { name = "Genevieve Starke", email = "Genevieve.Starke@nlr.gov" },
     { name = "Michael (Misha) Sinner", email = "Michael.Sinner@nlr.gov" },
@@ -29,7 +29,7 @@ dependencies = [
 "matplotlib~=3.8",
 "pandas~=2.0",
 "floris~=4.3",
-"nrel-pysam>=6,<8",
+"nlr-pysam>=6,<9",
 "jupyter",
 "netCDF4",
 "rainflow~=3.2",
