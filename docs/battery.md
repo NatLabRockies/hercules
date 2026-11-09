@@ -24,7 +24,7 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 
 #### Optional Parameters
 - `max_SOC`: Maximum state of charge (0-1, default 1.0). Values below 1.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
-- `min_SOC`: Minimum state of charge (0-1, default 0.0). Values above 0.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
+- `min_SOC`: Minimum state of charge (0-1, default 0.0). Values above 0.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window. This limits discharge only; self-discharge can take SOC below `min_SOC`.
 - `allow_grid_power_consumption`: True or False (defaults to False)
 - `roundtrip_efficiency`: Roundtrip efficiency (0-1, default 1.0), applied on charging (BatterySimple and BatteryReservoir)
 - `self_discharge_time_constant`: Self-discharge time constant in seconds (default inf, BatterySimple and BatteryReservoir)
@@ -108,6 +108,8 @@ $\underline{E} \leq E \leq \overline{E}$
 
 $\underline{P} \leq P \leq \overline{P}$
 
+The energy limits constrain the commanded power: the battery will not discharge below $\underline{E}$ or charge above $\overline{E}$. Self-discharge can still take the energy below $\underline{E}$; the model never charges on its own to restore it.
+
 
 ## `BatteryReservoir`
 
@@ -121,7 +123,7 @@ E_{t+1} = E_d + \begin{cases} \eta_{RT} P \Delta t & P > 0 \\ P \Delta t & P \le
 \mathrm{SOC} = E / E_{cap}
 $$
 
-**Constraints.** $P$ is the setpoint clipped to the most restrictive of the power limits ($-P_d \le P \le P_c$), the available power for charging (unless `allow_grid_power_consumption` is True), and the energy limits $\mathrm{SOC}_{min} E_{cap} \le E_{t+1} \le \mathrm{SOC}_{max} E_{cap}$.
+**Constraints.** $P$ is the setpoint clipped to the most restrictive of the power limits ($-P_d \le P \le P_c$), the available power for charging (unless `allow_grid_power_consumption` is True), and the energy limits $\mathrm{SOC}_{min} E_{cap} \le E_{t+1} \le \mathrm{SOC}_{max} E_{cap}$. The energy limits only restrict the commanded power, so with $P = 0$ self-discharge can take SOC below $\mathrm{SOC}_{min}$; the model never charges on its own to restore it.
 
 Without self-discharge, `BatteryReservoir` and `BatterySimple` produce identical power and SOC. With finite $\tau$ they differ slightly because `BatterySimple` uses Euler integration.
 

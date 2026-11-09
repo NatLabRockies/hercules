@@ -116,6 +116,20 @@ def test_BR_self_discharge():
     assert br.SOC == pytest.approx(0.5 * np.exp(-100 * 60.0 / 36000.0))
 
 
+def test_BR_self_discharge_below_min_soc():
+    # min_SOC limits discharge only; an idle battery drifts below it without self-charging
+    br = make_reservoir_battery(
+        dt=60.0, min_SOC=0.1, self_discharge_time_constant=36000.0, initial_conditions={"SOC": 0.1}
+    )
+    out = br.step(step_inputs(P_avail=1e6, P_signal=0.0))
+    assert out["battery"]["power"] == 0.0
+    assert br.SOC == pytest.approx(0.1 * np.exp(-60.0 / 36000.0))
+
+    # Discharge is blocked while below min_SOC
+    out = br.step(step_inputs(P_avail=1e6, P_signal=-1000.0))
+    assert out["battery"]["power"] == 0.0
+
+
 def test_BR_discharge_duration_with_degraded_soc_window():
     # A 0.1-0.9 SOC window delivers 80% of energy_capacity: 0.8 * 4 h = 3.2 h at 1 MW
     br = make_reservoir_battery(
