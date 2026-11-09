@@ -729,6 +729,29 @@ def test_setup_logging_basic():
             os.chdir(original_cwd)
 
 
+def test_setup_logging_overwrites_existing_log_file():
+    """Test that a new logging setup replaces existing log file contents."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_path = Path(tmpdir) / "run.log"
+        log_path.write_text("old run contents\n")
+
+        logger = setup_logging(
+            logger_name="overwrite_log_test",
+            log_file=log_path.name,
+            logging_dir=tmpdir,
+            console_output=False,
+        )
+        logger.info("new run contents")
+
+        contents = log_path.read_text()
+        assert "new run contents" in contents
+        assert "old run contents" not in contents
+
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+
+
 def test_setup_logging_custom_logger_name():
     """Test setup_logging with custom logger name."""
     with tempfile.TemporaryDirectory() as tmpdir:

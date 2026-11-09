@@ -282,7 +282,7 @@ def load_hercules_input(filename):
         "verbose",
         "output_dir",
         "output_file",
-        "overwrite_outputs",
+        "auto_increment_filenames",
         "external_data_file",
         "external_data",
         "output_use_compression",
@@ -390,6 +390,12 @@ def load_hercules_input(filename):
         h_dict["verbose"] = False
     elif not isinstance(h_dict["verbose"], bool):
         raise ValueError(f"Verbose must be a boolean in input file {filename}")
+
+    # Set auto_increment_filenames default and validate
+    if "auto_increment_filenames" not in h_dict:
+        h_dict["auto_increment_filenames"] = False
+    elif not isinstance(h_dict["auto_increment_filenames"], bool):
+        raise ValueError(f"auto_increment_filenames must be a boolean in input file {filename}")
 
     # Validate no components have verbose key
     for key in component_names:
@@ -520,7 +526,7 @@ def setup_logging(
         logger.setLevel(log_level)
 
     # Add file handler
-    file_handler = logging.FileHandler(log_file_path)
+    file_handler = logging.FileHandler(log_file_path, mode="w")
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(file_handler)
 

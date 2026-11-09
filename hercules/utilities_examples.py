@@ -77,9 +77,8 @@ def prepare_output_directory(output_dir=Path("outputs")):
     """
     warnings.warn(
         "The method `prepare_output_directory() will be depreciated in future versions"
-        "Please specify the `output_folder` in the hercules input file. "
-        "To use the functionality of this function in future versions, please set the "
-        "`overwrite_outputs` flag in the hercules input file to True. ",
+        "Please specify the `output_dir` in the Hercules input file. "
+        "Use `auto_increment_filenames` to preserve existing HDF5 outputs.",
         DeprecationWarning,
     )
 
