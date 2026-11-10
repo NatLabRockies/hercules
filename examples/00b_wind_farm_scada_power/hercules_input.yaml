@@ -18,7 +18,7 @@ plant:
 wind_farm:
   component_type: WindFarmSCADAPower
   scada_filename: ../inputs/scada_input.ftr
-  log_file_name: outputs/log_wind_sim.log
+  log_file_name: log_wind_sim.log
   log_channels:
     - power
     - turbine_powers
