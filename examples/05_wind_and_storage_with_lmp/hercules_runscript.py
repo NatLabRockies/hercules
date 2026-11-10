@@ -3,9 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import ensure_example_inputs_exist, prepare_output_directory
-
-prepare_output_directory()
+from hercules.utilities_examples import ensure_example_inputs_exist
 
 # Ensure example inputs exist
 ensure_example_inputs_exist()

@@ -21,7 +21,7 @@ wind_farm:
   floris_input_file: ../inputs/floris_input_small.yaml
   wind_input_filename: ../inputs/wind_input_small.ftr
   turbine_file_name: ../inputs/turbine_1dof_model.yaml
-  log_file_name: outputs/log_wind_sim.log
+  log_file_name: log_wind_sim.log
   log_channels:
     - power
     - wind_speed_mean_background

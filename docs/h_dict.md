@@ -19,7 +19,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **Output File Configuration** |
 | `output_dir` | str | Output folder name | "outputs" |
 | `output_file` | str | Output HDF5 file name | "hercules_output.h5" |
-| `overwrite_outputs` | bool | If True, removes the existing output files in the `output_dir` | True |
+| `auto_increment_filenames` | bool | If True, append an incrementing number to an existing output filename instead of replacing it | False |
 | **Logging Configuration** |
 | `logging` | dict | Logging configuration | - |
 | `logging.logger_name` | str | Name of logger | "hercules" |

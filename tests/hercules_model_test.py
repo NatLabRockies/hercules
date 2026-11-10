@@ -1,4 +1,6 @@
+from copy import deepcopy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
@@ -109,6 +111,44 @@ def test_HerculesModel_instantiation():
 
     # Check custom output file
     assert hmodel.output_file.name == "test_output.h5"
+
+
+def test_output_directory_and_filename_handling():
+    # Verify output directory reuse, extension normalization, overwrite, and auto-increment. (AI)
+    with TemporaryDirectory() as temp_dir:
+        output_dir = Path(temp_dir, "outputs")
+        output_file = "nested/result"
+
+        def make_test_h_dict(auto_increment=False):
+            test_h_dict = deepcopy(h_dict_solar)
+            test_h_dict.pop("starttime", None)
+            test_h_dict.pop("endtime", None)
+            test_h_dict.pop("time", None)
+            test_h_dict.pop("step", None)
+            test_h_dict["output_dir"] = output_dir
+            test_h_dict["output_file"] = output_file
+            test_h_dict["auto_increment_filenames"] = auto_increment
+            return test_h_dict
+
+        hmodel = HerculesModel(make_test_h_dict())
+        assert output_dir.is_dir()
+        assert hmodel.output_file == output_dir / "result.h5"
+        hmodel.close()
+
+        sentinel_file = output_dir / "keep.txt"
+        sentinel_file.write_text("preserve output directory contents")
+        hmodel.output_file.write_text("replace existing output")
+
+        hmodel = HerculesModel(make_test_h_dict())
+        assert sentinel_file.is_file()
+        assert not hmodel.output_file.exists()
+        hmodel.close()
+
+        hmodel.output_file.write_text("existing output")
+        hmodel = HerculesModel(make_test_h_dict(auto_increment=True))
+        assert hmodel.output_file == output_dir / "result0.h5"
+        assert (output_dir / "result.h5").is_file()
+        hmodel.close()
 
 
 def test_specified_outputs_dir():

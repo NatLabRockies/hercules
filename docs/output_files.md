@@ -129,6 +129,18 @@ subset = ho.get_subset(
 
 The `HerculesOutput` class provides a convenient interface while still allowing direct access to the underlying utility functions if needed.
 
+### Controller Log
+
+If the assigned controller provides a `write_log()` method (e.g. Hycon controllers), Hercules writes its log at the end of the simulation to a pickle file next to the main output, named `<output_stem>_controller_log.pkl` (e.g. `outputs/hercules_output_controller_log.pkl`).
+
+`HerculesOutput` automatically merges this log into `ho.df` when present:
+
+- Controller columns are prefixed with `controller.` (e.g. `controller.battery.power_setpoint`) to avoid collisions with Hercules columns.
+- Array-valued signals are expanded to indexed columns (e.g. `controller.wind_farm.turbine_setpoints.000`).
+- Rows are aligned on `time`; steps without a controller entry are `NaN`.
+
+Pass `load_controller_log=False` to skip merging. Pickle files can execute arbitrary code when loaded, so only read controller logs from trusted sources.
+
 ### Time UTC Reconstruction
 
 The `read_hercules_hdf5()` function automatically reconstructs UTC timestamps for each simulation step using the stored `starttime_utc` metadata:

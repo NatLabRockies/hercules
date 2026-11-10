@@ -18,7 +18,7 @@ plant:
 power_unit_1: # Name of the power unit
   component_type: PowerPlayback
   scada_filename: ../inputs/power_playback_input.ftr
-  log_file_name: outputs/log_power_playback.log
+  log_file_name: log_power_playback.log
   log_channels:
     - power
 

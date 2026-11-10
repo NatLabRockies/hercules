@@ -1,9 +1,6 @@
 """Utility helpers for generating and validating example input files."""
 
-import os
-import shutil
 import subprocess
-import warnings
 from pathlib import Path
 
 
@@ -63,26 +60,3 @@ def ensure_example_inputs_exist():
 
     if not all(p.exists() for p in expected_files):
         generate_example_inputs()
-
-
-def prepare_output_directory(output_dir=Path("outputs")):
-    """Remove and recreate an output directory for clean runs.
-
-    If the output directory exists, it will be deleted and recreated.
-    This ensures a clean output directory before running examples.
-
-    Args:
-        output_dir (str, optional): Path to the output directory to prepare.
-            Defaults to "outputs".
-    """
-    warnings.warn(
-        "The method `prepare_output_directory() will be depreciated in future versions"
-        "Please specify the `output_folder` in the hercules input file. "
-        "To use the functionality of this function in future versions, please set the "
-        "`overwrite_outputs` flag in the hercules input file to True. ",
-        DeprecationWarning,
-    )
-
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir)

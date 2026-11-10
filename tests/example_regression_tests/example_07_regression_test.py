@@ -91,7 +91,6 @@ def test_specified_output_dir():
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
     hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
-    hercules_dict["overwrite_outputs"] = True
     hercules_dict["logging"] = {}
 
     run_hercules_example(hercules_dict)
@@ -121,7 +120,6 @@ def test_specified_main_logger_dir():
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
     hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
-    hercules_dict["overwrite_outputs"] = True
     hercules_dict["logging"] = {
         "logging_dir": logger_dir,
         "log_file": f"log_hercules_test{test_n}.log",
@@ -144,7 +142,7 @@ def test_specified_main_logger_dir():
     assert not logger_dir.is_dir()
 
 
-def test_dont_overwrite_outputs():
+def test_auto_increment_output_filename():
     test_n = "03"
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -157,13 +155,13 @@ def test_dont_overwrite_outputs():
         hercules_dict = load_yaml(hercules_fpath)
         hercules_dict["output_dir"] = output_dir
         hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
-        hercules_dict["overwrite_outputs"] = False
+        hercules_dict["auto_increment_filenames"] = True
         hercules_dict["logging"] = {
             "logging_dir": logger_dir,
             "log_file": f"log_hercules_test{test_n}.log",
         }
 
-        # Run once - folders should be named as proposed
+        # The first run uses the requested output filename. (AI)
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}.h5"
@@ -174,29 +172,19 @@ def test_dont_overwrite_outputs():
         assert expected_output_main_log_fpath.is_file(), "run 1, main log file"
         assert expected_component_log_fpath.is_file(), "run 1, component log file"
 
-        # Run again - folders should be named with proposed name appended with a zero
+        # A collision increments the filename without changing the output directory. (AI)
         run_hercules_example(deepcopy(hercules_dict))
 
-        expected_output_dir = output_dir.parent / f"{output_dir.name}0"
-        expected_logger_dir = logger_dir.parent / f"{logger_dir.name}0"
-        expected_output_h5_fpath = expected_output_dir / f"hercules_output_test{test_n}.h5"
-
-        expected_output_main_log_fpath = expected_logger_dir / f"log_hercules_test{test_n}.log"
-        expected_component_log_fpath = expected_logger_dir / "log_open_cycle_gas_turbine.log"
+        expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}0.h5"
 
         assert expected_output_h5_fpath.is_file(), "run 2, h5 file"
         assert expected_output_main_log_fpath.is_file(), "run 2, main log file"
         assert expected_component_log_fpath.is_file(), "run 2, component log file"
 
-        # Run again - folders should be named with proposed name appended with a 1
+        # Further collisions increment to the next available suffix. (AI)
         run_hercules_example(deepcopy(hercules_dict))
 
-        expected_output_dir = output_dir.parent / f"{output_dir.name}1"
-        expected_logger_dir = logger_dir.parent / f"{logger_dir.name}1"
-        expected_output_h5_fpath = expected_output_dir / f"hercules_output_test{test_n}.h5"
-
-        expected_output_main_log_fpath = expected_logger_dir / f"log_hercules_test{test_n}.log"
-        expected_component_log_fpath = expected_logger_dir / "log_open_cycle_gas_turbine.log"
+        expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}1.h5"
 
         assert expected_output_h5_fpath.is_file(), "run 3, h5 file"
         assert expected_output_main_log_fpath.is_file(), "run 3, main log file"

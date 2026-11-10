@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import os
-import shutil
 import sys
 import time as _time
 from pathlib import Path
@@ -17,7 +16,7 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
-    make_unique_folder_name,
+    make_unique_name,
     setup_logging,
 )
 
@@ -41,34 +40,7 @@ class HerculesModel:
         # set default output directory to cwd / "outputs"
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
 
-        # If the output directory exists, and overwrite_outputs is True
-        # The output folder will be deleted and recreated.
-        if h_dict.get("overwrite_outputs", True):
-            if output_dir.exists():
-                shutil.rmtree(output_dir)
-        else:
-            # Make a unique foldername with the same basename as the output_dir
-            proposed_dirname = str(output_dir.name)
-            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
-            # If the proposed directory already existed and a new folder was proposed,
-            # update the logger directory to have the same unique number
-            if output_dir.name != proposed_dirname:
-                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
-                unique_folder_id = "".join(p for p in unique_folder_id_parts)
-                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
-                    if isinstance(h_dict["logging"]["logging_dir"], str):
-                        h_dict["logging"].update(
-                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
-                        )
-
-                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
-                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
-                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
-
-                    h_dict["logging"].update({"logging_dir": new_log_fpath})
-
-        # Make sure output folder exists
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         # Set up logging
         logging_inputs = {"logging_dir": output_dir} | h_dict.get("logging", {})
@@ -105,21 +77,33 @@ class HerculesModel:
 
         # Initialize HDF5 output configuration
         if "output_file" in self.h_dict:
-            self.output_file = self.h_dict["output_file"]
-            # Ensure .h5 extension
-            if not self.output_file.endswith(".h5"):
-                self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
-
-            if "/" in self.output_file:
-                # check if folder was specfied in output_file
-                if Path(self.output_file).parent != output_dir:
-                    # if folder of output_file does not match output_dir, then
-                    # just use the name of the output file
-                    self.output_file = output_dir / self.output_file.split("/")[-1]
-            else:
-                self.output_file = output_dir / self.output_file
+            if "/" in self.h_dict["output_file"] or "\\" in self.h_dict["output_file"]:
+                self.logger.info(
+                    "Directory specified in output_file will be ignored, using output_dir instead."
+                )
+            output_file_name = Path(self.h_dict["output_file"]).name
         else:
-            self.output_file = output_dir / "hercules_output.h5"
+            output_file_name = "hercules_output.h5"
+
+        output_file_path = Path(output_file_name)
+        if output_file_path.suffix.lower() != ".h5":
+            if output_file_path.suffix:
+                output_file_path = output_file_path.with_suffix(output_file_path.suffix + ".h5")
+            else:
+                output_file_path = Path(f"{output_file_path.name}.h5")
+
+        self.output_file = output_dir / output_file_path.name
+        if self.output_file.is_file():
+            # If the output file already exists, handle it based on auto_increment_filenames flag
+            if self.h_dict.get("auto_increment_filenames", False):
+                # Generate a unique output file name to avoid overwriting existing files
+                output_file_unique = make_unique_name(
+                    output_dir, Path(self.output_file).name, "file"
+                )
+                self.output_file = output_file_unique.with_name(f"{output_file_unique.name}.h5")
+            else:
+                # If auto_increment_filenames is not enabled, delete the existing file
+                self.output_file.unlink()
 
         self.output_file = Path(self.output_file).absolute()
 
@@ -628,9 +612,18 @@ class HerculesModel:
             raise
 
         finally:
-            # Ensure output data is written to file
-            self.logger.info("Finalizing HDF5 output file")
-            self._finalize_hdf5_file()
+            try:
+                if hasattr(self.controller, "write_log"):
+                    self.logger.info("Writing controller log file")
+                    controller_log_file = self.output_file.with_name(
+                        self.output_file.stem + "_controller_log.pkl"
+                    )
+                    self.controller.write_log(controller_log_file, output_type="pickle")
+                else:
+                    self.logger.info("No controller log available")
+            finally:
+                self.logger.info("Finalizing HDF5 output file")
+                self._finalize_hdf5_file()
 
     def _finalize_hdf5_file(self):
         """Finalize HDF5 file with proper compression and metadata."""
