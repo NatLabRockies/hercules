@@ -11,8 +11,6 @@ The following thermal power plants are currently available for simulation:
 
 from hercules.hercules_model import HerculesModel
 
-# prepare_output_directory()
-
 # Initialize the Hercules model
 # Select which thermal plant you want to simulate by changing the yaml file
 # Currenctly available:

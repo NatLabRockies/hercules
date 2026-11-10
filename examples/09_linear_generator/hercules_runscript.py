@@ -24,9 +24,6 @@ Key behaviors demonstrated:
 """
 
 from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import prepare_output_directory
-
-prepare_output_directory()
 
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")
