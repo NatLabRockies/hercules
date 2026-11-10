@@ -1,6 +1,6 @@
+from hercules.plant_components.battery_dynamic import BatteryDynamic
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_reservoir import BatteryReservoir
-from hercules.plant_components.battery_simple import BatterySimple
 from hercules.plant_components.combined_cycle_plant import CombinedCyclePlant
 from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 from hercules.plant_components.linear_generator import LinearGenerator
@@ -18,7 +18,7 @@ COMPONENT_REGISTRY = {
     "WindFarm": WindFarm,
     "WindFarmSCADAPower": WindFarmSCADAPower,
     "SolarPySAMPVWatts": SolarPySAMPVWatts,
-    "BatterySimple": BatterySimple,
+    "BatteryDynamic": BatteryDynamic,
     "BatteryReservoir": BatteryReservoir,
     "BatteryLithiumIon": BatteryLithiumIon,
     "ElectrolyzerPlant": ElectrolyzerPlant,

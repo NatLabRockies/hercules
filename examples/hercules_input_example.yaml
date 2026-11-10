@@ -101,7 +101,7 @@ wind_farm:
 
 # Battery storage configuration (comment out if not using storage)
 # battery:
-#   component_type: BatterySimple  # Options: BatterySimple, BatteryReservoir, BatteryLithiumIon
+#   component_type: BatteryDynamic  # Options: BatteryDynamic, BatteryReservoir, BatteryLithiumIon
 #   energy_capacity: 200000  # Total energy capacity in kWh (required)
 #   charge_rate: 50000  # Maximum charge rate in kW (required)
 #   discharge_rate: 50000  # Maximum discharge rate in kW (required)
@@ -115,11 +115,11 @@ wind_farm:
 #     - power_setpoint  # Requested power setpoint in kW
 #   initial_conditions:  # Initial conditions for battery
 #     SOC: 0.5  # Initial state of charge (between min_SOC and max_SOC, required)
-#   # BatterySimple / BatteryReservoir optional parameters:
+#   # BatteryDynamic / BatteryReservoir optional parameters:
 #   # roundtrip_efficiency: 0.95  # Roundtrip efficiency (0-1, default: 1.0), applied on charging
 #   # self_discharge_time_constant: inf  # Self-discharge time constant in seconds (default: inf)
 
-# BatteryLithiumIon example (alternative to BatterySimple):
+# BatteryLithiumIon example (alternative to BatteryDynamic):
 # battery:
 #   component_type: BatteryLithiumIon  # Detailed lithium-ion battery model
 #   energy_capacity: 200000  # Total energy capacity in kWh (required)

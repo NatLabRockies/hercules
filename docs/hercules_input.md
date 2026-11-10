@@ -79,7 +79,7 @@ solar_farm:  # User-chosen component_name
     poa: 1000
 
 battery:  # User-chosen component_name
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 10000  # kWh
   charge_rate: 2500  # kW
   discharge_rate: 2500  # kW

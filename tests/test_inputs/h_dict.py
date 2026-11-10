@@ -68,7 +68,7 @@ solar_farm_pvwatts = {
 }
 
 battery = {
-    "component_type": "BatterySimple",
+    "component_type": "BatteryDynamic",
     "energy_capacity": 100.0,
     "charge_rate": 50.0,
     "discharge_rate": 50.0,
@@ -79,7 +79,7 @@ battery = {
 }
 
 simple_battery = {
-    "component_type": "BatterySimple",
+    "component_type": "BatteryDynamic",
     "size": 20000,  # kW size of the battery (20 MW)
     "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
     "charge_rate": 2000,  # charge rate in kW (2 MW)

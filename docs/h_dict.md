@@ -69,7 +69,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 ### Battery
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `component_type` | str | "BatterySimple", "BatteryReservoir" or "BatteryLithiumIon" | Required |
+| `component_type` | str | "BatteryDynamic", "BatteryReservoir" or "BatteryLithiumIon" | Required |
 | `energy_capacity` | float | Deliverable energy capacity in kWh | Required |
 | `charge_rate` | float | Maximum charge rate in kW | Required |
 | `discharge_rate` | float | Maximum discharge rate in kW | Required |
@@ -78,8 +78,8 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
 | `log_channels` | list | List of channels to log (e.g., ["power", "soc", "power_setpoint"]) | ["power"] |
-| `roundtrip_efficiency` | float | Roundtrip efficiency (0-1), applied on charging (BatterySimple and BatteryReservoir) | 1.0 |
-| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatterySimple and BatteryReservoir) | inf |
+| `roundtrip_efficiency` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
+| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatteryDynamic and BatteryReservoir) | inf |
 
 ### Electrolyzer
 | Key | Type | Description |

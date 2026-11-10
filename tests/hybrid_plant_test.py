@@ -132,13 +132,13 @@ def test_component_type_auto_set():
 
     assert hp.component_objects["wind_farm"].component_type == "WindFarm"
     assert hp.component_objects["solar_farm"].component_type == "SolarPySAMPVWatts"
-    assert hp.component_objects["battery"].component_type == "BatterySimple"
+    assert hp.component_objects["battery"].component_type == "BatteryDynamic"
 
 
 def test_multi_instance_batteries():
-    """Test that two BatterySimple instances with unique names can coexist in one plant."""
+    """Test that two BatteryDynamic instances with unique names can coexist in one plant."""
     battery_cfg = {
-        "component_type": "BatterySimple",
+        "component_type": "BatteryDynamic",
         "energy_capacity": 100.0,
         "charge_rate": 50.0,
         "discharge_rate": 50.0,

@@ -3,7 +3,6 @@ import numpy as np
 from hercules.component_registry import COMPONENT_REGISTRY
 
 # from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
-# from hercules.plant_components.battery_simple import BatterySimple
 # from hercules.plant_components.combined_cycle_plant import CombinedCyclePlant
 # from hercules.plant_components.electrolyzer_plant import ElectrolyzerPlant
 # from hercules.plant_components.open_cycle_gas_turbine import OpenCycleGasTurbine
@@ -20,7 +19,6 @@ from hercules.component_registry import COMPONENT_REGISTRY
 #     "WindFarm": WindFarm,
 #     "WindFarmSCADAPower": WindFarmSCADAPower,
 #     "SolarPySAMPVWatts": SolarPySAMPVWatts,
-#     "BatterySimple": BatterySimple,
 #     "BatteryLithiumIon": BatteryLithiumIon,
 #     "ElectrolyzerPlant": ElectrolyzerPlant,
 #     "OpenCycleGasTurbine": OpenCycleGasTurbine,

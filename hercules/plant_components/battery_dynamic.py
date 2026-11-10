@@ -41,7 +41,7 @@ def kWh2kJ(kWh):
     return kWh * 3600
 
 
-class BatterySimple(ComponentBase):
+class BatteryDynamic(ComponentBase):
     """Simple battery energy storage model.
 
     This model represents a basic battery with energy storage and power constraints.
@@ -54,7 +54,7 @@ class BatterySimple(ComponentBase):
     component_category = "storage"
 
     def __init__(self, h_dict, component_name):
-        """Initialize the BatterySimple class.
+        """Initialize the BatteryDynamic class.
 
         This model represents a simple battery with energy storage and power constraints.
         It tracks state of charge and applies efficiency losses.
@@ -89,7 +89,7 @@ class BatterySimple(ComponentBase):
         removed = [k for k in _REMOVED_KEYS if k in h_dict[self.component_name]]
         if removed:
             raise ValueError(
-                f"{self.component_name}: {removed} are no longer supported by BatterySimple. "
+                f"{self.component_name}: {removed} are no longer supported by BatteryDynamic. "
                 "Usage tracking was removed; compute cycle metrics from the outputs instead."
             )
 

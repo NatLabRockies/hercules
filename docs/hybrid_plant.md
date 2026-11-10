@@ -15,7 +15,7 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 | `WindFarm` | `generator` | Yes | [Wind](wind.md) |
 | `WindFarmSCADAPower` | `generator` | Yes | [Wind](wind.md) |
 | `SolarPySAMPVWatts` | `generator` | Yes | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `storage` | No | [Battery](battery.md) |
+| `BatteryDynamic` | `storage` | No | [Battery](battery.md) |
 | `BatteryReservoir` | `storage` | No | [Battery](battery.md) |
 | `BatteryLithiumIon` | `storage` | No | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | No | [Electrolyzer](electrolyzer.md) |
@@ -24,7 +24,7 @@ See [Component Names, Types, and Categories](component_types.md) for a full expl
 | `SteamTurbine` | `generator` | [Steam Turbine](steam_turbine.md) |
 | `ThermalPlant` | `generator` | [Thermal Plant](thermal_plant.md) |
 
-The YAML key for each section is a user-chosen `component_name` and is not required to match the category name. For example, a `BatterySimple` component could be named `battery`, `battery_unit_1`, or anything else.
+The YAML key for each section is a user-chosen `component_name` and is not required to match the category name. For example, a `BatteryDynamic` component could be named `battery`, `battery_unit_1`, or anything else.
 
 ## Generator Classification
 
@@ -39,7 +39,7 @@ COMPONENT_REGISTRY = {
     "WindFarm": WindFarm,
     "WindFarmSCADAPower": WindFarmSCADAPower,
     "SolarPySAMPVWatts": SolarPySAMPVWatts,
-    "BatterySimple": BatterySimple,
+    "BatteryDynamic": BatteryDynamic,
     "BatteryReservoir": BatteryReservoir,
     "BatteryLithiumIon": BatteryLithiumIon,
     "ElectrolyzerPlant": ElectrolyzerPlant,

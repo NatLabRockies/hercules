@@ -29,7 +29,7 @@ wind_farm:
   floris_update_time_s: 300.0 # Update wakes every 5 minutes
 
 battery:
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 10000 # total capacity of the battery in kWh (10 MWh)
   charge_rate: 10000 # charge rate in kW (10 MW)
   discharge_rate: 10000 # discharge rate in kW (10 MW)

@@ -5,7 +5,7 @@ import copy
 import numpy as np
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_reservoir import BatteryReservoir
-from hercules.plant_components.battery_simple import BatterySimple
+from hercules.plant_components.battery_simple import BatteryDynamic
 from numpy.testing import assert_almost_equal
 
 PRINT_VALUES = True
@@ -128,7 +128,7 @@ rte_self_discharge_base_dict = {
 
 
 def test_SimpleBattery_regression_():
-    battery = BatterySimple(test_h_dict, "battery")
+    battery = BatteryDynamic(test_h_dict, "battery")
 
     times_test = np.arange(0, 5.5, test_h_dict["dt"])
     powers_test = np.zeros_like(times_test)
@@ -183,7 +183,7 @@ def test_BatteryReservoir_regression_():
         print("Powers: ", powers_test)
         print("SOC: ", soc_test)
 
-    # Identical to BatterySimple at unit efficiency without self-discharge
+    # Identical to BatteryDynamic at unit efficiency without self-discharge (AI)
     assert np.allclose(powers_base_simple, powers_test)
     assert np.allclose(soc_base_simple, soc_test)
 
@@ -231,7 +231,7 @@ def test_SimpleBattery_rte_self_discharge_regression():
     battery_dict["battery"]["self_discharge_time_constant"] = 100
     battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 
-    SB = BatterySimple(battery_dict, "battery")
+    SB = BatteryDynamic(battery_dict, "battery")
 
     power_signal = [1500] * 3 + [-1700] * 3 + [1800] * 5 + [-1800] * 5 + [1800] * 5
     for setpoint in power_signal:
