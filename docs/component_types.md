@@ -38,7 +38,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | Concept | Set by | Example value | Used for |
 |---|---|---|---|
 | `component_name` | User (YAML key) | `"battery_unit_1"` | Accessing `h_dict[name]`; unique instance ID |
-| `component_type` | User (`component_type:` field) | `"BatterySimple"` | Registry lookup to select the Python class |
+| `component_type` | User (`component_type:` field) | `"BatteryDynamic"` | Registry lookup to select the Python class |
 | `component_category` | Developer (class variable) | `"storage"` | Generator classification; sign convention |
 
 ---
@@ -51,7 +51,8 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `WindFarmSCADAPower` | `generator` | [Wind](wind.md) |
 | `PowerPlayback` | `generator` | [Power Playback](power_playback.md) |
 | `SolarPySAMPVWatts` | `generator` | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `storage` | [Battery](battery.md) |
+| `BatteryDynamic` | `storage` | [Battery](battery.md) |
+| `BatteryReservoir` | `storage` | [Battery](battery.md) |
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
@@ -72,7 +73,7 @@ Because `component_name` is user-chosen, you can include multiple instances of t
 
 ```yaml
 battery_unit_1:
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 100.0  # kWh
   charge_rate: 50.0       # kW
   discharge_rate: 50.0    # kW
@@ -84,7 +85,7 @@ battery_unit_1:
     SOC: 0.5
 
 battery_unit_2:
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 200.0  # kWh
   charge_rate: 100.0      # kW
   discharge_rate: 100.0   # kW

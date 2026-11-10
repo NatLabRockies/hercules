@@ -11,9 +11,10 @@ Nov. 2021, doi: 10.1016/j.est.2021.103252.
 """
 
 import numpy as np
-import rainflow
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import hercules_float_type
+
+_REMOVED_KEYS = ("track_usage", "usage_calc_interval", "usage_lifetime", "usage_cycles")
 
 
 def kJ2kWh(kJ):
@@ -40,42 +41,11 @@ def kWh2kJ(kWh):
     return kWh * 3600
 
 
-def years_to_usage_rate(years, dt):
-    """Convert a number of years to a usage rate.
-
-    Args:
-        years (float): Life of the storage system in years.
-        dt (float): Time step of the simulation in seconds.
-
-    Returns:
-        float: Usage rate per time step.
-    """
-    days = years * 365
-    hours = days * 24
-    seconds = hours * 3600
-    usage_lifetime = seconds / dt
-
-    return 1 / usage_lifetime
-
-
-def cycles_to_usage_rate(cycles):
-    """Convert cycle number to degradation rate.
-
-    Args:
-        cycles (int): Number of cycles until the unit needs to be replaced.
-
-    Returns:
-        float: Degradation rate per cycle.
-    """
-    return 1 / cycles
-
-
-class BatterySimple(ComponentBase):
+class BatteryDynamic(ComponentBase):
     """Simple battery energy storage model.
 
     This model represents a basic battery with energy storage and power constraints.
-    It tracks state of charge, applies efficiency losses, and optionally tracks
-    usage-based degradation using rainflow cycle counting.
+    It tracks state of charge and applies roundtrip efficiency losses on charging.
 
     Note:
         All power units are in kW and energy units are in kWh.
@@ -84,7 +54,7 @@ class BatterySimple(ComponentBase):
     component_category = "storage"
 
     def __init__(self, h_dict, component_name):
-        """Initialize the BatterySimple class.
+        """Initialize the BatteryDynamic class.
 
         This model represents a simple battery with energy storage and power constraints.
         It tracks state of charge and applies efficiency losses.
@@ -103,14 +73,25 @@ class BatterySimple(ComponentBase):
                     performance (e.g., degradation) and reduce deliverable energy.
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
-                - roundtrip_efficiency: Optional roundtrip efficiency (0-1)
+                - roundtrip_efficiency: Optional roundtrip efficiency (0-1), applied
+                    on charging
                 - self_discharge_time_constant: Optional self-discharge time constant
-                - track_usage: Optional boolean to enable usage tracking
+                    in seconds
             component_name (str): Unique name for this instance (the YAML top-level key).
+
+        Raises:
+            ValueError: If removed usage-tracking keys are specified.
         """
 
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
+
+        removed = [k for k in _REMOVED_KEYS if k in h_dict[self.component_name]]
+        if removed:
+            raise ValueError(
+                f"{self.component_name}: {removed} are no longer supported by BatteryDynamic. "
+                "Usage tracking was removed; compute cycle metrics from the outputs instead."
+            )
 
         self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
@@ -142,77 +123,29 @@ class BatterySimple(ComponentBase):
         else:
             self.allow_grid_power_consumption = False
 
-        # Efficiency and self-discharge parameters
-        if "roundtrip_efficiency" in h_dict[self.component_name].keys():
-            self.eta_charge = np.sqrt(h_dict[self.component_name]["roundtrip_efficiency"])
-            self.eta_discharge = np.sqrt(h_dict[self.component_name]["roundtrip_efficiency"])
-        else:
-            self.eta_charge = 1
-            self.eta_discharge = 1
-
-        # Internal energy capacity accounts for efficiency losses so that
-        # discharge duration = energy_capacity / discharge_rate regardless of RTE.
-        # energy_capacity is the user-specified deliverable energy.
-        self.internal_energy_capacity = self.energy_capacity / self.eta_discharge
+        # Roundtrip efficiency is applied entirely on charging, so stored energy equals
+        # deliverable energy and discharge duration = energy_capacity / discharge_rate.
+        self.eta_charge = h_dict[self.component_name].get("roundtrip_efficiency", 1.0)
+        self.eta_discharge = 1.0
 
         # Charge (Energy) limits [kJ]
-        self.E_min = kWh2kJ(self.SOC_min * self.internal_energy_capacity)
-        self.E_max = kWh2kJ(self.SOC_max * self.internal_energy_capacity)
+        self.E_min = kWh2kJ(self.SOC_min * self.energy_capacity)
+        self.E_max = kWh2kJ(self.SOC_max * self.energy_capacity)
 
         if "self_discharge_time_constant" in h_dict[self.component_name].keys():
             self.tau_self_discharge = h_dict[self.component_name]["self_discharge_time_constant"]
         else:
             self.tau_self_discharge = np.inf
 
-        if "track_usage" in h_dict[self.component_name].keys():
-            if h_dict[self.component_name]["track_usage"]:
-                self.track_usage = True
-                # Set usage tracking parameters
-                if "usage_calc_interval" in h_dict[self.component_name].keys():
-                    self.usage_calc_interval = (
-                        h_dict[self.component_name]["usage_calc_interval"] / self.dt
-                    )
-                else:
-                    self.usage_calc_interval = 100 / self.dt  # timesteps
-
-                if "usage_lifetime" in h_dict[self.component_name].keys():
-                    usage_lifetime = h_dict[self.component_name]["usage_lifetime"]
-                    self.usage_time_rate = years_to_usage_rate(usage_lifetime, self.dt)
-                else:
-                    self.usage_time_rate = 0
-                if "usage_cycles" in h_dict[self.component_name].keys():
-                    usage_cycles = h_dict[self.component_name]["usage_cycles"]
-                    self.usage_cycles_rate = cycles_to_usage_rate(usage_cycles)
-                else:
-                    self.usage_cycles_rate = 0
-
-                # TODO: add the ability to impact efficiency of the battery operation
-
-            else:
-                self.track_usage = False
-                self.usage_calc_interval = np.inf
-        else:
-            self.track_usage = False
-            self.usage_calc_interval = np.inf
-
-        # Degradation and state storage
-        self.P_charge_storage = []
-        self.E_store = []
-        self.total_cycle_usage = 0
-        self.cycle_usage_perc = 0
-        self.total_time_usage = 0
-        self.time_usage_perc = 0
-        self.step_counter = 0
-        # TODO there should be a better way to dynamically store these than to append a list
-
         self.build_SS()
+        # float64 so small increments are not lost against a large stored energy (AI)
         self.x = np.array(
-            [[initial_conditions["SOC"] * self.internal_energy_capacity * 3600]],
-            dtype=hercules_float_type,
+            [[initial_conditions["SOC"] * self.energy_capacity * 3600]],
+            dtype=np.float64,
         )
         self.y = None
 
-        self.current_batt_state = self.SOC * self.internal_energy_capacity
+        self.current_batt_state = self.SOC * self.energy_capacity
         self.E = kWh2kJ(self.current_batt_state)
 
         self.power_kw = 0
@@ -242,8 +175,7 @@ class BatterySimple(ComponentBase):
         """Advance the battery simulation by one time step.
 
         Updates the battery state including SOC, energy storage, and power output
-        based on the requested power setpoint and available power. Optionally
-        calculates usage-based degradation.
+        based on the requested power setpoint and available power.
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
@@ -255,12 +187,7 @@ class BatterySimple(ComponentBase):
                 - power: Actual charging/discharging power [kW]
                 - reject: Rejected power due to constraints [kW]
                 - soc: State of charge [0-1]
-                - usage_in_time: Time-based usage percentage
-                - usage_in_cycles: Cycle-based usage percentage
-                - total_cycles: Total equivalent cycles completed
         """
-        self.step_counter += 1
-
         # Power available for the battery to use for charging (should be >=0)
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
         if np.isnan(power_setpoint):
@@ -281,23 +208,12 @@ class BatterySimple(ComponentBase):
         self.current_batt_state = kJ2kWh(self.E)
 
         self.power_kw = P_charge
-        self.SOC = self.current_batt_state / self.internal_energy_capacity
-
-        self.P_charge_storage.append(P_charge)
-        self.E_store.append(self.E)
-
-        if self.step_counter >= self.usage_calc_interval:
-            # reset step_counter
-            self.step_counter = 0
-            self.calc_usage()
+        self.SOC = self.current_batt_state / self.energy_capacity
 
         # Update the outputs
         h_dict[self.component_name]["power"] = self.power_kw
         h_dict[self.component_name]["reject"] = P_reject
         h_dict[self.component_name]["soc"] = self.SOC
-        h_dict[self.component_name]["usage_in_time"] = self.time_usage_perc
-        h_dict[self.component_name]["usage_in_cycles"] = self.cycle_usage_perc
-        h_dict[self.component_name]["total_cycles"] = self.total_cycle_usage
 
         # Return the updated dictionary
         return h_dict
@@ -436,47 +352,3 @@ class BatterySimple(ComponentBase):
         """
         # TODO: Use better integration method like closed form step response solution
         return x + xd * self.dt  # Euler integration
-
-    def calc_usage(self):
-        """Calculate battery usage based on cycle counting and time.
-
-        Uses the rainflow algorithm to count cycles in the energy storage operation
-        following the three-point technique (ASTM Standard E 1049-85). Also tracks
-        time-based usage for degradation modeling.
-        """
-        # Count rainflow cycles
-        # This step uses the rainflow algorithm to count how many cycles exist in the
-        # storage operation using the three-point technique (ASTM Standard E 1049-85)
-        # The algorithm returns the size (amplitude) of the cycle, and the number of cycles at
-        # that amplitude at that point in the signal
-        ranges_counts = rainflow.count_cycles(self.E_store)
-        ranges = np.array([rc[0] for rc in ranges_counts], dtype=hercules_float_type)
-        counts = np.array([rc[1] for rc in ranges_counts], dtype=hercules_float_type)
-        self.total_cycle_usage = (ranges * counts).sum() / self.E_max
-        self.cycle_usage_perc = self.total_cycle_usage * self.usage_cycles_rate * 100
-
-        # Calculate time usage
-        self.total_time_usage += self.usage_calc_interval * self.dt
-        self.time_usage_perc = self.total_time_usage * self.usage_time_rate * 100
-
-        # self.apply_degradation(this_period_degradation)
-
-    def apply_degradation(self, degradation):
-        """Apply degradation effects to battery performance.
-
-        This method would apply the calculated degradation to battery efficiency
-        and capacity, but is not yet implemented.
-
-        Args:
-            degradation (float): Degradation factor to apply.
-
-        Raises:
-            NotImplementedError: Method is not yet implemented.
-        """
-        # total_degradation_effect = self.total_degradation*self.degradation_rate
-        # print('degradation penalty', total_degradation_effect, np.sqrt(total_degradation_effect))
-        # self.eta_charge = self.eta_charge - np.sqrt(total_degradation_effect)
-        # self.eta_discharge = self.eta_discharge - np.sqrt(total_degradation_effect)
-        raise NotImplementedError(
-            "Degradation impacts on real-time efficiency have not yet been implemented."
-        )

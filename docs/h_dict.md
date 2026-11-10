@@ -69,7 +69,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 ### Battery
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `component_type` | str | "BatterySimple" or "BatteryLithiumIon" | Required |
+| `component_type` | str | "BatteryDynamic", "BatteryReservoir" or "BatteryLithiumIon" | Required |
 | `energy_capacity` | float | Deliverable energy capacity in kWh | Required |
 | `charge_rate` | float | Maximum charge rate in kW | Required |
 | `discharge_rate` | float | Maximum discharge rate in kW | Required |
@@ -78,12 +78,8 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
 | `log_channels` | list | List of channels to log (e.g., ["power", "soc", "power_setpoint"]) | ["power"] |
-| `roundtrip_efficiency` | float | Roundtrip efficiency (BatterySimple only) | 1.0 |
-| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatterySimple only) | inf |
-| `track_usage` | bool | Enable usage tracking (BatterySimple only) | False |
-| `usage_calc_interval` | int | Usage calculation interval in seconds (BatterySimple only) | 100 |
-| `usage_lifetime` | float | Battery lifetime in years (BatterySimple only) | - |
-| `usage_cycles` | int | Number of cycles until replacement (BatterySimple only) | - |
+| `roundtrip_efficiency` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
+| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatteryDynamic and BatteryReservoir) | inf |
 
 ### Electrolyzer
 | Key | Type | Description |

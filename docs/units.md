@@ -27,7 +27,8 @@ This applies to:
 
 While the external interface uses kWh, some components use different units internally for computational efficiency:
 
-- **BatterySimple**: Uses kilojoules (kJ) for internal energy state calculations and converts to/from kWh at the interface boundaries using utility functions `kWh2kJ()` and `kJ2kWh()`
+- **BatteryDynamic**: Uses kilojoules (kJ) for internal energy state calculations and converts to/from kWh at the interface boundaries using utility functions `kWh2kJ()` and `kJ2kWh()`
+- **BatteryReservoir**: Uses kilowatt-hours (kWh) consistently throughout
 - **BatteryLithiumIon**: Uses kilowatt-hours (kWh) consistently throughout
 
 
