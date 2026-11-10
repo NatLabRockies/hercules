@@ -93,8 +93,10 @@ class HerculesModel:
             # If the output file already exists, handle it based on auto_increment_filenames flag
             if self.h_dict.get("auto_increment_filenames", False):
                 # Generate a unique output file name to avoid overwriting existing files
-                unique_output_file = make_unique_name(output_dir, self.output_file.name, "file")
-                self.output_file = unique_output_file.with_suffix(".h5")
+                output_file_unique = make_unique_name(
+                    output_dir, Path(self.output_file).name, "file"
+                )
+                self.output_file = output_file_unique.with_name(f"{output_file_unique.name}.h5")
             else:
                 # If auto_increment_filenames is not enabled, delete the existing file
                 self.output_file.unlink()

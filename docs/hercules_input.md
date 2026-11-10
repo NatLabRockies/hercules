@@ -95,7 +95,7 @@ battery:  # User-chosen component_name
 controller:
   # Controller configuration here
 
-output_folder: outputs
+output_dir: outputs
 output_file: hercules_output.h5
 ```
 
