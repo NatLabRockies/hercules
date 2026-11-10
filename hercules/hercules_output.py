@@ -4,9 +4,45 @@ This module provides a convenient interface for reading Hercules simulation outp
 The HerculesOutput class allows easy access to both data and metadata with dot notation.
 """
 
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
 
 from .utilities import get_hercules_metadata, read_hercules_hdf5
+
+
+def _merge_controller_log(df: pd.DataFrame, controller_df: pd.DataFrame) -> pd.DataFrame:
+    """Merge a controller log into the Hercules output DataFrame on ``time``.
+
+    Array-valued signals are expanded to ``{col}.{i:03d}`` columns and all controller
+    columns are prefixed with ``controller.``.
+
+    Args:
+        df (pd.DataFrame): Hercules output data with a ``time`` column (s).
+        controller_df (pd.DataFrame): Controller log with a ``time`` column (s).
+
+    Returns:
+        pd.DataFrame: ``df`` with controller columns left-joined on ``time``.
+    """
+    if controller_df.empty or "time" not in controller_df.columns:
+        return df
+
+    controller_time = controller_df["time"]
+    if df["time"].dtype == np.float32:
+        controller_time = controller_time.astype(np.float32)
+    columns = {"time": controller_time}
+    for col in controller_df.columns.drop("time"):
+        series = controller_df[col]
+        is_array = series.map(lambda v: isinstance(v, (list, tuple, np.ndarray)))
+        if is_array.any():
+            expanded = pd.DataFrame(series[is_array].tolist(), index=series.index[is_array])
+            for i in expanded.columns:
+                columns[f"controller.{col}.{i:03d}"] = expanded[i].reindex(series.index)
+        else:
+            columns[f"controller.{col}"] = series
+
+    return df.merge(pd.DataFrame(columns), on="time", how="left", validate="one_to_one")
 
 
 class HerculesOutput:
@@ -15,8 +51,13 @@ class HerculesOutput:
     This class provides easy access to Hercules simulation output data and metadata.
     Users can still use the underlying utility functions directly if preferred.
 
+    If a controller log ``<stem>_controller_log.pkl`` exists next to the output file, its
+    signals are merged into ``df`` as ``controller.*`` columns aligned on ``time``.
+
     Args:
         filename (str): Path to Hercules HDF5 output file.
+        load_controller_log (bool): Whether to merge the controller log if present.
+            Defaults to True.
 
     Attributes:
         filename (str): Path to the output file.
@@ -24,17 +65,25 @@ class HerculesOutput:
         metadata (dict): Simulation metadata including h_dict and simulation info.
     """
 
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, load_controller_log: bool = True):
         """Initialize HerculesOutput with a filename.
 
         Args:
             filename (str): Path to Hercules HDF5 output file.
+            load_controller_log (bool): Whether to merge the controller log if present.
+                Defaults to True.
         """
         self.filename = filename
 
         # Read metadata and data at initialization
         self.metadata = get_hercules_metadata(filename)
         self.df = read_hercules_hdf5(filename)
+
+        if load_controller_log:
+            path = Path(filename)
+            controller_log_file = path.with_name(path.stem + "_controller_log.pkl")
+            if controller_log_file.exists():
+                self.df = _merge_controller_log(self.df, pd.read_pickle(controller_log_file))
 
         # Make metadata attributes accessible via dot notation
         for key, value in self.metadata.items():

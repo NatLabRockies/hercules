@@ -170,3 +170,30 @@ def test_hercules_output_print_metadata():
 
     finally:
         os.unlink(temp_file)
+
+
+def test_hercules_output_merges_controller_log():
+    """Controller log is prefixed, arrays expanded, and aligned on time with NaN gaps."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        h5_file = os.path.join(tmp_dir, "out.h5")
+        create_test_hdf5_file(h5_file)
+        # Time 3 deliberately missing; name collides with a possible Hercules column (AI)
+        pd.DataFrame(
+            {
+                "time": [0, 1, 2, 4, 5],
+                "battery.power_setpoint": [10.0, 11.0, 12.0, 14.0, 15.0],
+                "wind_farm.turbine_setpoints": [np.array([1.0, 2.0])] * 5,
+            }
+        ).to_pickle(os.path.join(tmp_dir, "out_controller_log.pkl"))
+
+        df = HerculesOutput(h5_file).df
+
+        assert len(df) == 6
+        assert "battery.power_setpoint" not in df.columns
+        np.testing.assert_array_equal(
+            df["controller.battery.power_setpoint"], [10.0, 11.0, 12.0, np.nan, 14.0, 15.0]
+        )
+        np.testing.assert_array_equal(
+            df["controller.wind_farm.turbine_setpoints.001"], [2.0, 2.0, 2.0, np.nan, 2.0, 2.0]
+        )
+        assert "controller.wind_farm.turbine_setpoints.000" in df.columns
