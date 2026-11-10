@@ -77,6 +77,10 @@ class HerculesModel:
 
         # Initialize HDF5 output configuration
         if "output_file" in self.h_dict:
+            if "/" in self.h_dict["output_file"] or "\\" in self.h_dict["output_file"]:
+                self.logger.info(
+                    "Directory specified in output_file will be ignored, using output_dir instead."
+                )
             output_file_name = Path(self.h_dict["output_file"]).name
         else:
             output_file_name = "hercules_output.h5"
@@ -84,7 +88,7 @@ class HerculesModel:
         output_file_path = Path(output_file_name)
         if output_file_path.suffix.lower() != ".h5":
             if output_file_path.suffix:
-                output_file_path = output_file_path.with_suffix(".h5")
+                output_file_path = output_file_path.with_suffix(output_file_path.suffix + ".h5")
             else:
                 output_file_path = Path(f"{output_file_path.name}.h5")
 
