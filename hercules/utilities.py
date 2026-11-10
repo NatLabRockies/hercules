@@ -87,11 +87,9 @@ def make_unique_name(parent_folder: str | Path, proposed_name: str, input_type: 
     if input_type == "folder":
         existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_dir()]
     elif input_type == "file":
-        # Split proposed name at the period, if there is one,
-        #   to insert the unique number before the extension
-        if "." in proposed_name:
-            name_parts = proposed_name.rsplit(".", 1)
-            proposed_name = name_parts[0]
+        # Remove only the .h5 suffix so other periods in the name are preserved. (AI)
+        if proposed_name.endswith(".h5"):
+            proposed_name = proposed_name[:-3]
 
         existing_files = [
             f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_file()

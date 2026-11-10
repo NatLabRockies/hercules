@@ -12,6 +12,7 @@ from hercules.utilities import (
     load_h_dict_from_text,
     load_hercules_input,
     local_time_to_utc,
+    make_unique_name,
     setup_logging,
 )
 
@@ -688,6 +689,16 @@ def test_local_time_to_utc_returns_z_suffix():
     assert result.endswith("Z")
     assert "T" in result
     assert len(result) == 20  # Format: YYYY-MM-DDTHH:MM:SSZ
+
+
+def test_make_unique_h5_name_preserves_other_periods():
+    """Test unique HDF5 names retain periods before the .h5 extension."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        (Path(tmpdir) / "simulation.v2.h5").touch()
+
+        unique_name = make_unique_name(tmpdir, "simulation.v2.h5", "file")
+
+        assert unique_name.name == "simulation.v20"
 
 
 def test_setup_logging_basic():
