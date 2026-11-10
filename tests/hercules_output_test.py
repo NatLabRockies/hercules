@@ -197,4 +197,3 @@ def test_hercules_output_merges_controller_log():
             df["controller.wind_farm.turbine_setpoints.001"], [2.0, 2.0, 2.0, np.nan, 2.0, 2.0]
         )
         assert "controller.wind_farm.turbine_setpoints.000" in df.columns
-
