@@ -28,7 +28,10 @@ def _merge_controller_log(df: pd.DataFrame, controller_df: pd.DataFrame) -> pd.D
     if controller_df.empty or "time" not in controller_df.columns:
         return df
 
-    columns = {"time": controller_df["time"]}
+    controller_time = controller_df["time"]
+    if df["time"].dtype == np.float32:
+        controller_time = controller_time.astype(np.float32)
+    columns = {"time": controller_time}
     for col in controller_df.columns.drop("time"):
         series = controller_df[col]
         is_array = series.map(lambda v: isinstance(v, (list, tuple, np.ndarray)))

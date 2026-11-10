@@ -612,19 +612,18 @@ class HerculesModel:
             raise
 
         finally:
-            # Add controller logs to main Hercules log, if they exist
-            if hasattr(self.controller, "write_log"):
-                self.logger.info("Writing controller log file")
-                controller_log_file = self.output_file.with_name(
-                    self.output_file.stem + "_controller_log.pkl"
-                )
-                self.controller.write_log(controller_log_file, output_type="pickle")
-            else:
-                self.logger.info("No controller log available")
-
-            # Ensure output data is written to file
-            self.logger.info("Finalizing HDF5 output file")
-            self._finalize_hdf5_file()
+            try:
+                if hasattr(self.controller, "write_log"):
+                    self.logger.info("Writing controller log file")
+                    controller_log_file = self.output_file.with_name(
+                        self.output_file.stem + "_controller_log.pkl"
+                    )
+                    self.controller.write_log(controller_log_file, output_type="pickle")
+                else:
+                    self.logger.info("No controller log available")
+            finally:
+                self.logger.info("Finalizing HDF5 output file")
+                self._finalize_hdf5_file()
 
     def _finalize_hdf5_file(self):
         """Finalize HDF5 file with proper compression and metadata."""
