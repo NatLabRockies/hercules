@@ -9,7 +9,6 @@ import time
 
 import matplotlib.pyplot as plt
 from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import prepare_output_directory
 
 from utilities import record_timing_result
 
@@ -57,9 +56,6 @@ class PowerCurtailmentController:
 def main():
     """Run the solar timing test with power curtailment."""
     print("Starting solar timing test with power curtailment...")
-
-    # Prepare output directory
-    prepare_output_directory()
 
     # Load the input file
     input_file = "hercules_input_solar.yaml"
