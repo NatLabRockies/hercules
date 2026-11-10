@@ -3,9 +3,9 @@
 import copy
 
 import numpy as np
+from hercules.plant_components.battery_dynamic import BatteryDynamic
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
 from hercules.plant_components.battery_reservoir import BatteryReservoir
-from hercules.plant_components.battery_simple import BatteryDynamic
 from numpy.testing import assert_almost_equal
 
 PRINT_VALUES = True
@@ -183,7 +183,7 @@ def test_BatteryReservoir_regression_():
         print("Powers: ", powers_test)
         print("SOC: ", soc_test)
 
-    # Identical to BatteryDynamic at unit efficiency without self-discharge (AI)
+    # Identical to BatteryDynamic at unit efficiency without self-discharge
     assert np.allclose(powers_base_simple, powers_test)
     assert np.allclose(soc_base_simple, soc_test)
 
