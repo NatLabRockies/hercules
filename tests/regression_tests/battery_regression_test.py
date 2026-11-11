@@ -228,7 +228,7 @@ def test_SimpleBattery_rte_self_discharge_regression():
     battery_dict["battery"]["energy_capacity"] = 8000
     battery_dict["battery"]["power_charge_max"] = 2000
     battery_dict["battery"]["power_discharge_max"] = 2000
-    battery_dict["battery"]["efficiency_roundtrip"] = 0.9
+    battery_dict["battery"]["roundtrip_efficiency"] = 0.9
     battery_dict["battery"]["time_constant_self_discharge"] = 100
     battery_dict["battery"]["initial_conditions"] = {"SOC": 0.23}
 

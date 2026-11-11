@@ -59,7 +59,7 @@ def test_SB_init():
 
     # Roundtrip efficiency is applied entirely on charging
     test_h_dict2 = copy.deepcopy(test_h_dict)
-    test_h_dict2["battery"]["efficiency_roundtrip"] = 0.9
+    test_h_dict2["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict2["battery"]["time_constant_self_discharge"] = 100
     SB = BatteryDynamic(test_h_dict2, "battery")
     assert SB.efficiency_charge == 0.9
@@ -119,7 +119,7 @@ def test_SB_step(SB: BatteryDynamic):
 def test_SB_small_charge_is_stored():
     # A 2 kW charge on an 80 MWh battery must still accumulate energy (no float32 rounding)
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.9
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     SB = BatteryDynamic(test_h_dict, "battery")
     E0 = SB.x[0, 0]
     for _ in range(10):
@@ -310,13 +310,13 @@ def test_allow_grid_power_consumption(SB: BatteryDynamic):
 
 def test_SB_charge_and_discharge_time():
     # Full discharge lasts energy_capacity / power_discharge_max = 4 h; full charge lasts
-    # energy_capacity / (efficiency_roundtrip * power_charge_max) = 4000 / (0.8 * 500) = 10 h
+    # energy_capacity / (roundtrip_efficiency * power_charge_max) = 4000 / (0.8 * 500) = 10 h
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
     test_h_dict["dt"] = 60.0
     test_h_dict["battery"]["energy_capacity"] = 4000.0
     test_h_dict["battery"]["power_charge_max"] = 500.0
     test_h_dict["battery"]["power_discharge_max"] = 1000.0
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.8
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.8
 
     test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
     SB = BatteryDynamic(copy.deepcopy(test_h_dict), "battery")
@@ -343,7 +343,7 @@ def test_SB_roundtrip_efficiency():
     """
     # Test with 90% round-trip efficiency
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.9
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
     SB = BatteryDynamic(test_h_dict, "battery")
@@ -385,7 +385,7 @@ def test_SB_roundtrip_efficiency():
     net_energy_change = final_energy - initial_energy
 
     # For a complete round trip, we should have lost energy due to efficiency
-    # Net loss = input_energy * (1 - efficiency_roundtrip)
+    # Net loss = input_energy * (1 - roundtrip_efficiency)
     input_energy = charge_power * 0.5  # 250 kWh
     expected_net_loss = input_energy * (1 - 0.9)  # 25 kWh loss
 
@@ -404,7 +404,7 @@ def test_SB_roundtrip_efficiency():
 def test_SB_roundtrip_efficiency_perfect():
     """Test that BatteryDynamic with perfect efficiency (1.0) has no losses."""
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    test_h_dict["battery"]["efficiency_roundtrip"] = 1.0
+    test_h_dict["battery"]["roundtrip_efficiency"] = 1.0
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
     SB = BatteryDynamic(test_h_dict, "battery")
@@ -439,7 +439,7 @@ def test_SB_roundtrip_efficiency_various_values():
 
     for rte in efficiency_values:
         test_h_dict = copy.deepcopy(h_dict_simple_battery)
-        test_h_dict["battery"]["efficiency_roundtrip"] = rte
+        test_h_dict["battery"]["roundtrip_efficiency"] = rte
         test_h_dict["battery"]["allow_grid_power_consumption"] = True
         test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
         SB = BatteryDynamic(test_h_dict, "battery")
@@ -484,7 +484,7 @@ def test_SB_discharge_duration_invariant():
     test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
     test_h_dict["battery"]["power_charge_max"] = 1000  # 1 MW
     test_h_dict["battery"]["power_discharge_max"] = 1000  # 1 MW
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.9
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict["battery"]["SOC_max"] = 1.0
     test_h_dict["battery"]["SOC_min"] = 0.0
     test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
@@ -521,7 +521,7 @@ def test_SB_discharge_duration_with_degraded_soc_window():
     test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
     test_h_dict["battery"]["power_charge_max"] = 1000  # 1 MW
     test_h_dict["battery"]["power_discharge_max"] = 1000  # 1 MW
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.9
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict["battery"]["SOC_max"] = 0.9  # degraded: can only use 80% of capacity
     test_h_dict["battery"]["SOC_min"] = 0.1
     test_h_dict["battery"]["initial_conditions"] = {"SOC": 0.9}

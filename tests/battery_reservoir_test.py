@@ -33,7 +33,7 @@ def test_BR_init():
     assert br.energy_max == 80000.0
     assert br.power_charge_max == 2000
     assert br.power_discharge_max == 2000
-    assert br.efficiency_roundtrip == 1.0
+    assert br.roundtrip_efficiency == 1.0
     assert br.time_constant_self_discharge == np.inf
     assert br.retention == 1.0
     assert not br.allow_grid_power_consumption
@@ -73,12 +73,12 @@ def test_BR_allow_grid_power_consumption():
 
 def test_BR_charge_and_discharge_time():
     # Full discharge lasts energy_capacity / power_discharge_max = 4 h; full charge lasts
-    # energy_capacity / (efficiency_roundtrip * power_charge_max) = 4000 / (0.8 * 500) = 10 h
+    # energy_capacity / (roundtrip_efficiency * power_charge_max) = 4000 / (0.8 * 500) = 10 h
     params = {
         "energy_capacity": 4000.0,
         "power_charge_max": 500.0,
         "power_discharge_max": 1000.0,
-        "efficiency_roundtrip": 0.8,
+        "roundtrip_efficiency": 0.8,
     }
 
     br = make_reservoir_battery(dt=60.0, initial_conditions={"SOC": 1.0}, **params)
@@ -99,7 +99,7 @@ def test_BR_charge_and_discharge_time():
 def test_BR_roundtrip_efficiency():
     # Charging then discharging 500 kW for 30 min each loses (1 - RTE) of the 250 kWh input
     for rte in [1.0, 0.9, 0.75]:
-        br = make_reservoir_battery(dt=60.0, efficiency_roundtrip=rte)
+        br = make_reservoir_battery(dt=60.0, roundtrip_efficiency=rte)
         E0 = br.energy
         for _ in range(30):
             br.step(step_inputs(P_avail=500.0, P_signal=500.0))
@@ -137,7 +137,7 @@ def test_BR_discharge_duration_with_degraded_soc_window():
         energy_capacity=4000.0,
         power_charge_max=1000.0,
         power_discharge_max=1000.0,
-        efficiency_roundtrip=0.9,
+        roundtrip_efficiency=0.9,
         SOC_min=0.1,
         SOC_max=0.9,
         initial_conditions={"SOC": 0.9},

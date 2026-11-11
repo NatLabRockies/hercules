@@ -29,7 +29,7 @@ Battery parameters are defined in the hercules input yaml file used to initializ
 - `SOC_max`: Maximum state of charge (0-1, default 1.0). Values below 1.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window.
 - `SOC_min`: Minimum state of charge (0-1, default 0.0). Values above 0.0 indicate a deviation from nameplate performance (e.g., degradation) and reduce the usable energy window. This limits discharge only; self-discharge can take SOC below `SOC_min`.
 - `allow_grid_power_consumption`: True or False (defaults to False)
-- `efficiency_roundtrip`: Roundtrip efficiency (0-1, default 1.0), applied on charging (BatteryDynamic and BatteryReservoir)
+- `roundtrip_efficiency`: Roundtrip efficiency (0-1, default 1.0), applied on charging (BatteryDynamic and BatteryReservoir)
 - `time_constant_self_discharge`: Self-discharge time constant in seconds (default inf, BatteryDynamic and BatteryReservoir)
 - `log_channels`: List of output channels to log (see [Logging Configuration](battery-logging-configuration) below)
 
@@ -53,7 +53,7 @@ h_dict = {
 ### Outputs
 Outputs (generator convention, discharge positive):
 - `power`: AC battery power in kW
-- `DC_power`: DC power at the battery terminals in kW, the rate of change of stored energy. For `BatteryDynamic` and `BatteryReservoir` it equals `power` when discharging and `efficiency_roundtrip * power` when charging. `BatteryLithiumIon` has no PCS model, so `DC_power` equals `power`.
+- `DC_power`: DC power at the battery terminals in kW, the rate of change of stored energy. For `BatteryDynamic` and `BatteryReservoir` it equals `power` when discharging and `roundtrip_efficiency * power` when charging. `BatteryLithiumIon` has no PCS model, so `DC_power` equals `power`.
 - `SOC`: Battery state of charge (0-1)
 - `power_setpoint`: Requested power setpoint in kW
 - `power_reject`: `power_setpoint - power` in kW (BatteryDynamic and BatteryLithiumIon)

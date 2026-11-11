@@ -76,7 +76,7 @@ class BatteryDynamic(ComponentBase):
                     performance (e.g., degradation) and reduce deliverable energy.
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
-                - efficiency_roundtrip: Optional roundtrip efficiency (0-1), applied
+                - roundtrip_efficiency: Optional roundtrip efficiency (0-1), applied
                     on charging
                 - time_constant_self_discharge: Optional self-discharge time constant
                     in seconds
@@ -128,7 +128,7 @@ class BatteryDynamic(ComponentBase):
 
         # Roundtrip efficiency is applied entirely on charging, so stored energy equals
         # deliverable energy and discharge duration = energy_capacity / power_discharge_max.
-        self.efficiency_charge = h_dict[self.component_name].get("efficiency_roundtrip", 1.0)
+        self.efficiency_charge = h_dict[self.component_name].get("roundtrip_efficiency", 1.0)
         self.efficiency_discharge = 1.0
 
         # Energy limits [kJ]

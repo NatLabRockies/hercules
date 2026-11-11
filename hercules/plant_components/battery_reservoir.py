@@ -11,7 +11,7 @@ class BatteryReservoir(ComponentBase):
     are applied entirely on charging, so stored energy equals the energy deliverable
     at the terminals. A full discharge at ``power_discharge_max`` lasts
     ``energy_capacity / power_discharge_max`` and a full charge at ``power_charge_max``
-    lasts ``energy_capacity / (efficiency_roundtrip * power_charge_max)``.
+    lasts ``energy_capacity / (roundtrip_efficiency * power_charge_max)``.
 
     Note:
         Within this class positive power is charging. ``HybridPlant`` negates
@@ -35,7 +35,7 @@ class BatteryReservoir(ComponentBase):
                 And optionally:
                 - SOC_max (float): Maximum state of charge (0-1). Defaults to 1.0.
                 - SOC_min (float): Minimum state of charge (0-1). Defaults to 0.0.
-                - efficiency_roundtrip (float): Roundtrip efficiency (0-1), applied
+                - roundtrip_efficiency (float): Roundtrip efficiency (0-1), applied
                   on charging. Defaults to 1.0.
                 - time_constant_self_discharge (float): Self-discharge time constant
                   in s. Defaults to inf (no self-discharge).
@@ -51,7 +51,7 @@ class BatteryReservoir(ComponentBase):
         self.power_discharge_max = params["power_discharge_max"]  # [kW]
         self.SOC_max = params.get("SOC_max", 1.0)
         self.SOC_min = params.get("SOC_min", 0.0)
-        self.efficiency_roundtrip = params.get("efficiency_roundtrip", 1.0)
+        self.roundtrip_efficiency = params.get("roundtrip_efficiency", 1.0)
         self.time_constant_self_discharge = params.get("time_constant_self_discharge", np.inf)
         self.allow_grid_power_consumption = params.get("allow_grid_power_consumption", False)
 
@@ -118,13 +118,13 @@ class BatteryReservoir(ComponentBase):
         power_hi = min(
             self.power_charge_max,
             power_charge_available,
-            (self.energy_max - energy_retained) / (hours * self.efficiency_roundtrip),
+            (self.energy_max - energy_retained) / (hours * self.roundtrip_efficiency),
         )
         power_lo = max(-self.power_discharge_max, (self.energy_min - energy_retained) / hours)
         power_charge = min(max(power_setpoint, min(power_lo, 0.0)), max(power_hi, 0.0))
 
         if power_charge > 0:
-            self.DC_power_charge = self.efficiency_roundtrip * power_charge
+            self.DC_power_charge = self.roundtrip_efficiency * power_charge
         else:
             self.DC_power_charge = power_charge
         self.energy = energy_retained + self.DC_power_charge * hours

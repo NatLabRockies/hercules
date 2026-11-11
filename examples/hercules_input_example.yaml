@@ -120,7 +120,7 @@ wind_farm:
 #   initial_conditions:  # Initial conditions for battery
 #     SOC: 0.5  # Initial state of charge (between SOC_min and SOC_max, required)
 #   # BatteryDynamic / BatteryReservoir optional parameters:
-#   # efficiency_roundtrip: 0.95  # Roundtrip efficiency (0-1, default: 1.0), applied on charging
+#   # roundtrip_efficiency: 0.95  # Roundtrip efficiency (0-1, default: 1.0), applied on charging
 #   # time_constant_self_discharge: inf  # Self-discharge time constant in seconds (default: inf)
 
 # BatteryLithiumIon example (alternative to BatteryDynamic):

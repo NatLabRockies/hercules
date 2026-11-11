@@ -201,7 +201,7 @@ derating are not reflected. For `WindFarmSCADAPower`, `power_hyp` equals `power`
 | `energy_capacity` | input | Deliverable energy |
 | `power_charge_max`, `power_discharge_max` | input | Power limits (positive magnitudes) |
 | `SOC_max`, `SOC_min` | input | SOC limits |
-| `efficiency_roundtrip` | input | Roundtrip efficiency (`BatteryDynamic`, `BatteryReservoir`) |
+| `roundtrip_efficiency` | input | Roundtrip efficiency (`BatteryDynamic`, `BatteryReservoir`) |
 | `time_constant_self_discharge` | input | Self-discharge time constant (`BatteryDynamic`, `BatteryReservoir`) |
 | `power_setpoint` | setpoint | Discharge positive |
 | `power` | output | AC power, discharge positive |
@@ -250,7 +250,8 @@ model, so its `DC_power` equals `power`.
 - **Input data file columns** keep their formats (`time_utc`, `ws_000`, `wd_mean`,
   `pow_000`, `power`).
 - **Established names** kept for continuity: `plant.locally_generated_power`,
-  `plant.interconnect_limit`, `energy_capacity`, `initial_conditions.time_in_shutdown`,
+  `plant.interconnect_limit`, `energy_capacity`, `roundtrip_efficiency` (standard
+  industry term), `initial_conditions.time_in_shutdown`,
   `allow_grid_power_consumption`, `time_utc` and `starttime_utc`/`endtime_utc`.
 - **Physics symbols** in internal code (`V`, `I`, `R`, `C`, `OCV`, `SOH`, `Cp`, `Cq`,
   `rho`, `omega`) and wind `ws`/`wd` internals that mirror input file columns.
@@ -278,7 +279,7 @@ error that names the replacement.
 | `dni`, `poa`, `aoi` | `DNI`, `POA`, `AOI` |
 | `charge_rate`, `discharge_rate` | `power_charge_max`, `power_discharge_max` |
 | `max_SOC`, `min_SOC`, `soc` | `SOC_max`, `SOC_min`, `SOC` |
-| `roundtrip_efficiency`, `self_discharge_time_constant` | `efficiency_roundtrip`, `time_constant_self_discharge` |
+| `self_discharge_time_constant` | `time_constant_self_discharge` |
 | `reject` | `power_reject` |
 | `electrolyzer_signal` (positive) | `power_setpoint` (negative) |
 | `power_input_kw` | `power_allocated` (negative) |

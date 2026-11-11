@@ -78,7 +78,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
 | `log_channels` | list | List of channels to log (e.g., ["power", "DC_power", "SOC", "power_setpoint"]) | ["power"] |
-| `efficiency_roundtrip` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
+| `roundtrip_efficiency` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
 | `time_constant_self_discharge` | float | Self-discharge time constant in seconds (BatteryDynamic and BatteryReservoir) | inf |
 
 ### Electrolyzer

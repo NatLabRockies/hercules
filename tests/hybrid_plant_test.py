@@ -175,7 +175,7 @@ def test_battery_sign_and_bus_to_poi_losses():
     test_h_dict = copy.deepcopy(h_dict_battery)
     test_h_dict["plant"]["eta_bus_to_poi"] = 0.9
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
-    test_h_dict["battery"]["efficiency_roundtrip"] = 0.8
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.8
     hp = hybrid_plant.HybridPlant(test_h_dict)
     test_h_dict = hp.add_plant_metadata_to_h_dict(test_h_dict)
 

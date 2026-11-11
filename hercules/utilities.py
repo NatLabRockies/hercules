@@ -46,7 +46,6 @@ RENAMED_KEYS = {
     "max_SOC": "SOC_max",
     "min_SOC": "SOC_min",
     "soc": "SOC",
-    "roundtrip_efficiency": "efficiency_roundtrip",
     "self_discharge_time_constant": "time_constant_self_discharge",
     "reject": "power_reject",
     "electrolyzer_signal": "power_setpoint (negative for consumption)",
