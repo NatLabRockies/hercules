@@ -31,9 +31,9 @@ class SimpleControllerWind:
             dict: The updated hercules input dictionary.
         """
         # Set power setpoints for wind turbines if wind farm is present
-        if "wind_farm" in h_dict and "turbine_count" in h_dict["wind_farm"]:
+        if "wind_farm" in h_dict and "n_turbines" in h_dict["wind_farm"]:
             h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-                h_dict["wind_farm"]["turbine_count"]
+                h_dict["wind_farm"]["n_turbines"]
             )
 
         # Set power setpoints for battery if present

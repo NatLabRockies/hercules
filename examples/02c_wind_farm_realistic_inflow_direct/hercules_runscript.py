@@ -36,7 +36,7 @@ class ControllerFullRating:
         """
         # Set all turbines to full rating
         h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-            h_dict["wind_farm"]["turbine_count"]
+            h_dict["wind_farm"]["n_turbines"]
         )
 
         return h_dict

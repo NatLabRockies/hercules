@@ -184,9 +184,9 @@ class HerculesOutput:
         for name in h_dict.get("component_names", []):
             config = h_dict.get(name, {})
             component_type = config.get("component_type", "")
-            if "turbine_count" in config and "turbine_power_rated" in config:
+            if "n_turbines" in config and "turbine_power_rated" in config:
                 print(
-                    f"   {name} ({component_type}): {config['turbine_count']} turbines @ "
+                    f"   {name} ({component_type}): {config['n_turbines']} turbines @ "
                     f"{config['turbine_power_rated'] / 1000:.1f} MW each"
                 )
             elif "DC_capacity_rated" in config:

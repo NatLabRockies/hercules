@@ -223,7 +223,7 @@ class WindFarm(ComponentBase):
                 Turbine1dofModel(
                     self.turbine_dict, self.dt, self.fmodel, self.wind_speeds_withwakes[t_idx]
                 )
-                for t_idx in range(self.turbine_count)
+                for t_idx in range(self.n_turbines)
             ]
             self.use_vectorized_turbines = False
         else:
@@ -234,7 +234,7 @@ class WindFarm(ComponentBase):
             self.turbine_powers = self.turbine_array.prev_powers.copy()
         else:
             self.turbine_powers = np.array(
-                [self.turbine_array[t_idx].prev_power for t_idx in range(self.turbine_count)],
+                [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)],
                 dtype=hercules_float_type,
             )
         self.turbine_powers_hypothetical = self.turbine_powers.copy()
@@ -246,11 +246,11 @@ class WindFarm(ComponentBase):
             self.turbine_power_rated = self.turbine_array[0].get_power_rated()
 
         # Get the capacity of the farm
-        self.capacity_rated = self.turbine_count * self.turbine_power_rated
+        self.capacity_rated = self.n_turbines * self.turbine_power_rated
 
         # Update the user
         self.logger.info(
-            f"Initialized WindFarm with {self.turbine_count} turbines "
+            f"Initialized WindFarm with {self.n_turbines} turbines "
             f"(wake_method='{self.wake_method}')"
         )
 
@@ -272,7 +272,7 @@ class WindFarm(ComponentBase):
         # Get the layout and number of turbines from FLORIS
         self.layout_x = self.fmodel.layout_x
         self.layout_y = self.fmodel.layout_y
-        self.turbine_count = self.fmodel.n_turbines
+        self.n_turbines = self.fmodel.n_turbines
 
         self.logger.info("Converting wind input file to numpy matrices...")
 
@@ -280,12 +280,12 @@ class WindFarm(ComponentBase):
         if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
             self.ws_mat = np.tile(
                 df_wi["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
-                (1, self.turbine_count),
+                (1, self.n_turbines),
             )
         else:
-            self.ws_mat = df_wi[
-                [f"ws_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
@@ -299,9 +299,9 @@ class WindFarm(ComponentBase):
         self.wd_mat_mean = df_wi["wd_mean"].values.astype(hercules_float_type)
 
         if "ti_000" in df_wi.columns:
-            self.ti_mat = df_wi[
-                [f"ti_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
             self.ti_mat_mean = np.mean(self.ti_mat, axis=1, dtype=hercules_float_type)
@@ -385,7 +385,7 @@ class WindFarm(ComponentBase):
 
         # Determine the free_stream velocities as the maximum velocity in each row
         free_stream_velocities = np.tile(
-            np.max(floris_velocities, axis=1)[:, np.newaxis], (1, self.turbine_count)
+            np.max(floris_velocities, axis=1)[:, np.newaxis], (1, self.n_turbines)
         ).astype(hercules_float_type)
 
         # Compute wake deficits at evaluation times
@@ -405,7 +405,7 @@ class WindFarm(ComponentBase):
         self.wind_speeds_withwakes_all = self.ws_mat - deficits_all
 
         # Initialize the turbine powers to nan
-        self.turbine_powers = np.zeros(self.turbine_count, dtype=hercules_float_type) * np.nan
+        self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
         # Get the initial background wind speeds
         self.wind_speeds_background = self.ws_mat[0, :]
@@ -433,7 +433,7 @@ class WindFarm(ComponentBase):
         # Get the layout and number of turbines from FLORIS
         self.layout_x = self.fmodel.layout_x
         self.layout_y = self.fmodel.layout_y
-        self.turbine_count = self.fmodel.n_turbines
+        self.n_turbines = self.fmodel.n_turbines
 
         # How often to update the wake deficits
         self.floris_update_steps = int(self.floris_update_time / self.dt)
@@ -441,7 +441,7 @@ class WindFarm(ComponentBase):
 
         # Declare the power_setpoint buffer to hold previous power_setpoint commands
         self.turbine_power_setpoints_buffer = (
-            np.zeros((self.floris_update_steps, self.turbine_count), dtype=hercules_float_type)
+            np.zeros((self.floris_update_steps, self.n_turbines), dtype=hercules_float_type)
             * np.nan
         )
         self.turbine_power_setpoints_buffer_idx = 0  # Initialize the index to 0
@@ -453,12 +453,12 @@ class WindFarm(ComponentBase):
         if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
             self.ws_mat = np.tile(
                 df_wi["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
-                (1, self.turbine_count),
+                (1, self.n_turbines),
             )
         else:
-            self.ws_mat = df_wi[
-                [f"ws_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
@@ -475,9 +475,9 @@ class WindFarm(ComponentBase):
         self.floris_wind_direction = self.wd_mat_mean[0]
 
         if "ti_000" in df_wi.columns:
-            self.ti_mat = df_wi[
-                [f"ti_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
             self.ti_mat_mean = np.mean(self.ti_mat, axis=1, dtype=hercules_float_type)
@@ -495,10 +495,10 @@ class WindFarm(ComponentBase):
         ).astype(hercules_float_type)
 
         # Initialize the wake deficits
-        self.floris_wake_deficits = np.zeros(self.turbine_count, dtype=hercules_float_type)
+        self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Initialize the turbine powers to nan
-        self.turbine_powers = np.zeros(self.turbine_count, dtype=hercules_float_type) * np.nan
+        self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
         # Get the initial background wind speeds
         self.wind_speeds_background = self.ws_mat[0, :]
@@ -523,7 +523,7 @@ class WindFarm(ComponentBase):
         # Get the layout and number of turbines from FLORIS
         self.layout_x = self.fmodel.layout_x
         self.layout_y = self.fmodel.layout_y
-        self.turbine_count = self.fmodel.n_turbines
+        self.n_turbines = self.fmodel.n_turbines
 
         # floris_update_steps not used but set for consistency
         # self.floris_update_steps = max(1, int(self.floris_update_time / self.dt))
@@ -532,12 +532,12 @@ class WindFarm(ComponentBase):
         if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
             self.ws_mat = np.tile(
                 df_wi["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
-                (1, self.turbine_count),
+                (1, self.n_turbines),
             )
         else:
-            self.ws_mat = df_wi[
-                [f"ws_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ws_mat = df_wi[[f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
         self.ws_mat_mean = np.mean(self.ws_mat, axis=1, dtype=hercules_float_type)
@@ -551,9 +551,9 @@ class WindFarm(ComponentBase):
         self.wd_mat_mean = df_wi["wd_mean"].values.astype(hercules_float_type)
 
         if "ti_000" in df_wi.columns:
-            self.ti_mat = df_wi[
-                [f"ti_{t_idx:03d}" for t_idx in range(self.turbine_count)]
-            ].to_numpy(dtype=hercules_float_type)
+            self.ti_mat = df_wi[[f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]].to_numpy(
+                dtype=hercules_float_type
+            )
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
             self.ti_mat_mean = np.mean(self.ti_mat, axis=1, dtype=hercules_float_type)
@@ -564,10 +564,10 @@ class WindFarm(ComponentBase):
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean, dtype=hercules_float_type)
 
         # No wake deficits
-        self.floris_wake_deficits = np.zeros(self.turbine_count, dtype=hercules_float_type)
+        self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Initialize the turbine powers to nan
-        self.turbine_powers = np.zeros(self.turbine_count, dtype=hercules_float_type) * np.nan
+        self.turbine_powers = np.zeros(self.n_turbines, dtype=hercules_float_type) * np.nan
 
         # Get the initial background wind speeds
         self.wind_speeds_background = self.ws_mat[0, :]
@@ -587,7 +587,7 @@ class WindFarm(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-        h_dict[self.component_name]["turbine_count"] = self.turbine_count
+        h_dict[self.component_name]["n_turbines"] = self.n_turbines
         h_dict[self.component_name]["capacity_rated"] = self.capacity_rated
         h_dict[self.component_name]["turbine_power_rated"] = self.turbine_power_rated
         h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
@@ -719,7 +719,7 @@ class WindFarm(ComponentBase):
             # No wake modeling - use background speeds directly
             self.wind_speeds_background = self.ws_mat[step, :]
             self.wind_speeds_withwakes = self.wind_speeds_background.copy()
-            self.floris_wake_deficits = np.zeros(self.turbine_count, dtype=hercules_float_type)
+            self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Update the turbine powers (common for all wake models)
         if self.use_vectorized_turbines:
@@ -730,7 +730,7 @@ class WindFarm(ComponentBase):
             )
         else:
             # Original loop-based calculation
-            for t_idx in range(self.turbine_count):
+            for t_idx in range(self.n_turbines):
                 self.turbine_powers[t_idx], self.turbine_powers_hypothetical[t_idx] = (
                     self.turbine_array[t_idx].step(
                         self.wind_speeds_withwakes[t_idx],
@@ -802,7 +802,7 @@ class TurbineFilterModelVectorized:
         )
 
         # Number of turbines
-        self.turbine_count = len(initial_wind_speeds)
+        self.n_turbines = len(initial_wind_speeds)
 
         # Initialize the previous powers for all turbines
         self.prev_powers = np.interp(

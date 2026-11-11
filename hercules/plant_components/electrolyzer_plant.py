@@ -129,7 +129,7 @@ class ElectrolyzerPlant(ComponentBase):
         # Initialize electrolyzer plant
         self.elec_sys = Supervisor.from_dict(elec_config["electrolyzer"])
 
-        self.stack_count = self.elec_sys.n_stacks
+        self.n_stacks = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
         power_allocated = elec_config["electrolyzer"]["initial_power_kW"]
@@ -146,10 +146,8 @@ class ElectrolyzerPlant(ComponentBase):
                 power_allocated * 1e3
             )
         # Initialize outputs for controller step
-        self.stack_count_on = sum(
-            [self.elec_sys.stacks[i].stack_on for i in range(self.stack_count)]
-        )
-        self.stacks_waiting = [False] * self.stack_count
+        self.stack_count_on = sum([self.elec_sys.stacks[i].stack_on for i in range(self.n_stacks)])
+        self.stacks_waiting = [False] * self.n_stacks
         # # TODO: How should these be initialized? - Should we do one electrolyzer step?
         #           will that make it out of step of with the other sources?
         self.power_curtailed = power_curtailed_W / 1e3
@@ -168,7 +166,7 @@ class ElectrolyzerPlant(ComponentBase):
                 self.stack_count_on,
             )
         # Update the user
-        self.logger.info(f"Initialized ElectrolyzerPlant with {self.stack_count} stacks")
+        self.logger.info(f"Initialized ElectrolyzerPlant with {self.n_stacks} stacks")
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -262,12 +260,8 @@ class ElectrolyzerPlant(ComponentBase):
         self.power_left = power_left_W / 1e3
         self.power_allocated = power_allocated
         self.power_consumed = power_allocated - (self.power_curtailed + self.power_left)
-        self.stack_count_on = sum(
-            [self.elec_sys.stacks[i].stack_on for i in range(self.stack_count)]
-        )
-        self.stacks_waiting = [
-            self.elec_sys.stacks[i].stack_waiting for i in range(self.stack_count)
-        ]
+        self.stack_count_on = sum([self.elec_sys.stacks[i].stack_on for i in range(self.n_stacks)])
+        self.stacks_waiting = [self.elec_sys.stacks[i].stack_waiting for i in range(self.n_stacks)]
         self.H2_output = H2_produced
         self.H2_MFR = H2_produced / self.elec_sys.dt
 

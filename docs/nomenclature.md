@@ -148,8 +148,9 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
   do not use `eta`. The symbol η may still be used in equations.
 - **Arrays are plural**: `turbine_powers`, `turbine_power_setpoints`,
   `wind_speeds_background`, `power_setpoints`.
-- **Counts** are `<thing>_count[_<qualifier>]`: `turbine_count`, `stack_count`,
-  `start_count_hot`, `component_count`.
+- **Counts**: a quantity tallied during the simulation is `<thing>_count[_<qualifier>]`
+  (`start_count`, `start_count_hot`, `stack_count_on`). A fixed number of things in the
+  configuration is `n_<things>` (`n_turbines`, `n_stacks`, `n_components`).
 - **File paths** end in `_filename`: `floris_input_filename`, `turbine_filename`,
   `wind_input_filename`, `log_filename`, `output_filename`.
 
@@ -164,7 +165,7 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 | `plant.power_bus` | output | Sum of component `power` |
 | `plant.locally_generated_power` | output | Sum of generator `power` |
 | `plant.power_export` | output | Power at the POI |
-| `component_count` | metadata | Number of components |
+| `n_components` | metadata | Number of components |
 
 ### Wind (`WindFarm`, `WindFarmSCADAPower`)
 
@@ -173,7 +174,7 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 | `turbine_power_setpoints` | setpoint | Per-turbine power limits (`WindFarm` only) |
 | `power`, `turbine_powers` | output | Actual farm and turbine power |
 | `power_hypothetical`, `turbine_powers_hypothetical` | output | Uncurtailed farm and turbine power |
-| `capacity_rated`, `turbine_power_rated`, `turbine_count` | metadata | Ratings |
+| `capacity_rated`, `turbine_power_rated`, `n_turbines` | metadata | Ratings |
 | `wind_speed_mean_background`, `wind_speed_mean_withwakes`, `wind_direction_mean` | output | Mean inflow |
 | `wind_speeds_background`, `wind_speeds_withwakes` | output | Per-turbine wind speeds |
 | `floris_input_filename`, `wind_input_filename`, `turbine_filename`, `scada_filename` | input | Files |
@@ -190,7 +191,7 @@ derating are not reflected. For `WindFarmSCADAPower`, `power_hypothetical` equal
 
 | Name | Kind | Description |
 |---|---|---|
-| `power_setpoint` | setpoint | AC power limit |
+| `power_setpoint` | setpoint | AC power set point |
 | `power` | output | AC power after curtailment |
 | `power_hypothetical` | output | AC power before curtailment (after inverter clipping) |
 | `DC_power_hypothetical` | output | DC array power before the inverter |
@@ -269,14 +270,13 @@ error that names the replacement.
 | `plant.power` (HDF5 `plant_power`) | `plant.power_bus` (HDF5 `plant_power_bus`) |
 | `eta_bus_to_poi` (name used in issue #279) | `efficiency_bus_to_poi` |
 | `power_hyp`, `DC_power_hyp`, `turbine_powers_hyp` (names used in issue #279) | `power_hypothetical`, `DC_power_hypothetical`, `turbine_powers_hypothetical` |
-| `n_components` | `component_count` |
 | `output_file` | `output_filename` |
 | `logging.log_file`, `log_file_name` | `log_filename` |
 | `external_data.external_data_file` | `external_data.external_data_filename` |
 | `floris_input_file`, `turbine_file_name`, `cq_table_file` | `floris_input_filename`, `turbine_filename`, `cq_table_filename` |
 | `floris_update_time_s` | `floris_update_time` |
 | `capacity`, `rated_capacity` | `capacity_rated` (solar: old `capacity` is now `DC_capacity_rated`) |
-| `rated_turbine_power`, `n_turbines` | `turbine_power_rated`, `turbine_count` |
+| `rated_turbine_power` | `turbine_power_rated` |
 | `rated_rotor_speed`, `rated_torque`, `initial_rpm` | `rotor_speed_rated`, `torque_rated`, `rotor_speed_initial_rpm` |
 | `filterfreq_rotor_speed`, `gen_efficiency` | `rotor_speed_filter_frequency`, `generator_efficiency` |
 | `max_pitch_rate`, `max_torque_rate` | `pitch_rate_max`, `torque_rate_max` |

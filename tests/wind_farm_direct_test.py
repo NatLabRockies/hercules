@@ -25,7 +25,7 @@ def test_wind_farm_direct_initialization():
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarm"
     assert wind_sim.wake_method == "no_added_wakes"
-    assert wind_sim.turbine_count == 3
+    assert wind_sim.n_turbines == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
@@ -137,7 +137,7 @@ def test_wind_farm_direct_initial_conditions():
     initial_h_dict = copy.deepcopy(h_dict_wind_direct)
     result_h_dict = wind_sim.get_initial_conditions_and_meta_data(initial_h_dict)
 
-    assert "turbine_count" in result_h_dict["wind_farm"]
+    assert "n_turbines" in result_h_dict["wind_farm"]
     assert "capacity_rated" in result_h_dict["wind_farm"]
     assert "turbine_power_rated" in result_h_dict["wind_farm"]
     assert "wind_direction_mean" in result_h_dict["wind_farm"]
@@ -145,7 +145,7 @@ def test_wind_farm_direct_initial_conditions():
     assert "turbine_powers" in result_h_dict["wind_farm"]
     assert "power" in result_h_dict["wind_farm"]
 
-    assert result_h_dict["wind_farm"]["turbine_count"] == 3
+    assert result_h_dict["wind_farm"]["n_turbines"] == 3
     assert result_h_dict["wind_farm"]["capacity_rated"] > 0
     assert result_h_dict["wind_farm"]["turbine_power_rated"] > 0
 

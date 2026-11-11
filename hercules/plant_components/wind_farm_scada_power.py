@@ -136,9 +136,9 @@ class WindFarmSCADAPower(ComponentBase):
         self.power_columns = sorted([col for col in df_scada.columns if col.startswith("pow_")])
 
         # Infer the number of turbines by the number of power columns
-        self.turbine_count = len(self.power_columns)
+        self.n_turbines = len(self.power_columns)
 
-        self.logger.info(f"Inferred number of turbines: {self.turbine_count}")
+        self.logger.info(f"Inferred number of turbines: {self.n_turbines}")
 
         # Collect the turbine powers
         self.scada_powers = df_scada[self.power_columns].to_numpy(dtype=hercules_float_type)
@@ -149,11 +149,11 @@ class WindFarmSCADAPower(ComponentBase):
         if "ws_mean" in df_scada.columns and "ws_000" not in df_scada.columns:
             self.ws_mat = np.tile(
                 df_scada["ws_mean"].values.astype(hercules_float_type)[:, np.newaxis],
-                (1, self.turbine_count),
+                (1, self.n_turbines),
             )
         else:
             self.ws_mat = df_scada[
-                [f"ws_{t_idx:03d}" for t_idx in range(self.turbine_count)]
+                [f"ws_{t_idx:03d}" for t_idx in range(self.n_turbines)]
             ].to_numpy(dtype=hercules_float_type)
 
         # Compute the turbine averaged wind speeds (axis = 1) using mean
@@ -177,7 +177,7 @@ class WindFarmSCADAPower(ComponentBase):
 
         if "ti_000" in df_scada.columns:
             self.ti_mat = df_scada[
-                [f"ti_{t_idx:03d}" for t_idx in range(self.turbine_count)]
+                [f"ti_{t_idx:03d}" for t_idx in range(self.n_turbines)]
             ].to_numpy(dtype=hercules_float_type)
 
             # Compute the turbine averaged turbulence intensities (axis = 1) using mean
@@ -189,13 +189,13 @@ class WindFarmSCADAPower(ComponentBase):
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean, dtype=hercules_float_type)
 
         # No wake deficits
-        self.floris_wake_deficits = np.zeros(self.turbine_count, dtype=hercules_float_type)
+        self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Infer the rated power as the 99 percentile of the power column of 0th turbine
         self.turbine_power_rated = np.percentile(df_scada[self.power_columns[0]], 99)
 
         # Get the capacity of the farm
-        self.capacity_rated = self.turbine_count * self.turbine_power_rated
+        self.capacity_rated = self.n_turbines * self.turbine_power_rated
 
         self.logger.info(f"Inferred rated turbine power: {self.turbine_power_rated}")
         self.logger.info(f"Inferred capacity: {self.capacity_rated / 1e3} MW")
@@ -215,7 +215,7 @@ class WindFarmSCADAPower(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-        h_dict[self.component_name]["turbine_count"] = self.turbine_count
+        h_dict[self.component_name]["n_turbines"] = self.n_turbines
         h_dict[self.component_name]["capacity_rated"] = self.capacity_rated
         h_dict[self.component_name]["turbine_power_rated"] = self.turbine_power_rated
         h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
@@ -255,7 +255,7 @@ class WindFarmSCADAPower(ComponentBase):
         # No wake modeling - use background speeds directly
         self.wind_speeds_background = self.ws_mat[step, :]
         self.wind_speeds_withwakes = self.wind_speeds_background.copy()
-        self.floris_wake_deficits = np.zeros(self.turbine_count, dtype=hercules_float_type)
+        self.floris_wake_deficits = np.zeros(self.n_turbines, dtype=hercules_float_type)
 
         # Update the turbine powers (common for all wake models)
         # Vectorized calculation for all turbines at once

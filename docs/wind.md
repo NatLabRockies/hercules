@@ -90,7 +90,7 @@ All four components provide these outputs in the h_dict at each simulation step:
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
-Metadata added at initialization: `turbine_count`, `turbine_power_rated` and `capacity_rated` (kW).
+Metadata added at initialization: `n_turbines`, `turbine_power_rated` and `capacity_rated` (kW).
 
 `power_hypothetical` is what the turbines would produce with no setpoint limit, using the same waked wind
 speeds as `power` (wake changes caused by derating are not reflected). For the filter model it is

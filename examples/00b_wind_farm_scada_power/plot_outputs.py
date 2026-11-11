@@ -15,7 +15,7 @@ print()
 df = ho.df
 
 # Set number of turbines
-turbine_count = 3
+n_turbines = 3
 
 # Define a consistent color map with 3 entries
 colors = ["tab:blue", "tab:orange", "tab:green"]

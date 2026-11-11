@@ -60,10 +60,10 @@ class HybridPlant:
         ]
 
         # Add in the number of components
-        self.component_count = len(self.component_names)
+        self.n_components = len(self.component_names)
 
         # If there are no components, raise an error
-        if self.component_count == 0:
+        if self.n_components == 0:
             raise Exception("No plant components found in input file")
 
         # Collect the component objects
@@ -94,7 +94,7 @@ class HybridPlant:
         # Add component metadata to h_dict
         h_dict["component_names"] = self.component_names
         h_dict["generator_names"] = self.generator_names
-        h_dict["component_count"] = self.component_count
+        h_dict["n_components"] = self.n_components
         h_dict["plant"]["efficiency_bus_to_poi"] = self.efficiency_bus_to_poi
 
         for component_name in self.component_names:

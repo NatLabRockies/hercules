@@ -41,7 +41,7 @@ def test_generator_names_detection():
 def test_n_components_count():
     """Test that HybridPlant correctly counts the number of components."""
     hybrid_plant_obj = hybrid_plant.HybridPlant(copy.deepcopy(h_dict_wind))
-    assert hybrid_plant_obj.component_count == 1
+    assert hybrid_plant_obj.n_components == 1
 
 
 def test_component_objects_creation():
@@ -59,7 +59,7 @@ def test_wind_farm_only():
     assert "wind_farm" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 1
     assert "wind_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.component_count == 1
+    assert hybrid_plant_obj.n_components == 1
 
 
 def test_solar_farm_only():
@@ -70,7 +70,7 @@ def test_solar_farm_only():
     assert "solar_farm" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 1
     assert "solar_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.component_count == 1
+    assert hybrid_plant_obj.n_components == 1
 
 
 def test_battery_only():
@@ -80,7 +80,7 @@ def test_battery_only():
     assert len(hybrid_plant_obj.component_names) == 1
     assert "battery" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 0  # Battery is not a generator
-    assert hybrid_plant_obj.component_count == 1
+    assert hybrid_plant_obj.n_components == 1
 
 
 def test_all_three_components():
@@ -94,7 +94,7 @@ def test_all_three_components():
     assert len(hybrid_plant_obj.generator_names) == 2
     assert "wind_farm" in hybrid_plant_obj.generator_names
     assert "solar_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.component_count == 3
+    assert hybrid_plant_obj.n_components == 3
 
 
 def test_unknown_component_type():
@@ -114,7 +114,7 @@ def test_add_plant_metadata_to_h_dict():
 
     assert "component_names" in result
     assert "generator_names" in result
-    assert "component_count" in result
+    assert "n_components" in result
 
 
 def test_component_category_attributes():
@@ -152,7 +152,7 @@ def test_multi_instance_batteries():
 
     hp = hybrid_plant.HybridPlant(multi_battery_h_dict)
 
-    assert hp.component_count == 2
+    assert hp.n_components == 2
     assert "battery" in hp.component_names
     assert "battery_unit_2" in hp.component_names
     # Each instance carries its unique component_name

@@ -164,7 +164,7 @@ def run_simulation(input_file, num_time_steps):
             # Set power setpoints for wind turbines
             if "wind_farm" in h_dict:
                 h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-                    h_dict["wind_farm"]["turbine_count"]
+                    h_dict["wind_farm"]["n_turbines"]
                 )
                 h_dict["wind_farm"]["turbine_power_setpoints"][0] = 500
 
