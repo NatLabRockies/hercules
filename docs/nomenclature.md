@@ -9,11 +9,6 @@ The convention was agreed in
 [issue #279](https://github.com/NatLabRockies/hercules/issues/279) and is shared
 with Hycon and ENPAX.
 
-## Scope
-
-Hercules models AC-coupled plants only: each component has its own inverter or power
-conversion system (PCS) and connects to a shared AC low-voltage (LV) bus.
-DC-coupled plants (a shared inverter and DC bus) are possible future work.
 
 ## Power flow
 
