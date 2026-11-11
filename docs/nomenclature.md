@@ -93,8 +93,9 @@ Examples: `power_charge_max`, `SOC_min`, `capacity_rated`, `DC_capacity_rated`,
    - `plant.power_bus`: sum of all `component.power` on the LV bus, before losses.
    - `plant.locally_generated_power`: sum of `power` over `generator` components only.
      Storage and load components use it to avoid drawing from the grid.
-   - `plant.efficiency_bus_to_poi` (η): constant one-way electrical efficiency between the
-     LV bus and the point of interconnection (POI). It lumps LV AC ohmic losses, the
+   - `plant.efficiency_bus_to_poi` (η): constant electrical efficiency of a single pass
+     between the LV bus and the point of interconnection (POI), applied in whichever
+     direction power flows (not a round-trip efficiency). It lumps LV AC ohmic losses, the
      MV transformer, MV line losses, the HV transformer and the gen-tie. Optional
      input, default 1.0, must satisfy 0 < η ≤ 1.
    - `plant.power_export`: power at the POI, positive when exporting:
