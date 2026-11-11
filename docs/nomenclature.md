@@ -79,11 +79,9 @@ Examples: `power_charge_max`, `SOC_min`, `capacity_rated`, `DC_capacity_rated`,
      terminals.
 2. **`<component>.power` is the actual power** the component delivers to (or draws
    from) the LV bus, after curtailment and setpoint limits.
-3. **`_hyp` means hypothetical (uncurtailed) power** and applies to non-dispatchable
-   resources only (`wind_farm.power_hyp`, `solar_farm.power_hyp`,
-   `solar_farm.DC_power_hyp`). It is what the resource would produce with no
-   curtailment, so `power <= power_hyp`. Dispatchable components (battery, thermal,
-   electrolyzer) have no `_hyp` quantity.
+3. **`_hyp` means hypothetical (uncurtailed) power.** It is what the resource
+   would produce with no curtailment, so `power <= power_hyp`. Currently only wind and
+   solar report `_hyp` quantities; other components may add them later.
 4. **`_setpoint` quantities belong to the controller.** Hercules reads them but never
    writes them. Setpoints are AC and use the same sign convention as `power`.
    Multi-unit components (`ThermalPlant`, `CombinedCyclePlant`) derive per-unit setpoints
@@ -242,7 +240,7 @@ model, so its `DC_power` equals `power`.
 
 ### Power playback (`PowerPlayback`)
 
-`power` only. It has no setpoint and no `_hyp` quantity.
+`power` only. It has no setpoint and does not yet report a `_hyp` quantity.
 
 ## Exceptions
 
