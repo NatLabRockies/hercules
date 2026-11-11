@@ -42,13 +42,13 @@ wind_farm:
   floris_update_time: 300.0  # How often to update FLORIS wake calculations in seconds (for "dynamic" wake_method) or precomputation cadence (for "precomputed" wake_method)
   log_channels:  # List of output channels to log (power is always logged even if not specified)
     - power  # Total wind farm power output (kW) - always logged
-    - power_hyp  # Uncurtailed wind farm power (kW)
+    - power_hypothetical  # Uncurtailed wind farm power (kW)
     - wind_speed_mean_background  # Farm-average background wind speed (m/s)
     - wind_speed_mean_withwakes  # Farm-average with-wakes wind speed (m/s)
     - wind_direction_mean  # Farm-average wind direction (degrees)
     # Array channels (uncomment to log all turbines, or use selective logging below):
     # - turbine_powers  # Power output for all turbines (creates datasets like wind_farm.turbine_powers.000, wind_farm.turbine_powers.001, etc.)
-    # - turbine_powers_hyp  # Uncurtailed power for all turbines
+    # - turbine_powers_hypothetical  # Uncurtailed power for all turbines
     # - turbine_power_setpoints  # Power setpoints for all turbines
     # - wind_speeds_background  # Background wind speeds for all turbines
     # - wind_speeds_withwakes  # With-wakes wind speeds for all turbines
@@ -92,8 +92,8 @@ wind_farm:
 #   log_filename: log_solar_farm.log  # Path to solar farm log file (default: outputs/log_solar_farm.log)
 #   log_channels:  # List of output channels to log (power is always logged even if not specified)
 #     - power  # Delivered AC power in kW after control (always logged)
-#     - power_hyp  # Uncurtailed post-inverter AC power in kW (before control curtailment)
-#     - DC_power_hyp  # Uncurtailed pre-inverter DC power of the arrays in kW
+#     - power_hypothetical  # Uncurtailed post-inverter AC power in kW (before control curtailment)
+#     - DC_power_hypothetical  # Uncurtailed pre-inverter DC power of the arrays in kW
 #     - POA  # Plane-of-array irradiance in W/m²
 #     - DNI  # Direct normal irradiance in W/m²
 #     - AOI  # Angle of incidence in degrees

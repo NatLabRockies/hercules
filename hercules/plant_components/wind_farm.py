@@ -237,7 +237,7 @@ class WindFarm(ComponentBase):
                 [self.turbine_array[t_idx].prev_power for t_idx in range(self.turbine_count)],
                 dtype=hercules_float_type,
             )
-        self.turbine_powers_hyp = self.turbine_powers.copy()
+        self.turbine_powers_hypothetical = self.turbine_powers.copy()
 
         # Get the rated power of the turbines
         if self.use_vectorized_turbines:
@@ -593,9 +593,11 @@ class WindFarm(ComponentBase):
         h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
         h_dict[self.component_name]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_powers_hyp"] = self.turbine_powers_hyp
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = (
+            self.turbine_powers_hypothetical
+        )
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["power_hyp"] = np.sum(self.turbine_powers_hyp)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers_hypothetical)
 
         # Log the start time UTC if available
         if hasattr(self, "starttime_utc"):
@@ -722,18 +724,18 @@ class WindFarm(ComponentBase):
         # Update the turbine powers (common for all wake models)
         if self.use_vectorized_turbines:
             # Vectorized calculation for all turbines at once
-            self.turbine_powers, self.turbine_powers_hyp = self.turbine_array.step(
+            self.turbine_powers, self.turbine_powers_hypothetical = self.turbine_array.step(
                 self.wind_speeds_withwakes,
                 turbine_power_setpoints,
             )
         else:
             # Original loop-based calculation
             for t_idx in range(self.turbine_count):
-                self.turbine_powers[t_idx], self.turbine_powers_hyp[t_idx] = self.turbine_array[
-                    t_idx
-                ].step(
-                    self.wind_speeds_withwakes[t_idx],
-                    power_setpoint=turbine_power_setpoints[t_idx],
+                self.turbine_powers[t_idx], self.turbine_powers_hypothetical[t_idx] = (
+                    self.turbine_array[t_idx].step(
+                        self.wind_speeds_withwakes[t_idx],
+                        power_setpoint=turbine_power_setpoints[t_idx],
+                    )
                 )
 
         # Update instantaneous wind direction and wind speed
@@ -742,9 +744,11 @@ class WindFarm(ComponentBase):
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["power_hyp"] = np.sum(self.turbine_powers_hyp)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers_hypothetical)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_powers_hyp"] = self.turbine_powers_hyp
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = (
+            self.turbine_powers_hypothetical
+        )
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
         h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
         h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
@@ -804,7 +808,7 @@ class TurbineFilterModelVectorized:
         self.prev_powers = np.interp(
             initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
         ).astype(hercules_float_type)
-        self.prev_powers_hyp = self.prev_powers.copy()
+        self.prev_powers_hypothetical = self.prev_powers.copy()
 
     def get_power_rated(self):
         """Get the rated power of the turbine.
@@ -828,27 +832,30 @@ class TurbineFilterModelVectorized:
             power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
 
         Returns:
-            tuple: (powers, powers_hyp) arrays in kW of actual and uncurtailed power.
+            tuple: (powers, powers_hypothetical) arrays in kW of actual and uncurtailed power.
         """
         # Vectorized instantaneous power calculation using numpy interpolation
-        instant_powers_hyp = np.interp(
+        instant_powers_hypothetical = np.interp(
             wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
         )
 
         # Vectorized limiting: instant power not less than 0
-        instant_powers_hyp = np.maximum(instant_powers_hyp, 0.0)
+        instant_powers_hypothetical = np.maximum(instant_powers_hypothetical, 0.0)
 
         # Handle NaNs by replacing with previous power values
-        nan_mask = np.isnan(instant_powers_hyp)
+        nan_mask = np.isnan(instant_powers_hypothetical)
         if np.any(nan_mask):
-            instant_powers_hyp[nan_mask] = self.prev_powers_hyp[nan_mask]
+            instant_powers_hypothetical[nan_mask] = self.prev_powers_hypothetical[nan_mask]
 
         # Vectorized limiting: current power not greater than power_setpoint
-        instant_powers = np.minimum(instant_powers_hyp, power_setpoints)
+        instant_powers = np.minimum(instant_powers_hypothetical, power_setpoints)
 
         # Vectorized exponential filter update
         powers = self.alpha * instant_powers + (1 - self.alpha) * self.prev_powers
-        powers_hyp = self.alpha * instant_powers_hyp + (1 - self.alpha) * self.prev_powers_hyp
+        powers_hypothetical = (
+            self.alpha * instant_powers_hypothetical
+            + (1 - self.alpha) * self.prev_powers_hypothetical
+        )
 
         # Vectorized limiting: power not greater than power_setpoint
         powers = np.minimum(powers, power_setpoints)
@@ -858,9 +865,9 @@ class TurbineFilterModelVectorized:
 
         # Update the previous powers for all turbines
         self.prev_powers = powers.copy()
-        self.prev_powers_hyp = powers_hyp.copy()
+        self.prev_powers_hypothetical = powers_hypothetical.copy()
 
-        return powers, powers_hyp
+        return powers, powers_hypothetical
 
 
 class Turbine1dofModel:
@@ -922,7 +929,7 @@ class Turbine1dofModel:
         self.rotor_radius = turbine_type["rotor_diameter"] / 2
         self.rotor_area = np.pi * self.rotor_radius**2
 
-        # Steady-state power curve, used for the uncurtailed power_hyp
+        # Steady-state power curve, used for the uncurtailed power_hypothetical
         self.wind_speed_lut = np.array(
             turbine_type["power_thrust_table"]["wind_speed"], dtype=hercules_float_type
         )
@@ -977,7 +984,7 @@ class Turbine1dofModel:
             power_setpoint (float): Maximum allowable power output in kW.
 
         Returns:
-            tuple: (power, power_hyp) in kW, where power_hyp is the steady-state
+            tuple: (power, power_hypothetical) in kW, where power_hypothetical is the steady-state
                 uncurtailed power from the turbine power curve.
         """
         omega = (
@@ -1027,9 +1034,11 @@ class Turbine1dofModel:
         self.prev_omegaf = omegaf
         self.prev_power = power / 1000.0
 
-        power_hyp = np.interp(wind_speed, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0)
+        power_hypothetical = np.interp(
+            wind_speed, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
 
-        return self.prev_power, power_hyp
+        return self.prev_power, power_hypothetical
 
     def simplecontroller(self, omegaf):
         """Simple controller to command pitch and generator torque.

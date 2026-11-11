@@ -36,8 +36,8 @@ class SolarPySAMBase(ComponentBase):
 
         # Save the initial condition
         self.power = h_dict[self.component_name]["initial_conditions"]["power"]
-        self.power_hyp = h_dict[self.component_name]["initial_conditions"]["power"]
-        self.DC_power_hyp = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.power_hypothetical = h_dict[self.component_name]["initial_conditions"]["power"]
+        self.DC_power_hypothetical = h_dict[self.component_name]["initial_conditions"]["power"]
         self.DNI = h_dict[self.component_name]["initial_conditions"]["DNI"]
         self.POA = h_dict[self.component_name]["initial_conditions"]["POA"]
         self.AOI = 0
@@ -251,8 +251,8 @@ class SolarPySAMBase(ComponentBase):
         h_dict[self.component_name]["capacity_rated"] = self.capacity_rated
         h_dict[self.component_name]["DC_capacity_rated"] = self.DC_capacity_rated
         h_dict[self.component_name]["power"] = self.power
-        h_dict[self.component_name]["power_hyp"] = self.power_hyp
-        h_dict[self.component_name]["DC_power_hyp"] = self.DC_power_hyp
+        h_dict[self.component_name]["power_hypothetical"] = self.power_hypothetical
+        h_dict[self.component_name]["DC_power_hypothetical"] = self.DC_power_hypothetical
         h_dict[self.component_name]["DNI"] = self.DNI
         h_dict[self.component_name]["POA"] = self.POA
         h_dict[self.component_name]["AOI"] = self.AOI
@@ -265,8 +265,8 @@ class SolarPySAMBase(ComponentBase):
         """Controls the PV plant power output to meet a specified setpoint.
 
         This low-level controller enforces AC power setpoints by uniform curtailment
-        of ``self.power``. The uncurtailed AC power remains in ``power_hyp`` and the
-        pre-inverter DC power in ``DC_power_hyp``.
+        of ``self.power``. The uncurtailed AC power remains in ``power_hypothetical`` and the
+        pre-inverter DC power in ``DC_power_hypothetical``.
 
         Args:
             power_setpoint (float, optional): Desired total PV plant output in kW.
@@ -282,16 +282,16 @@ class SolarPySAMBase(ComponentBase):
     def _update_outputs(self, h_dict):
         """Update the h_dict with outputs.
 
-        ``power_hyp`` is the uncurtailed post-inverter AC power (kW) and
-        ``DC_power_hyp`` is the pre-inverter DC power (kW) for the current step.
+        ``power_hypothetical`` is the uncurtailed post-inverter AC power (kW) and
+        ``DC_power_hypothetical`` is the pre-inverter DC power (kW) for the current step.
 
         Args:
             h_dict (dict): Dictionary containing simulation state.
         """
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = self.power
-        h_dict[self.component_name]["power_hyp"] = self.power_hyp
-        h_dict[self.component_name]["DC_power_hyp"] = self.DC_power_hyp
+        h_dict[self.component_name]["power_hypothetical"] = self.power_hypothetical
+        h_dict[self.component_name]["DC_power_hypothetical"] = self.DC_power_hypothetical
         h_dict[self.component_name]["DNI"] = self.DNI
         h_dict[self.component_name]["POA"] = self.POA
         h_dict[self.component_name]["AOI"] = self.AOI
@@ -332,10 +332,10 @@ class SolarPySAMBase(ComponentBase):
             self.logger.info(f"step = {step} (of {self.n_steps})")
 
         # Get the pre-computed uncurtailed power for this step (already in kW)
-        self.power_hyp = self.power_hyp_array[step]
-        self.power = self.power_hyp
-        if hasattr(self, "DC_power_hyp_array"):
-            self.DC_power_hyp = self.DC_power_hyp_array[step]
+        self.power_hypothetical = self.power_hypothetical_array[step]
+        self.power = self.power_hypothetical
+        if hasattr(self, "DC_power_hypothetical_array"):
+            self.DC_power_hypothetical = self.DC_power_hypothetical_array[step]
 
         # Apply control
         power_setpoint = h_dict[self.component_name]["power_setpoint"]

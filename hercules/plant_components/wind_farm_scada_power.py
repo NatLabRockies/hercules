@@ -221,9 +221,9 @@ class WindFarmSCADAPower(ComponentBase):
         h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
         h_dict[self.component_name]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_powers_hyp"] = self.turbine_powers
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = self.turbine_powers
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["power_hyp"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers)
 
         # Log the start time UTC if available
         if hasattr(self, "starttime_utc"):
@@ -267,9 +267,9 @@ class WindFarmSCADAPower(ComponentBase):
 
         # Update the h_dict with outputs; SCADA power is not curtailed by Hercules
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
-        h_dict[self.component_name]["power_hyp"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_powers_hyp"] = self.turbine_powers
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = self.turbine_powers
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
         h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
         h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(

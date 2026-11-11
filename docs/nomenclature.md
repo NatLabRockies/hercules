@@ -17,8 +17,8 @@ flowchart LR
     HYCON["Hycon (controller)"]
 
     subgraph COMPONENTS["Components (AC at inverter / PCS output)"]
-        WIND["wind_farm<br/>power, power_hyp<br/>turbine_powers, turbine_powers_hyp"]
-        SOLAR["solar_farm<br/>power, power_hyp<br/>DC_power_hyp"]
+        WIND["wind_farm<br/>power, power_hypothetical<br/>turbine_powers, turbine_powers_hypothetical"]
+        SOLAR["solar_farm<br/>power, power_hypothetical<br/>DC_power_hypothetical"]
         BATT["battery<br/>power, DC_power<br/>SOC"]
         THERM["thermal units<br/>power"]
         ELEC["electrolyzer<br/>power (negative)<br/>power_allocated"]
@@ -57,14 +57,14 @@ and Hycon reads it back (dashed arrows).
 [<subobject>_][DC_]<quantity>[_<qualifier>...][_<unit>]
 ```
 
-The full logged name is `<component>.<name>`, e.g. `solar_farm.power_hyp`.
+The full logged name is `<component>.<name>`, e.g. `solar_farm.power_hypothetical`.
 
 - **`<subobject>`**: an optional part of the component the quantity belongs to, e.g.
   `turbine_`, `rotor_`, `generator_`, `floris_`, `fuel_`.
 - **`DC_`**: marks a DC quantity (see the AC/DC rule below).
 - **`<quantity>`**: what is measured, e.g. `power`, `energy`, `capacity`, `SOC`,
   `efficiency`, `startup_time`, `wind_speed`.
-- **`<qualifier>`**: refines the quantity and always comes after it, e.g. `_hyp`,
+- **`<qualifier>`**: refines the quantity and always comes after it, e.g. `_hypothetical`,
   `_setpoint`, `_max`, `_min`, `_rated`, `_bus`, `_export`, `_hot`.
 - **`<unit>`**: only for non-default units (see below).
 
@@ -74,14 +74,14 @@ Examples: `power_charge_max`, `SOC_min`, `capacity_rated`, `DC_capacity_rated`,
 ## General rules
 
 1. **AC by default.** Every power quantity is AC unless its name contains `DC`.
-   - Solar: `power` is AC at the inverter output; `DC_power_hyp` is DC at the array.
+   - Solar: `power` is AC at the inverter output; `DC_power_hypothetical` is DC at the array.
    - Battery: `power` is AC at the PCS output; `DC_power` is DC at the battery
      terminals.
 2. **`<component>.power` is the actual power** the component delivers to (or draws
    from) the LV bus, after curtailment and setpoint limits.
-3. **`_hyp` means hypothetical (uncurtailed) power.** It is what the resource
-   would produce with no curtailment, so `power <= power_hyp`. Currently only wind and
-   solar report `_hyp` quantities; other components may add them later.
+3. **`_hypothetical` marks uncurtailed power.** It is what the resource
+   would produce with no curtailment, so `power <= power_hypothetical`. Currently only wind and
+   solar report `_hypothetical` quantities; other components may add them later.
 4. **`_setpoint` quantities belong to the controller.** Hercules reads them but never
    writes them. Setpoints are AC and use the same sign convention as `power`.
    Multi-unit components (`ThermalPlant`, `CombinedCyclePlant`) derive per-unit setpoints
@@ -172,7 +172,7 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 |---|---|---|
 | `turbine_power_setpoints` | setpoint | Per-turbine power limits (`WindFarm` only) |
 | `power`, `turbine_powers` | output | Actual farm and turbine power |
-| `power_hyp`, `turbine_powers_hyp` | output | Uncurtailed farm and turbine power |
+| `power_hypothetical`, `turbine_powers_hypothetical` | output | Uncurtailed farm and turbine power |
 | `capacity_rated`, `turbine_power_rated`, `turbine_count` | metadata | Ratings |
 | `wind_speed_mean_background`, `wind_speed_mean_withwakes`, `wind_direction_mean` | output | Mean inflow |
 | `wind_speeds_background`, `wind_speeds_withwakes` | output | Per-turbine wind speeds |
@@ -183,8 +183,8 @@ Turbine model file (`dof1_model` section): `rotor_inertia`, `rotor_speed_rated`,
 `torque_rated`, `cq_table_filename`, `rotor_speed_filter_frequency`, `gearbox_ratio`,
 `generator_efficiency`, `torque_rate_max`, `pitch_rate_max`, `rotor_speed_initial_rpm`.
 
-`power_hyp` uses the same waked wind speeds as `power`, so wake changes caused by
-derating are not reflected. For `WindFarmSCADAPower`, `power_hyp` equals `power`.
+`power_hypothetical` uses the same waked wind speeds as `power`, so wake changes caused by
+derating are not reflected. For `WindFarmSCADAPower`, `power_hypothetical` equals `power`.
 
 ### Solar (`SolarPySAMPVWatts`)
 
@@ -192,8 +192,8 @@ derating are not reflected. For `WindFarmSCADAPower`, `power_hyp` equals `power`
 |---|---|---|
 | `power_setpoint` | setpoint | AC power limit |
 | `power` | output | AC power after curtailment |
-| `power_hyp` | output | AC power before curtailment (after inverter clipping) |
-| `DC_power_hyp` | output | DC array power before the inverter |
+| `power_hypothetical` | output | AC power before curtailment (after inverter clipping) |
+| `DC_power_hypothetical` | output | DC array power before the inverter |
 | `capacity_rated`, `DC_capacity_rated` | metadata | AC rating (`system_capacity / dc_ac_ratio`) and DC rating |
 | `DNI`, `POA`, `AOI` | output | Irradiance and angle of incidence |
 
@@ -243,7 +243,7 @@ model, so its `DC_power` equals `power`.
 
 ### Power playback (`PowerPlayback`)
 
-`power` only. It has no setpoint and does not yet report a `_hyp` quantity.
+`power` only. It has no setpoint and does not yet report a `_hypothetical` quantity.
 
 ## Exceptions
 
@@ -268,6 +268,7 @@ error that names the replacement.
 |---|---|
 | `plant.power` (HDF5 `plant_power`) | `plant.power_bus` (HDF5 `plant_power_bus`) |
 | `eta_bus_to_poi` (name used in issue #279) | `efficiency_bus_to_poi` |
+| `power_hyp`, `DC_power_hyp`, `turbine_powers_hyp` (names used in issue #279) | `power_hypothetical`, `DC_power_hypothetical`, `turbine_powers_hypothetical` |
 | `n_components` | `component_count` |
 | `output_file` | `output_filename` |
 | `logging.log_file`, `log_file_name` | `log_filename` |
@@ -279,7 +280,7 @@ error that names the replacement.
 | `rated_rotor_speed`, `rated_torque`, `initial_rpm` | `rotor_speed_rated`, `torque_rated`, `rotor_speed_initial_rpm` |
 | `filterfreq_rotor_speed`, `gen_efficiency` | `rotor_speed_filter_frequency`, `generator_efficiency` |
 | `max_pitch_rate`, `max_torque_rate` | `pitch_rate_max`, `torque_rate_max` |
-| `ac_power_available`, `dc_power_available` | `power_hyp`, `DC_power_hyp` |
+| `ac_power_available`, `dc_power_available` | `power_hypothetical`, `DC_power_hypothetical` |
 | `dni`, `poa`, `aoi` | `DNI`, `POA`, `AOI` |
 | `charge_rate`, `discharge_rate` | `power_charge_max`, `power_discharge_max` |
 | `max_SOC`, `min_SOC`, `soc` | `SOC_max`, `SOC_min`, `SOC` |

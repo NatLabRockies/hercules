@@ -20,8 +20,8 @@ def test_init():
     # Test that system_capacity is stored correctly
     assert SPS.DC_capacity_rated == test_h_dict["solar_farm"]["system_capacity"]
     assert SPS.power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
-    assert SPS.power_hyp == SPS.power_hyp_array[0]
-    assert SPS.DC_power_hyp == SPS.DC_power_hyp_array[0]
+    assert SPS.power_hypothetical == SPS.power_hypothetical_array[0]
+    assert SPS.DC_power_hypothetical == SPS.DC_power_hypothetical_array[0]
     assert SPS.DNI == test_h_dict["solar_farm"]["initial_conditions"]["DNI"]
     assert SPS.AOI == 0
 
@@ -170,14 +170,14 @@ def test_control():
     power_setpoint = 100000  # Above available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
-    power_hyp = SPS.power_hyp_array[0]
-    assert_almost_equal(SPS.power, power_hyp, decimal=8)  # available power
+    power_hypothetical = SPS.power_hypothetical_array[0]
+    assert_almost_equal(SPS.power, power_hypothetical, decimal=8)  # available power
 
     # Test curtailment - set power below available power, should get setpoint
     power_setpoint = 100  # Below available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     out = SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)
-    # power_hyp is unaffected by curtailment
-    assert out["solar_farm"]["power_hyp"] == power_hyp
-    assert out["solar_farm"]["power"] < out["solar_farm"]["power_hyp"]
+    # power_hypothetical is unaffected by curtailment
+    assert out["solar_farm"]["power_hypothetical"] == power_hypothetical
+    assert out["solar_farm"]["power"] < out["solar_farm"]["power_hypothetical"]

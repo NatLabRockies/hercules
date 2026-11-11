@@ -24,15 +24,15 @@ hercules_output.h5
 │   ├── plant_locally_generated_power  # Sum of generator power (kW)
 │   ├── components/
 │   │   ├── wind_farm.power                   # Wind farm power output
-│   │   ├── wind_farm.power_hyp               # Uncurtailed wind farm power (if logged)
+│   │   ├── wind_farm.power_hypothetical               # Uncurtailed wind farm power (if logged)
 │   │   ├── wind_farm.wind_speed_mean_background # Farm-average background wind speed
 │   │   ├── wind_farm.wind_speed_mean_withwakes   # Farm-average with-wakes wind speed
 │   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
 │   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
 │   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
 │   │   ├── solar_farm.power                  # Solar farm AC power after control (kW)
-│   │   ├── solar_farm.power_hyp              # Uncurtailed AC power (kW) (if logged)
-│   │   ├── solar_farm.DC_power_hyp           # Uncurtailed DC power (kW) (if logged)
+│   │   ├── solar_farm.power_hypothetical              # Uncurtailed AC power (kW) (if logged)
+│   │   ├── solar_farm.DC_power_hypothetical           # Uncurtailed DC power (kW) (if logged)
 │   │   ├── solar_farm.DNI                    # Direct normal irradiance (if logged)
 │   │   ├── solar_farm.POA                    # Plane-of-array irradiance (if logged)
 │   │   ├── battery.power                     # Battery AC power, discharge positive (if present)

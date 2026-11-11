@@ -48,7 +48,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `wind_input_filename` | str | Wind data input file |
 | `turbine_filename` | str | Turbine configuration file |
 | `log_filename` | str | Wind farm log file path |
-| `log_channels` | list | List of channels to log (e.g., ["power", "power_hyp", "wind_speed_mean_background", "turbine_powers"]) |
+| `log_channels` | list | List of channels to log (e.g., ["power", "power_hypothetical", "wind_speed_mean_background", "turbine_powers"]) |
 | `floris_update_time` | float | How often to update FLORIS wake calculations in seconds |
 
 ### Solar Farm
@@ -63,7 +63,7 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
-| `log_channels` | list | Channels to log (e.g. `power`, `power_hyp`, `DC_power_hyp`, `DNI`, `POA`, `AOI`) — see [Solar PV](solar_pv.md) |
+| `log_channels` | list | Channels to log (e.g. `power`, `power_hypothetical`, `DC_power_hypothetical`, `DNI`, `POA`, `AOI`) — see [Solar PV](solar_pv.md) |
 | `initial_conditions` | dict | Initial `power`, `DNI`, `POA` placeholders; modeled values are not all applied on init, and `power` is updated to the modeled AC value on the first `step()` |
 
 ### Battery

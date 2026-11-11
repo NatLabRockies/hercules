@@ -134,21 +134,21 @@ def test_resource_dt_matches_full_resolution_within_tolerance(tmp_path):
     assert spv_full._compute_dt == pytest.approx(dt)
 
     expected_n = int((spv_resource.endtime - spv_resource.starttime) / dt)
-    assert spv_resource.power_hyp_array.shape[0] == expected_n
-    assert spv_full.power_hyp_array.shape[0] == expected_n
+    assert spv_resource.power_hypothetical_array.shape[0] == expected_n
+    assert spv_full.power_hypothetical_array.shape[0] == expected_n
 
     # Approach-2 numerical equivalence: AC and DC arrays match closely.
     # The atol absorbs float32 rounding and the small sun-position-half-step
     # bias on ~30 MW magnitudes.
     np.testing.assert_allclose(
-        spv_resource.power_hyp_array,
-        spv_full.power_hyp_array,
+        spv_resource.power_hypothetical_array,
+        spv_full.power_hypothetical_array,
         rtol=1e-3,
         atol=10.0,
     )
     np.testing.assert_allclose(
-        spv_resource.DC_power_hyp_array,
-        spv_full.DC_power_hyp_array,
+        spv_resource.DC_power_hypothetical_array,
+        spv_full.DC_power_hypothetical_array,
         rtol=1e-3,
         atol=10.0,
     )
@@ -175,7 +175,7 @@ def test_resource_dt_is_no_op_when_dt_solar_equals_dt(tmp_path):
 
     assert spv._compute_dt == pytest.approx(dt)
     expected_n = int((spv.endtime - spv.starttime) / dt)
-    assert spv.power_hyp_array.shape[0] == expected_n
+    assert spv.power_hypothetical_array.shape[0] == expected_n
     assert spv._compute_time_steps is spv._hercules_time_steps
 
 
@@ -301,18 +301,18 @@ def test_resource_dt_matches_full_resolution_with_offset_start_within_tolerance(
     spv_full = SolarPySAMPVWatts(h_dict_full, "solar_farm")
 
     expected_n = int((spv_resource.endtime - spv_resource.starttime) / dt)
-    assert spv_resource.power_hyp_array.shape[0] == expected_n
-    assert spv_full.power_hyp_array.shape[0] == expected_n
+    assert spv_resource.power_hypothetical_array.shape[0] == expected_n
+    assert spv_full.power_hypothetical_array.shape[0] == expected_n
 
     np.testing.assert_allclose(
-        spv_resource.power_hyp_array,
-        spv_full.power_hyp_array,
+        spv_resource.power_hypothetical_array,
+        spv_full.power_hypothetical_array,
         rtol=1e-3,
         atol=10.0,
     )
     np.testing.assert_allclose(
-        spv_resource.DC_power_hyp_array,
-        spv_full.DC_power_hyp_array,
+        spv_resource.DC_power_hypothetical_array,
+        spv_full.DC_power_hypothetical_array,
         rtol=1e-3,
         atol=10.0,
     )

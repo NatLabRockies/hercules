@@ -125,9 +125,11 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # hypothetical power: the model output before any Hercules control
         # curtailment.
         compute_outputs = {
-            "power_hyp": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
+            "power_hypothetical": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
             / hercules_float_type(1000.0),
-            "DC_power_hyp": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
+            "DC_power_hypothetical": np.array(
+                self.system_model.Outputs.dc, dtype=hercules_float_type
+            )
             / hercules_float_type(1000.0),
             "DNI": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
             "DHI": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
@@ -139,10 +141,10 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         # Upsample to the Hercules dt grid (no-op when compute_dt == dt).
         hercules_outputs = self._upsample_outputs_to_hercules_dt(compute_outputs)
 
-        self.power_hyp_array = hercules_outputs["power_hyp"]
-        self.DC_power_hyp_array = hercules_outputs["DC_power_hyp"]
-        self.power_hyp = self.power_hyp_array[0]
-        self.DC_power_hyp = self.DC_power_hyp_array[0]
+        self.power_hypothetical_array = hercules_outputs["power_hypothetical"]
+        self.DC_power_hypothetical_array = hercules_outputs["DC_power_hypothetical"]
+        self.power_hypothetical = self.power_hypothetical_array[0]
+        self.DC_power_hypothetical = self.DC_power_hypothetical_array[0]
 
         self.DNI_array_output = hercules_outputs["DNI"]
         self.DHI_array_output = hercules_outputs["DHI"]

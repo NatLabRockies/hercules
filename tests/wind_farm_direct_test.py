@@ -110,8 +110,8 @@ def test_wind_farm_direct_turbine_dynamics():
     assert np.all(result["wind_farm"]["turbine_powers"] <= 100.0 + 1e-6)
 
     # Uncurtailed power is not limited by the setpoint
-    assert np.all(result["wind_farm"]["turbine_powers_hyp"] > 100.0)
-    assert result["wind_farm"]["power_hyp"] > result["wind_farm"]["power"]
+    assert np.all(result["wind_farm"]["turbine_powers_hypothetical"] > 100.0)
+    assert result["wind_farm"]["power_hypothetical"] > result["wind_farm"]["power"]
 
 
 def test_wind_farm_direct_power_setpoint_zero():

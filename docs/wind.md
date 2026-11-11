@@ -81,9 +81,9 @@ Advanced model with rotor dynamics, pitch control, and generator torque control.
 
 All four components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
-- `power_hyp`: Total uncurtailed wind farm power (kW)
+- `power_hypothetical`: Total uncurtailed wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
-- `turbine_powers_hyp`: Individual uncurtailed turbine powers (array, kW)
+- `turbine_powers_hypothetical`: Individual uncurtailed turbine powers (array, kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
 - `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
@@ -92,7 +92,7 @@ All four components provide these outputs in the h_dict at each simulation step:
 
 Metadata added at initialization: `turbine_count`, `turbine_power_rated` and `capacity_rated` (kW).
 
-`power_hyp` is what the turbines would produce with no setpoint limit, using the same waked wind
+`power_hypothetical` is what the turbines would produce with no setpoint limit, using the same waked wind
 speeds as `power` (wake changes caused by derating are not reflected). For the filter model it is
 the power curve passed through the same filter; for the 1-DOF model it is the steady-state power
 curve; for `WindFarmSCADAPower` it equals `power`.
@@ -114,14 +114,14 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Scalar Channels:**
 - `power`: Total wind farm power output (kW)
-- `power_hyp`: Total uncurtailed wind farm power (kW)
+- `power_hypothetical`: Total uncurtailed wind farm power (kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
 - `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 
 **Array Channels:**
 - `turbine_powers`: Power output for all turbines (creates datasets like `wind_farm.turbine_powers.000`, `wind_farm.turbine_powers.001`, etc.)
-- `turbine_powers_hyp`: Uncurtailed power for all turbines
+- `turbine_powers_hypothetical`: Uncurtailed power for all turbines
 - `turbine_power_setpoints`: Power setpoints for all turbines (WindFarm only)
 - `wind_speeds_background`: Background wind speeds for all turbines
 - `wind_speeds_withwakes`: With-wakes wind speeds for all turbines
