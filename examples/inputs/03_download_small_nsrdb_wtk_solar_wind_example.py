@@ -45,7 +45,7 @@ def run_small_example():
             target_lat=target_lat,
             target_lon=target_lon,
             year=year_solar,
-            variables=["GHI"],  # Just one variable
+            variables=["ghi"],  # Just one variable
             nsrdb_dataset_path="/nrel/nsrdb/GOES/tmy/v4.0.0",  # Using a non-default dataset
             nsrdb_filename_prefix="nsrdb_tmy-",  # Downloading a typical meteorological year dataset
             coord_delta=0.05,  # Small area
