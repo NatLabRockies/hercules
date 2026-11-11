@@ -140,7 +140,7 @@ class BatteryDynamic(ComponentBase):
         )
 
         self.build_SS()
-        # float64 so small increments are not lost against a large stored energy (AI)
+        # float64 so small increments are not lost against a large stored energy
         self.x = np.array(
             [[initial_conditions["SOC"] * self.energy_capacity * 3600]],
             dtype=np.float64,

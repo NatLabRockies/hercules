@@ -179,7 +179,7 @@ def test_hercules_output_merges_controller_log():
     with tempfile.TemporaryDirectory() as tmp_dir:
         h5_file = os.path.join(tmp_dir, "out.h5")
         create_test_hdf5_file(h5_file)
-        # Time 3 deliberately missing; name collides with a possible Hercules column (AI)
+        # Time 3 deliberately missing; name collides with a possible Hercules column
         pd.DataFrame(
             {
                 "time": [0, 1, 2, 4, 5],

@@ -922,7 +922,7 @@ class Turbine1dofModel:
         self.rotor_radius = turbine_type["rotor_diameter"] / 2
         self.rotor_area = np.pi * self.rotor_radius**2
 
-        # Steady-state power curve, used for the uncurtailed power_hyp (AI)
+        # Steady-state power curve, used for the uncurtailed power_hyp
         self.wind_speed_lut = np.array(
             turbine_type["power_thrust_table"]["wind_speed"], dtype=hercules_float_type
         )

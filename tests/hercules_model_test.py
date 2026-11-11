@@ -117,7 +117,7 @@ def test_HerculesModel_instantiation():
 
 
 def test_output_directory_and_filename_handling():
-    # Verify output directory reuse, extension normalization, overwrite, and auto-increment. (AI)
+    # Verify output directory reuse, extension normalization, overwrite, and auto-increment.
     with TemporaryDirectory() as temp_dir:
         output_dir = Path(temp_dir, "outputs")
         output_filename = "nested/result"

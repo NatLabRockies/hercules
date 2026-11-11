@@ -85,7 +85,7 @@ class ComponentBase:
         else:
             self.log_filename = f"log_{component_name}.log"
 
-        # The top-level logging log_filename is for the main Hercules log only (AI)
+        # The top-level logging log_filename is for the main Hercules log only
         logging_inputs.pop("log_filename", None)
 
         self.logger = self._setup_logging(self.log_filename, **logging_inputs)

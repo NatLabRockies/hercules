@@ -57,7 +57,7 @@ class BatteryReservoir(ComponentBase):
 
         self.energy_max = self.SOC_max * self.energy_capacity  # [kWh]
         self.energy_min = self.SOC_min * self.energy_capacity  # [kWh]
-        # Per-step retention from the exact solution of dE/dt = -E / tau (AI)
+        # Per-step retention from the exact solution of dE/dt = -E / tau
         self.retention = np.exp(-self.dt / self.time_constant_self_discharge)
 
         self.SOC = params["initial_conditions"]["SOC"]

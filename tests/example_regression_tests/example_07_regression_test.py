@@ -161,7 +161,7 @@ def test_auto_increment_output_filename():
             "log_filename": f"log_hercules_test{test_n}.log",
         }
 
-        # The first run uses the requested output filename. (AI)
+        # The first run uses the requested output filename.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}.h5"
@@ -172,7 +172,7 @@ def test_auto_increment_output_filename():
         assert expected_output_main_log_fpath.is_file(), "run 1, main log file"
         assert expected_component_log_fpath.is_file(), "run 1, component log file"
 
-        # A collision increments the filename without changing the output directory. (AI)
+        # A collision increments the filename without changing the output directory.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}0.h5"
@@ -181,7 +181,7 @@ def test_auto_increment_output_filename():
         assert expected_output_main_log_fpath.is_file(), "run 2, main log file"
         assert expected_component_log_fpath.is_file(), "run 2, component log file"
 
-        # Further collisions increment to the next available suffix. (AI)
+        # Further collisions increment to the next available suffix.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}1.h5"

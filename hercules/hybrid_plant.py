@@ -196,7 +196,7 @@ class HybridPlant:
         )
         h_dict["plant"]["power_bus"] = power_bus
 
-        # Bus-to-POI losses always reduce what arrives at the far end (AI)
+        # Bus-to-POI losses always reduce what arrives at the far end
         if power_bus >= 0:
             h_dict["plant"]["power_export"] = self.eta_bus_to_poi * power_bus
         else:
