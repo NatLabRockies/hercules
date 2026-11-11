@@ -479,17 +479,17 @@ def test_load_hercules_input_old_names_raise():
 
 
 def test_load_hercules_input_eta_bus_to_poi_validation():
-    """plant.eta_bus_to_poi must be in (0, 1]."""
+    """plant.efficiency_bus_to_poi must be in (0, 1]."""
     config = {
         "dt": 1.0,
         "starttime_utc": "2020-01-01T00:00:00Z",
         "endtime_utc": "2020-01-01T01:00:00Z",
-        "plant": {"interconnect_limit": 30000.0, "eta_bus_to_poi": 0.97},
+        "plant": {"interconnect_limit": 30000.0, "efficiency_bus_to_poi": 0.97},
     }
-    assert load_hercules_input_from_dict(config)["plant"]["eta_bus_to_poi"] == 0.97
+    assert load_hercules_input_from_dict(config)["plant"]["efficiency_bus_to_poi"] == 0.97
 
-    config["plant"]["eta_bus_to_poi"] = 1.2
-    with pytest.raises(ValueError, match="eta_bus_to_poi"):
+    config["plant"]["efficiency_bus_to_poi"] = 1.2
+    with pytest.raises(ValueError, match="efficiency_bus_to_poi"):
         load_hercules_input_from_dict(config)
 
 

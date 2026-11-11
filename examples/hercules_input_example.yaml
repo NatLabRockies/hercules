@@ -29,7 +29,7 @@ logging:
 # Plant-level configuration
 plant:
   interconnect_limit: 201300  # kW - grid interconnection capacity limit
-  eta_bus_to_poi: 1.0  # Optional one-way LV bus to POI efficiency (0-1], default 1.0
+  efficiency_bus_to_poi: 1.0  # Optional one-way LV bus to POI efficiency (0-1], default 1.0
 
 # Wind farm configuration (comment out if not using wind)
 wind_farm:

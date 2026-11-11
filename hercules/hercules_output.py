@@ -179,7 +179,7 @@ class HerculesOutput:
             print(f"   Interconnect Limit: {interconnect_limit / 1000:.1f} MW")
         else:
             print("   Interconnect Limit: Not available")
-        print(f"   Bus to POI Efficiency: {plant_config.get('eta_bus_to_poi', 1.0)}")
+        print(f"   Bus to POI Efficiency: {plant_config.get('efficiency_bus_to_poi', 1.0)}")
 
         for name in h_dict.get("component_names", []):
             config = h_dict.get(name, {})

@@ -47,6 +47,7 @@ RENAMED_KEYS = {
     "min_SOC": "SOC_min",
     "soc": "SOC",
     "self_discharge_time_constant": "time_constant_self_discharge",
+    "eta_bus_to_poi": "efficiency_bus_to_poi",
     "reject": "power_reject",
     "electrolyzer_signal": "power_setpoint (negative for consumption)",
     "power_input_kw": "power_allocated",
@@ -421,11 +422,11 @@ def load_hercules_input(filename):
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
 
-    if "eta_bus_to_poi" in h_dict["plant"]:
-        eta = h_dict["plant"]["eta_bus_to_poi"]
-        if not isinstance(eta, (float, int)) or not 0 < eta <= 1:
+    if "efficiency_bus_to_poi" in h_dict["plant"]:
+        efficiency = h_dict["plant"]["efficiency_bus_to_poi"]
+        if not isinstance(efficiency, (float, int)) or not 0 < efficiency <= 1:
             raise ValueError(
-                f"plant.eta_bus_to_poi must be a number in (0, 1] in input file {filename}"
+                f"plant.efficiency_bus_to_poi must be a number in (0, 1] in input file {filename}"
             )
 
     # Pass through optional power setpoint schedule

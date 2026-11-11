@@ -31,7 +31,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **Plant Configuration** |
 | `plant` | dict | Plant-level configuration | - |
 | `plant.interconnect_limit` | float | Maximum power limit in kW | - |
-| `plant.eta_bus_to_poi` | float | One-way LV bus to POI efficiency, in (0, 1] | 1.0 |
+| `plant.efficiency_bus_to_poi` | float | One-way LV bus to POI efficiency, in (0, 1] | 1.0 |
 | **Optional Global Parameters** |
 | `verbose` | bool | Enable verbose logging | False |
 | `name` | str | Simulation name | - |

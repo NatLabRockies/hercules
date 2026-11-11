@@ -25,7 +25,7 @@ flowchart LR
     end
 
     BUS["LV bus<br/>plant.power_bus<br/>plant.locally_generated_power"]
-    LOSS["η = plant.eta_bus_to_poi<br/>(applied in both directions)"]
+    LOSS["η = plant.efficiency_bus_to_poi<br/>(applied in both directions)"]
     POI["POI<br/>plant.power_export"]
     GRID["Grid"]
 
@@ -93,7 +93,7 @@ Examples: `power_charge_max`, `SOC_min`, `capacity_rated`, `DC_capacity_rated`,
    - `plant.power_bus`: sum of all `component.power` on the LV bus, before losses.
    - `plant.locally_generated_power`: sum of `power` over `generator` components only.
      Storage and load components use it to avoid drawing from the grid.
-   - `plant.eta_bus_to_poi` (η): constant one-way electrical efficiency between the
+   - `plant.efficiency_bus_to_poi` (η): constant one-way electrical efficiency between the
      LV bus and the point of interconnection (POI). It lumps LV AC ohmic losses, the
      MV transformer, MV line losses, the HV transformer and the gen-tie. Optional
      input, default 1.0, must satisfy 0 < η ≤ 1.
@@ -143,6 +143,8 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 
 - **Acronyms are uppercase**: `AC`, `DC`, `SOC`, `SOH`, `DNI`, `POA`, `AOI`, `GHI`,
   `DHI`, `HHV`, `H2`, `MFR`, `POI`.
+- **Spell out `efficiency`** in names (`efficiency_bus_to_poi`, `efficiency_charge`);
+  do not use `eta`. The symbol η may still be used in equations.
 - **Arrays are plural**: `turbine_powers`, `turbine_power_setpoints`,
   `wind_speeds_background`, `power_setpoints`.
 - **Counts** are `<thing>_count[_<qualifier>]`: `turbine_count`, `stack_count`,
@@ -157,7 +159,7 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 | Name | Kind | Description |
 |---|---|---|
 | `plant.interconnect_limit` | input | POI limit in kW (not enforced by Hercules) |
-| `plant.eta_bus_to_poi` | input | Bus-to-POI efficiency, default 1.0 |
+| `plant.efficiency_bus_to_poi` | input | Bus-to-POI efficiency, default 1.0 |
 | `plant.power_bus` | output | Sum of component `power` |
 | `plant.locally_generated_power` | output | Sum of generator `power` |
 | `plant.power_export` | output | Power at the POI |
@@ -264,6 +266,7 @@ error that names the replacement.
 | Old | New |
 |---|---|
 | `plant.power` (HDF5 `plant_power`) | `plant.power_bus` (HDF5 `plant_power_bus`) |
+| `eta_bus_to_poi` (name used in issue #279) | `efficiency_bus_to_poi` |
 | `n_components` | `component_count` |
 | `output_file` | `output_filename` |
 | `logging.log_file`, `log_file_name` | `log_filename` |

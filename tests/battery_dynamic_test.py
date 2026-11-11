@@ -368,7 +368,7 @@ def test_SB_roundtrip_efficiency():
     charged_energy = SB.energy
     energy_stored = charged_energy - initial_energy
 
-    # Expected stored energy should be charge_power * 0.5hr * eta_charge
+    # Expected stored energy should be charge_power * 0.5hr * efficiency_charge
     expected_stored = charge_power * 0.5 * SB.efficiency_charge  # 250 * 0.9
     assert_almost_equal(energy_stored, expected_stored, 1)
 

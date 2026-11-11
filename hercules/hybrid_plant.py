@@ -80,7 +80,7 @@ class HybridPlant:
             if obj.component_category == "generator"
         ]
 
-        self.eta_bus_to_poi = h_dict["plant"].get("eta_bus_to_poi", 1.0)
+        self.efficiency_bus_to_poi = h_dict["plant"].get("efficiency_bus_to_poi", 1.0)
 
     def add_plant_metadata_to_h_dict(self, h_dict):
         """Add plant component metadata to the h_dict.
@@ -95,7 +95,7 @@ class HybridPlant:
         h_dict["component_names"] = self.component_names
         h_dict["generator_names"] = self.generator_names
         h_dict["component_count"] = self.component_count
-        h_dict["plant"]["eta_bus_to_poi"] = self.eta_bus_to_poi
+        h_dict["plant"]["efficiency_bus_to_poi"] = self.efficiency_bus_to_poi
 
         for component_name in self.component_names:
             component = self.component_objects[component_name]
@@ -198,9 +198,9 @@ class HybridPlant:
 
         # Bus-to-POI losses always reduce what arrives at the far end
         if power_bus >= 0:
-            h_dict["plant"]["power_export"] = self.eta_bus_to_poi * power_bus
+            h_dict["plant"]["power_export"] = self.efficiency_bus_to_poi * power_bus
         else:
-            h_dict["plant"]["power_export"] = power_bus / self.eta_bus_to_poi
+            h_dict["plant"]["power_export"] = power_bus / self.efficiency_bus_to_poi
 
         # Excludes storage and load components
         h_dict["plant"]["locally_generated_power"] = np.sum(

@@ -35,7 +35,7 @@ The YAML key for each section is a user-chosen `component_name` and is not requi
 Each step `HybridPlant` computes (see [Nomenclature](nomenclature.md)):
 
 - `plant.power_bus`: sum of all component `power` on the LV bus.
-- `plant.power_export`: power at the POI after the bus-to-POI losses, $\eta P_{bus}$ when exporting and $P_{bus} / \eta$ when importing, with $\eta$ = `plant.eta_bus_to_poi` (optional input, default 1.0).
+- `plant.power_export`: power at the POI after the bus-to-POI losses, $\eta P_{bus}$ when exporting and $P_{bus} / \eta$ when importing, with $\eta$ = `plant.efficiency_bus_to_poi` (optional input, default 1.0).
 - `plant.locally_generated_power`: sum of generator `power`.
 
 ## Sign Convention

@@ -171,9 +171,9 @@ def test_custom_component_name_passed_through():
 
 def test_battery_sign_and_bus_to_poi_losses():
     """Battery power is discharge-positive outside the component, the controller setpoint is
-    left untouched, and power_export applies eta_bus_to_poi in both directions."""
+    left untouched, and power_export applies efficiency_bus_to_poi in both directions."""
     test_h_dict = copy.deepcopy(h_dict_battery)
-    test_h_dict["plant"]["eta_bus_to_poi"] = 0.9
+    test_h_dict["plant"]["efficiency_bus_to_poi"] = 0.9
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["roundtrip_efficiency"] = 0.8
     hp = hybrid_plant.HybridPlant(test_h_dict)
@@ -188,7 +188,7 @@ def test_battery_sign_and_bus_to_poi_losses():
     assert test_h_dict["plant"]["power_bus"] == pytest.approx(10.0)
     assert test_h_dict["plant"]["power_export"] == pytest.approx(9.0)
 
-    # Charge 10 kW: roundtrip losses applied on charging, import grossed up by eta
+    # Charge 10 kW: roundtrip losses applied on charging, import grossed up by bus-to-POI efficiency
     test_h_dict["battery"]["power_setpoint"] = -10.0
     test_h_dict = hp.step(test_h_dict)
     assert test_h_dict["battery"]["power_setpoint"] == -10.0
