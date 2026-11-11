@@ -9,16 +9,18 @@ class BatteryReservoir(ComponentBase):
 
     Energy-reservoir model with power and energy limits. Roundtrip efficiency losses
     are applied entirely on charging, so stored energy equals the energy deliverable
-    at the terminals. A full discharge at ``discharge_rate`` lasts
-    ``energy_capacity / discharge_rate`` and a full charge at ``charge_rate`` lasts
-    ``energy_capacity / (roundtrip_efficiency * charge_rate)``.
+    at the terminals. A full discharge at ``power_discharge_max`` lasts
+    ``energy_capacity / power_discharge_max`` and a full charge at ``power_charge_max``
+    lasts ``energy_capacity / (roundtrip_efficiency * power_charge_max)``.
 
     Note:
-        Within this class positive power is charging. ``HybridPlant`` inverts the sign
-        so that positive power is discharging at the plant level.
+        Within this class positive power is charging. ``HybridPlant`` negates
+        ``consumer_sign_outputs`` so that positive power is discharging outside the
+        component.
     """
 
     component_category = "storage"
+    consumer_sign_outputs = ("power", "DC_power")
 
     def __init__(self, h_dict, component_name):
         """Initialize the BatteryReservoir class.
@@ -27,15 +29,15 @@ class BatteryReservoir(ComponentBase):
             h_dict (dict): Dictionary containing simulation parameters. The component
                 section requires:
                 - energy_capacity (float): Deliverable energy capacity in kWh.
-                - charge_rate (float): Maximum charge power in kW.
-                - discharge_rate (float): Maximum discharge power in kW.
+                - power_charge_max (float): Maximum charge power in kW.
+                - power_discharge_max (float): Maximum discharge power in kW.
                 - initial_conditions (dict): Initial ``SOC`` (0-1).
                 And optionally:
-                - max_SOC (float): Maximum state of charge (0-1). Defaults to 1.0.
-                - min_SOC (float): Minimum state of charge (0-1). Defaults to 0.0.
+                - SOC_max (float): Maximum state of charge (0-1). Defaults to 1.0.
+                - SOC_min (float): Minimum state of charge (0-1). Defaults to 0.0.
                 - roundtrip_efficiency (float): Roundtrip efficiency (0-1), applied
                   on charging. Defaults to 1.0.
-                - self_discharge_time_constant (float): Self-discharge time constant
+                - time_constant_self_discharge (float): Self-discharge time constant
                   in s. Defaults to inf (no self-discharge).
                 - allow_grid_power_consumption (bool): Allow charging beyond locally
                   generated power. Defaults to False.
@@ -45,22 +47,23 @@ class BatteryReservoir(ComponentBase):
         params = h_dict[component_name]
 
         self.energy_capacity = params["energy_capacity"]  # [kWh]
-        self.charge_rate = params["charge_rate"]  # [kW]
-        self.discharge_rate = params["discharge_rate"]  # [kW]
-        self.SOC_max = params.get("max_SOC", 1.0)
-        self.SOC_min = params.get("min_SOC", 0.0)
+        self.power_charge_max = params["power_charge_max"]  # [kW]
+        self.power_discharge_max = params["power_discharge_max"]  # [kW]
+        self.SOC_max = params.get("SOC_max", 1.0)
+        self.SOC_min = params.get("SOC_min", 0.0)
         self.roundtrip_efficiency = params.get("roundtrip_efficiency", 1.0)
-        self.tau_self_discharge = params.get("self_discharge_time_constant", np.inf)  # [s]
+        self.time_constant_self_discharge = params.get("time_constant_self_discharge", np.inf)
         self.allow_grid_power_consumption = params.get("allow_grid_power_consumption", False)
 
-        self.E_max = self.SOC_max * self.energy_capacity  # [kWh]
-        self.E_min = self.SOC_min * self.energy_capacity  # [kWh]
-        # Per-step retention from the exact solution of dE/dt = -E / tau (AI)
-        self.decay = np.exp(-self.dt / self.tau_self_discharge)
+        self.energy_max = self.SOC_max * self.energy_capacity  # [kWh]
+        self.energy_min = self.SOC_min * self.energy_capacity  # [kWh]
+        # Per-step retention from the exact solution of dE/dt = -E / tau
+        self.retention = np.exp(-self.dt / self.time_constant_self_discharge)
 
         self.SOC = params["initial_conditions"]["SOC"]
-        self.E = self.SOC * self.energy_capacity  # [kWh]
-        self.power_kw = 0.0
+        self.energy = self.SOC * self.energy_capacity  # [kWh]
+        self.power_charge = 0.0
+        self.DC_power_charge = 0.0
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -74,10 +77,9 @@ class BatteryReservoir(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-
-        # Add what we want later
         h_dict[self.component_name]["power"] = 0
-        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["DC_power"] = 0
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         return h_dict
 
@@ -95,35 +97,42 @@ class BatteryReservoir(ComponentBase):
 
         Returns:
             dict: Updated h_dict with outputs stored under self.component_name:
-                - power: Actual power in kW (positive is charging).
-                - soc: State of charge (0-1).
+                - power: Actual AC power in kW (positive is charging).
+                - DC_power: Power into storage after efficiency losses in kW (positive
+                  is charging).
+                - SOC: State of charge (0-1).
         """
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
         if np.isnan(power_setpoint):
             raise ValueError(f"{self.component_name}: power_setpoint is NaN")
 
         if self.allow_grid_power_consumption:
-            P_avail = np.inf
+            power_charge_available = np.inf
         else:
-            P_avail = h_dict["plant"]["locally_generated_power"]  # [kW]
+            power_charge_available = h_dict["plant"]["locally_generated_power"]  # [kW]
 
         hours = self.dt / 3600
-        E_decayed = self.E * self.decay  # [kWh]
+        energy_retained = self.energy * self.retention  # [kWh]
 
-        # Charge and discharge limits [kW]
-        P_hi = min(
-            self.charge_rate,
-            P_avail,
-            (self.E_max - E_decayed) / (hours * self.roundtrip_efficiency),
+        # Charge-positive power limits [kW]
+        power_hi = min(
+            self.power_charge_max,
+            power_charge_available,
+            (self.energy_max - energy_retained) / (hours * self.roundtrip_efficiency),
         )
-        P_lo = max(-self.discharge_rate, (self.E_min - E_decayed) / hours)
-        P = min(max(power_setpoint, min(P_lo, 0.0)), max(P_hi, 0.0))
+        power_lo = max(-self.power_discharge_max, (self.energy_min - energy_retained) / hours)
+        power_charge = min(max(power_setpoint, min(power_lo, 0.0)), max(power_hi, 0.0))
 
-        self.E = E_decayed + (self.roundtrip_efficiency * P if P > 0 else P) * hours
-        self.SOC = self.E / self.energy_capacity
-        self.power_kw = P
+        if power_charge > 0:
+            self.DC_power_charge = self.roundtrip_efficiency * power_charge
+        else:
+            self.DC_power_charge = power_charge
+        self.energy = energy_retained + self.DC_power_charge * hours
+        self.SOC = self.energy / self.energy_capacity
+        self.power_charge = power_charge
 
-        h_dict[self.component_name]["power"] = self.power_kw
-        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["power"] = self.power_charge
+        h_dict[self.component_name]["DC_power"] = self.DC_power_charge
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         return h_dict

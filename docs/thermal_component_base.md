@@ -36,41 +36,41 @@ stateDiagram-v2
     OffCold --> Cold: start (cold)
 
     Hot --> OffHot: abort
-    Hot --> On: P >= P_min
+    Hot --> On: P >= power_min
 
     Warm --> OffWarm: abort
-    Warm --> On: P >= P_min
+    Warm --> On: P >= power_min
 
     Cold --> OffCold: abort
-    Cold --> On: P >= P_min
+    Cold --> On: P >= power_min
 
     On --> Stop: shutdown
 
     Stop --> OffHot: P = 0
 
-    OffHot --> OffWarm: time >= hot_to_warm_time
-    OffWarm --> OffCold: time >= hot_to_cold_time
+    OffHot --> OffWarm: time >= cooldown_time_warm
+    OffWarm --> OffCold: time >= cooldown_time_cold
 ```
 
 ### State Transitions
 
-The decision between hot, warm, and cold starting is based on how long the unit has been off. The cutoff times are controlled by the `hot_to_warm_time` and `hot_to_cold_time` parameters: less than `hot_to_warm_time` triggers a hot start, between `hot_to_warm_time` and `hot_to_cold_time` triggers a warm start, and beyond `hot_to_cold_time` triggers a cold start.
+The decision between hot, warm, and cold starting is based on how long the unit has been off. The cutoff times are controlled by the `cooldown_time_warm` and `cooldown_time_cold` parameters: less than `cooldown_time_warm` triggers a hot start, between `cooldown_time_warm` and `cooldown_time_cold` triggers a warm start, and beyond `cooldown_time_cold` triggers a cold start.
 
 | From State | To State | Diagram Label | Condition |
 |------------|----------|---------------|-----------|
-| OFF_HOT (4) | HOT STARTING (5) | start (hot) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state < hot_to_warm_time` |
-| OFF_WARM (2) | WARM STARTING (3) | start (warm) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_warm_time` AND `time_in_state < hot_to_cold_time` |
-| OFF_COLD (0) | COLD STARTING (1) | start (cold) | `power_setpoint > 0` AND `time_in_state >= min_down_time` AND `time_in_state >= hot_to_cold_time` |
+| OFF_HOT (4) | HOT STARTING (5) | start (hot) | `power_setpoint > 0` AND `time_in_state >= down_time_min` AND `time_in_state < cooldown_time_warm` |
+| OFF_WARM (2) | WARM STARTING (3) | start (warm) | `power_setpoint > 0` AND `time_in_state >= down_time_min` AND `time_in_state >= cooldown_time_warm` AND `time_in_state < cooldown_time_cold` |
+| OFF_COLD (0) | COLD STARTING (1) | start (cold) | `power_setpoint > 0` AND `time_in_state >= down_time_min` AND `time_in_state >= cooldown_time_cold` |
 | HOT STARTING (5) | OFF_HOT (4) | abort | `power_setpoint <= 0` |
-| HOT STARTING (5) | ON (6) | P >= P_min | `power_output >= P_min` (after `hot_startup_time`) |
+| HOT STARTING (5) | ON (6) | P >= power_min | `power >= power_min` (after `startup_time_hot`) |
 | WARM STARTING (3) | OFF_WARM (2) | abort | `power_setpoint <= 0` |
-| WARM STARTING (3) | ON (6) | P >= P_min | `power_output >= P_min` (after `warm_startup_time`) |
+| WARM STARTING (3) | ON (6) | P >= power_min | `power >= power_min` (after `startup_time_warm`) |
 | COLD STARTING (1) | OFF_COLD (0) | abort | `power_setpoint <= 0` |
-| COLD STARTING (1) | ON (6) | P >= P_min | `power_output >= P_min` (after `cold_startup_time`) |
-| ON (6) | STOPPING (7) | shutdown | `power_setpoint <= 0` AND `time_in_state >= min_up_time` |
-| STOPPING (7) | OFF_HOT (4) | P = 0 | `power_output <= 0` |
-| OFF_HOT (4) | OFF_WARM (2) | time >= hot_to_warm_time | `time_in_state >= hot_to_warm_time` |
-| OFF_WARM (2) | OFF_COLD (0) | time >= hot_to_cold_time | `time_in_state >= hot_to_cold_time` |
+| COLD STARTING (1) | ON (6) | P >= power_min | `power >= power_min` (after `startup_time_cold`) |
+| ON (6) | STOPPING (7) | shutdown | `power_setpoint <= 0` AND `time_in_state >= up_time_min` |
+| STOPPING (7) | OFF_HOT (4) | P = 0 | `power <= 0` |
+| OFF_HOT (4) | OFF_WARM (2) | time >= cooldown_time_warm | `time_in_state >= cooldown_time_warm` |
+| OFF_WARM (2) | OFF_COLD (0) | time >= cooldown_time_cold | `time_in_state >= cooldown_time_cold` |
 
 ## Parameters
 
@@ -80,27 +80,27 @@ All parameters below are defined in the Hercules input YAML file. The base class
 
 | Parameter | Units | Description |
 |-----------|-------|-------------|
-| `rated_capacity` | kW | Maximum power output (P_max) |
-| `min_stable_load_fraction` | fraction (0-1) | Minimum operating point as fraction of rated capacity |
-| `ramp_rate_fraction` | fraction/min | Maximum rate of power change during normal operation, as fraction of rated capacity per minute |
-| `run_up_rate_fraction` | fraction/min | Maximum rate of power increase during startup ramp, as fraction of rated capacity per minute (optional, default is `ramp_rate_fraction`) |
-| `hot_startup_time` | s | Time to reach P_min from off (hot start). Includes both readying time and ramping time |
-| `warm_startup_time` | s | Time to reach P_min from off (warm start). Includes both readying time and ramping time |
-| `cold_startup_time` | s | Time to reach P_min from off (cold start). Includes both readying time and ramping time |
-| `min_up_time` | s | Minimum time unit must remain on before shutdown is allowed |
-| `min_down_time` | s | Minimum time unit must remain off before restart is allowed |
-| `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF_HOT. When ON, `time_in_state` = `min_up_time` (ready to stop). When OFF, by default `time_in_state` = `min_down_time` (ready to start). However, `time_in_shutdown` is an optional parameter to set the `time_in_state` variable if the component is OFF. This parameter is described in the next section|
-| `hhv` | J/m³ | Higher heating value of fuel |
+| `capacity_rated` | kW | Maximum power output (power_max) |
+| `load_stable_min_fraction` | fraction (0-1) | Minimum operating point as fraction of rated capacity |
+| `ramp_rate_fraction_per_min` | fraction/min | Maximum rate of power change during normal operation, as fraction of rated capacity per minute |
+| `run_up_rate_fraction_per_min` | fraction/min | Maximum rate of power increase during startup ramp, as fraction of rated capacity per minute (optional, default is `ramp_rate_fraction_per_min`) |
+| `startup_time_hot` | s | Time to reach power_min from off (hot start). Includes both readying time and ramping time |
+| `startup_time_warm` | s | Time to reach power_min from off (warm start). Includes both readying time and ramping time |
+| `startup_time_cold` | s | Time to reach power_min from off (cold start). Includes both readying time and ramping time |
+| `up_time_min` | s | Minimum time unit must remain on before shutdown is allowed |
+| `down_time_min` | s | Minimum time unit must remain off before restart is allowed |
+| `initial_conditions.power` | kW | Initial power output. State is derived automatically: power > 0 sets ON, power == 0 sets OFF_HOT. When ON, `time_in_state` = `up_time_min` (ready to stop). When OFF, by default `time_in_state` = `down_time_min` (ready to start). However, `time_in_shutdown` is an optional parameter to set the `time_in_state` variable if the component is OFF. This parameter is described in the next section|
+| `HHV` | J/m³ | Higher heating value of fuel |
 | `fuel_density` | kg/m³ | Fuel density for mass calculations |
 | `efficiency_table` | dict | Dictionary containing `power_fraction` and `efficiency` arrays (see below). Efficiency values must be HHV net plant efficiencies. |
 
 ### Optional Parameters
 | Parameter | Units | Description |
 |-----------|-------|-------------|
-| `hot_to_warm_time` | s | Time after shutdown before the unit transitions from hot to warm state. Default: 28800.0 (8 hours) |
-| `hot_to_cold_time` | s | Time after shutdown before the unit transitions from warm to cold state. Must be >= `hot_to_warm_time`. Default: 172800.0 (48 hours) |
-| `startup_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during startup, as a fraction of rated fuel consumption. Defaults to 0 |
-| `shutdown_fuel_fraction` | fraction (0-1) | Optional, fuel consumption during shutdown, as a fraction of rated fuel consumption. Defaults to 0 |
+| `cooldown_time_warm` | s | Time after shutdown before the unit transitions from hot to warm state. Default: 28800.0 (8 hours) |
+| `cooldown_time_cold` | s | Time after shutdown before the unit transitions from warm to cold state. Must be >= `cooldown_time_warm`. Default: 172800.0 (48 hours) |
+| `fuel_startup_fraction` | fraction (0-1) | Optional, fuel consumption during startup, as a fraction of rated fuel consumption. Defaults to 0 |
+| `fuel_shutdown_fraction` | fraction (0-1) | Optional, fuel consumption during shutdown, as a fraction of rated fuel consumption. Defaults to 0 |
 | `initial_conditions.time_in_shutdown` | s | An optional parameter to set the `time_in_state` variable if the component is OFF. This can be used to adjust the behavior of a component, e.g. force a warm start at the beginning of the simulation |
 
 ### Derived Parameters
@@ -109,14 +109,14 @@ The following parameters are computed from the input parameters:
 
 | Parameter | Formula | Description |
 |-----------|---------|-------------|
-| `P_max` | `rated_capacity` | Maximum power output |
-| `P_min` | `min_stable_load_fraction × rated_capacity` | Minimum stable power output |
-| `ramp_rate` | `ramp_rate_fraction × rated_capacity / 60` | Ramp rate in kW/s |
-| `run_up_rate` | `run_up_rate_fraction × rated_capacity / 60` | Run-up rate in kW/s |
-| `ramp_time` | `P_min / run_up_rate` | Time to ramp from 0 to P_min |
-| `hot_readying_time` | `hot_startup_time - ramp_time` | Preparation time before hot start ramp begins |
-| `warm_readying_time` | `warm_startup_time - ramp_time` | Preparation time before warm start ramp begins |
-| `cold_readying_time` | `cold_startup_time - ramp_time` | Preparation time before cold start ramp begins |
+| `power_max` | `capacity_rated` | Maximum power output |
+| `power_min` | `load_stable_min_fraction × capacity_rated` | Minimum stable power output |
+| `ramp_rate` | `ramp_rate_fraction_per_min × capacity_rated / 60` | Ramp rate in kW/s |
+| `run_up_rate` | `run_up_rate_fraction_per_min × capacity_rated / 60` | Run-up rate in kW/s |
+| `ramp_time` | `power_min / run_up_rate` | Time to ramp from 0 to power_min |
+| `hot_readying_time` | `startup_time_hot - ramp_time` | Preparation time before hot start ramp begins |
+| `warm_readying_time` | `startup_time_warm - ramp_time` | Preparation time before warm start ramp begins |
+| `cold_readying_time` | `startup_time_cold - ramp_time` | Preparation time before cold start ramp begins |
 
 ## Startup and Ramp Behavior
 
@@ -130,15 +130,15 @@ The following diagram illustrates the startup sequence and ramp behavior, showin
 
 During startup:
 1. The unit receives a positive `power_setpoint` while in the OFF state
-2. If `min_down_time` is satisfied, the unit transitions to HOT STARTING, WARM STARTING, or COLD STARTING (depending on how long it has been off: < `hot_to_warm_time` = hot, `hot_to_warm_time` to `hot_to_cold_time` = warm, > `hot_to_cold_time` = cold)
+2. If `down_time_min` is satisfied, the unit transitions to HOT STARTING, WARM STARTING, or COLD STARTING (depending on how long it has been off: < `cooldown_time_warm` = hot, `cooldown_time_warm` to `cooldown_time_cold` = warm, > `cooldown_time_cold` = cold)
 3. The unit remains at zero power during the readying time (`hot_readying_time`, `warm_readying_time`, or `cold_readying_time`)
-4. After readying, the unit ramps up to P_min using `run_up_rate`
-5. Once P_min is reached, the unit transitions to ON state
+4. After readying, the unit ramps up to power_min using `run_up_rate`
+5. Once power_min is reached, the unit transitions to ON state
 
 During normal operation (ON state):
 - Power changes are constrained by `ramp_rate`
-- Power output is constrained between P_min and P_max
-- The unit must remain on for at least `min_up_time` before shutdown is allowed
+- Power output is constrained between power_min and power_max
+- The unit must remain on for at least `up_time_min` before shutdown is allowed
 
 During shutdown:
 - The unit ramps down to zero using `ramp_rate`
@@ -146,7 +146,7 @@ During shutdown:
 
 ## Efficiency and Fuel Consumption
 
-The base class calculates HHV net plant efficiency and fuel consumption based on the `efficiency_table` and `hhv` parameters.
+The base class calculates HHV net plant efficiency and fuel consumption based on the `efficiency_table` and `HHV` parameters.
 
 ### Efficiency Table Format
 
@@ -154,7 +154,7 @@ The `efficiency_table` parameter specifies how HHV net plant efficiency varies w
 
 ```yaml
 efficiency_table:
-  power_fraction:  # fraction of rated_capacity (0-1)
+  power_fraction:  # fraction of capacity_rated (0-1)
     - 1.0
     - 0.75
     - 0.50
@@ -170,20 +170,20 @@ Both arrays must have the same length and values must be in the range [0, 1]. Th
 
 ### Efficiency Interpolation
 
-HHV net efficiency is calculated by linear interpolation from the table based on current power fraction (`power_output / rated_capacity`). Values outside the table range are clamped to the nearest endpoint.
+HHV net efficiency is calculated by linear interpolation from the table based on current power fraction (`power / capacity_rated`). Values outside the table range are clamped to the nearest endpoint.
 
 ### Fuel Rate Calculation
 
 Fuel volume rate is calculated as:
 
 $$
-\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{HHV}}
 $$
 
 Where:
 - `power` is in W (converted from kW internally)
 - `efficiency` is the interpolated HHV net efficiency (0-1)
-- `hhv` is the higher heating value in J/m³
+- `HHV` is the higher heating value in J/m³
 - Result is fuel volume rate in m³/s
 
 The fuel mass rate is then computed from the volume rate using the fuel density:

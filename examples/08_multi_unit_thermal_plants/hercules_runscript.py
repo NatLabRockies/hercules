@@ -38,11 +38,11 @@ class ControllerTPP:
         """
         self.component_name = h_dict["component_names"][0]
         self.unit_capacities = [
-            h_dict[self.component_name][unit_name]["rated_capacity"]
+            h_dict[self.component_name][unit_name]["capacity_rated"]
             for unit_name in h_dict[self.component_name]["unit_names"]
         ]
-        self.rated_capacity = sum(self.unit_capacities)
-        h_dict[self.component_name]["rated_capacity"] = self.rated_capacity
+        self.capacity_rated = sum(self.unit_capacities)
+        h_dict[self.component_name]["capacity_rated"] = self.capacity_rated
 
     def step(self, h_dict):
         """Execute one control step.
@@ -83,7 +83,7 @@ class ControllerTPP:
                 "power_setpoint_fraction"
             ][time_index]
             h_dict[self.component_name]["power_setpoint"] = (
-                power_setpoint_fraction * self.rated_capacity
+                power_setpoint_fraction * self.capacity_rated
             )
 
         return h_dict

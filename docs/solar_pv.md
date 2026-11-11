@@ -82,27 +82,29 @@ corresponding to successive stages along the plant's electrical path:
 :align: center
 ```
 
-- **`dc_power_available`** (kW): the full **DC potential** of the arrays, before
-  the inverters. This is the modeled DC output (e.g. PVWatts `Outputs.dc`,
-  W → kW) and reflects irradiance, temperature, and DC-side losses, but not
-  inverter behavior or control.
-- **`ac_power_available`** (kW): the **post-inverter AC potential** of the
-  plant. It includes inverter inefficiency and AC clipping at the inverter
-  nameplate (per PVWatts `Outputs.ac`, W → kW), but does not include any
-  Hercules control-based curtailment.
+- **`DC_power_hypothetical`** (kW): the hypothetical (uncurtailed) **DC power** of the
+  arrays, before the inverters. This is the modeled DC output (e.g. PVWatts
+  `Outputs.dc`, W → kW) and reflects irradiance, temperature, and DC-side
+  losses, but not inverter behavior or control.
+- **`power_hypothetical`** (kW): the hypothetical (uncurtailed) **post-inverter AC
+  power** of the plant. It includes inverter inefficiency and AC clipping at the
+  inverter nameplate (per PVWatts `Outputs.ac`, W → kW), but does not include
+  any Hercules control-based curtailment.
 - **`power`** (kW): the **delivered AC** power after the Hercules controller.
-  When the controller imposes an AC setpoint below `ac_power_available`,
+  When the controller imposes an AC setpoint below `power_hypothetical`,
   `power` reflects the curtailed value; otherwise `power` equals
-  `ac_power_available`.
+  `power_hypothetical`.
+
+Actual (curtailed) DC power is not yet modeled. See [Nomenclature](nomenclature.md).
 
 ## Outputs
 
 At each time step, `h_dict[component_name]` is updated with `power`,
-`ac_power_available`, and `dc_power_available` (all in kW), as well as the
-weather/geometry diagnostics (`dni`, `poa`, `aoi`). All three power quantities
+`power_hypothetical`, and `DC_power_hypothetical` (all in kW), as well as the
+weather/geometry diagnostics (`DNI`, `POA`, `AOI`). All three power quantities
 can be selected for HDF5 logging via `log_channels` (see below), though the `power` variable is always logged by default.
 
-The YAML **`system_capacity`** is the **DC** array capacity at STC (kW), as in PVWatts. Inverter sizing and AC clipping follow PVWatts `SystemDesign` (including `dc_ac_ratio`); defaults can be changed under `pysam_options` (see below).
+The YAML **`system_capacity`** is the **DC** array capacity at STC (kW), as in PVWatts. Inverter sizing and AC clipping follow PVWatts `SystemDesign` (including `dc_ac_ratio`); defaults can be changed under `pysam_options` (see below). Hercules reports `DC_capacity_rated` (= `system_capacity`) and the AC rating `capacity_rated` (= `system_capacity / dc_ac_ratio`) in `h_dict`.
 
 The PVWatts model is configured with the following default parameters for utility-scale installations:
 - **Module type**: Standard crystalline silicon (module_type = 0)
@@ -134,11 +136,11 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Available Channels:**
 - `power`: delivered AC plant power in kW after control (always logged; same quantity as in `h_dict` after the step)
-- `ac_power_available`: post-inverter AC potential in kW, before control curtailment (add to the list to include in the HDF5 output)
-- `dc_power_available`: pre-inverter DC potential of the arrays in kW (add to the list to include in the HDF5 output)
-- `poa`: Plane-of-array irradiance in W/m²
-- `dni`: Direct normal irradiance in W/m²
-- `aoi`: Angle of incidence in degrees
+- `power_hypothetical`: uncurtailed post-inverter AC power in kW, before control curtailment (add to the list to include in the HDF5 output)
+- `DC_power_hypothetical`: uncurtailed pre-inverter DC power of the arrays in kW (add to the list to include in the HDF5 output)
+- `POA`: Plane-of-array irradiance in W/m²
+- `DNI`: Direct normal irradiance in W/m²
+- `AOI`: Angle of incidence in degrees
 
 **Example:**
 ```yaml
@@ -147,9 +149,9 @@ solar_farm:
   solar_input_filename: inputs/solar_input.csv
   log_channels:
     - power
-    - dni
-    - poa
-    - aoi
+    - DNI
+    - POA
+    - AOI
   # ... other parameters
 ```
 

@@ -80,9 +80,9 @@ ax.grid(True)
 # Plot the battery SOC
 ax = axarr[1]
 
-ax.plot(df["time"] / 3600, df["battery.soc"], label="Battery SOC", color="k")
-ax.axhline(h_dict["battery"]["max_SOC"], color="r", linestyle="--", label="Max SOC")
-ax.axhline(h_dict["battery"]["min_SOC"], color="r", linestyle="--", label="Min SOC")
+ax.plot(df["time"] / 3600, df["battery.SOC"], label="Battery SOC", color="k")
+ax.axhline(h_dict["battery"]["SOC_max"], color="r", linestyle="--", label="Max SOC")
+ax.axhline(h_dict["battery"]["SOC_min"], color="r", linestyle="--", label="Min SOC")
 ax.set_ylabel("SOC")
 ax.legend()
 ax.grid(True)

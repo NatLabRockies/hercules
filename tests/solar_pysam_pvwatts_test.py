@@ -18,12 +18,12 @@ def test_init():
 
     assert SPS.dt == test_h_dict["dt"]
     # Test that system_capacity is stored correctly
-    assert SPS.system_capacity == test_h_dict["solar_farm"]["system_capacity"]
+    assert SPS.DC_capacity_rated == test_h_dict["solar_farm"]["system_capacity"]
     assert SPS.power == test_h_dict["solar_farm"]["initial_conditions"]["power"]
-    assert SPS.ac_power_available == SPS.ac_power_available_array[0]
-    assert SPS.dc_power_available == SPS.dc_power_available_array[0]
-    assert SPS.dni == test_h_dict["solar_farm"]["initial_conditions"]["dni"]
-    assert SPS.aoi == 0
+    assert SPS.power_hypothetical == SPS.power_hypothetical_array[0]
+    assert SPS.DC_power_hypothetical == SPS.DC_power_hypothetical_array[0]
+    assert SPS.DNI == test_h_dict["solar_farm"]["initial_conditions"]["DNI"]
+    assert SPS.AOI == 0
 
 
 def test_init_defaults():
@@ -127,20 +127,20 @@ def test_return_outputs():
     SPS = SolarPySAMPVWatts(test_h_dict, "solar_farm")
 
     assert SPS.power == 25
-    assert SPS.dni == 1000
-    assert SPS.poa == 1000
+    assert SPS.DNI == 1000
+    assert SPS.POA == 1000
 
     # change PV power predictions and irradiance as if during simulation
     SPS.power = 800
-    SPS.dni = 600
-    SPS.poa = 900
-    SPS.aoi = 0
+    SPS.DNI = 600
+    SPS.POA = 900
+    SPS.AOI = 0
 
     # check that outputs return the changed PV outputs
     assert SPS.power == 800
-    assert SPS.dni == 600
-    assert SPS.poa == 900
-    assert SPS.aoi == 0
+    assert SPS.DNI == 600
+    assert SPS.POA == 900
+    assert SPS.AOI == 0
 
 
 def test_step():
@@ -158,7 +158,7 @@ def test_step():
 
     # test the irradiance input
     # Using decimal=4 for float32 precision (hercules_float_type provides ~6-7 significant digits)
-    assert_almost_equal(SPS.ghi, 68.23037719726561, decimal=4)
+    assert_almost_equal(SPS.GHI, 68.23037719726561, decimal=4)
 
 
 def test_control():
@@ -170,11 +170,14 @@ def test_control():
     power_setpoint = 100000  # Above available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
     SPS.step(step_inputs)
-    ac_power_available = SPS.ac_power_available_array[0]
-    assert_almost_equal(SPS.power, ac_power_available, decimal=8)  # available power
+    power_hypothetical = SPS.power_hypothetical_array[0]
+    assert_almost_equal(SPS.power, power_hypothetical, decimal=8)  # available power
 
     # Test curtailment - set power below available power, should get setpoint
     power_setpoint = 100  # Below available power
     step_inputs = {"step": 0, "solar_farm": {"power_setpoint": power_setpoint}}
-    SPS.step(step_inputs)
+    out = SPS.step(step_inputs)
     assert_almost_equal(SPS.power, power_setpoint, decimal=8)
+    # power_hypothetical is unaffected by curtailment
+    assert out["solar_farm"]["power_hypothetical"] == power_hypothetical
+    assert out["solar_farm"]["power"] < out["solar_farm"]["power_hypothetical"]

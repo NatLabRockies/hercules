@@ -30,13 +30,14 @@ def create_example_hdf5_file(filename: str):
         f["data/step"] = np.arange(len(time_steps))
 
         # Add plant data (simulated power output)
-        plant_power = (
+        plant_power_bus = (
             100
             + 50 * np.sin(time_steps / 3600 * 2 * np.pi)
             + np.random.normal(0, 5, len(time_steps))
         )
-        f["data/plant_power"] = plant_power
-        f["data/plant_locally_generated_power"] = plant_power * 0.95
+        f["data/plant_power_bus"] = plant_power_bus
+        f["data/plant_power_export"] = plant_power_bus
+        f["data/plant_locally_generated_power"] = plant_power_bus * 0.95
 
         # Add components group
         components_group = f.create_group("data/components")
@@ -132,8 +133,8 @@ def main():
 
         # Show some data statistics
         print("Data Statistics:")
-        print(f"  Plant power - Mean: {data['plant.power'].mean():.1f} MW")
-        print(f"  Plant power - Max: {data['plant.power'].max():.1f} MW")
+        print(f"  Plant power - Mean: {data['plant.power_bus'].mean():.1f} MW")
+        print(f"  Plant power - Max: {data['plant.power_bus'].max():.1f} MW")
         print(f"  Wind farm power - Mean: {data['wind_farm.power'].mean():.1f} MW")
         print(f"  Solar farm power - Mean: {data['solar_farm.power'].mean():.1f} MW")
         print(f"  Wind speed - Mean: {data['external_signals.wind_speed'].mean():.1f} m/s")

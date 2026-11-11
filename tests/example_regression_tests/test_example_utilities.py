@@ -3,6 +3,7 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 
 import numpy as np
@@ -54,10 +55,10 @@ def update_input_file_paths(temp_dir, input_file):
 
     # Update paths in wind_farm section
     if "wind_farm" in h_dict:
-        if "floris_input_file" in h_dict["wind_farm"]:
+        if "floris_input_filename" in h_dict["wind_farm"]:
             # Convert relative path to absolute path
-            filename = os.path.basename(h_dict["wind_farm"]["floris_input_file"])
-            h_dict["wind_farm"]["floris_input_file"] = os.path.join(
+            filename = os.path.basename(h_dict["wind_farm"]["floris_input_filename"])
+            h_dict["wind_farm"]["floris_input_filename"] = os.path.join(
                 centralized_inputs_dir, filename
             )
 
@@ -68,12 +69,10 @@ def update_input_file_paths(temp_dir, input_file):
                 centralized_inputs_dir, filename
             )
 
-        if "turbine_file_name" in h_dict["wind_farm"]:
+        if "turbine_filename" in h_dict["wind_farm"]:
             # Convert relative path to absolute path
-            filename = os.path.basename(h_dict["wind_farm"]["turbine_file_name"])
-            h_dict["wind_farm"]["turbine_file_name"] = os.path.join(
-                centralized_inputs_dir, filename
-            )
+            filename = os.path.basename(h_dict["wind_farm"]["turbine_filename"])
+            h_dict["wind_farm"]["turbine_filename"] = os.path.join(centralized_inputs_dir, filename)
 
     # Update paths in solar_farm section
     if "solar_farm" in h_dict:
@@ -184,13 +183,13 @@ def run_simulation(input_file, num_time_steps):
     hmodel.run()
 
     # Check that the output file was created
-    output_file = "outputs/hercules_output.h5"
-    assert os.path.exists(output_file), "Output file was not created"
+    output_filename = "outputs/hercules_output.h5"
+    assert os.path.exists(output_filename), "Output file was not created"
 
     # Read and return the output file
     from hercules.utilities import read_hercules_hdf5
 
-    return read_hercules_hdf5(output_file)
+    return read_hercules_hdf5(output_filename)
 
 
 def verify_outputs(
@@ -251,7 +250,7 @@ def verify_outputs(
             )
 
     # Test that the final plant power has not changed much
-    np.testing.assert_allclose(df["plant.power"].iloc[-1], expected_final_plant_power, atol=15)
+    np.testing.assert_allclose(df["plant.power_bus"].iloc[-1], expected_final_plant_power, atol=15)
 
 
 def verify_plot_script(temp_dir, original_cwd, example_dir, plot_script_file):
@@ -276,7 +275,7 @@ def verify_plot_script(temp_dir, original_cwd, example_dir, plot_script_file):
         env = os.environ.copy()
         env["MPLBACKEND"] = "Agg"  # Non-interactive backend
         result = subprocess.run(
-            ["python", plot_script_file],
+            [sys.executable, plot_script_file],
             capture_output=True,
             text=True,
             timeout=30,  # 30 second timeout

@@ -20,7 +20,7 @@ class ControllerOCGT:
             h_dict (dict): The hercules input dictionary.
 
         """
-        self.rated_capacity = h_dict["open_cycle_gas_turbine"]["rated_capacity"]
+        self.capacity_rated = h_dict["open_cycle_gas_turbine"]["capacity_rated"]
 
     def step(self, h_dict):
         """Execute one control step.
@@ -37,22 +37,22 @@ class ControllerOCGT:
         # Determine power setpoint based on time
         if current_time < 10 * 60:  # 10 minutes in seconds
             # Before 10 minutes: run at full capacity
-            power_setpoint = self.rated_capacity
+            power_setpoint = self.capacity_rated
         elif current_time < 40 * 60:  # 40 minutes in seconds
             # Between 10 and 40 minutes: shut down
             power_setpoint = 0.0
         elif current_time < 120 * 60:  # 120 minutes in seconds
             # Between 40 and 120 minutes: signal to run at full capacity
-            power_setpoint = self.rated_capacity
+            power_setpoint = self.capacity_rated
         elif current_time < 180 * 60:  # 180 minutes in seconds
             # Between 120 and 180 minutes: reduce power to 50% of rated capacity
-            power_setpoint = 0.5 * self.rated_capacity
+            power_setpoint = 0.5 * self.capacity_rated
         elif current_time < 210 * 60:  # 210 minutes in seconds
             # Between 180 and 210 minutes: reduce power to 10% of rated capacity
-            power_setpoint = 0.1 * self.rated_capacity
+            power_setpoint = 0.1 * self.capacity_rated
         elif current_time < 240 * 60:  # 240 minutes in seconds
             # Between 210 and 240 minutes: increase power to 100% of rated capacity
-            power_setpoint = self.rated_capacity
+            power_setpoint = self.capacity_rated
         else:
             # After 240 minutes: shut down
             power_setpoint = 0.0
@@ -90,7 +90,7 @@ def test_specified_output_dir():
     )
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
-    hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
+    hercules_dict["output_filename"] = f"hercules_output_test{test_n}.h5"
     hercules_dict["logging"] = {}
 
     run_hercules_example(hercules_dict)
@@ -119,10 +119,10 @@ def test_specified_main_logger_dir():
     )
     hercules_dict = load_yaml(hercules_fpath)
     hercules_dict["output_dir"] = output_dir
-    hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
+    hercules_dict["output_filename"] = f"hercules_output_test{test_n}.h5"
     hercules_dict["logging"] = {
         "logging_dir": logger_dir,
-        "log_file": f"log_hercules_test{test_n}.log",
+        "log_filename": f"log_hercules_test{test_n}.log",
     }
 
     run_hercules_example(hercules_dict)
@@ -154,14 +154,14 @@ def test_auto_increment_output_filename():
         )
         hercules_dict = load_yaml(hercules_fpath)
         hercules_dict["output_dir"] = output_dir
-        hercules_dict["output_file"] = f"hercules_output_test{test_n}.h5"
+        hercules_dict["output_filename"] = f"hercules_output_test{test_n}.h5"
         hercules_dict["auto_increment_filenames"] = True
         hercules_dict["logging"] = {
             "logging_dir": logger_dir,
-            "log_file": f"log_hercules_test{test_n}.log",
+            "log_filename": f"log_hercules_test{test_n}.log",
         }
 
-        # The first run uses the requested output filename. (AI)
+        # The first run uses the requested output filename.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}.h5"
@@ -172,7 +172,7 @@ def test_auto_increment_output_filename():
         assert expected_output_main_log_fpath.is_file(), "run 1, main log file"
         assert expected_component_log_fpath.is_file(), "run 1, component log file"
 
-        # A collision increments the filename without changing the output directory. (AI)
+        # A collision increments the filename without changing the output directory.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}0.h5"
@@ -181,7 +181,7 @@ def test_auto_increment_output_filename():
         assert expected_output_main_log_fpath.is_file(), "run 2, main log file"
         assert expected_component_log_fpath.is_file(), "run 2, component log file"
 
-        # Further collisions increment to the next available suffix. (AI)
+        # Further collisions increment to the next available suffix.
         run_hercules_example(deepcopy(hercules_dict))
 
         expected_output_h5_fpath = output_dir / f"hercules_output_test{test_n}1.h5"

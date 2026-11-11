@@ -9,7 +9,7 @@ The `WindFarm` component applies wind speed time signals to turbine models to si
 
 ## WindFarm (with Dynamic wake method)
 
-`WindFarm` is a comprehensive wind farm simulator. When `wake_method="dynamic"` (the default), `WindFarm` computes wake effects dynamically at each time step (or at intervals specified by `floris_update_time_s`). It focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. This model combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
+`WindFarm` is a comprehensive wind farm simulator. When `wake_method="dynamic"` (the default), `WindFarm` computes wake effects dynamically at each time step (or at intervals specified by `floris_update_time`). It focuses on meso-scale phenomena by applying a separate wind speed time signal to each turbine model derived from data. This model combines FLORIS wake modeling with detailed turbine dynamics for long-term wind farm performance analysis.
 
 **Use this model when:**
 - Turbines have individual power setpoints or non-uniform operation
@@ -38,11 +38,11 @@ Using `WindFarm` with `wake_method="no_added_wakes"` assumes that wake effects a
 ### WindFarm Required Parameters
 
 Required parameters for WindFarm in [h_dict](h_dict.md) (see [timing](timing.md) for time-related parameters):
-- `floris_input_file`: FLORIS farm configuration
+- `floris_input_filename`: FLORIS farm configuration
 - `wind_input_filename`: Wind resource data file
 - `wake_method`: One of `"dynamic"`, `"precomputed"`, or `"no_added_wakes"` (defaults to `"dynamic"`)
-- `floris_update_time_s`: How often to update FLORIS (the last `floris_update_time_s` seconds are averaged as input). Required for `"dynamic"` and `"precomputed"` wake methods; for `"no_added_wakes"`, this parameter is not required and ignored if provided.
-- `turbine_file_name`: Turbine model configuration
+- `floris_update_time`: How often to update FLORIS (the last `floris_update_time` seconds are averaged as input). Required for `"dynamic"` and `"precomputed"` wake methods; for `"no_added_wakes"`, this parameter is not required and ignored if provided.
+- `turbine_filename`: Turbine model configuration
 - `log_channels`: List of output channels to log. See [Logging Configuration](wind-logging-configuration) section below for details.
 
 ### WindFarmSCADAPower Specific Parameters
@@ -81,17 +81,26 @@ Advanced model with rotor dynamics, pitch control, and generator torque control.
 
 All four components provide these outputs in the h_dict at each simulation step:
 - `power`: Total wind farm power (kW)
+- `power_hypothetical`: Total uncurtailed wind farm power (kW)
 - `turbine_powers`: Individual turbine power outputs (array, kW)
+- `turbine_powers_hypothetical`: Individual uncurtailed turbine powers (array, kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
 - `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 - `wind_speeds_background`: Per-turbine background wind speeds (array, m/s)
 - `wind_speeds_withwakes`: Per-turbine with-wakes wind speeds (array, m/s)
 
-### WindFarm-Only Outputs
+Metadata added at initialization: `n_turbines`, `turbine_power_rated` and `capacity_rated` (kW).
 
-The three `WindFarm` variants additionally provide:
-- `turbine_power_setpoints`: Current power setpoint values (array, kW)
+`power_hypothetical` is what the turbines would produce with no setpoint limit, using the same waked wind
+speeds as `power` (wake changes caused by derating are not reflected). For the filter model it is
+the power curve passed through the same filter; for the 1-DOF model it is the steady-state power
+curve; for `WindFarmSCADAPower` it equals `power`.
+
+### WindFarm-Only Inputs
+
+The three `WindFarm` variants read the controller setpoint:
+- `turbine_power_setpoints`: Per-turbine power limits (array, kW). Hercules does not modify it.
 
 
 **Note for WindFarm with no_added_wakes and WindFarmSCADAPower:** In these models (no wake modeling), `wind_speeds_withwakes` equals `wind_speeds_background` and `wind_speed_mean_withwakes` equals `wind_speed_mean_background`.
@@ -105,12 +114,14 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 
 **Scalar Channels:**
 - `power`: Total wind farm power output (kW)
+- `power_hypothetical`: Total uncurtailed wind farm power (kW)
 - `wind_speed_mean_background`: Farm-average background wind speed (m/s)
 - `wind_speed_mean_withwakes`: Farm-average with-wakes wind speed (m/s)
 - `wind_direction_mean`: Farm-average wind direction (degrees)
 
 **Array Channels:**
 - `turbine_powers`: Power output for all turbines (creates datasets like `wind_farm.turbine_powers.000`, `wind_farm.turbine_powers.001`, etc.)
+- `turbine_powers_hypothetical`: Uncurtailed power for all turbines
 - `turbine_power_setpoints`: Power setpoints for all turbines (WindFarm only)
 - `wind_speeds_background`: Background wind speeds for all turbines
 - `wind_speeds_withwakes`: With-wakes wind speeds for all turbines

@@ -30,6 +30,18 @@ The YAML key for each section is a user-chosen `component_name` and is not requi
 
 `HybridPlant` classifies components into generators and non-generators based on `component_category`. Components with `component_category == "generator"` have their power outputs summed into `h_dict["plant"]["locally_generated_power"]` each time step. Storage and load components are excluded from this sum.
 
+## Plant-Level Outputs
+
+Each step `HybridPlant` computes (see [Nomenclature](nomenclature.md)):
+
+- `plant.power_bus`: sum of all component `power` on the LV bus.
+- `plant.power_export`: power at the POI after the bus-to-POI losses, $\eta P_{bus}$ when exporting and $P_{bus} / \eta$ when importing, with $\eta$ = `plant.efficiency_bus_to_poi` (optional input, default 1.0).
+- `plant.locally_generated_power`: sum of generator `power`.
+
+## Sign Convention
+
+Outside components, power delivered to the bus is positive. Storage and load components use the opposite (consumer) convention internally; `HybridPlant` passes them a negated copy of `power_setpoint` and negates the outputs listed in their `consumer_sign_outputs`. The controller-owned setpoint in `h_dict` is not modified.
+
 ## Component Registry
 
 All available component types are defined in `COMPONENT_REGISTRY` in `hercules/component_registry.py`. This dictionary maps `component_type` strings to their Python classes:

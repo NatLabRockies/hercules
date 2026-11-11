@@ -21,10 +21,10 @@ plant:
 wind_farm:
   component_type: WindFarm
   wake_method: precomputed
-  floris_input_file: ../inputs/floris_input_large.yaml
+  floris_input_filename: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr
-  turbine_file_name: ../inputs/turbine_filter_model.yaml
-  log_file_name: log_wind_sim.log
+  turbine_filename: ../inputs/turbine_filter_model.yaml
+  log_filename: log_wind_sim.log
   log_channels:
     - power
     - wind_speed_mean_background
@@ -34,7 +34,7 @@ wind_farm:
     - wind_speeds_withwakes
     - wind_speeds_background
     - turbine_power_setpoints
-  floris_update_time_s: 300.0 # Update wakes every 5 minutes
+  floris_update_time: 300.0 # Update wakes every 5 minutes
 
 # Electrolyzer plant input file
 electrolyzer: # The name of the py_sim object
@@ -42,9 +42,6 @@ electrolyzer: # The name of the py_sim object
   component_type: ElectrolyzerPlant
   general:
     verbose: True # default
-  initial_conditions:
-    # Initial power input to electrolyzer
-    power_available_kw: 20000
   electrolyzer:
     initialize: True
     initial_power_kW: 20000
@@ -100,8 +97,8 @@ electrolyzer: # The name of the py_sim object
   log_channels:
     - power
     - H2_output
-    - H2_mfr
-    - power_input_kw
+    - H2_MFR
+    - power_allocated
 
 
 controller:
@@ -110,4 +107,5 @@ controller:
   nominal_hydrogen_rate_kgps: 0.208 # in kg/s [kg per day/24/3600 * stack number]
   hydrogen_controller_gain: 1
 
-external_data_file: inputs/hydrogen_ref_signal.csv
+external_data:
+  external_data_filename: inputs/hydrogen_ref_signal.csv

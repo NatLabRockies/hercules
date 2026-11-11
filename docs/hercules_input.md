@@ -14,7 +14,7 @@ The input file structure mirrors the `h_dict` structure documented in the [h_dic
 - **Plant configuration**: `interconnect_limit`
 - **Plant component sections**: any number of user-named sections, each containing a `component_type` key that identifies the component class to use (see [Component Names, Types, and Categories](component_types.md))
 - **External data**: `external_data` for external time series data (e.g., LMP prices, weather forecasts)
-- **Optional settings**: `verbose`, `name`, `description`, `output_file`
+- **Optional settings**: `verbose`, `name`, `description`, `output_filename`
 
 
 ## Loading Process
@@ -48,16 +48,16 @@ plant:
 wind_farm:  # User-chosen component_name; component_type determines the class
   component_type: WindFarm
   wake_method: dynamic
-  floris_input_file: inputs/floris_input.yaml
+  floris_input_filename: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
-  turbine_file_name: inputs/turbine_filter_model.yaml
-  log_file_name: log_wind_sim.log
+  turbine_filename: inputs/turbine_filter_model.yaml
+  log_filename: log_wind_sim.log
   log_channels:
     - power
     - wind_speed_mean_background
     - wind_speed_mean_withwakes
     - wind_direction_mean
-  floris_update_time_s: 30.0
+  floris_update_time: 30.0
 
 solar_farm:  # User-chosen component_name
   component_type: SolarPySAMPVWatts
@@ -70,24 +70,24 @@ solar_farm:  # User-chosen component_name
   # use_resource_solar_dt: true  # optional; default true. See solar_pv.md.
   log_channels:
     - power
-    - dni
-    - poa
-    - aoi
+    - DNI
+    - POA
+    - AOI
   initial_conditions:
     power: 2000  # kW
-    dni: 1000
-    poa: 1000
+    DNI: 1000
+    POA: 1000
 
 battery:  # User-chosen component_name
   component_type: BatteryDynamic
   energy_capacity: 10000  # kWh
-  charge_rate: 2500  # kW
-  discharge_rate: 2500  # kW
-  # max_SOC: 1.0  # default; set < 1 to model degradation
-  # min_SOC: 0.0  # default; set > 0 to model degradation
+  power_charge_max: 2500  # kW
+  power_discharge_max: 2500  # kW
+  # SOC_max: 1.0  # default; set < 1 to model degradation
+  # SOC_min: 0.0  # default; set > 0 to model degradation
   log_channels:
     - power
-    - soc
+    - SOC
     - power_setpoint
   initial_conditions:
     SOC: 0.5
@@ -96,38 +96,32 @@ controller:
   # Controller configuration here
 
 output_dir: outputs
-output_file: hercules_output.h5
+output_filename: hercules_output.h5
 ```
 
 ## External Data Configuration
 
 Hercules supports loading external time series data from CSV files (e.g., electricity prices, weather forecasts, or other external signals). This data becomes available to controllers through `h_dict["external_signals"]`.
 
-### New Format (Preferred)
+### Format
 
 ```yaml
 external_data:
-  external_data_file: path/to/data.csv
+  external_data_filename: path/to/data.csv
   log_channels:
     - lmp_rt
     - wind_forecast
 ```
 
 **Key features:**
-- `external_data_file`: Path to CSV file with `time_utc` column and data columns
+- `external_data_filename`: Path to CSV file with `time_utc` column and data columns
 - `log_channels`: Optional list of channels to log to HDF5 output
   - If **omitted**: all channels are logged (default behavior)
   - If **empty list** (`log_channels: []`): no channels are logged
   - If **non-empty list**: only listed channels are written to HDF5
   - **Important**: All channels are always available to the controller via `h_dict["external_signals"]`, regardless of `log_channels`
 
-### Old Format (Deprecated)
-
-```yaml
-external_data_file: path/to/data.csv  # Logs all channels, shows deprecation warning
-```
-
-The old format is still supported for backward compatibility but will show a deprecation warning. It automatically logs all external data channels to the output file.
+The pre-v3 top-level `external_data_file` key is no longer accepted.
 
 ### External Data File Format
 
@@ -176,14 +170,14 @@ Even if `log_channels` only specifies `["lmp_rt"]`, the controller can still acc
 **Example 1: Log all channels (default)**
 ```yaml
 external_data:
-  external_data_file: data.csv
+  external_data_filename: data.csv
   # log_channels not specified → logs all channels
 ```
 
 **Example 2: Log specific channels**
 ```yaml
 external_data:
-  external_data_file: data.csv
+  external_data_filename: data.csv
   log_channels:
     - lmp_rt
     - wind_forecast
@@ -193,7 +187,7 @@ external_data:
 **Example 3: Log no channels**
 ```yaml
 external_data:
-  external_data_file: data.csv
+  external_data_filename: data.csv
   log_channels: []  # Empty list → logs nothing (but all channels available to controller)
 ```
 
@@ -208,7 +202,7 @@ Every simulation step is logged to the output file; the logging time step always
 ### output_folder
 Specifies where the Hercules output files should be written. This is an optional input. If it is not specified, then the output file will be written in a folder called `outputs` in the run directory.
 
-### output_file
+### output_filename
 Specifies the output file name. Hercules automatically ensures the file has a `.h5` extension for HDF5 format. This is an optional input. Note that this input only specifies the output file name. If you include a folder in this input, Hercules will ignore all previous entries except the last file name, and will write the output to the output folder location.
 
 ### output_use_compression
@@ -225,7 +219,7 @@ dt: 1.0
 starttime_utc: "2020-06-15T12:00:00Z"
 endtime_utc: "2020-06-15T13:00:00Z"  # 1 hour simulation
 
-output_file: my_simulation.h5
+output_filename: my_simulation.h5
 output_use_compression: true
 output_buffer_size: 10000
 
@@ -235,15 +229,15 @@ plant:
 wind_farm:
   component_type: WindFarm
   wake_method: dynamic
-  floris_input_file: inputs/floris_input.yaml
+  floris_input_filename: inputs/floris_input.yaml
   wind_input_filename: inputs/wind_input.csv
-  turbine_file_name: inputs/turbine_filter_model.yaml
+  turbine_filename: inputs/turbine_filter_model.yaml
   log_channels:
     - power
     - wind_speed_mean_background
     - wind_speed_mean_withwakes
     - wind_direction_mean
-  floris_update_time_s: 30.0
+  floris_update_time: 30.0
 
 controller:
 ```

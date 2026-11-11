@@ -55,7 +55,7 @@ class ThermalPlant(ComponentBase):
             h_dict_thermal["starttime"] = h_dict["starttime"]
             h_dict_thermal["endtime"] = h_dict["endtime"]
             h_dict_thermal["verbose"] = h_dict["verbose"]
-            unit_type = h_dict["thermal_power_plant"][unit_name]["component_type"]
+            unit_type = h_dict[component_name][unit_name]["component_type"]
             unit_class = COMPONENT_REGISTRY[unit_type]
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
@@ -102,8 +102,8 @@ class ThermalPlant(ComponentBase):
         h_dict[self.component_name]["power"] = sum(
             h_dict_thermal[unit.component_name]["power"] for unit in self.units
         )
-        h_dict[self.component_name]["rated_capacity"] = sum(
-            h_dict_thermal[unit.component_name]["rated_capacity"] for unit in self.units
+        h_dict[self.component_name]["capacity_rated"] = sum(
+            h_dict_thermal[unit.component_name]["capacity_rated"] for unit in self.units
         )
 
         return h_dict

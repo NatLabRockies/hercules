@@ -140,10 +140,10 @@ def test_multi_instance_batteries():
     battery_cfg = {
         "component_type": "BatteryDynamic",
         "energy_capacity": 100.0,
-        "charge_rate": 50.0,
-        "discharge_rate": 50.0,
-        "max_SOC": 0.9,
-        "min_SOC": 0.1,
+        "power_charge_max": 50.0,
+        "power_discharge_max": 50.0,
+        "SOC_max": 0.9,
+        "SOC_min": 0.1,
         "log_channels": ["power"],
         "initial_conditions": {"SOC": 0.5},
     }
@@ -167,3 +167,31 @@ def test_custom_component_name_passed_through():
     hp = hybrid_plant.HybridPlant(copy.deepcopy(h_dict_wind))
 
     assert hp.component_objects["wind_farm"].component_name == "wind_farm"
+
+
+def test_battery_sign_and_bus_to_poi_losses():
+    """Battery power is discharge-positive outside the component, the controller setpoint is
+    left untouched, and power_export applies efficiency_bus_to_poi in both directions."""
+    test_h_dict = copy.deepcopy(h_dict_battery)
+    test_h_dict["plant"]["efficiency_bus_to_poi"] = 0.9
+    test_h_dict["battery"]["allow_grid_power_consumption"] = True
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.8
+    hp = hybrid_plant.HybridPlant(test_h_dict)
+    test_h_dict = hp.add_plant_metadata_to_h_dict(test_h_dict)
+
+    # Discharge 10 kW: no discharge loss, so DC_power equals power
+    test_h_dict["battery"]["power_setpoint"] = 10.0
+    test_h_dict = hp.step(test_h_dict)
+    assert test_h_dict["battery"]["power_setpoint"] == 10.0
+    assert test_h_dict["battery"]["power"] == pytest.approx(10.0)
+    assert test_h_dict["battery"]["DC_power"] == pytest.approx(10.0)
+    assert test_h_dict["plant"]["power_bus"] == pytest.approx(10.0)
+    assert test_h_dict["plant"]["power_export"] == pytest.approx(9.0)
+
+    # Charge 10 kW: roundtrip losses applied on charging, import grossed up by bus-to-POI efficiency
+    test_h_dict["battery"]["power_setpoint"] = -10.0
+    test_h_dict = hp.step(test_h_dict)
+    assert test_h_dict["battery"]["power_setpoint"] == -10.0
+    assert test_h_dict["battery"]["power"] == pytest.approx(-10.0)
+    assert test_h_dict["battery"]["DC_power"] == pytest.approx(-8.0)
+    assert test_h_dict["plant"]["power_export"] == pytest.approx(-10.0 / 0.9)

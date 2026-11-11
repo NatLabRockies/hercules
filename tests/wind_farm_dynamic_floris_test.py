@@ -24,7 +24,7 @@ def test_wind_farm_initialization():
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
     assert wind_sim.num_floris_calcs == 1  # FLORIS is called during initialization
-    assert wind_sim.floris_update_time_s == 30.0
+    assert wind_sim.floris_update_time == 30.0
 
 
 def test_wind_farm_ws_mean():
@@ -78,12 +78,12 @@ def test_wind_farm_ws_mean():
 
 
 def test_wind_farm_missing_floris_update_time():
-    """Test that missing floris_update_time_s raises ValueError."""
+    """Test that missing floris_update_time raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind)
-    del test_h_dict["wind_farm"]["floris_update_time_s"]
+    del test_h_dict["wind_farm"]["floris_update_time"]
 
     with pytest.raises(
-        ValueError, match="floris_update_time_s must be specified for wake_method='dynamic'"
+        ValueError, match="floris_update_time must be specified for wake_method='dynamic'"
     ):
         WindFarm(test_h_dict, "wind_farm")
 
@@ -91,7 +91,7 @@ def test_wind_farm_missing_floris_update_time():
 def test_wind_farm_invalid_update_time():
     """Test that invalid update time raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind)
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5  # Less than 1 second
+    test_h_dict["wind_farm"]["floris_update_time"] = 0.5  # Less than 1 second
 
     with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
         WindFarm(test_h_dict, "wind_farm")
@@ -101,7 +101,7 @@ def test_wind_farm_step():
     """Test that the step method updates outputs correctly."""
     test_h_dict = copy.deepcopy(h_dict_wind)
     # Set a shorter update time for testing
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
+    test_h_dict["wind_farm"]["floris_update_time"] = 1.0
 
     wind_sim = WindFarm(test_h_dict, "wind_farm")
 
@@ -140,7 +140,7 @@ def test_wind_farm_time_utc_conversion():
 def test_wind_farm_power_setpoint_too_high():
     """Test that turbine powers are below power setpoint when setpoint is very high."""
     test_h_dict = copy.deepcopy(h_dict_wind)
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
+    test_h_dict["wind_farm"]["floris_update_time"] = 1.0
 
     wind_sim = WindFarm(test_h_dict, "wind_farm")
 
@@ -163,7 +163,7 @@ def test_wind_farm_power_setpoint_too_high():
 def test_wind_farm_power_setpoint_applies():
     """Test that turbine powers equal power setpoint when setpoint is very low."""
     test_h_dict = copy.deepcopy(h_dict_wind)
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 1.0
+    test_h_dict["wind_farm"]["floris_update_time"] = 1.0
 
     wind_sim = WindFarm(test_h_dict, "wind_farm")
 
@@ -200,16 +200,16 @@ def test_wind_farm_get_initial_conditions_and_meta_data():
 
     # Verify that all expected metadata is added to the wind_farm section
     assert "n_turbines" in result["wind_farm"]
-    assert "capacity" in result["wind_farm"]
-    assert "rated_turbine_power" in result["wind_farm"]
+    assert "capacity_rated" in result["wind_farm"]
+    assert "turbine_power_rated" in result["wind_farm"]
     assert "wind_direction_mean" in result["wind_farm"]
     assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
     assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
-    assert result["wind_farm"]["capacity"] == wind_sim.capacity
-    assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
+    assert result["wind_farm"]["capacity_rated"] == wind_sim.capacity_rated
+    assert result["wind_farm"]["turbine_power_rated"] == wind_sim.turbine_power_rated
     assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
     assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 
@@ -258,7 +258,7 @@ def test_wind_farm_regular_floris_updates():
         # Create test h_dict with the temporary wind file
         test_h_dict = copy.deepcopy(h_dict_wind)
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
-        test_h_dict["wind_farm"]["floris_update_time_s"] = 2.0  # Update every 2 seconds
+        test_h_dict["wind_farm"]["floris_update_time"] = 2.0  # Update every 2 seconds
         test_h_dict["starttime"] = 0.0
         test_h_dict["endtime"] = 5.0  # 5 steps (0, 1, 2, 3, 4)
         test_h_dict["starttime_utc"] = "2018-05-10 12:31:00"
@@ -320,7 +320,7 @@ def test_wind_farm_power_setpoints_buffer():
         # Create test h_dict with the temporary wind file
         test_h_dict = copy.deepcopy(h_dict_wind)
         test_h_dict["wind_farm"]["wind_input_filename"] = temp_wind_file
-        test_h_dict["wind_farm"]["floris_update_time_s"] = 3.0  # 3-second buffer
+        test_h_dict["wind_farm"]["floris_update_time"] = 3.0  # 3-second buffer
         test_h_dict["starttime"] = 0.0
         test_h_dict["endtime"] = 5.0  # 5 steps (0, 1, 2, 3, 4)
         test_h_dict["starttime_utc"] = "2018-05-10 12:31:00"

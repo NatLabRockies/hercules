@@ -31,7 +31,7 @@ def test_wind_farm_direct_initialization():
     assert wind_sim.endtime == 10.0
     # No FLORIS calculations in direct mode
     assert wind_sim.num_floris_calcs == 0
-    assert wind_sim.floris_update_time_s is None
+    assert wind_sim.floris_update_time is None
 
 
 def test_wind_farm_direct_no_wakes():
@@ -109,6 +109,10 @@ def test_wind_farm_direct_turbine_dynamics():
     # Turbine powers should be limited by setpoint
     assert np.all(result["wind_farm"]["turbine_powers"] <= 100.0 + 1e-6)
 
+    # Uncurtailed power is not limited by the setpoint
+    assert np.all(result["wind_farm"]["turbine_powers_hypothetical"] > 100.0)
+    assert result["wind_farm"]["power_hypothetical"] > result["wind_farm"]["power"]
+
 
 def test_wind_farm_direct_power_setpoint_zero():
     """Test that turbine powers go to zero when setpoint is zero."""
@@ -134,16 +138,16 @@ def test_wind_farm_direct_initial_conditions():
     result_h_dict = wind_sim.get_initial_conditions_and_meta_data(initial_h_dict)
 
     assert "n_turbines" in result_h_dict["wind_farm"]
-    assert "capacity" in result_h_dict["wind_farm"]
-    assert "rated_turbine_power" in result_h_dict["wind_farm"]
+    assert "capacity_rated" in result_h_dict["wind_farm"]
+    assert "turbine_power_rated" in result_h_dict["wind_farm"]
     assert "wind_direction_mean" in result_h_dict["wind_farm"]
     assert "wind_speed_mean_background" in result_h_dict["wind_farm"]
     assert "turbine_powers" in result_h_dict["wind_farm"]
     assert "power" in result_h_dict["wind_farm"]
 
     assert result_h_dict["wind_farm"]["n_turbines"] == 3
-    assert result_h_dict["wind_farm"]["capacity"] > 0
-    assert result_h_dict["wind_farm"]["rated_turbine_power"] > 0
+    assert result_h_dict["wind_farm"]["capacity_rated"] > 0
+    assert result_h_dict["wind_farm"]["turbine_power_rated"] > 0
 
 
 def test_wind_farm_direct_output_consistency():

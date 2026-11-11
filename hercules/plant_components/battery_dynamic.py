@@ -48,10 +48,13 @@ class BatteryDynamic(ComponentBase):
     It tracks state of charge and applies roundtrip efficiency losses on charging.
 
     Note:
-        All power units are in kW and energy units are in kWh.
+        All power units are in kW and energy units are in kWh. Within this class
+        charging is positive; ``HybridPlant`` negates ``consumer_sign_outputs`` so that
+        discharging is positive outside the component.
     """
 
     component_category = "storage"
+    consumer_sign_outputs = ("power", "DC_power", "power_reject")
 
     def __init__(self, h_dict, component_name):
         """Initialize the BatteryDynamic class.
@@ -63,19 +66,19 @@ class BatteryDynamic(ComponentBase):
             h_dict (dict): Dictionary containing simulation parameters including:
                 - energy_capacity: Deliverable energy capacity in kWh (energy
                     discharged at the terminals from SOC 1 to 0)
-                - charge_rate: Maximum charge rate in kW
-                - discharge_rate: Maximum discharge rate in kW
-                - max_SOC: Optional maximum state of charge (0-1, default 1.0).
+                - power_charge_max: Maximum charge power in kW
+                - power_discharge_max: Maximum discharge power in kW
+                - SOC_max: Optional maximum state of charge (0-1, default 1.0).
                     Values below 1.0 indicate a deviation from nameplate
                     performance (e.g., degradation) and reduce deliverable energy.
-                - min_SOC: Optional minimum state of charge (0-1, default 0.0).
+                - SOC_min: Optional minimum state of charge (0-1, default 0.0).
                     Values above 0.0 indicate a deviation from nameplate
                     performance (e.g., degradation) and reduce deliverable energy.
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
                 - roundtrip_efficiency: Optional roundtrip efficiency (0-1), applied
                     on charging
-                - self_discharge_time_constant: Optional self-discharge time constant
+                - time_constant_self_discharge: Optional self-discharge time constant
                     in seconds
             component_name (str): Unique name for this instance (the YAML top-level key).
 
@@ -100,20 +103,20 @@ class BatteryDynamic(ComponentBase):
         # SOC limits default to 0 and 1 (full nameplate capacity). Values other
         # than 0/1 represent a deviation from nameplate performance such as
         # degradation, and will reduce the deliverable energy below the rated
-        # energy_capacity / discharge_rate duration.
-        self.SOC_max = h_dict[self.component_name].get("max_SOC", 1.0)
-        self.SOC_min = h_dict[self.component_name].get("min_SOC", 0.0)
+        # energy_capacity / power_discharge_max duration.
+        self.SOC_max = h_dict[self.component_name].get("SOC_max", 1.0)
+        self.SOC_min = h_dict[self.component_name].get("SOC_min", 0.0)
 
-        charge_rate = h_dict[self.component_name]["charge_rate"]  # [kW]
-        discharge_rate = h_dict[self.component_name]["discharge_rate"]  # [kW]
+        power_charge_max = h_dict[self.component_name]["power_charge_max"]  # [kW]
+        power_discharge_max = h_dict[self.component_name]["power_discharge_max"]  # [kW]
 
-        # Charge/discharge (Power) limits [kW]
-        self.P_min = -discharge_rate
-        self.P_max = charge_rate
+        # Charge-positive power limits [kW]
+        self.power_min = -power_discharge_max
+        self.power_max = power_charge_max
 
         # Ramp up/down limits [kW/s]
-        self.R_min = -np.inf
-        self.R_max = np.inf
+        self.ramp_rate_min = -np.inf
+        self.ramp_rate_max = np.inf
 
         # Flag for allowing grid to charge the battery
         if "allow_grid_power_consumption" in h_dict[self.component_name].keys():
@@ -124,33 +127,32 @@ class BatteryDynamic(ComponentBase):
             self.allow_grid_power_consumption = False
 
         # Roundtrip efficiency is applied entirely on charging, so stored energy equals
-        # deliverable energy and discharge duration = energy_capacity / discharge_rate.
-        self.eta_charge = h_dict[self.component_name].get("roundtrip_efficiency", 1.0)
-        self.eta_discharge = 1.0
+        # deliverable energy and discharge duration = energy_capacity / power_discharge_max.
+        self.efficiency_charge = h_dict[self.component_name].get("roundtrip_efficiency", 1.0)
+        self.efficiency_discharge = 1.0
 
-        # Charge (Energy) limits [kJ]
-        self.E_min = kWh2kJ(self.SOC_min * self.energy_capacity)
-        self.E_max = kWh2kJ(self.SOC_max * self.energy_capacity)
+        # Energy limits [kJ]
+        self.energy_min_kJ = kWh2kJ(self.SOC_min * self.energy_capacity)
+        self.energy_max_kJ = kWh2kJ(self.SOC_max * self.energy_capacity)
 
-        if "self_discharge_time_constant" in h_dict[self.component_name].keys():
-            self.tau_self_discharge = h_dict[self.component_name]["self_discharge_time_constant"]
-        else:
-            self.tau_self_discharge = np.inf
+        self.time_constant_self_discharge = h_dict[self.component_name].get(
+            "time_constant_self_discharge", np.inf
+        )
 
         self.build_SS()
-        # float64 so small increments are not lost against a large stored energy (AI)
+        # float64 so small increments are not lost against a large stored energy
         self.x = np.array(
             [[initial_conditions["SOC"] * self.energy_capacity * 3600]],
             dtype=np.float64,
         )
         self.y = None
 
-        self.current_batt_state = self.SOC * self.energy_capacity
-        self.E = kWh2kJ(self.current_batt_state)
+        self.energy = self.SOC * self.energy_capacity  # [kWh]
+        self.energy_kJ = kWh2kJ(self.energy)
 
-        self.power_kw = 0
-        self.P_reject = 0
-        self.P_charge = 0
+        self.power_charge = 0
+        self.DC_power_charge = 0
+        self.power_reject_charge = 0
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -164,10 +166,10 @@ class BatteryDynamic(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-
-        # Add what we want later
         h_dict[self.component_name]["power"] = 0
-        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["DC_power"] = 0
+        h_dict[self.component_name]["power_reject"] = 0
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         return h_dict
 
@@ -179,76 +181,76 @@ class BatteryDynamic(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - battery.power_setpoint: Requested charging/discharging power [kW]
+                - <component_name>.power_setpoint: Requested power in kW (positive is
+                  charging)
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
-            dict: Updated h_dict with battery outputs stored under self.component_name:
-                - power: Actual charging/discharging power [kW]
-                - reject: Rejected power due to constraints [kW]
-                - soc: State of charge [0-1]
+            dict: Updated h_dict with battery outputs stored under self.component_name
+                (positive is charging):
+                - power: Actual AC power [kW]
+                - DC_power: Power into storage after efficiency losses [kW]
+                - power_reject: power_setpoint minus power [kW]
+                - SOC: State of charge [0-1]
         """
-        # Power available for the battery to use for charging (should be >=0)
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
         if np.isnan(power_setpoint):
             raise ValueError(f"{self.component_name}: power_setpoint is NaN")
-        # Power signal desired by the controller
-        if self.allow_grid_power_consumption:
-            P_avail = np.inf
-        else:
-            P_avail = h_dict["plant"]["locally_generated_power"]  # [kW] available power
 
-        P_charge, P_reject = self.control(P_avail, power_setpoint)
+        if self.allow_grid_power_consumption:
+            power_charge_available = np.inf
+        else:
+            power_charge_available = h_dict["plant"]["locally_generated_power"]  # [kW]
+
+        power_charge, power_reject_charge = self.control(power_charge_available, power_setpoint)
 
         # Update energy state
-        # self.E += self.P_charge * self.dt
-        self.step_SS(P_charge)
-        self.E = self.x[0, 0]  # TODO find a better way to make self.x 1-D
+        self.step_SS(power_charge)
+        self.energy_kJ = self.x[0, 0]  # TODO find a better way to make self.x 1-D
 
-        self.current_batt_state = kJ2kWh(self.E)
+        self.energy = kJ2kWh(self.energy_kJ)
 
-        self.power_kw = P_charge
-        self.SOC = self.current_batt_state / self.energy_capacity
+        self.DC_power_charge = self.SS_input_function(power_charge)
+        self.SOC = self.energy / self.energy_capacity
 
         # Update the outputs
-        h_dict[self.component_name]["power"] = self.power_kw
-        h_dict[self.component_name]["reject"] = P_reject
-        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["power"] = power_charge
+        h_dict[self.component_name]["DC_power"] = self.DC_power_charge
+        h_dict[self.component_name]["power_reject"] = power_reject_charge
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         # Return the updated dictionary
         return h_dict
 
-    def control(self, P_avail, power_setpoint):
+    def control(self, power_charge_available, power_setpoint):
         """Apply battery operational constraints to requested power.
 
         Low-level controller that enforces energy, power, and ramp rate constraints.
         Determines the actual charging/discharging power and any rejected power.
 
         Args:
-            P_avail (float): Available power for charging in kW.
-            power_setpoint (float): Desired charging/discharging power in kW.
+            power_charge_available (float): Available power for charging in kW.
+            power_setpoint (float): Desired power in kW (positive is charging).
 
         Returns:
-            tuple: (P_charge, P_reject) where:
-                - P_charge: Actual charging/discharging power in kW (positive for charging)
-                - P_reject: Rejected power due to constraints in kW (positive when
+            tuple: (power_charge, power_reject_charge) where:
+                - power_charge: Actual power in kW (positive for charging)
+                - power_reject_charge: Rejected power due to constraints in kW (positive when
                   power cannot be absorbed, negative when required power unavailable)
         """
 
         # TODO remove ramp rate constraints because they are never used?
 
         # Upper constraints [kW]
-        # c_hi1 = (self.E_max - self.E) / self.dt  # energy
-        c_hi1 = self.SS_input_function_inverse((self.E_max - self.x[0, 0]) / self.dt)
-        c_hi2 = self.P_max  # power
-        c_hi3 = self.R_max * self.dt + self.P_charge  # ramp rate
-        c_hi4 = P_avail
+        c_hi1 = self.SS_input_function_inverse((self.energy_max_kJ - self.x[0, 0]) / self.dt)
+        c_hi2 = self.power_max  # power
+        c_hi3 = self.ramp_rate_max * self.dt + self.power_charge  # ramp rate
+        c_hi4 = power_charge_available
 
         # Lower constraints [kW]
-        # c_lo1 = (self.E_min - self.E) / self.dt  # energy
-        c_lo1 = self.SS_input_function_inverse((self.E_min - self.x[0, 0]) / self.dt)
-        c_lo2 = self.P_min  # power
-        c_lo3 = self.R_min * self.dt + self.P_charge  # ramp rate
+        c_lo1 = self.SS_input_function_inverse((self.energy_min_kJ - self.x[0, 0]) / self.dt)
+        c_lo2 = self.power_min  # power
+        c_lo3 = self.ramp_rate_min * self.dt + self.power_charge  # ramp rate
 
         # High constraint is the most restrictive of the high constraints
         c_hi = np.min([c_hi1, c_hi2, c_hi3, c_hi4])
@@ -260,19 +262,19 @@ class BatteryDynamic(ComponentBase):
 
         # TODO: force low constraint to be no higher than lowest high constraint
         if (power_setpoint >= c_lo) & (power_setpoint <= c_hi):
-            P_charge = power_setpoint
-            P_reject = 0
+            power_charge = power_setpoint
+            power_reject_charge = 0
         elif power_setpoint < c_lo:
-            P_charge = c_lo
-            P_reject = power_setpoint - P_charge
+            power_charge = c_lo
+            power_reject_charge = power_setpoint - power_charge
         elif power_setpoint > c_hi:
-            P_charge = c_hi
-            P_reject = power_setpoint - P_charge
+            power_charge = c_hi
+            power_reject_charge = power_setpoint - power_charge
 
-        self.P_charge = P_charge
-        self.P_reject = P_reject
+        self.power_charge = power_charge
+        self.power_reject_charge = power_reject_charge
 
-        return P_charge, P_reject
+        return power_charge, power_reject_charge
 
     def build_SS(self):
         """Build state-space model matrices for battery dynamics.
@@ -280,49 +282,46 @@ class BatteryDynamic(ComponentBase):
         Constructs the state-space representation that includes self-discharge
         and efficiency losses.
         """
-        self.A = np.array([[-1 / self.tau_self_discharge]], dtype=hercules_float_type)
+        self.A = np.array([[-1 / self.time_constant_self_discharge]], dtype=hercules_float_type)
         # B matrix is handled by the SS_input_function
         self.C = np.array([[1, 0]], dtype=hercules_float_type).T
         self.D = np.array([[0, 1]], dtype=hercules_float_type).T
 
-    def SS_input_function(self, P_charge):
+    def SS_input_function(self, power_charge):
         """Apply efficiency losses to charging/discharging power.
 
-        Converts the commanded power to actual power stored/released from
-        the battery considering efficiency losses.
+        Converts the AC power to the DC power stored/released from the battery
+        considering efficiency losses.
 
         Args:
-            P_charge (float): Commanded charging/discharging power in kW.
+            power_charge (float): AC charging/discharging power in kW.
 
         Returns:
-            float: Actual power stored/released considering efficiency in kW.
+            float: DC power stored/released considering efficiency in kW.
         """
-        # P_in is the amount of power that actually gets stored in the state E
-        # P_charge is the amount of power given to the charging physics
-
-        if P_charge >= 0:
-            P_in = self.eta_charge * P_charge
+        if power_charge >= 0:
+            DC_power_charge = self.efficiency_charge * power_charge
         else:
-            P_in = P_charge / self.eta_discharge
-        return P_in
+            DC_power_charge = power_charge / self.efficiency_discharge
+        return DC_power_charge
 
-    def SS_input_function_inverse(self, P_in):
-        """Calculate required commanded power for desired stored power.
+    def SS_input_function_inverse(self, DC_power_charge):
+        """Calculate required AC power for desired stored power.
 
-        Inverse of SS_input_function to determine the commanded power needed
+        Inverse of SS_input_function to determine the AC power needed
         to achieve a desired power storage/release rate.
 
         Args:
-            P_in (float): Desired power to be stored/released in kW.
+            DC_power_charge (float): Desired DC power to be stored/released in kW.
 
         Returns:
-            float: Required commanded power considering efficiency in kW.
+            float: Required AC power considering efficiency in kW.
         """
-        if P_in >= 0:
-            P_charge = P_in / self.eta_charge
+        if DC_power_charge >= 0:
+            power_charge = DC_power_charge / self.efficiency_charge
         else:
-            P_charge = P_in * self.eta_discharge
-        return P_charge
+            power_charge = DC_power_charge * self.efficiency_discharge
+        return power_charge
 
     def step_SS(self, u):
         """Advance the state-space model by one time step.

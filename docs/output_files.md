@@ -19,22 +19,24 @@ hercules_output.h5
 ├── data/
 │   ├── time                    # Simulation time points (seconds)
 │   ├── step                    # Simulation step numbers
-│   ├── plant_power             # Total plant power output
-│   ├── plant_locally_generated_power  # Locally generated power
+│   ├── plant_power_bus         # Sum of component power on the LV bus (kW)
+│   ├── plant_power_export      # Power at the POI after bus-to-POI losses (kW)
+│   ├── plant_locally_generated_power  # Sum of generator power (kW)
 │   ├── components/
 │   │   ├── wind_farm.power                   # Wind farm power output
+│   │   ├── wind_farm.power_hypothetical               # Uncurtailed wind farm power (if logged)
 │   │   ├── wind_farm.wind_speed_mean_background # Farm-average background wind speed
 │   │   ├── wind_farm.wind_speed_mean_withwakes   # Farm-average with-wakes wind speed
 │   │   ├── wind_farm.wind_direction_mean     # Farm-average wind direction
 │   │   ├── wind_farm.turbine_powers.000      # Turbine 0 power (if logged)
 │   │   ├── wind_farm.turbine_powers.001      # Turbine 1 power (if logged)
 │   │   ├── solar_farm.power                  # Solar farm AC power after control (kW)
-│   │   ├── solar_farm.ac_power_available     # Post-inverter AC potential (kW) (if logged)
-│   │   ├── solar_farm.dc_power_available     # Pre-inverter DC potential (kW) (if logged)
-│   │   ├── solar_farm.dni                    # Direct normal irradiance (if logged)
-│   │   ├── solar_farm.poa                    # Plane-of-array irradiance (if logged)
-│   │   ├── battery.power                     # Battery power (if present)
-│   │   ├── battery.soc                       # Battery state of charge (if logged)
+│   │   ├── solar_farm.power_hypothetical              # Uncurtailed AC power (kW) (if logged)
+│   │   ├── solar_farm.DC_power_hypothetical           # Uncurtailed DC power (kW) (if logged)
+│   │   ├── solar_farm.DNI                    # Direct normal irradiance (if logged)
+│   │   ├── solar_farm.POA                    # Plane-of-array irradiance (if logged)
+│   │   ├── battery.power                     # Battery AC power, discharge positive (if present)
+│   │   ├── battery.SOC                       # Battery state of charge (if logged)
 │   │   └── ...                               # Other component outputs
 │   └── external_signals/
 │       └── ...                 # Other external signals
@@ -74,20 +76,18 @@ from hercules.utilities import read_hercules_hdf5_subset
 # Read specific columns
 df_subset = read_hercules_hdf5_subset(
     "outputs/hercules_output.h5",
-    columns=["wind_farm.power", "wind_farm.wind_speed_mean_background", "solar_farm.power"]
+    columns=["wind_farm.power", "wind_farm.wind_speed_mean_background", "solar_farm.power"],
 )
 
 # Read specific time range (seconds)
 df_time_range = read_hercules_hdf5_subset(
     "outputs/hercules_output.h5",
-    time_range=(3600, 7200)  # 1-2 hours into simulation
+    time_range=(3600, 7200),  # 1-2 hours into simulation
 )
 
 # Combine both filters
 df_filtered = read_hercules_hdf5_subset(
-    "outputs/hercules_output.h5",
-    columns=["plant.power"],
-    time_range=(0, 3600)
+    "outputs/hercules_output.h5", columns=["plant.power_bus"], time_range=(0, 3600)
 )
 ```
 
@@ -121,10 +121,7 @@ data = ho.df
 print(data.head())
 
 # Get subset of data
-subset = ho.get_subset(
-    columns=["wind_farm.power", "solar_farm.power"],
-    time_range=(3600, 7200)
-)
+subset = ho.get_subset(columns=["wind_farm.power", "solar_farm.power"], time_range=(3600, 7200))
 ```
 
 The `HerculesOutput` class provides a convenient interface while still allowing direct access to the underlying utility functions if needed.

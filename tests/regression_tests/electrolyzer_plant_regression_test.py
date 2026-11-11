@@ -13,9 +13,6 @@ test_h_dict = {
     "general": {"verbose": False},
     "electrolyzer": {
         "component_type": "ElectrolyzerPlant",
-        "initial_conditions": {
-            "power_available_kW": 3000,
-        },
         "log_channels": ["power"],
         "electrolyzer": {
             "initialize": True,
@@ -187,13 +184,13 @@ def test_ElectrolyzerPlant_regression_():
                     "locally_generated_power": locally_generated_power_test[i],
                 },
                 "electrolyzer": {
-                    "electrolyzer_signal": np.inf  # Use all locally generated power
+                    "power_setpoint": np.inf  # Use all locally generated power
                 },
             }
         )
         H2_output_test[i] = out["electrolyzer"]["H2_output"]
-        H2_mfr_test[i] = out["electrolyzer"]["H2_mfr"]
-        stacks_on_test[i] = out["electrolyzer"]["stacks_on"]
+        H2_mfr_test[i] = out["electrolyzer"]["H2_MFR"]
+        stacks_on_test[i] = out["electrolyzer"]["stack_count_on"]
 
         # print(out["H2_output"])
 

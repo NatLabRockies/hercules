@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
+import pytest
 from hercules.hercules_model import HerculesModel
 
 from tests.test_inputs.h_dict import h_dict_battery, h_dict_solar, h_dict_wind
@@ -83,13 +84,15 @@ def test_HerculesModel_instantiation():
     hmodel = HerculesModel(test_h_dict)
 
     # Check default settings
-    assert hmodel.output_file == Path("outputs/hercules_output.h5").absolute()
+    assert hmodel.output_filename == Path("outputs/hercules_output.h5").absolute()
     assert hmodel.external_signals_all == {}
 
     # Test with external data file and custom output file
     test_h_dict_2 = h_dict_solar.copy()
-    test_h_dict_2["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
-    test_h_dict_2["output_file"] = "test_output.h5"
+    test_h_dict_2["external_data"] = {
+        "external_data_filename": "tests/test_inputs/external_data.csv"
+    }
+    test_h_dict_2["output_filename"] = "test_output.h5"
     test_h_dict_2["dt"] = 0.5
     # Remove preset start/end and adjust endtime_utc to preserve prior behavior
     test_h_dict_2.pop("starttime", None)
@@ -110,14 +113,14 @@ def test_HerculesModel_instantiation():
     assert hmodel.external_signals_all["power_reference"][-1] == 1000  # At time 6.0
 
     # Check custom output file
-    assert hmodel.output_file.name == "test_output.h5"
+    assert hmodel.output_filename.name == "test_output.h5"
 
 
 def test_output_directory_and_filename_handling():
-    # Verify output directory reuse, extension normalization, overwrite, and auto-increment. (AI)
+    # Verify output directory reuse, extension normalization, overwrite, and auto-increment.
     with TemporaryDirectory() as temp_dir:
         output_dir = Path(temp_dir, "outputs")
-        output_file = "nested/result"
+        output_filename = "nested/result"
 
         def make_test_h_dict(auto_increment=False):
             test_h_dict = deepcopy(h_dict_solar)
@@ -126,27 +129,27 @@ def test_output_directory_and_filename_handling():
             test_h_dict.pop("time", None)
             test_h_dict.pop("step", None)
             test_h_dict["output_dir"] = output_dir
-            test_h_dict["output_file"] = output_file
+            test_h_dict["output_filename"] = output_filename
             test_h_dict["auto_increment_filenames"] = auto_increment
             return test_h_dict
 
         hmodel = HerculesModel(make_test_h_dict())
         assert output_dir.is_dir()
-        assert hmodel.output_file == output_dir / "result.h5"
+        assert hmodel.output_filename == output_dir / "result.h5"
         hmodel.close()
 
         sentinel_file = output_dir / "keep.txt"
         sentinel_file.write_text("preserve output directory contents")
-        hmodel.output_file.write_text("replace existing output")
+        hmodel.output_filename.write_text("replace existing output")
 
         hmodel = HerculesModel(make_test_h_dict())
         assert sentinel_file.is_file()
-        assert not hmodel.output_file.exists()
+        assert not hmodel.output_filename.exists()
         hmodel.close()
 
-        hmodel.output_file.write_text("existing output")
+        hmodel.output_filename.write_text("existing output")
         hmodel = HerculesModel(make_test_h_dict(auto_increment=True))
-        assert hmodel.output_file == output_dir / "result0.h5"
+        assert hmodel.output_filename == output_dir / "result0.h5"
         assert (output_dir / "result.h5").is_file()
         hmodel.close()
 
@@ -182,7 +185,7 @@ def test_specified_outputs_dir():
 
     outputs_folder_name = "nondefault_output_dirname"
     test_h_dict["output_dir"] = outputs_folder_name
-    test_h_dict["output_file"] = f"{outputs_folder_name}/hercules_test_output.h5"
+    test_h_dict["output_filename"] = f"{outputs_folder_name}/hercules_test_output.h5"
     test_h_dict["solar_farm"]["solar_input_filename"] = str(
         Path(TEST_DIR / "test_inputs" / "solar_pysam_data.csv").absolute()
     )
@@ -199,7 +202,7 @@ def test_specified_outputs_dir():
     assert expected_hercules_log.exists()
     assert expected_solar_log_fpath.exists()
     assert (
-        hmodel.output_file.absolute()
+        hmodel.output_filename.absolute()
         == temp_test_folder / outputs_folder_name / "hercules_test_output.h5"
     )
 
@@ -245,7 +248,8 @@ def test_log_data_to_hdf5():
     expected_datasets = {
         "time",
         "step",
-        "plant_power",
+        "plant_power_bus",
+        "plant_power_export",
         "plant_locally_generated_power",
         "solar_farm.power",
     }
@@ -263,7 +267,7 @@ def test_log_data_to_hdf5():
     # Check that data was written correctly
     assert hmodel.hdf5_datasets["time"][0] == 5.0
     assert hmodel.hdf5_datasets["step"][0] == 5
-    assert hmodel.hdf5_datasets["plant_power"][0] > 0
+    assert hmodel.hdf5_datasets["plant_power_bus"][0] > 0
     assert hmodel.hdf5_datasets["solar_farm.power"][0] > 0
 
     # Clean up
@@ -281,7 +285,7 @@ def test_log_data_to_hdf5_with_external_signals():
     test_h_dict.pop("step", None)
 
     # Add external data file
-    test_h_dict["external_data"] = {"external_data_file": "tests/test_inputs/external_data.csv"}
+    test_h_dict["external_data"] = {"external_data_filename": "tests/test_inputs/external_data.csv"}
     test_h_dict["dt"] = 1.0
 
     hmodel = HerculesModel(test_h_dict)
@@ -358,7 +362,7 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     expected_datasets = {
         "time",
         "step",
-        "plant_power",
+        "plant_power_bus",
         "plant_locally_generated_power",
         "wind_farm.power",
         "wind_farm.turbine_powers.000",
@@ -382,7 +386,7 @@ def test_log_data_to_hdf5_with_wind_farm_arrays():
     assert hmodel.hdf5_datasets["time"][0] == 5.0
     assert hmodel.hdf5_datasets["step"][0] == 5
     assert hmodel.hdf5_datasets["wind_farm.power"][0] > 0
-    assert hmodel.hdf5_datasets["plant_power"][0] > 0
+    assert hmodel.hdf5_datasets["plant_power_bus"][0] > 0
     assert hmodel.hdf5_datasets["plant_locally_generated_power"][0] > 0
 
     # Verify that turbine_powers array is handled correctly
@@ -407,7 +411,7 @@ def test_hdf5_output_configuration():
     # Test 1: HDF5 format with every step logged
     with tempfile.TemporaryDirectory() as temp_dir:
         test_h_dict_hdf5 = test_h_dict.copy()
-        test_h_dict_hdf5["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_hdf5["output_filename"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_hdf5["dt"] = 1.0
         # Remove preset start/end and set endtime_utc for 5 steps (duration=4s)
         test_h_dict_hdf5.pop("starttime", None)
@@ -434,8 +438,8 @@ def test_hdf5_output_configuration():
         hmodel.close()
 
         # Verify file exists and is readable
-        assert os.path.exists(hmodel.output_file)
-        df_hdf5 = read_hercules_hdf5(hmodel.output_file)
+        assert os.path.exists(hmodel.output_filename)
+        df_hdf5 = read_hercules_hdf5(hmodel.output_filename)
         # 5 steps should give 5 rows (every step is logged)
         assert len(df_hdf5) == 5
         assert df_hdf5["time"].iloc[0] == 0.0
@@ -447,7 +451,7 @@ def test_hdf5_output_configuration():
     # Test 2: HDF5 format with custom chunk size
     with tempfile.TemporaryDirectory() as temp_dir:
         test_h_dict_hdf5_2 = test_h_dict.copy()
-        test_h_dict_hdf5_2["output_file"] = os.path.join(temp_dir, "test_output.h5")
+        test_h_dict_hdf5_2["output_filename"] = os.path.join(temp_dir, "test_output.h5")
         test_h_dict_hdf5_2["output_buffer_size"] = 500  # Custom chunk size
         test_h_dict_hdf5_2["dt"] = 1.0
         test_h_dict_hdf5_2.pop("starttime", None)
@@ -477,8 +481,8 @@ def test_hdf5_output_configuration():
         hmodel.close()
 
         # Verify file exists and is readable
-        assert os.path.exists(hmodel.output_file)
-        df_hdf5 = read_hercules_hdf5(hmodel.output_file)
+        assert os.path.exists(hmodel.output_filename)
+        df_hdf5 = read_hercules_hdf5(hmodel.output_filename)
         assert len(df_hdf5) == 5
 
 
@@ -561,7 +565,7 @@ def test_external_data_new_format_with_log_channels():
 
     # Use new format with log_channels
     test_h_dict["external_data"] = {
-        "external_data_file": "tests/test_inputs/external_data.csv",
+        "external_data_filename": "tests/test_inputs/external_data.csv",
         "log_channels": ["power_reference"],  # Only log one channel
     }
     test_h_dict["dt"] = 1.0
@@ -579,39 +583,18 @@ def test_external_data_new_format_with_log_channels():
     hmodel.close()
 
 
-def test_external_data_backward_compatibility():
-    """Test backward compatibility with old external_data_file format."""
-    import warnings
-
-    # Create test dict with old format
+def test_external_data_old_top_level_key_raises():
+    """The pre-v3 top-level external_data_file key raises an error naming its replacement."""
     test_h_dict = h_dict_battery.copy()
     test_h_dict.pop("starttime", None)
     test_h_dict.pop("endtime", None)
     test_h_dict.pop("time", None)
     test_h_dict.pop("step", None)
-
-    # Use old format (top-level external_data_file)
     test_h_dict["external_data_file"] = "tests/test_inputs/external_data.csv"
     test_h_dict["dt"] = 1.0
 
-    # Should trigger a deprecation warning
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        hmodel = HerculesModel(test_h_dict)
-
-        # Verify that a deprecation warning was issued
-        assert len(w) == 1
-        assert issubclass(w[0].category, DeprecationWarning)
-        assert "deprecated" in str(w[0].message).lower()
-
-    # Verify that external_data_log_channels is None (log all)
-    assert hmodel.external_data_log_channels is None
-
-    # Verify that data was loaded
-    assert "power_reference" in hmodel.external_signals_all
-
-    # Clean up
-    hmodel.close()
+    with pytest.raises(ValueError, match="'external_data_file' -> 'external_data_filename'"):
+        HerculesModel(test_h_dict)
 
 
 def test_external_signals_all_channels_in_h_dict():
@@ -641,7 +624,7 @@ def test_external_signals_all_channels_in_h_dict():
         test_h_dict.pop("step", None)
 
         test_h_dict["external_data"] = {
-            "external_data_file": csv_path,
+            "external_data_filename": csv_path,
             "log_channels": ["channel_1"],  # Only log channel_1
         }
         test_h_dict["dt"] = 1.0
@@ -712,7 +695,7 @@ def test_external_data_log_all_when_no_log_channels():
         test_h_dict.pop("step", None)
 
         test_h_dict["external_data"] = {
-            "external_data_file": csv_path,
+            "external_data_filename": csv_path,
             # No log_channels specified - should log all
         }
         test_h_dict["dt"] = 1.0
@@ -780,7 +763,7 @@ def test_external_data_log_none_with_empty_list():
         test_h_dict.pop("step", None)
 
         test_h_dict["external_data"] = {
-            "external_data_file": csv_path,
+            "external_data_filename": csv_path,
             "log_channels": [],  # Empty list - should log nothing
         }
         test_h_dict["dt"] = 1.0

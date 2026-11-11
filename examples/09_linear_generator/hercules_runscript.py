@@ -4,9 +4,9 @@ This example demonstrates a Mainspring linear generator that:
 - Starts ON at rated capacity (250 kW)
 - At 10 minutes, receives a shutdown command and quickly ramps to off
   (fast ramp rate: 120%/min, effectively instantaneous at 1-min time steps)
-- At 20 minutes, receives an ON command — rejected because min_down_time
+- At 20 minutes, receives an ON command — rejected because down_time_min
   (60 min) is not yet satisfied
-- At 71 minutes, min_down_time is satisfied; hot start sequence begins
+- At 71 minutes, down_time_min is satisfied; hot start sequence begins
 - At ~78 minutes, hot start completes and generator ramps to full power
 - At 90 minutes, reduces to 50% of rated capacity (125 kW)
 - At 120 minutes, reduces to 20% of rated capacity (50 kW) — note this is
@@ -38,7 +38,7 @@ class ControllerLinearGenerator:
         Args:
             h_dict (dict): The hercules input dictionary.
         """
-        self.rated_capacity = h_dict["linear_generator"]["rated_capacity"]
+        self.capacity_rated = h_dict["linear_generator"]["capacity_rated"]
 
     def step(self, h_dict):
         """Execute one control step.
@@ -52,15 +52,15 @@ class ControllerLinearGenerator:
         current_time = h_dict["time"]
 
         if current_time < 10 * 60:  # 0–10 minutes: run at full capacity
-            power_setpoint = self.rated_capacity
+            power_setpoint = self.capacity_rated
         elif current_time < 90 * 60:  # 10–90 minutes: command ON at full capacity
             # From t=10 min the generator shuts down; the ON command issued here
-            # (after t=10 min) will be deferred by min_down_time until ~71 min
-            power_setpoint = self.rated_capacity
+            # (after t=10 min) will be deferred by down_time_min until ~71 min
+            power_setpoint = self.capacity_rated
         elif current_time < 120 * 60:  # 90–120 minutes: reduce to 50%
-            power_setpoint = 0.5 * self.rated_capacity
+            power_setpoint = 0.5 * self.capacity_rated
         elif current_time < 180 * 60:  # 120–180 minutes: reduce to 20%
-            power_setpoint = 0.2 * self.rated_capacity
+            power_setpoint = 0.2 * self.capacity_rated
         else:  # After 180 minutes: shut down
             power_setpoint = 0.0
 

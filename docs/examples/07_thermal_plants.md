@@ -15,28 +15,28 @@ The simulation runs for 6 hours with 1-minute time steps. A controller commands 
 | Time (min) | Event Type | Setpoint | State | Description |
 |------------|------------|----------|-------|-------------|
 | 0 | Initial | 0 | OFF (0) | Turbine starts off, `time_in_state` begins counting |
-| 40 | Command | → 100 MW | OFF (0) | Setpoint changes to full power, but `min_down_time` (60 min) not yet satisfied—turbine remains off |
-| 60 | State | 100 MW | → HOT STARTING (1) | `min_down_time` satisfied, turbine begins hot starting sequence |
+| 40 | Command | → 100 MW | OFF (0) | Setpoint changes to full power, but `down_time_min` (60 min) not yet satisfied—turbine remains off |
+| 60 | State | 100 MW | → HOT STARTING (1) | `down_time_min` satisfied, turbine begins hot starting sequence |
 | ~64 | State | 100 MW | HOT STARTING (1) | `hot_readying_time` (~4.2 min) complete, run-up ramp begins |
-| ~68 | State | 100 MW | → ON (4) | Power reaches P_min (20 MW) after `hot_startup_time` (~8.2 min), turbine now operational |
-| ~76 | Ramp | 100 MW | ON (4) | Power reaches 100 MW (ramped at 10 MW/min from P_min) |
+| ~68 | State | 100 MW | → ON (4) | Power reaches power_min (20 MW) after `startup_time_hot` (~8.2 min), turbine now operational |
+| ~76 | Ramp | 100 MW | ON (4) | Power reaches 100 MW (ramped at 10 MW/min from power_min) |
 | 120 | Command | → 50 MW | ON (4) | Setpoint reduced to 50% capacity |
 | ~125 | Ramp | 50 MW | ON (4) | Power reaches 50 MW (ramped down at 10 MW/min) |
-| 180 | Command | → 10 MW | ON (4) | Setpoint reduced to 10% (below P_min), power clamped to P_min |
-| ~183 | Ramp | 10 MW | ON (4) | Power reaches P_min (20 MW), cannot go lower |
+| 180 | Command | → 10 MW | ON (4) | Setpoint reduced to 10% (below power_min), power clamped to power_min |
+| ~183 | Ramp | 10 MW | ON (4) | Power reaches power_min (20 MW), cannot go lower |
 | 210 | Command | → 100 MW | ON (4) | Setpoint increased to full power |
 | ~218 | Ramp | 100 MW | ON (4) | Power reaches 100 MW |
-| 240 | Command + State | → 0 | → STOPPING (5) | Shutdown command; `min_up_time` satisfied (~172 min on), begins stopping sequence |
+| 240 | Command + State | → 0 | → STOPPING (5) | Shutdown command; `up_time_min` satisfied (~172 min on), begins stopping sequence |
 | ~250 | State | 0 | → OFF (0) | Power reaches 0 (ramped down at 10 MW/min), turbine off |
 | 360 | End | 0 | OFF (0) | Simulation ends | -->
 
 ### Key Behaviors Demonstrated
 
-- **Minimum down time**: The turbine cannot start until `min_down_time` (60 min) is satisfied, even though the command is issued at 40 min
-- **Hot startup sequence**: After `min_down_time`, the turbine enters HOT STARTING, waits through `hot_readying_time`, then ramps to P_min using `run_up_rate`
+- **Minimum down time**: The turbine cannot start until `down_time_min` (60 min) is satisfied, even though the command is issued at 40 min
+- **Hot startup sequence**: After `down_time_min`, the turbine enters HOT STARTING, waits through `hot_readying_time`, then ramps to power_min using `run_up_rate`
 - **Ramp rate constraints**: All power changes in ON state are limited by `ramp_rate` (10 MW/min)
-- **Minimum stable load**: When commanded to 10 MW (below P_min = 20 MW), power is clamped to P_min
-- **Minimum up time**: Shutdown is allowed immediately at 240 min because `min_up_time` (60 min) was satisfied long ago
+- **Minimum stable load**: When commanded to 10 MW (below power_min = 20 MW), power is clamped to power_min
+- **Minimum up time**: Shutdown is allowed immediately at 240 min because `up_time_min` (60 min) was satisfied long ago
 - **Stopping sequence**: The turbine ramps down to zero at `ramp_rate` before transitioning to OFF
 
 ## Setup

@@ -26,7 +26,8 @@ def create_test_hdf5_file(filename: str):
         f["data/step"] = np.array([0, 1, 2, 3, 4, 5])
 
         # Add plant data
-        f["data/plant_power"] = np.array([100, 200, 300, 400, 500, 600])
+        f["data/plant_power_bus"] = np.array([100, 200, 300, 400, 500, 600])
+        f["data/plant_power_export"] = np.array([100, 200, 300, 400, 500, 600])
         f["data/plant_locally_generated_power"] = np.array([90, 180, 270, 360, 450, 540])
 
         # Add components group
@@ -116,7 +117,8 @@ def test_hercules_output_data_access():
         assert len(data) == 6  # 6 time steps
         assert "time" in data.columns
         assert "step" in data.columns
-        assert "plant.power" in data.columns
+        assert "plant.power_bus" in data.columns
+        assert "plant.power_export" in data.columns
         assert "plant.locally_generated_power" in data.columns
         assert "wind_farm.power" in data.columns
         assert "solar_farm.power" in data.columns
@@ -125,7 +127,7 @@ def test_hercules_output_data_access():
 
         # Test some values
         np.testing.assert_array_equal(data["time"], [0, 1, 2, 3, 4, 5])
-        np.testing.assert_array_equal(data["plant.power"], [100, 200, 300, 400, 500, 600])
+        np.testing.assert_array_equal(data["plant.power_bus"], [100, 200, 300, 400, 500, 600])
 
     finally:
         os.unlink(temp_file)
@@ -177,7 +179,7 @@ def test_hercules_output_merges_controller_log():
     with tempfile.TemporaryDirectory() as tmp_dir:
         h5_file = os.path.join(tmp_dir, "out.h5")
         create_test_hdf5_file(h5_file)
-        # Time 3 deliberately missing; name collides with a possible Hercules column (AI)
+        # Time 3 deliberately missing; name collides with a possible Hercules column
         pd.DataFrame(
             {
                 "time": [0, 1, 2, 4, 5],

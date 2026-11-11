@@ -9,35 +9,35 @@ For details on the state machine, startup/shutdown behavior, and base parameters
 
 ## Default Linear Generator-Specific Parameter Values
 
-The `LinearGenerator` class provides default values for all base class parameters. Only `rated_capacity` and `initial_conditions` are required in the YAML configuration. All defaults are defined in the class-level `DEFAULTS` dict.
+The `LinearGenerator` class provides default values for all base class parameters. Only `capacity_rated` and `initial_conditions` are required in the YAML configuration. All defaults are defined in the class-level `DEFAULTS` dict.
 
 | Parameter | Default Value | Source | Notes |
 |-----------|---------------|--------|------|
-| `min_stable_load_fraction` | 0.0 (0%) | — | Minimum stable load fraction of the generator |
-| `ramp_rate_fraction` | 1.2 (120%/min) | [2] | Ramp rate fraction of the generator |
-| `run_up_rate_fraction` | Same as `ramp_rate_fraction` | — | Run-up rate fraction of the generator |
-| `hot_startup_time` | 90 s (1.5 minutes) | — | Time required for a hot start |
-| `warm_startup_time` | 450 s (7.5 minutes) | — | Time required for a warm start |
-| `cold_startup_time` | 900 s (15 minutes) | — | Time required for a cold start |
-| `min_up_time` | 300 s (5 minutes) | — | Note below |
-| `min_down_time` | 300 s (5 minutes) | — | Minimum down time of the generator |
-| `hot_to_warm_time` | 2700 s (45 minutes) | — | Assumptions documented below |
-| `hot_to_cold_time` | 10800 s (3 hours) | — | Assumptions documented below |
-| `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [3] | Higher heating value of the fuel |
+| `load_stable_min_fraction` | 0.0 (0%) | — | Minimum stable load fraction of the generator |
+| `ramp_rate_fraction_per_min` | 1.2 (120%/min) | [2] | Ramp rate fraction of the generator |
+| `run_up_rate_fraction_per_min` | Same as `ramp_rate_fraction_per_min` | — | Run-up rate fraction of the generator |
+| `startup_time_hot` | 90 s (1.5 minutes) | — | Time required for a hot start |
+| `startup_time_warm` | 450 s (7.5 minutes) | — | Time required for a warm start |
+| `startup_time_cold` | 900 s (15 minutes) | — | Time required for a cold start |
+| `up_time_min` | 300 s (5 minutes) | — | Note below |
+| `down_time_min` | 300 s (5 minutes) | — | Minimum down time of the generator |
+| `cooldown_time_warm` | 2700 s (45 minutes) | — | Assumptions documented below |
+| `cooldown_time_cold` | 10800 s (3 hours) | — | Assumptions documented below |
+| `HHV` | 39050000 J/m³ (39.05 MJ/m³) | [3] | Higher heating value of the fuel |
 | `fuel_density` | 0.768 kg/m³ | [3] | Density of the fuel |
 | `efficiency_table` | 41.44% HHV peak, with roll-off at extremes (see below) | [1] | Efficiency of the generator, converted from LHV |
 
 Notes:
-- `min_up_time` is often determined by thermal and mechanical stress management considerations, as the generator may need to remain on for a minimum duration to avoid excessive wear from frequent cycling.
-- `hot_to_warm_time` and `hot_to_cold_time` are estimated based on catalyst cooling characteristics; see the section below for details on how these values were derived.
+- `up_time_min` is often determined by thermal and mechanical stress management considerations, as the generator may need to remain on for a minimum duration to avoid excessive wear from frequent cycling.
+- `cooldown_time_warm` and `cooldown_time_cold` are estimated based on catalyst cooling characteristics; see the section below for details on how these values were derived.
 
 
-### Estimating `hot_to_warm_time` and `hot_to_cold_time`
+### Estimating `cooldown_time_warm` and `cooldown_time_cold`
 
 These two parameters can be interpreted as catalyst cooling thresholds, similar to the `\tau_{hot}` and `\tau_{warm}` transition times used in conventional unit commitment startup models:
 
-- `hot_to_warm_time`: time offline after which a hot start can no longer be assumed
-- `hot_to_cold_time`: time offline after which a cold start must be assumed
+- `cooldown_time_warm`: time offline after which a hot start can no longer be assumed
+- `cooldown_time_cold`: time offline after which a cold start must be assumed
 
 For the linear generator, a reasonable first estimate is based on how long the catalyst takes to cool below its light-off temperature, typically about 200-300 °C. A simple lumped thermal model treats the catalyst assembly as cooling approximately exponentially after shutdown:
 
@@ -84,10 +84,10 @@ The `LinearGenerator` class currently uses default values for natural gas proper
 
 | Parameter | Units | Default | Description |
 |-----------|-------|---------|-------------|
-| `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [3] |
+| `HHV` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [3] |
 | `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [3] |
 
-Linear generators are also capable of mixed-fuel operation. To model a different fuel, simply override the `hhv` and `fuel_density` parameters in the YAML configuration; in this case the `efficiency_table` should also be updated to reflect the new fuel's combustion characteristics.
+Linear generators are also capable of mixed-fuel operation. To model a different fuel, simply override the `HHV` and `fuel_density` parameters in the YAML configuration; in this case the `efficiency_table` should also be updated to reflect the new fuel's combustion characteristics.
 The `efficiency_table` parameter is **optional**. If not provided, the default HHV net plant efficiency from the Mainspring Energy Linear Generator datasheet [1] is used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ### Default Efficiency Table
@@ -125,7 +125,7 @@ Required parameters only (uses all defaults):
 ```yaml
 linear_generator:
   component_type: LinearGenerator
-  rated_capacity: 250  # kW
+  capacity_rated: 250  # kW
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
 ```
@@ -137,18 +137,18 @@ All parameters explicitly specified:
 ```yaml
 linear_generator:
   component_type: LinearGenerator
-  rated_capacity: 250  # kW
-  min_stable_load_fraction: 0.0
-  ramp_rate_fraction: 1.2  # 120%/min
-  run_up_rate_fraction: 1.2  # 120%/min
-  hot_startup_time: 90.0  # 1.5 minutes
-  warm_startup_time: 450.0  # 7.5 minutes
-  cold_startup_time: 900.0  # 15 minutes
-  min_up_time: 300  # 5 minutes
-  min_down_time: 300  # 5 minutes
-  hot_to_warm_time: 2700.0  # 45 minutes
-  hot_to_cold_time: 10800.0  # 3 hours
-  hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
+  capacity_rated: 250  # kW
+  load_stable_min_fraction: 0.0
+  ramp_rate_fraction_per_min: 1.2  # 120%/min
+  run_up_rate_fraction_per_min: 1.2  # 120%/min
+  startup_time_hot: 90.0  # 1.5 minutes
+  startup_time_warm: 450.0  # 7.5 minutes
+  startup_time_cold: 900.0  # 15 minutes
+  up_time_min: 300  # 5 minutes
+  down_time_min: 300  # 5 minutes
+  cooldown_time_warm: 2700.0  # 45 minutes
+  cooldown_time_cold: 10800.0  # 3 hours
+  HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [3]
   fuel_density: 0.768  # kg/m³ for natural gas [3]
   efficiency_table:
     power_fraction:
@@ -184,7 +184,7 @@ thermal_power_plant:
 
   linear_generator_ms:
     component_type: LinearGenerator
-    rated_capacity: 250  # kW
+    capacity_rated: 250  # kW
     initial_conditions:
       power: 250  # Start ON at rated capacity
 ```

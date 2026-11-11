@@ -12,27 +12,27 @@ The HCST class provides default values for bituminous coal properties from [4]:
 
 | Parameter | Units | Default | Description |
 |-----------|-------|---------|-------------|
-| `hhv` | J/m³ | 29310000000 | Higher heating value of bituminous coal (29.31 MJ/kg) [4] |
+| `HHV` | J/m³ | 29310000000 | Higher heating value of bituminous coal (29.31 MJ/kg) [4] |
 | `fuel_density` | kg/m³ | 1000 | Fuel density for mass calculations |
 
 The `efficiency_table` parameter is **optional**. If not provided, default values based on approximate readings from the [2] are used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ## Default Parameter Values
 
-The `SteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
+The `SteamTurbine` class provides default values for base class parameters based on References [1-4]. Only `capacity_rated` and `initial_conditions.power` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
-| `min_stable_load_fraction` | 0.30 (30%) | [2] |
-| `ramp_rate_fraction` | 0.03 (3%/min) | [1] |
-| `run_up_rate_fraction` | Same as `ramp_rate_fraction` | — |
-| `hot_startup_time` | 7.5 hours | [1] |
-| `warm_startup_time` | 7.5 hours | [1] |
-| `cold_startup_time` | 7.5 hours | [1] |
-| `min_up_time` | 48 hours | [2] |
-| `min_down_time` | 48 hours | [2] |
-| `hot_to_warm_time` | 28800 s (8 hours) | [5] |
-| `hot_to_cold_time` | 172800 s (48 hours) | [5] |
+| `load_stable_min_fraction` | 0.30 (30%) | [2] |
+| `ramp_rate_fraction_per_min` | 0.03 (3%/min) | [1] |
+| `run_up_rate_fraction_per_min` | Same as `ramp_rate_fraction_per_min` | — |
+| `startup_time_hot` | 7.5 hours | [1] |
+| `startup_time_warm` | 7.5 hours | [1] |
+| `startup_time_cold` | 7.5 hours | [1] |
+| `up_time_min` | 48 hours | [2] |
+| `down_time_min` | 48 hours | [2] |
+| `cooldown_time_warm` | 28800 s (8 hours) | [5] |
+| `cooldown_time_cold` | 172800 s (48 hours) | [5] |
 | `efficiency_table` | Average plant efficiency | [2,3] |
 
 ### Default Efficiency Table
@@ -62,13 +62,13 @@ The HCST model provides the following outputs (inherited from base class):
 HHV net plant efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
 
 $$
-\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{HHV}}
 $$
 
 Where:
 - `power` is in W (converted from kW internally)
 - `efficiency` is the HHV net efficiency interpolated from the efficiency table
-- `hhv` is the higher heating value in J/m³
+- `HHV` is the higher heating value in J/m³
 - Result is fuel volume rate in m³/s
 
 The fuel mass rate is then computed from the volume rate using the fuel density:
@@ -86,12 +86,12 @@ Where:
 
 ### Minimal Configuration
 
-Required parameters only (uses defaults for `hhv`, `efficiency_table`, and other parameters):
+Required parameters only (uses defaults for `HHV`, `efficiency_table`, and other parameters):
 
 ```yaml
 steam_turbine:
   component_type: SteamTurbine
-  rated_capacity: 100000  # kW (100 MW)
+  capacity_rated: 100000  # kW (100 MW)
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
 ```
@@ -103,18 +103,18 @@ All parameters explicitly specified:
 ```yaml
 steam_turbine:
   component_type: SteamTurbine
-  rated_capacity: 500000  # kW (500 MW)
-  min_stable_load_fraction: 0.3  # 30% minimum operating point
-  ramp_rate_fraction: 0.03  # 3%/min ramp rate
-  run_up_rate_fraction: 0.02  # 2%/min run up rate
-  hot_startup_time: 27000.0  # 7.5 hours
-  warm_startup_time: 27000.0  # 7.5 hours
-  cold_startup_time: 27000.0  # 7.5 hours
-  min_up_time: 172800  # 48 hours
-  min_down_time: 172800  # 48 hour
-  hot_to_warm_time: 28800.0  # 8 hours
-  hot_to_cold_time: 172800.0  # 48 hours
-  hhv: 29310000000  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
+  capacity_rated: 500000  # kW (500 MW)
+  load_stable_min_fraction: 0.3  # 30% minimum operating point
+  ramp_rate_fraction_per_min: 0.03  # 3%/min ramp rate
+  run_up_rate_fraction_per_min: 0.02  # 2%/min run up rate
+  startup_time_hot: 27000.0  # 7.5 hours
+  startup_time_warm: 27000.0  # 7.5 hours
+  startup_time_cold: 27000.0  # 7.5 hours
+  up_time_min: 172800  # 48 hours
+  down_time_min: 172800  # 48 hour
+  cooldown_time_warm: 28800.0  # 8 hours
+  cooldown_time_cold: 172800.0  # 48 hours
+  HHV: 29310000000  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
   fuel_density: 1000  # kg/m³ for bituminous coal
   efficiency_table:
     power_fraction:

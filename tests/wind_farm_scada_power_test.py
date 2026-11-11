@@ -18,9 +18,9 @@ h_dict_wind_scada = copy.deepcopy(h_dict_wind)
 h_dict_wind_scada["wind_farm"]["component_type"] = "WindFarmSCADAPower"
 h_dict_wind_scada["wind_farm"]["scada_filename"] = "tests/test_inputs/scada_input.csv"
 # Remove FLORIS-specific parameters
-del h_dict_wind_scada["wind_farm"]["floris_input_file"]
+del h_dict_wind_scada["wind_farm"]["floris_input_filename"]
 del h_dict_wind_scada["wind_farm"]["wind_input_filename"]
-del h_dict_wind_scada["wind_farm"]["floris_update_time_s"]
+del h_dict_wind_scada["wind_farm"]["floris_update_time"]
 
 
 def test_wind_farm_scada_power_initialization():
@@ -49,8 +49,8 @@ def test_wind_farm_scada_power_infers_rated_power():
     wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Check that rated power is positive and reasonable
-    assert wind_sim.rated_turbine_power == 5000.0
-    assert wind_sim.capacity == wind_sim.n_turbines * wind_sim.rated_turbine_power
+    assert wind_sim.turbine_power_rated == 5000.0
+    assert wind_sim.capacity_rated == wind_sim.n_turbines * wind_sim.turbine_power_rated
 
 
 def test_wind_farm_scada_power_no_wakes():
@@ -107,16 +107,16 @@ def test_wind_farm_scada_power_get_initial_conditions_and_meta_data():
 
     # Verify that all expected metadata is added to the wind_farm section
     assert "n_turbines" in result["wind_farm"]
-    assert "capacity" in result["wind_farm"]
-    assert "rated_turbine_power" in result["wind_farm"]
+    assert "capacity_rated" in result["wind_farm"]
+    assert "turbine_power_rated" in result["wind_farm"]
     assert "wind_direction_mean" in result["wind_farm"]
     assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
     assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
-    assert result["wind_farm"]["capacity"] == wind_sim.capacity
-    assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
+    assert result["wind_farm"]["capacity_rated"] == wind_sim.capacity_rated
+    assert result["wind_farm"]["turbine_power_rated"] == wind_sim.turbine_power_rated
     assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
     assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 

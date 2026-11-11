@@ -40,18 +40,18 @@ combined_cycle_plant:
 
   open_cycle_gas_turbine:
     component_type: OpenCycleGasTurbine
-    rated_capacity: 70000  # kW (70 MW)
-    min_stable_load_fraction: 0.4  # 40% minimum operating point
-    ramp_rate_fraction: 0.1  # 10%/min ramp rate
-    run_up_rate_fraction: 0.05  # 5%/min run up rate
-    hot_startup_time: 1800.0  # 30 minutes
-    warm_startup_time: 2700.0  # 45 minutes
-    cold_startup_time: 2700.0  # 45 minutes
-    min_up_time: 14400  # 4 hour
-    min_down_time: 7200  # 2 hour
+    capacity_rated: 70000  # kW (70 MW)
+    load_stable_min_fraction: 0.4  # 40% minimum operating point
+    ramp_rate_fraction_per_min: 0.1  # 10%/min ramp rate
+    run_up_rate_fraction_per_min: 0.05  # 5%/min run up rate
+    startup_time_hot: 1800.0  # 30 minutes
+    startup_time_warm: 2700.0  # 45 minutes
+    startup_time_cold: 2700.0  # 45 minutes
+    up_time_min: 14400  # 4 hour
+    down_time_min: 7200  # 2 hour
     # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
     # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
-    hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+    HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
     fuel_density: 0.768  # kg/m³ for natural gas [6]
     efficiency_table:
       power_fraction:
@@ -73,18 +73,18 @@ combined_cycle_plant:
 
   steam_turbine:
     component_type: SteamTurbine
-    rated_capacity: 30000  # kW (30 MW)
-    min_stable_load_fraction: 0.4  # 40% minimum operating point
-    ramp_rate_fraction: 0.05  # 5%/min ramp rate
-    run_up_rate_fraction: 0.02  # 2%/min run up rate
-    hot_startup_time: 3600.0  # 1 hour
-    warm_startup_time: 7200.0  # 2 hours
-    cold_startup_time: 14400.0  # 4 hours
-    min_up_time: 14400  # 4 hour
-    min_down_time: 7200  # 2 hour
+    capacity_rated: 30000  # kW (30 MW)
+    load_stable_min_fraction: 0.4  # 40% minimum operating point
+    ramp_rate_fraction_per_min: 0.05  # 5%/min ramp rate
+    run_up_rate_fraction_per_min: 0.02  # 2%/min run up rate
+    startup_time_hot: 3600.0  # 1 hour
+    startup_time_warm: 7200.0  # 2 hours
+    startup_time_cold: 14400.0  # 4 hours
+    up_time_min: 14400  # 4 hour
+    down_time_min: 7200  # 2 hour
     # Natural gas properties from [6] Staffell, "The Energy and Fuel Data Sheet", 2011
     # HHV: 39.05 MJ/m³, Density: 0.768 kg/m³
-    # hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+    # HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
     # fuel_density: 0.768  # kg/m³ for natural gas [6]
     efficiency_table:
       power_fraction:

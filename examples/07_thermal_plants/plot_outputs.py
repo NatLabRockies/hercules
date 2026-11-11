@@ -35,14 +35,14 @@ ax.plot(
     linestyle="--",
 )
 ax.axhline(
-    h_dict[component_name]["rated_capacity"] / 1000,
+    h_dict[component_name]["capacity_rated"] / 1000,
     color="gray",
     linestyle=":",
     label="Rated Capacity",
 )
 ax.axhline(
-    h_dict[component_name]["min_stable_load_fraction"]
-    * h_dict[component_name]["rated_capacity"]
+    h_dict[component_name]["load_stable_min_fraction"]
+    * h_dict[component_name]["capacity_rated"]
     / 1000,
     color="gray",
     linestyle="--",

@@ -53,3 +53,5 @@ This file contains additional guidance for AI agents and other AI editors includ
 ## Important references in docs
 
 - Follow the unit conventions in docs/units.md
+- Follow the naming conventions in docs/nomenclature.md for all `h_dict` keys, input keys,
+  output channels and variables. Add any new name to its tables.
