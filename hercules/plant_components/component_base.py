@@ -22,6 +22,9 @@ class ComponentBase:
     # Subclasses must override this with one of: "generator", "load", "storage"
     component_category: ClassVar[str]
 
+    # Outputs that use the consumer sign convention internally; HybridPlant negates them
+    consumer_sign_outputs: ClassVar[tuple] = ()
+
     # Valid component categories
     _ALLOWED_CATEGORIES = {"generator", "load", "storage"}
 
@@ -76,16 +79,16 @@ class ComponentBase:
         logging_inputs = (
             logging_inputs | h_dict.get("logging", {}) | h_dict[component_name].get("logging", {})
         )
-        # Check if log_file_name is defined in the h_dict[component_name]
-        if "log_file_name" in h_dict[component_name]:
-            self.log_file_name = h_dict[component_name]["log_file_name"]
+        # Check if log_filename is defined in the h_dict[component_name]
+        if "log_filename" in h_dict[component_name]:
+            self.log_filename = h_dict[component_name]["log_filename"]
         else:
-            self.log_file_name = f"log_{component_name}.log"
+            self.log_filename = f"log_{component_name}.log"
 
-        if "log_file" in logging_inputs:
-            logging_inputs["log_file"] = self.log_file_name
+        # The top-level logging log_filename is for the main Hercules log only (AI)
+        logging_inputs.pop("log_filename", None)
 
-        self.logger = self._setup_logging(self.log_file_name, **logging_inputs)
+        self.logger = self._setup_logging(self.log_filename, **logging_inputs)
 
         # Parse log_channels from the h_dict
         if "log_channels" in h_dict[component_name]:
@@ -122,7 +125,7 @@ class ComponentBase:
         if self.verbose:
             self.logger.info(f"Verbose flag = {self.verbose}")
 
-    def _setup_logging(self, log_file_name, **kwargs):
+    def _setup_logging(self, log_filename, **kwargs):
         """Set up logging for the component.
 
 
@@ -131,7 +134,7 @@ class ComponentBase:
 
 
         Args:
-            log_file_name (str): Filename of the logger
+            log_filename (str): Filename of the logger
             **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
@@ -139,7 +142,7 @@ class ComponentBase:
         """
         logging_defaults = {
             "logger_name": self.component_name,
-            "log_file": log_file_name,
+            "log_filename": log_filename,
             "console_prefix": self.component_name.upper(),
         }
 

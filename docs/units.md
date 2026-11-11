@@ -1,6 +1,6 @@
 # Units Convention in Hercules
 
-Hercules follows a consistent units convention throughout the codebase to ensure clarity and prevent unit conversion errors.
+Hercules follows a consistent units convention throughout the codebase to ensure clarity and prevent unit conversion errors. Names of quantities in default units carry no unit suffix; any other unit must appear in the name (e.g. `_MW`, `_kJ`, `_rpm`). See [Nomenclature](nomenclature.md).
 
 ## Power Units
 

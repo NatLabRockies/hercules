@@ -26,16 +26,16 @@ my_thermal_plant:
 
   large_ocgt:
     component_type: OpenCycleGasTurbine
-    rated_capacity: 100000  # kW (100 MW)
-    min_stable_load_fraction: 0.4  # 40% minimum operating point
-    ramp_rate_fraction: 0.1  # 10%/min ramp rate
-    run_up_rate_fraction: 0.05  # 5%/min run up rate
-    hot_startup_time: 420.0  # 7 minutes
-    warm_startup_time: 480.0  # 8 minutes
-    cold_startup_time: 480.0  # 8 minutes
-    min_up_time: 1800  # 30 minutes
-    min_down_time: 3600  # 1 hour
-    hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³)
+    capacity_rated: 100000  # kW (100 MW)
+    load_stable_min_fraction: 0.4  # 40% minimum operating point
+    ramp_rate_fraction_per_min: 0.1  # 10%/min ramp rate
+    run_up_rate_fraction_per_min: 0.05  # 5%/min run up rate
+    startup_time_hot: 420.0  # 7 minutes
+    startup_time_warm: 480.0  # 8 minutes
+    startup_time_cold: 480.0  # 8 minutes
+    up_time_min: 1800  # 30 minutes
+    down_time_min: 3600  # 1 hour
+    HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³)
     fuel_density: 0.768  # kg/m³ for natural gas
     efficiency_table:
       power_fraction:
@@ -60,16 +60,16 @@ my_thermal_plant:
 
   small_ocgt:
     component_type: OpenCycleGasTurbine
-    rated_capacity: 50000  # kW (50 MW)
-    min_stable_load_fraction: 0.4  # 40% minimum operating point
-    ramp_rate_fraction: 0.15  # 15%/min ramp rate
-    run_up_rate_fraction: 0.1  # 10%/min run up rate
-    hot_startup_time: 300.0  # 5 minutes
-    warm_startup_time: 360.0  # 6 minutes
-    cold_startup_time: 420.0  # 7 minutes
-    min_up_time: 1200  # 20 minutes
-    min_down_time: 2400  # 40 minutes
-    hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+    capacity_rated: 50000  # kW (50 MW)
+    load_stable_min_fraction: 0.4  # 40% minimum operating point
+    ramp_rate_fraction_per_min: 0.15  # 15%/min ramp rate
+    run_up_rate_fraction_per_min: 0.1  # 10%/min run up rate
+    startup_time_hot: 300.0  # 5 minutes
+    startup_time_warm: 360.0  # 6 minutes
+    startup_time_cold: 420.0  # 7 minutes
+    up_time_min: 1200  # 20 minutes
+    down_time_min: 2400  # 40 minutes
+    HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
     fuel_density: 0.768  # kg/m
     efficiency_table:
       power_fraction:
@@ -90,4 +90,4 @@ my_thermal_plant:
 
 ## Logging configuration
 
-The `log_channels` parameter controls which outputs are written to the HDF5 output file. Logging is configured separately for each unit, so the `log_channels` field is specified within each unit's subdictionary. For example, if `unit_names: ["OCGT1", "OCGT1"]`, then the log will have columns `my_thermal_plant.OCGT1.power`, `my_thermal_plant.OCGT1.fuel_volume_rate`, etc. for the first unit, and `my_thermal_plant.OCGT2.power`, `my_thermal_plant.OCGT2.fuel_volume_rate`, etc. for the second unit, assuming those channels are included in the `log_channels` list for each unit. The total power for the thermal plant is always logged to `my_thermal_plant.power`, which is the sum of the power outputs of each unit.
+The `log_channels` parameter controls which outputs are written to the HDF5 output file. Logging is configured separately for each unit, so the `log_channels` field is specified within each unit's subdictionary. For example, if `unit_names: ["OCGT1", "OCGT1"]`, then the log will have columns `my_thermal_plant.OCGT1.power`, `my_thermal_plant.OCGT1.fuel_volume_rate`, etc. for the first unit, and `my_thermal_plant.OCGT2.power`, `my_thermal_plant.OCGT2.fuel_volume_rate`, etc. for the second unit, assuming those channels are included in the `log_channels` list for each unit. The total power for the thermal plant is always logged to `my_thermal_plant.power_bus`, which is the sum of the power outputs of each unit.

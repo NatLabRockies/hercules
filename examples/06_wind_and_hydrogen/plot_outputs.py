@@ -76,8 +76,8 @@ ax.plot(
 )
 ax.plot(
     df["time_utc"],
-    df["electrolyzer.power_input_kw"],
-    label="Electrolyzer Input Power",
+    -df["electrolyzer.power_allocated"],
+    label="Electrolyzer Allocated Power",
     color="r",
     alpha=0.75,
 )
@@ -97,7 +97,7 @@ ax.plot(
     df["time_utc"], df["external_signals.hydrogen_reference"], label="Hydrogen Reference", color="k"
 )
 ax.set_ylabel("Hydrogen production [kg]")
-ax.plot(df["time_utc"], df["electrolyzer.H2_mfr"], label="Hydrogen Output", color="b")
+ax.plot(df["time_utc"], df["electrolyzer.H2_MFR"], label="Hydrogen Output", color="b")
 
 ax.set_xlabel("Time [s]")
 

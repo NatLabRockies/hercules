@@ -20,10 +20,10 @@ plant = {"interconnect_limit": 30000.0}
 
 wind_farm = {
     "component_type": "WindFarm",
-    "floris_input_file": "tests/test_inputs/floris_input.yaml",
+    "floris_input_filename": "tests/test_inputs/floris_input.yaml",
     "wind_input_filename": "tests/test_inputs/wind_input.csv",
-    "turbine_file_name": "tests/test_inputs/turbine_filter_model.yaml",
-    "log_file_name": "outputs/wind_farm.log",
+    "turbine_filename": "tests/test_inputs/turbine_filter_model.yaml",
+    "log_filename": "outputs/wind_farm.log",
     "log_channels": [
         "power",
         "wind_speed_mean_background",
@@ -31,13 +31,13 @@ wind_farm = {
         "wind_direction_mean",
         "turbine_powers",
     ],
-    "floris_update_time_s": 30.0,  # Required parameter for FLORIS updates
+    "floris_update_time": 30.0,  # Required parameter for FLORIS updates
 }
 
 power_playback = {
     "component_type": "PowerPlayback",
     "scada_filename": "tests/test_inputs/power_playback_input.csv",
-    "log_file_name": "outputs/power_playback.log",
+    "log_filename": "outputs/power_playback.log",
     "log_channels": ["power"],
 }
 
@@ -50,8 +50,8 @@ solar_farm_pysam = {
     "lon": -105.179,
     "elev": 1828.8,
     "losses": 0,
-    "log_channels": ["power", "dni", "poa", "aoi"],
-    "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
+    "log_channels": ["power", "DNI", "POA", "AOI"],
+    "initial_conditions": {"power": 0.0, "DNI": 0.0, "POA": 0.0},
 }
 
 solar_farm_pvwatts = {
@@ -63,18 +63,18 @@ solar_farm_pvwatts = {
     "system_capacity": 100000.0,  # kW (100 MW)
     "tilt": 0,  # degrees
     "losses": 0,
-    "log_channels": ["power", "dni", "poa", "aoi"],
-    "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
+    "log_channels": ["power", "DNI", "POA", "AOI"],
+    "initial_conditions": {"power": 25, "DNI": 1000, "POA": 1000},
 }
 
 battery = {
     "component_type": "BatteryDynamic",
     "energy_capacity": 100.0,
-    "charge_rate": 50.0,
-    "discharge_rate": 50.0,
-    "max_SOC": 0.9,
-    "min_SOC": 0.1,
-    "log_channels": ["power", "soc", "power_setpoint"],
+    "power_charge_max": 50.0,
+    "power_discharge_max": 50.0,
+    "SOC_max": 0.9,
+    "SOC_min": 0.1,
+    "log_channels": ["power", "SOC", "power_setpoint"],
     "initial_conditions": {"SOC": 0.5},
 }
 
@@ -82,9 +82,9 @@ simple_battery = {
     "component_type": "BatteryDynamic",
     "size": 20000,  # kW size of the battery (20 MW)
     "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
-    "charge_rate": 2000,  # charge rate in kW (2 MW)
-    "discharge_rate": 2000,  # discharge rate in kW (2 MW)
-    "log_channels": ["power", "soc", "power_setpoint"],
+    "power_charge_max": 2000,  # charge rate in kW (2 MW)
+    "power_discharge_max": 2000,  # discharge rate in kW (2 MW)
+    "log_channels": ["power", "SOC", "power_setpoint"],
     "initial_conditions": {"SOC": 0.5},
 }
 
@@ -92,28 +92,28 @@ lib_battery = {
     "component_type": "BatteryLithiumIon",
     "size": 20000,  # kW size of the battery (20 MW)
     "energy_capacity": 80000,  # total capacity of the battery in kWh (80 MWh)
-    "charge_rate": 2000,  # charge rate in kW (2 MW)
-    "discharge_rate": 2000,  # discharge rate in kW (2 MW)
-    "max_SOC": 0.9,  # upper boundary on battery SOC
-    "min_SOC": 0.1,  # lower boundary on battery SOC
-    "log_channels": ["power", "soc", "power_setpoint"],
+    "power_charge_max": 2000,  # charge rate in kW (2 MW)
+    "power_discharge_max": 2000,  # discharge rate in kW (2 MW)
+    "SOC_max": 0.9,  # upper boundary on battery SOC
+    "SOC_min": 0.1,  # lower boundary on battery SOC
+    "log_channels": ["power", "SOC", "power_setpoint"],
     "initial_conditions": {"SOC": 0.102},
 }
 
 
 thermal_component = {
     "component_type": "ThermalComponentBase",
-    "rated_capacity": 1000,  # kW (1 MW)
-    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
-    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
-    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
-    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
-    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "min_up_time": 10.0,  # s
-    "min_down_time": 10.0,  # s
-    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
-    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
+    "capacity_rated": 1000,  # kW (1 MW)
+    "load_stable_min_fraction": 0.20,  # 20% minimum operating point
+    "ramp_rate_fraction_per_min": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction_per_min": 0.20,  # 20% of rated capacity per minute
+    "startup_time_hot": 120.0,  # s (must be >= run_up_rate_fraction_per_min of 60s)
+    "startup_time_warm": 120.0,  # s (must be >= ramp_time of 60s)
+    "startup_time_cold": 120.0,  # s (must be >= ramp_time of 60s)
+    "up_time_min": 10.0,  # s
+    "down_time_min": 10.0,  # s
+    "cooldown_time_warm": 28800.0,  # s (8 hours, default)
+    "cooldown_time_cold": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -122,7 +122,7 @@ thermal_component = {
         "fuel_mass_rate",
     ],
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
-    "hhv": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
+    "HHV": 40000000,  # J/m³ (made up round number for testing, NOT realistic)
     "fuel_density": 1.0,  # kg/m³ (made up round number for testing, NOT realistic)
     # HHV net efficiency values (made up round numbers for testing, NOT realistic)
     "efficiency_table": {
@@ -133,17 +133,17 @@ thermal_component = {
 
 open_cycle_gas_turbine = {
     "component_type": "OpenCycleGasTurbine",
-    "rated_capacity": 1000,  # kW (1 MW)
-    "min_stable_load_fraction": 0.20,  # 20% minimum operating point
-    "ramp_rate_fraction": 0.50,  # 50% of rated capacity per minute
-    "run_up_rate_fraction": 0.20,  # 20% of rated capacity per minute
-    "hot_startup_time": 120.0,  # s (must be >= run_up_rate_fraction of 60s)
-    "warm_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "cold_startup_time": 120.0,  # s (must be >= ramp_time of 60s)
-    "min_up_time": 10.0,  # s
-    "min_down_time": 10.0,  # s
-    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
-    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
+    "capacity_rated": 1000,  # kW (1 MW)
+    "load_stable_min_fraction": 0.20,  # 20% minimum operating point
+    "ramp_rate_fraction_per_min": 0.50,  # 50% of rated capacity per minute
+    "run_up_rate_fraction_per_min": 0.20,  # 20% of rated capacity per minute
+    "startup_time_hot": 120.0,  # s (must be >= run_up_rate_fraction_per_min of 60s)
+    "startup_time_warm": 120.0,  # s (must be >= ramp_time of 60s)
+    "startup_time_cold": 120.0,  # s (must be >= ramp_time of 60s)
+    "up_time_min": 10.0,  # s
+    "down_time_min": 10.0,  # s
+    "cooldown_time_warm": 28800.0,  # s (8 hours, default)
+    "cooldown_time_cold": 172800.0,  # s (48 hours, default)
     "log_channels": [
         "power",
         "state",
@@ -152,7 +152,7 @@ open_cycle_gas_turbine = {
         "fuel_mass_rate",
     ],
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
-    "hhv": 39050000,  # J/m³ (natural gas HHV from [6])
+    "HHV": 39050000,  # J/m³ (natural gas HHV from [6])
     # HHV net plant efficiency from SC1A curve in Exhibit ES-4 of [5]
     "efficiency_table": {
         "power_fraction": [1.0, 0.75, 0.50, 0.25],
@@ -162,17 +162,17 @@ open_cycle_gas_turbine = {
 
 linear_generator = {
     "component_type": "LinearGenerator",
-    "rated_capacity": 250,  # kW
-    "min_stable_load_fraction": 0.1,  # non-default (default is 0.0)
-    "ramp_rate_fraction": 0.5,  # non-default (default is 1.2)
-    "run_up_rate_fraction": 0.3,  # non-default (default is ramp_rate_fraction)
-    "hot_startup_time": 120.0,  # s; non-default (default is 420.0)
-    "warm_startup_time": 120.0,  # s; non-default (default is 480.0)
-    "cold_startup_time": 120.0,  # s; non-default (default is 480.0)
-    "min_up_time": 10.0,  # s; non-default (default is 3600.0)
-    "min_down_time": 10.0,  # s; non-default (default is 3600.0)
-    "hot_to_warm_time": 2700.0,  # s (45 minutes); non-default (default is 2700.0)
-    "hot_to_cold_time": 10800.0,  # s (3 hours); non-default (default is 10800.0)
+    "capacity_rated": 250,  # kW
+    "load_stable_min_fraction": 0.1,  # non-default (default is 0.0)
+    "ramp_rate_fraction_per_min": 0.5,  # non-default (default is 1.2)
+    "run_up_rate_fraction_per_min": 0.3,  # non-default (default is ramp_rate_fraction_per_min)
+    "startup_time_hot": 120.0,  # s; non-default (default is 420.0)
+    "startup_time_warm": 120.0,  # s; non-default (default is 480.0)
+    "startup_time_cold": 120.0,  # s; non-default (default is 480.0)
+    "up_time_min": 10.0,  # s; non-default (default is 3600.0)
+    "down_time_min": 10.0,  # s; non-default (default is 3600.0)
+    "cooldown_time_warm": 2700.0,  # s (45 minutes); non-default (default is 2700.0)
+    "cooldown_time_cold": 10800.0,  # s (3 hours); non-default (default is 10800.0)
     "log_channels": [
         "power",
         "state",
@@ -181,7 +181,7 @@ linear_generator = {
         "fuel_mass_rate",
     ],
     "initial_conditions": {"power": 250},  # power > 0 implies ON state
-    "hhv": 39050000,  # J/m³ (natural gas HHV)
+    "HHV": 39050000,  # J/m³ (natural gas HHV)
     "efficiency_table": {
         "power_fraction": [1.0, 0.0],
         "efficiency": [0.4144, 0.4144],
@@ -190,18 +190,18 @@ linear_generator = {
 
 steam_turbine = {
     "component_type": "SteamTurbine",
-    "rated_capacity": 1000,  # kW (1 MW)
-    "min_stable_load_fraction": 0.3,  # 30% minimum operating point
-    "ramp_rate_fraction": 0.04,  # 4%/min ramp rate
-    "run_up_rate_fraction": 0.02,  # 2%/min run up rate
-    "hot_startup_time": 27000.0,  # 7.5 hours
-    "warm_startup_time": 27000.0,  # 7.5 hours
-    "cold_startup_time": 27000.0,  # 7.5 hours
-    "min_up_time": 172800,  # 48 hours
-    "min_down_time": 172800,  # 48 hour
-    "hot_to_warm_time": 28800.0,  # s (8 hours, default)
-    "hot_to_cold_time": 172800.0,  # s (48 hours, default)
-    "hhv": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
+    "capacity_rated": 1000,  # kW (1 MW)
+    "load_stable_min_fraction": 0.3,  # 30% minimum operating point
+    "ramp_rate_fraction_per_min": 0.04,  # 4%/min ramp rate
+    "run_up_rate_fraction_per_min": 0.02,  # 2%/min run up rate
+    "startup_time_hot": 27000.0,  # 7.5 hours
+    "startup_time_warm": 27000.0,  # 7.5 hours
+    "startup_time_cold": 27000.0,  # 7.5 hours
+    "up_time_min": 172800,  # 48 hours
+    "down_time_min": 172800,  # 48 hour
+    "cooldown_time_warm": 28800.0,  # s (8 hours, default)
+    "cooldown_time_cold": 172800.0,  # s (48 hours, default)
+    "HHV": 29310000000,  # J/m³ for bituminous coal (29.31 MJ/m³) [4]
     "fuel_density": 1000,  # kg/m³ for bituminous coal
     "initial_conditions": {"power": 1000},  # power > 0 implies ON state
     "efficiency_table": {
@@ -212,9 +212,6 @@ steam_turbine = {
 
 electrolyzer = {
     "component_type": "ElectrolyzerPlant",
-    "initial_conditions": {
-        "power_available_kW": 3000,
-    },
     "log_channels": ["power"],
     "electrolyzer": {
         "initialize": True,

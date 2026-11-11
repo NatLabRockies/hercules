@@ -11,9 +11,8 @@ To create a hydrogen electrolyzer plant, set `component_type: ElectrolyzerPlant`
 The parameters listed below are required unless otherwise specified as *Optional*.
 
 - `general`: General simulation parameters.
-- `initial_conditions`: Initial conditions for the simulation including:
-  - `power_available_kw`: Initial power available to the electrolyzer [kW]
-- `electrolyzer`: Electrolyzer plant specific parameters including:
+- `allow_grid_power_consumption`: *Optional* boolean (default False). If False, the electrolyzer uses at most `plant.locally_generated_power`; if True, `power_setpoint` must be provided.
+- `electrolyzer`: Electrolyzer plant specific parameters (passed to the electrolyzer package, which keeps its own naming) including:
     - `initialize`: boolean. Whether to initialize the electrolyzer.
     - `initial_power_kW`: Initial power input to the electrolyzer [kW].
     - `supervisor`:
@@ -77,6 +76,13 @@ The parameters listed below are required unless otherwise specified as *Optional
 - `log_channels`: List of output channels to log (see [Logging Configuration](elec-logging-configuration) below)
 
 
+## Control
+
+The controller may set `power_setpoint` (kW), which is **negative** for consumption, following the
+[sign convention](nomenclature.md#sign-convention). If it is not set, the electrolyzer uses all
+locally generated power. Inside the component consumption is positive; `HybridPlant` negates the
+setpoint and the `power` and `power_allocated` outputs.
+
 ## Outputs
 (elec-logging-configuration)=
 **Logging Configuration**
@@ -87,11 +93,11 @@ The `log_channels` parameter controls which outputs are written to the HDF5 outp
 ### Available Channels
 
 **Scalar Channels:**
-- `H2_output`: Total hydrogen produced during the last timestep
-- `H2_mfr`: Mass flow rate of the hydrogen production in kg/s
-- `power`: Power that the electrolyzer plant used to create hydrogen (kW). This follows the convention that power consumed is negative power.
-- `Power_input_kw`: Power allocated to the electrolyzer plant to use (kW)
-- `stacks_on`: Total number of stacks producing hydrogen
+- `H2_output`: Total hydrogen produced during the last timestep (kg)
+- `H2_MFR`: Mass flow rate of the hydrogen production in kg/s
+- `power`: Power the electrolyzer plant used to create hydrogen (kW), negative for consumption.
+- `power_allocated`: Power allocated to the electrolyzer plant before stack curtailment (kW), negative.
+- `stack_count_on`: Total number of stacks producing hydrogen
 
 **Array Channels:**
 - `stacks_waiting`: Boolean list of the stacks that are waiting to start producing hydrogen (True for stacks waiting, False for stacks not waiting)
@@ -104,9 +110,7 @@ ele:
   log_channels:
     - power
     - H2_output
-    - H2_mfr
-  initial_conditions:
-    - power_available_kw: 3000
+    - H2_MFR
   electrolyzer:
   # ... other parameters
 ```

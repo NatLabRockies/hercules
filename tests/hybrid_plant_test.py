@@ -41,7 +41,7 @@ def test_generator_names_detection():
 def test_n_components_count():
     """Test that HybridPlant correctly counts the number of components."""
     hybrid_plant_obj = hybrid_plant.HybridPlant(copy.deepcopy(h_dict_wind))
-    assert hybrid_plant_obj.n_components == 1
+    assert hybrid_plant_obj.component_count == 1
 
 
 def test_component_objects_creation():
@@ -59,7 +59,7 @@ def test_wind_farm_only():
     assert "wind_farm" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 1
     assert "wind_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.n_components == 1
+    assert hybrid_plant_obj.component_count == 1
 
 
 def test_solar_farm_only():
@@ -70,7 +70,7 @@ def test_solar_farm_only():
     assert "solar_farm" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 1
     assert "solar_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.n_components == 1
+    assert hybrid_plant_obj.component_count == 1
 
 
 def test_battery_only():
@@ -80,7 +80,7 @@ def test_battery_only():
     assert len(hybrid_plant_obj.component_names) == 1
     assert "battery" in hybrid_plant_obj.component_names
     assert len(hybrid_plant_obj.generator_names) == 0  # Battery is not a generator
-    assert hybrid_plant_obj.n_components == 1
+    assert hybrid_plant_obj.component_count == 1
 
 
 def test_all_three_components():
@@ -94,7 +94,7 @@ def test_all_three_components():
     assert len(hybrid_plant_obj.generator_names) == 2
     assert "wind_farm" in hybrid_plant_obj.generator_names
     assert "solar_farm" in hybrid_plant_obj.generator_names
-    assert hybrid_plant_obj.n_components == 3
+    assert hybrid_plant_obj.component_count == 3
 
 
 def test_unknown_component_type():
@@ -114,7 +114,7 @@ def test_add_plant_metadata_to_h_dict():
 
     assert "component_names" in result
     assert "generator_names" in result
-    assert "n_components" in result
+    assert "component_count" in result
 
 
 def test_component_category_attributes():
@@ -140,10 +140,10 @@ def test_multi_instance_batteries():
     battery_cfg = {
         "component_type": "BatteryDynamic",
         "energy_capacity": 100.0,
-        "charge_rate": 50.0,
-        "discharge_rate": 50.0,
-        "max_SOC": 0.9,
-        "min_SOC": 0.1,
+        "power_charge_max": 50.0,
+        "power_discharge_max": 50.0,
+        "SOC_max": 0.9,
+        "SOC_min": 0.1,
         "log_channels": ["power"],
         "initial_conditions": {"SOC": 0.5},
     }
@@ -152,7 +152,7 @@ def test_multi_instance_batteries():
 
     hp = hybrid_plant.HybridPlant(multi_battery_h_dict)
 
-    assert hp.n_components == 2
+    assert hp.component_count == 2
     assert "battery" in hp.component_names
     assert "battery_unit_2" in hp.component_names
     # Each instance carries its unique component_name
@@ -167,3 +167,31 @@ def test_custom_component_name_passed_through():
     hp = hybrid_plant.HybridPlant(copy.deepcopy(h_dict_wind))
 
     assert hp.component_objects["wind_farm"].component_name == "wind_farm"
+
+
+def test_battery_sign_and_bus_to_poi_losses():
+    """Battery power is discharge-positive outside the component, the controller setpoint is
+    left untouched, and power_export applies eta_bus_to_poi in both directions."""
+    test_h_dict = copy.deepcopy(h_dict_battery)
+    test_h_dict["plant"]["eta_bus_to_poi"] = 0.9
+    test_h_dict["battery"]["allow_grid_power_consumption"] = True
+    test_h_dict["battery"]["efficiency_roundtrip"] = 0.8
+    hp = hybrid_plant.HybridPlant(test_h_dict)
+    test_h_dict = hp.add_plant_metadata_to_h_dict(test_h_dict)
+
+    # Discharge 10 kW: no discharge loss, so DC_power equals power
+    test_h_dict["battery"]["power_setpoint"] = 10.0
+    test_h_dict = hp.step(test_h_dict)
+    assert test_h_dict["battery"]["power_setpoint"] == 10.0
+    assert test_h_dict["battery"]["power"] == pytest.approx(10.0)
+    assert test_h_dict["battery"]["DC_power"] == pytest.approx(10.0)
+    assert test_h_dict["plant"]["power_bus"] == pytest.approx(10.0)
+    assert test_h_dict["plant"]["power_export"] == pytest.approx(9.0)
+
+    # Charge 10 kW: roundtrip losses applied on charging, import grossed up by eta
+    test_h_dict["battery"]["power_setpoint"] = -10.0
+    test_h_dict = hp.step(test_h_dict)
+    assert test_h_dict["battery"]["power_setpoint"] == -10.0
+    assert test_h_dict["battery"]["power"] == pytest.approx(-10.0)
+    assert test_h_dict["battery"]["DC_power"] == pytest.approx(-8.0)
+    assert test_h_dict["plant"]["power_export"] == pytest.approx(-10.0 / 0.9)

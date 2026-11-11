@@ -25,15 +25,14 @@ def test_wind_farm_precom_floris_initialization():
 
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarm"
-    assert wind_sim.n_turbines == 3
+    assert wind_sim.turbine_count == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
     # FLORIS is called during initialization for precomputed version
     assert wind_sim.num_floris_calcs == 1
     assert (
-        wind_sim.floris_update_time_s
-        == h_dict_wind_precom_floris["wind_farm"]["floris_update_time_s"]
+        wind_sim.floris_update_time == h_dict_wind_precom_floris["wind_farm"]["floris_update_time"]
     )
 
 
@@ -88,20 +87,20 @@ def test_wind_farm_precom_floris_ws_mean():
 
 
 def test_wind_farm_precom_floris_requires_floris_update_time():
-    """Test that missing floris_update_time_s raises ValueError."""
+    """Test that missing floris_update_time raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
-    del test_h_dict["wind_farm"]["floris_update_time_s"]
+    del test_h_dict["wind_farm"]["floris_update_time"]
 
     with pytest.raises(
-        ValueError, match="floris_update_time_s must be specified for wake_method='precomputed'"
+        ValueError, match="floris_update_time must be specified for wake_method='precomputed'"
     ):
         WindFarm(test_h_dict, "wind_farm")
 
 
 def test_wind_farm_precom_floris_invalid_update_time():
-    """Test that invalid floris_update_time_s (<1) raises ValueError."""
+    """Test that invalid floris_update_time (<1) raises ValueError."""
     test_h_dict = copy.deepcopy(h_dict_wind_precom_floris)
-    test_h_dict["wind_farm"]["floris_update_time_s"] = 0.5
+    test_h_dict["wind_farm"]["floris_update_time"] = 0.5
 
     with pytest.raises(ValueError, match="FLORIS update time must be at least 1 second"):
         WindFarm(test_h_dict, "wind_farm")
@@ -163,23 +162,23 @@ def test_wind_farm_precom_floris_get_initial_conditions_and_meta_data():
     assert result is test_h_dict_copy
 
     # Verify that all expected metadata is added to the wind_farm section
-    assert "n_turbines" in result["wind_farm"]
-    assert "capacity" in result["wind_farm"]
-    assert "rated_turbine_power" in result["wind_farm"]
+    assert "turbine_count" in result["wind_farm"]
+    assert "capacity_rated" in result["wind_farm"]
+    assert "turbine_power_rated" in result["wind_farm"]
     assert "wind_direction_mean" in result["wind_farm"]
     assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
-    assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
-    assert result["wind_farm"]["capacity"] == wind_sim.capacity
-    assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
+    assert result["wind_farm"]["turbine_count"] == wind_sim.turbine_count
+    assert result["wind_farm"]["capacity_rated"] == wind_sim.capacity_rated
+    assert result["wind_farm"]["turbine_power_rated"] == wind_sim.turbine_power_rated
     assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
     assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 
     # Verify turbine_powers is a numpy array with correct length
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
-    assert len(result["wind_farm"]["turbine_powers"]) == wind_sim.n_turbines
+    assert len(result["wind_farm"]["turbine_powers"]) == wind_sim.turbine_count
     np.testing.assert_array_equal(result["wind_farm"]["turbine_powers"], wind_sim.turbine_powers)
 
     # Verify that the original h_dict structure is preserved
@@ -197,14 +196,14 @@ def test_wind_farm_precom_floris_precomputed_wake_deficits():
     assert hasattr(wind_sim, "wind_speeds_withwakes_all")
     assert isinstance(wind_sim.wind_speeds_withwakes_all, np.ndarray)
 
-    # Check shape: should be (n_time_steps, n_turbines)
-    expected_shape = (wind_sim.n_steps, wind_sim.n_turbines)
+    # Check shape: should be (n_time_steps, turbine_count)
+    expected_shape = (wind_sim.n_steps, wind_sim.turbine_count)
     assert wind_sim.wind_speeds_withwakes_all.shape == expected_shape
 
     # Verify that initial wake deficits are calculated
     assert hasattr(wind_sim, "floris_wake_deficits")
     assert isinstance(wind_sim.floris_wake_deficits, np.ndarray)
-    assert len(wind_sim.floris_wake_deficits) == wind_sim.n_turbines
+    assert len(wind_sim.floris_wake_deficits) == wind_sim.turbine_count
 
     # Wake deficits should be non-negative (upwind turbines should have zero deficit)
     assert np.all(wind_sim.floris_wake_deficits >= 0.0)
@@ -375,9 +374,10 @@ def test_wind_farm_precom_floris_time_utc_reconstruction():
                 step_data = np.array([0, 1, 2, 3], dtype=np.int32)
                 data.create_dataset("step", data=step_data)
 
-                # Create a minimal plant_power dataset
-                plant_power = np.array([1000.0, 1100.0, 1200.0, 1300.0])
-                data.create_dataset("plant_power", data=plant_power)
+                # Create a minimal plant_power_bus dataset
+                plant_power_bus = np.array([1000.0, 1100.0, 1200.0, 1300.0])
+                data.create_dataset("plant_power_bus", data=plant_power_bus)
+                data.create_dataset("plant_power_export", data=plant_power_bus)
 
                 # Create plant_locally_generated_power dataset
                 plant_locally_generated_power = np.array([1000.0, 1100.0, 1200.0, 1300.0])

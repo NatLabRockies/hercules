@@ -60,10 +60,10 @@ class HybridPlant:
         ]
 
         # Add in the number of components
-        self.n_components = len(self.component_names)
+        self.component_count = len(self.component_names)
 
         # If there are no components, raise an error
-        if self.n_components == 0:
+        if self.component_count == 0:
             raise Exception("No plant components found in input file")
 
         # Collect the component objects
@@ -80,6 +80,8 @@ class HybridPlant:
             if obj.component_category == "generator"
         ]
 
+        self.eta_bus_to_poi = h_dict["plant"].get("eta_bus_to_poi", 1.0)
+
     def add_plant_metadata_to_h_dict(self, h_dict):
         """Add plant component metadata to the h_dict.
 
@@ -92,12 +94,15 @@ class HybridPlant:
         # Add component metadata to h_dict
         h_dict["component_names"] = self.component_names
         h_dict["generator_names"] = self.generator_names
-        h_dict["n_components"] = self.n_components
+        h_dict["component_count"] = self.component_count
+        h_dict["plant"]["eta_bus_to_poi"] = self.eta_bus_to_poi
 
         for component_name in self.component_names:
-            h_dict = self.component_objects[component_name].get_initial_conditions_and_meta_data(
-                h_dict
-            )
+            component = self.component_objects[component_name]
+            h_dict = component.get_initial_conditions_and_meta_data(h_dict)
+            for key in component.consumer_sign_outputs:
+                if key in h_dict[component_name]:
+                    h_dict[component_name][key] = -h_dict[component_name][key]
 
         # Add the plant level outputs to the h_dict
         h_dict = self.compute_plant_level_outputs(h_dict)
@@ -136,25 +141,48 @@ class HybridPlant:
         Returns:
             dict: Updated simulation dictionary with new component states and plant-level outputs.
         """
-        # Collect the component objects
         for component_name in self.component_names:
-            is_storage = self.component_objects[component_name].component_category == "storage"
-
-            # Storage sign convention: negate setpoint before step, restore after
-            if is_storage:
-                h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
-
-            # Update h_dict by calling the step method of each component object
-            h_dict = self.component_objects[component_name].step(h_dict)
-
-            if is_storage:
-                h_dict[component_name]["power_setpoint"] = -h_dict[component_name]["power_setpoint"]
-                h_dict[component_name]["power"] = -h_dict[component_name]["power"]
+            component = self.component_objects[component_name]
+            if component.consumer_sign_outputs:
+                h_dict = self._step_consumer_sign(component, h_dict)
+            else:
+                h_dict = component.step(h_dict)
 
         # Update the plant level outputs
         self.compute_plant_level_outputs(h_dict)
 
         # Return the updated h_dict
+        return h_dict
+
+    def _step_consumer_sign(self, component, h_dict):
+        """Step a storage or load component that uses the consumer sign convention internally.
+
+        The component sees a copy of its h_dict section with ``power_setpoint`` negated, so
+        the controller-owned setpoint is never modified. Outputs listed in
+        ``component.consumer_sign_outputs`` are negated back to the generator convention.
+
+        Args:
+            component (ComponentBase): Component to step.
+            h_dict (dict): Dictionary containing current simulation state.
+
+        Returns:
+            dict: Updated simulation dictionary.
+        """
+        name = component.component_name
+        external = h_dict[name]
+        internal = dict(external)
+        if "power_setpoint" in external:
+            internal["power_setpoint"] = -external["power_setpoint"]
+        h_dict[name] = internal
+
+        h_dict = component.step(h_dict)
+
+        internal = h_dict[name]
+        for key in component.consumer_sign_outputs:
+            internal[key] = -internal[key]
+        internal.pop("power_setpoint", None)
+        external.update(internal)
+        h_dict[name] = external
         return h_dict
 
     def compute_plant_level_outputs(self, h_dict):
@@ -163,13 +191,18 @@ class HybridPlant:
         Args:
             h_dict (dict): Dictionary containing simulation state with component power outputs.
         """
-        # The plant power is the sum of all the component outputs
-        h_dict["plant"]["power"] = np.sum(
+        power_bus = np.sum(
             [h_dict[component_name]["power"] for component_name in self.component_names]
         )
+        h_dict["plant"]["power_bus"] = power_bus
 
-        # The locally generated power is the sum of all the generator outputs
-        # (Excludes battery and electrolyzer outputs)
+        # Bus-to-POI losses always reduce what arrives at the far end (AI)
+        if power_bus >= 0:
+            h_dict["plant"]["power_export"] = self.eta_bus_to_poi * power_bus
+        else:
+            h_dict["plant"]["power_export"] = power_bus / self.eta_bus_to_poi
+
+        # Excludes storage and load components
         h_dict["plant"]["locally_generated_power"] = np.sum(
             [h_dict[generator_name]["power"] for generator_name in self.generator_names]
         )

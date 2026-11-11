@@ -36,15 +36,15 @@ plant:
 
 steam_turbine:
   component_type: SteamTurbine
-  rated_capacity: 500000  # kW (500 MW)
-  min_stable_load_fraction: 0.3  # 30% minimum operating point
-  ramp_rate_fraction: 0.03  # 3%/min ramp rate
-  run_up_rate_fraction: 0.02  # 2%/min run up rate
-  hot_startup_time: 27000.0  # 7.5 hours
-  warm_startup_time: 27000.0  # 7.5 hours
-  cold_startup_time: 27000.0  # 7.5 hours
-  min_up_time: 172800  # 48 hours
-  min_down_time: 172800  # 48 hour
+  capacity_rated: 500000  # kW (500 MW)
+  load_stable_min_fraction: 0.3  # 30% minimum operating point
+  ramp_rate_fraction_per_min: 0.03  # 3%/min ramp rate
+  run_up_rate_fraction_per_min: 0.02  # 2%/min run up rate
+  startup_time_hot: 27000.0  # 7.5 hours
+  startup_time_warm: 27000.0  # 7.5 hours
+  startup_time_cold: 27000.0  # 7.5 hours
+  up_time_min: 172800  # 48 hours
+  down_time_min: 172800  # 48 hour
   efficiency_table:
     power_fraction:
       - 1.0

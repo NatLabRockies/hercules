@@ -12,9 +12,14 @@ class ElectrolyzerPlant(ComponentBase):
     This component models an electrolyzer system that converts electrical power
     into hydrogen using the electrolyzer module simulation.
     The Electrolyzer plant uses the electrolyzer model from https://github.com/NREL/electrolyzer
+
+    Within this class consumed power is positive; ``HybridPlant`` negates
+    ``consumer_sign_outputs`` (and ``power_setpoint``) so that consumption is negative
+    outside the component.
     """
 
     component_category = "load"
+    consumer_sign_outputs = ("power", "power_allocated")
 
     def __init__(self, h_dict, component_name):
         """Initialize the ElectrolyzerPlant class.
@@ -22,8 +27,6 @@ class ElectrolyzerPlant(ComponentBase):
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
             - general: General simulation parameters.
-            - initial_conditions: Initial conditions for the simulation including:
-                - power_available_kw: Initial power available to the electrolyzer [kW]
             - electrolyzer: Electrolyzer plant specific parameters including:
                 - initialize: boolean. Whether to initialize the electrolyzer.
                 - initial_power_kW: Initial power input to the electrolyzer [kW].
@@ -126,51 +129,46 @@ class ElectrolyzerPlant(ComponentBase):
         # Initialize electrolyzer plant
         self.elec_sys = Supervisor.from_dict(elec_config["electrolyzer"])
 
-        self.n_stacks = self.elec_sys.n_stacks
+        self.stack_count = self.elec_sys.n_stacks
 
         # Right now, the plant initialization power and the initial condition power are the same
-        # power_in is always in kW
+        power_allocated = elec_config["electrolyzer"]["initial_power_kW"]
+        self.needed_inputs = {"locally_generated_power": power_allocated}
 
-        power_in = elec_config["electrolyzer"]["initial_power_kW"]
-        self.needed_inputs = {"locally_generated_power": power_in}
-
-        self.logger.info("Initializing ElectrolyzerPlant with power input of %.2f kW", power_in)
+        self.logger.info(
+            "Initializing ElectrolyzerPlant with power input of %.2f kW", power_allocated
+        )
 
         # Run Electrolyzer two steps to get outputs
         # Note that power is converted to Watts for electrolyzer input
         for i in range(6):
-            H2_produced, H2_mfr, power_left, power_curtailed = self.elec_sys.run_control(
-                power_in * 1e3
+            H2_produced, H2_MFR, power_left_W, power_curtailed_W = self.elec_sys.run_control(
+                power_allocated * 1e3
             )
         # Initialize outputs for controller step
-        self.stacks_on = sum([self.elec_sys.stacks[i].stack_on for i in range(self.n_stacks)])
-        self.stacks_waiting = [False] * self.n_stacks
+        self.stack_count_on = sum(
+            [self.elec_sys.stacks[i].stack_on for i in range(self.stack_count)]
+        )
+        self.stacks_waiting = [False] * self.stack_count
         # # TODO: How should these be initialized? - Should we do one electrolyzer step?
         #           will that make it out of step of with the other sources?
-        self.curtailed_power_kw = power_curtailed / 1e3
+        self.power_curtailed = power_curtailed_W / 1e3
         self.H2_output = H2_produced
-        self.H2_mfr = H2_produced / self.dt
-        self.power_left_kw = power_left / 1e3
-        self.power_input_kw = power_in
-        self.power_used_kw = self.power_input_kw - (self.curtailed_power_kw + self.power_left_kw)
+        self.H2_MFR = H2_produced / self.dt
+        self.power_left = power_left_W / 1e3
+        self.power_allocated = power_allocated
+        self.power_consumed = self.power_allocated - (self.power_curtailed + self.power_left)
 
         if self.verbose:
             self.logger.info(
-                "ElectrolyzerPlant initialized: H2_mfr=%.4f kg/s, power_used=%.2f kW, stacks_on=%d",
-                self.H2_mfr,
-                self.power_used_kw,
-                self.stacks_on,
+                "ElectrolyzerPlant initialized: H2_MFR=%.4f kg/s, power_consumed=%.2f kW, "
+                "stack_count_on=%d",
+                self.H2_MFR,
+                self.power_consumed,
+                self.stack_count_on,
             )
         # Update the user
-        self.logger.info(f"Initialized ElectrolyzerPlant with {self.n_stacks} stacks")
-
-        # Update the h_dict with outputs
-        h_dict[self.component_name]["H2_output"] = self.H2_output
-        h_dict[self.component_name]["H2_mfr"] = self.H2_mfr
-        h_dict[self.component_name]["stacks_on"] = self.stacks_on
-        h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
-        h_dict[self.component_name]["power"] = -self.power_used_kw
-        h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
+        self.logger.info(f"Initialized ElectrolyzerPlant with {self.stack_count} stacks")
 
     def get_initial_conditions_and_meta_data(self, h_dict):
         """Add any initial conditions or meta data to the h_dict.
@@ -184,10 +182,22 @@ class ElectrolyzerPlant(ComponentBase):
         Returns:
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
-
-        # Add what we want later
+        self._update_outputs(h_dict)
 
         return h_dict
+
+    def _update_outputs(self, h_dict):
+        """Write outputs to the h_dict (consumption positive).
+
+        Args:
+            h_dict (dict): Dictionary containing simulation state.
+        """
+        h_dict[self.component_name]["H2_output"] = self.H2_output
+        h_dict[self.component_name]["H2_MFR"] = self.H2_MFR
+        h_dict[self.component_name]["stack_count_on"] = self.stack_count_on
+        h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
+        h_dict[self.component_name]["power"] = self.power_consumed
+        h_dict[self.component_name]["power_allocated"] = self.power_allocated
 
     def step(self, h_dict):
         """Advance the electrolyzer simulation by one time step.
@@ -197,73 +207,79 @@ class ElectrolyzerPlant(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - locally_generated_power: Available power for electrolyzer [kW]
-                - electrolyzer.electrolyzer_signal: Optional power command [kW]
+                - plant.locally_generated_power: Available power for electrolyzer [kW]
+                - <component_name>.power_setpoint: Optional power to consume [kW]
+                  (positive inside the component)
 
         Returns:
-            dict: Updated h_dict with electrolyzer outputs:
+            dict: Updated h_dict with electrolyzer outputs (consumption positive):
                 - H2_output: Hydrogen produced in this time step [kg]
-                - H2_mfr: Hydrogen mass flow rate [kg/s]
-                - stacks_on: Number of active stacks
+                - H2_MFR: Hydrogen mass flow rate [kg/s]
+                - stack_count_on: Number of active stacks
                 - stacks_waiting: List of stack waiting states
-                - power_used_kw: Power consumed by electrolyzer [kW]
-                - power_input_kw: Power input to electrolyzer [kW]
+                - power: Power consumed by electrolyzer [kW]
+                - power_allocated: Power allocated to electrolyzer [kW]
         """
+        if "electrolyzer_signal" in h_dict[self.component_name]:
+            raise ValueError(
+                f"{self.component_name}: electrolyzer_signal was renamed to power_setpoint "
+                "(negative for consumption) in Hercules v3, see docs/nomenclature.md"
+            )
+
         # Gather inputs
-        local_power = h_dict["plant"]["locally_generated_power"]  # kW
-        if "electrolyzer_signal" in h_dict[self.component_name].keys():
-            power_command_kw = h_dict[self.component_name]["electrolyzer_signal"]
+        locally_generated_power = h_dict["plant"]["locally_generated_power"]  # kW
+        if "power_setpoint" in h_dict[self.component_name]:
+            power_setpoint = h_dict[self.component_name]["power_setpoint"]
         elif not self.allow_grid_power_consumption:
             # Assume electrolyzer should use as much local power as possible.
-            power_command_kw = np.inf
+            power_setpoint = np.inf
         else:
-            raise ValueError("electrolyzer_signal must be specified if allowing grid charging.")
+            raise ValueError("power_setpoint must be specified if allowing grid charging.")
 
         if self.allow_grid_power_consumption:
-            power_in_kw = power_command_kw
+            power_allocated = power_setpoint
         else:
-            power_in_kw = min(local_power, power_command_kw)
+            power_allocated = min(locally_generated_power, power_setpoint)
 
         if self.verbose:
             self.logger.info(
-                "ElectrolyzerPlant step at time %.2f s with local_power=%.2f kW, "
-                "power_command=%.2f kW, power_in=%.2f kW",
+                "ElectrolyzerPlant step at time %.2f s with locally_generated_power=%.2f kW, "
+                "power_setpoint=%.2f kW, power_allocated=%.2f kW",
                 h_dict["time"],
-                local_power,
-                power_command_kw,
-                power_in_kw,
+                locally_generated_power,
+                power_setpoint,
+                power_allocated,
             )
 
         # Run electrolyzer forward one step
         ######## Electrolyzer needs input in Watts ########
-        H2_produced, H2_mfr, power_left_w, power_curtailed_w = self.elec_sys.run_control(
-            power_in_kw * 1e3
+        H2_produced, H2_MFR, power_left_W, power_curtailed_W = self.elec_sys.run_control(
+            power_allocated * 1e3
         )
 
         # Collect outputs from electrolyzer step
-        self.curtailed_power_kw = power_curtailed_w / 1e3
-        self.power_left_kw = power_left_w / 1e3
-        self.power_input_kw = power_in_kw
-        self.power_used_kw = power_in_kw - (self.curtailed_power_kw + self.power_left_kw)
-        self.stacks_on = sum([self.elec_sys.stacks[i].stack_on for i in range(self.n_stacks)])
-        self.stacks_waiting = [self.elec_sys.stacks[i].stack_waiting for i in range(self.n_stacks)]
+        self.power_curtailed = power_curtailed_W / 1e3
+        self.power_left = power_left_W / 1e3
+        self.power_allocated = power_allocated
+        self.power_consumed = power_allocated - (self.power_curtailed + self.power_left)
+        self.stack_count_on = sum(
+            [self.elec_sys.stacks[i].stack_on for i in range(self.stack_count)]
+        )
+        self.stacks_waiting = [
+            self.elec_sys.stacks[i].stack_waiting for i in range(self.stack_count)
+        ]
         self.H2_output = H2_produced
-        self.H2_mfr = H2_produced / self.elec_sys.dt
+        self.H2_MFR = H2_produced / self.elec_sys.dt
 
         if self.verbose:
             self.logger.info(
-                "ElectrolyzerPlant initialized: H2_mfr=%.4f kg/s, power_used=%.2f kW, stacks_on=%d",
-                self.H2_mfr,
-                self.power_used_kw,
-                self.stacks_on,
+                "ElectrolyzerPlant step: H2_MFR=%.4f kg/s, power_consumed=%.2f kW, "
+                "stack_count_on=%d",
+                self.H2_MFR,
+                self.power_consumed,
+                self.stack_count_on,
             )
 
-        # Update the h_dict with outputs
-        h_dict[self.component_name]["H2_output"] = self.H2_output
-        h_dict[self.component_name]["H2_mfr"] = self.H2_mfr
-        h_dict[self.component_name]["stacks_on"] = self.stacks_on
-        h_dict[self.component_name]["stacks_waiting"] = self.stacks_waiting
-        h_dict[self.component_name]["power"] = -self.power_used_kw
-        h_dict[self.component_name]["power_input_kw"] = self.power_input_kw
+        self._update_outputs(h_dict)
 
         return h_dict

@@ -81,6 +81,7 @@ class SolarPySAMPVWatts(SolarPySAMBase):
         )
 
         self.model_params = {"SystemDesign": model_dict}
+        self.capacity_rated = system_capacity / model_dict["dc_ac_ratio"]
 
     def _create_system_model(self):
         """Create and configure the PySAM system model."""
@@ -106,9 +107,9 @@ class SolarPySAMPVWatts(SolarPySAMBase):
             "day": tuple(self.day_array),  # day array
             "hour": tuple(self.hour_array),  # hour array
             "minute": tuple(self.minute_array),  # minute array
-            "dn": tuple(self.dni_array),  # direct normal irradiance array
-            "df": tuple(self.dhi_array),  # diffuse irradiance array
-            "gh": tuple(self.ghi_array),  # global horizontal irradiance array
+            "dn": tuple(self.DNI_array),  # direct normal irradiance array
+            "df": tuple(self.DHI_array),  # diffuse irradiance array
+            "gh": tuple(self.GHI_array),  # global horizontal irradiance array
             "wspd": tuple(self.wind_speed_array),  # windspeed array
             "tdry": tuple(self.temp_array),  # dry bulb temperature array
         }
@@ -121,33 +122,33 @@ class SolarPySAMPVWatts(SolarPySAMBase):
 
         # Pull all outputs at the compute-grid resolution, with W -> kW for the
         # power channels. AC (post-inverter) and DC (pre-inverter) are
-        # "available" power: the model output before any Hercules control
+        # hypothetical power: the model output before any Hercules control
         # curtailment.
         compute_outputs = {
-            "ac_power_available": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
+            "power_hyp": np.array(self.system_model.Outputs.ac, dtype=hercules_float_type)
             / hercules_float_type(1000.0),
-            "dc_power_available": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
+            "DC_power_hyp": np.array(self.system_model.Outputs.dc, dtype=hercules_float_type)
             / hercules_float_type(1000.0),
-            "dni": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
-            "dhi": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
-            "ghi": np.array(self.system_model.Outputs.gh, dtype=hercules_float_type),
-            "aoi": np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type),
-            "poa": np.array(self.system_model.Outputs.poa, dtype=hercules_float_type),
+            "DNI": np.array(self.system_model.Outputs.dn, dtype=hercules_float_type),
+            "DHI": np.array(self.system_model.Outputs.df, dtype=hercules_float_type),
+            "GHI": np.array(self.system_model.Outputs.gh, dtype=hercules_float_type),
+            "AOI": np.array(self.system_model.Outputs.aoi, dtype=hercules_float_type),
+            "POA": np.array(self.system_model.Outputs.poa, dtype=hercules_float_type),
         }
 
         # Upsample to the Hercules dt grid (no-op when compute_dt == dt).
         hercules_outputs = self._upsample_outputs_to_hercules_dt(compute_outputs)
 
-        self.ac_power_available_array = hercules_outputs["ac_power_available"]
-        self.dc_power_available_array = hercules_outputs["dc_power_available"]
-        self.ac_power_available = self.ac_power_available_array[0]
-        self.dc_power_available = self.dc_power_available_array[0]
+        self.power_hyp_array = hercules_outputs["power_hyp"]
+        self.DC_power_hyp_array = hercules_outputs["DC_power_hyp"]
+        self.power_hyp = self.power_hyp_array[0]
+        self.DC_power_hyp = self.DC_power_hyp_array[0]
 
-        self.dni_array_output = hercules_outputs["dni"]
-        self.dhi_array_output = hercules_outputs["dhi"]
-        self.ghi_array_output = hercules_outputs["ghi"]
-        self.aoi_array_output = hercules_outputs["aoi"]
-        self.poa_array_output = hercules_outputs["poa"]
+        self.DNI_array_output = hercules_outputs["DNI"]
+        self.DHI_array_output = hercules_outputs["DHI"]
+        self.GHI_array_output = hercules_outputs["GHI"]
+        self.AOI_array_output = hercules_outputs["AOI"]
+        self.POA_array_output = hercules_outputs["POA"]
 
     def _get_step_outputs(self, step):
         """Get the outputs for a specific step from pre-computed arrays.
@@ -156,8 +157,8 @@ class SolarPySAMPVWatts(SolarPySAMBase):
             step (int): Current simulation step.
         """
         # Extract outputs specific to PVWatts model for this step
-        self.dni = self.dni_array_output[step]  # direct normal irradiance
-        self.dhi = self.dhi_array_output[step]  # diffuse horizontal irradiance
-        self.ghi = self.ghi_array_output[step]  # global horizontal irradiance
-        self.aoi = self.aoi_array_output[step]  # angle of incidence
-        self.poa = self.poa_array_output[step]  # plane of array irradiance
+        self.DNI = self.DNI_array_output[step]  # direct normal irradiance
+        self.DHI = self.DHI_array_output[step]  # diffuse horizontal irradiance
+        self.GHI = self.GHI_array_output[step]  # global horizontal irradiance
+        self.AOI = self.AOI_array_output[step]  # angle of incidence
+        self.POA = self.POA_array_output[step]  # plane of array irradiance

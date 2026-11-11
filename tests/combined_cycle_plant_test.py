@@ -61,8 +61,8 @@ def test_h_dict_structure():
     # Check that combined cycle plant conditions are recorded correctly
     assert h_dict["combined_cycle_plant"]["power"] == 1000 + 1000
 
-    print(h_dict["combined_cycle_plant"]["rated_capacity"])
-    print(h_dict["combined_cycle_plant"]["ST"]["rated_capacity"])
+    print(h_dict["combined_cycle_plant"]["capacity_rated"])
+    print(h_dict["combined_cycle_plant"]["ST"]["capacity_rated"])
 
 
 def test_step():

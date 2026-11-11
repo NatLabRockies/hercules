@@ -18,7 +18,7 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | `time` | float | Current simulation time | starttime |
 | **Output File Configuration** |
 | `output_dir` | str | Output folder name | "outputs" |
-| `output_file` | str | Output HDF5 file name | "hercules_output.h5" |
+| `output_filename` | str | Output HDF5 file name | "hercules_output.h5" |
 | `auto_increment_filenames` | bool | If True, append an incrementing number to an existing output filename instead of replacing it | False |
 | **Logging Configuration** |
 | `logging` | dict | Logging configuration | - |
@@ -31,12 +31,12 @@ The `h_dict` is a Python dictionary that contains all the configurations for eac
 | **Plant Configuration** |
 | `plant` | dict | Plant-level configuration | - |
 | `plant.interconnect_limit` | float | Maximum power limit in kW | - |
+| `plant.eta_bus_to_poi` | float | One-way LV bus to POI efficiency, in (0, 1] | 1.0 |
 | **Optional Global Parameters** |
 | `verbose` | bool | Enable verbose logging | False |
 | `name` | str | Simulation name | - |
 | `description` | str | Simulation description | - |
 | `external_data` | dict | External data configuration | - |
-| `external_data_file` | str | External data file path (deprecated, use `external_data` instead) | - |
 | `controller` | dict | Controller configuration | - |
 | **Hybrid Plant Components** |
 
@@ -44,12 +44,12 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 
 ### Wind Farm
 | `component_type` | str | Must be "WindFarm" or "WindFarmSCADAPower" |
-| `floris_input_file` | str | FLORIS input file path |
+| `floris_input_filename` | str | FLORIS input file path |
 | `wind_input_filename` | str | Wind data input file |
-| `turbine_file_name` | str | Turbine configuration file |
-| `log_file_name` | str | Wind farm log file path |
-| `log_channels` | list | List of channels to log (e.g., ["power", "wind_speed_mean_background", "turbine_powers"]) |
-| `floris_update_time_s` | float | How often to update FLORIS wake calculations in seconds |
+| `turbine_filename` | str | Turbine configuration file |
+| `log_filename` | str | Wind farm log file path |
+| `log_channels` | list | List of channels to log (e.g., ["power", "power_hyp", "wind_speed_mean_background", "turbine_powers"]) |
+| `floris_update_time` | float | How often to update FLORIS wake calculations in seconds |
 
 ### Solar Farm
 | `component_type` | str | "SolarPySAMPVWatts" |
@@ -63,23 +63,23 @@ Any top-level `h_dict` entry whose value is a dict containing a `component_type`
 | `lat` | float | Latitude |
 | `lon` | float | Longitude |
 | `elev` | float | Elevation in meters |
-| `log_channels` | list | Channels to log (e.g. `power`, `ac_power_available`, `dc_power_available`, `dni`, `poa`, `aoi`) — see [Solar PV](solar_pv.md) |
-| `initial_conditions` | dict | Initial `power`, `dni`, `poa` placeholders; modeled values are not all applied on init, and `power` is updated to the modeled AC value on the first `step()` |
+| `log_channels` | list | Channels to log (e.g. `power`, `power_hyp`, `DC_power_hyp`, `DNI`, `POA`, `AOI`) — see [Solar PV](solar_pv.md) |
+| `initial_conditions` | dict | Initial `power`, `DNI`, `POA` placeholders; modeled values are not all applied on init, and `power` is updated to the modeled AC value on the first `step()` |
 
 ### Battery
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
 | `component_type` | str | "BatteryDynamic", "BatteryReservoir" or "BatteryLithiumIon" | Required |
 | `energy_capacity` | float | Deliverable energy capacity in kWh | Required |
-| `charge_rate` | float | Maximum charge rate in kW | Required |
-| `discharge_rate` | float | Maximum discharge rate in kW | Required |
-| `max_SOC` | float | Maximum state of charge (0-1). Values < 1 indicate degradation. | 1.0 |
-| `min_SOC` | float | Minimum state of charge (0-1). Values > 0 indicate degradation. | 0.0 |
+| `power_charge_max` | float | Maximum charge rate in kW | Required |
+| `power_discharge_max` | float | Maximum discharge rate in kW | Required |
+| `SOC_max` | float | Maximum state of charge (0-1). Values < 1 indicate degradation. | 1.0 |
+| `SOC_min` | float | Minimum state of charge (0-1). Values > 0 indicate degradation. | 0.0 |
 | `initial_conditions` | dict | Contains initial SOC | Required |
 | `allow_grid_power_consumption` | bool | Allow grid power consumption | False |
-| `log_channels` | list | List of channels to log (e.g., ["power", "soc", "power_setpoint"]) | ["power"] |
-| `roundtrip_efficiency` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
-| `self_discharge_time_constant` | float | Self-discharge time constant in seconds (BatteryDynamic and BatteryReservoir) | inf |
+| `log_channels` | list | List of channels to log (e.g., ["power", "DC_power", "SOC", "power_setpoint"]) | ["power"] |
+| `efficiency_roundtrip` | float | Roundtrip efficiency (0-1), applied on charging (BatteryDynamic and BatteryReservoir) | 1.0 |
+| `time_constant_self_discharge` | float | Self-discharge time constant in seconds (BatteryDynamic and BatteryReservoir) | inf |
 
 ### Electrolyzer
 | Key | Type | Description |
@@ -100,16 +100,16 @@ Set `component_type: OpenCycleGasTurbine`. See {doc}`open_cycle_gas_turbine` for
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
 | `component_type` | str | `"OpenCycleGasTurbine"` | Required |
-| `rated_capacity` | float | Rated power output in kW | Required |
+| `capacity_rated` | float | Rated power output in kW | Required |
 | `initial_conditions` | dict | Initial state (`power`, `state`) | Required |
-| `min_stable_load_fraction` | float | Minimum stable load as fraction of rated capacity | 0.40 |
-| `ramp_rate_fraction` | float | Ramp rate as fraction of rated capacity per minute | 0.10 |
+| `load_stable_min_fraction` | float | Minimum stable load as fraction of rated capacity | 0.40 |
+| `ramp_rate_fraction_per_min` | float | Ramp rate as fraction of rated capacity per minute | 0.10 |
 | `log_channels` | list | List of channels to log | `["power"]` |
 
 ### External Data (`external_data`)
 | Key | Type | Description | Default |
 |-----|------|-------------|---------|
-| `external_data_file` | str | Path to CSV file with external time series data | Optional (if not specified, `external_data` is ignored) |
+| `external_data_filename` | str | Path to CSV file with external time series data | Optional (if not specified, `external_data` is ignored) |
 | `log_channels` | list | List of channels to log to HDF5 output | None (log all) |
 
 **Logging behavior:**
@@ -118,5 +118,3 @@ Set `component_type: OpenCycleGasTurbine`. See {doc}`open_cycle_gas_turbine` for
 - `log_channels: [channel1, channel2]`: Only listed channels are logged
 
 **Note**: All channels from the external data file are always available to the controller via `h_dict["external_signals"]`, regardless of the `log_channels` setting. The `log_channels` parameter only controls which channels are written to the HDF5 output file.
-
-**Old format** (deprecated): Setting `external_data_file` at the top level is still supported but shows a deprecation warning. Use the `external_data` dict format instead.

@@ -42,18 +42,18 @@ def _build_synthetic_solar_file(path, starttime_utc, endtime_utc, dt_seconds):
     )
 
     envelope = np.sin(np.pi * t / duration)
-    ghi = 700.0 + 30.0 * envelope
-    dni = 800.0 + 20.0 * envelope
-    dhi = 100.0 + 10.0 * envelope
+    GHI = 700.0 + 30.0 * envelope
+    DNI = 800.0 + 20.0 * envelope
+    DHI = 100.0 + 10.0 * envelope
     temp = 25.0 + 0.5 * envelope
     wspd = 2.0 + 0.1 * envelope
 
     df = pd.DataFrame(
         {
             "time_utc": time_utc,
-            "SRRL BMS Global Horizontal Irradiance (W/m^2_irr)": ghi.astype(np.float32),
-            "SRRL BMS Direct Normal Irradiance (W/m^2_irr)": dni.astype(np.float32),
-            "SRRL BMS Diffuse Horizontal Irradiance (W/m^2_irr)": dhi.astype(np.float32),
+            "SRRL BMS Global Horizontal Irradiance (W/m^2_irr)": GHI.astype(np.float32),
+            "SRRL BMS Direct Normal Irradiance (W/m^2_irr)": DNI.astype(np.float32),
+            "SRRL BMS Diffuse Horizontal Irradiance (W/m^2_irr)": DHI.astype(np.float32),
             "SRRL BMS Dry Bulb Temperature (C)": temp.astype(np.float32),
             "SRRL BMS Wind Speed at 19' (m/s)": wspd.astype(np.float32),
         }
@@ -97,7 +97,7 @@ def _build_h_dict(solar_input_filename, starttime_utc, endtime_utc, dt, use_reso
             "losses": 0,
             "use_resource_solar_dt": use_resource_solar_dt,
             "log_channels": ["power"],
-            "initial_conditions": {"power": 0.0, "dni": 0.0, "poa": 0.0},
+            "initial_conditions": {"power": 0.0, "DNI": 0.0, "POA": 0.0},
         },
     }
 
@@ -134,21 +134,21 @@ def test_resource_dt_matches_full_resolution_within_tolerance(tmp_path):
     assert spv_full._compute_dt == pytest.approx(dt)
 
     expected_n = int((spv_resource.endtime - spv_resource.starttime) / dt)
-    assert spv_resource.ac_power_available_array.shape[0] == expected_n
-    assert spv_full.ac_power_available_array.shape[0] == expected_n
+    assert spv_resource.power_hyp_array.shape[0] == expected_n
+    assert spv_full.power_hyp_array.shape[0] == expected_n
 
     # Approach-2 numerical equivalence: AC and DC arrays match closely.
     # The atol absorbs float32 rounding and the small sun-position-half-step
     # bias on ~30 MW magnitudes.
     np.testing.assert_allclose(
-        spv_resource.ac_power_available_array,
-        spv_full.ac_power_available_array,
+        spv_resource.power_hyp_array,
+        spv_full.power_hyp_array,
         rtol=1e-3,
         atol=10.0,
     )
     np.testing.assert_allclose(
-        spv_resource.dc_power_available_array,
-        spv_full.dc_power_available_array,
+        spv_resource.DC_power_hyp_array,
+        spv_full.DC_power_hyp_array,
         rtol=1e-3,
         atol=10.0,
     )
@@ -175,7 +175,7 @@ def test_resource_dt_is_no_op_when_dt_solar_equals_dt(tmp_path):
 
     assert spv._compute_dt == pytest.approx(dt)
     expected_n = int((spv.endtime - spv.starttime) / dt)
-    assert spv.ac_power_available_array.shape[0] == expected_n
+    assert spv.power_hyp_array.shape[0] == expected_n
     assert spv._compute_time_steps is spv._hercules_time_steps
 
 
@@ -301,18 +301,18 @@ def test_resource_dt_matches_full_resolution_with_offset_start_within_tolerance(
     spv_full = SolarPySAMPVWatts(h_dict_full, "solar_farm")
 
     expected_n = int((spv_resource.endtime - spv_resource.starttime) / dt)
-    assert spv_resource.ac_power_available_array.shape[0] == expected_n
-    assert spv_full.ac_power_available_array.shape[0] == expected_n
+    assert spv_resource.power_hyp_array.shape[0] == expected_n
+    assert spv_full.power_hyp_array.shape[0] == expected_n
 
     np.testing.assert_allclose(
-        spv_resource.ac_power_available_array,
-        spv_full.ac_power_available_array,
+        spv_resource.power_hyp_array,
+        spv_full.power_hyp_array,
         rtol=1e-3,
         atol=10.0,
     )
     np.testing.assert_allclose(
-        spv_resource.dc_power_available_array,
-        spv_full.dc_power_available_array,
+        spv_resource.DC_power_hyp_array,
+        spv_full.DC_power_hyp_array,
         rtol=1e-3,
         atol=10.0,
     )

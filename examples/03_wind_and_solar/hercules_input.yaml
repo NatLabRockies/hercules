@@ -20,13 +20,13 @@ plant:
 wind_farm:
   component_type: WindFarm
   wake_method: precomputed
-  floris_input_file: ../inputs/floris_input_large.yaml
+  floris_input_filename: ../inputs/floris_input_large.yaml
   wind_input_filename: ../inputs/wind_input_large.ftr
-  turbine_file_name: ../inputs/turbine_filter_model.yaml
-  log_file_name: log_wind_sim.log
+  turbine_filename: ../inputs/turbine_filter_model.yaml
+  log_filename: log_wind_sim.log
   log_channels:
     - power
-  floris_update_time_s: 300.0 # Update wakes every 5 minutes
+  floris_update_time: 300.0 # Update wakes every 5 minutes
 
 solar_farm: # The name of component object 1
   component_type: SolarPySAMPVWatts
@@ -49,8 +49,8 @@ solar_farm: # The name of component object 1
   initial_conditions:
 
     power: 30000 # kW
-    dni: 1000
-    poa: 1000
+    DNI: 1000
+    POA: 1000
 
 
 controller:

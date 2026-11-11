@@ -18,9 +18,9 @@ h_dict_wind_scada = copy.deepcopy(h_dict_wind)
 h_dict_wind_scada["wind_farm"]["component_type"] = "WindFarmSCADAPower"
 h_dict_wind_scada["wind_farm"]["scada_filename"] = "tests/test_inputs/scada_input.csv"
 # Remove FLORIS-specific parameters
-del h_dict_wind_scada["wind_farm"]["floris_input_file"]
+del h_dict_wind_scada["wind_farm"]["floris_input_filename"]
 del h_dict_wind_scada["wind_farm"]["wind_input_filename"]
-del h_dict_wind_scada["wind_farm"]["floris_update_time_s"]
+del h_dict_wind_scada["wind_farm"]["floris_update_time"]
 
 
 def test_wind_farm_scada_power_initialization():
@@ -29,7 +29,7 @@ def test_wind_farm_scada_power_initialization():
 
     assert wind_sim.component_name == "wind_farm"
     assert wind_sim.component_type == "WindFarmSCADAPower"
-    assert wind_sim.n_turbines == 3
+    assert wind_sim.turbine_count == 3
     assert wind_sim.dt == 1.0
     assert wind_sim.starttime == 0.0
     assert wind_sim.endtime == 10.0
@@ -39,7 +39,7 @@ def test_wind_farm_scada_power_infers_n_turbines():
     """Test that number of turbines is correctly inferred from power columns."""
     wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
-    assert wind_sim.n_turbines == 3
+    assert wind_sim.turbine_count == 3
     assert len(wind_sim.power_columns) == 3
     assert wind_sim.power_columns == ["pow_000", "pow_001", "pow_002"]
 
@@ -49,8 +49,8 @@ def test_wind_farm_scada_power_infers_rated_power():
     wind_sim = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
 
     # Check that rated power is positive and reasonable
-    assert wind_sim.rated_turbine_power == 5000.0
-    assert wind_sim.capacity == wind_sim.n_turbines * wind_sim.rated_turbine_power
+    assert wind_sim.turbine_power_rated == 5000.0
+    assert wind_sim.capacity_rated == wind_sim.turbine_count * wind_sim.turbine_power_rated
 
 
 def test_wind_farm_scada_power_no_wakes():
@@ -106,23 +106,23 @@ def test_wind_farm_scada_power_get_initial_conditions_and_meta_data():
     assert result is test_h_dict_copy
 
     # Verify that all expected metadata is added to the wind_farm section
-    assert "n_turbines" in result["wind_farm"]
-    assert "capacity" in result["wind_farm"]
-    assert "rated_turbine_power" in result["wind_farm"]
+    assert "turbine_count" in result["wind_farm"]
+    assert "capacity_rated" in result["wind_farm"]
+    assert "turbine_power_rated" in result["wind_farm"]
     assert "wind_direction_mean" in result["wind_farm"]
     assert "wind_speed_mean_background" in result["wind_farm"]
     assert "turbine_powers" in result["wind_farm"]
 
     # Verify the values match the wind_sim attributes
-    assert result["wind_farm"]["n_turbines"] == wind_sim.n_turbines
-    assert result["wind_farm"]["capacity"] == wind_sim.capacity
-    assert result["wind_farm"]["rated_turbine_power"] == wind_sim.rated_turbine_power
+    assert result["wind_farm"]["turbine_count"] == wind_sim.turbine_count
+    assert result["wind_farm"]["capacity_rated"] == wind_sim.capacity_rated
+    assert result["wind_farm"]["turbine_power_rated"] == wind_sim.turbine_power_rated
     assert result["wind_farm"]["wind_direction_mean"] == wind_sim.wd_mat_mean[0]
     assert result["wind_farm"]["wind_speed_mean_background"] == wind_sim.ws_mat_mean[0]
 
     # Verify turbine_powers is a numpy array with correct length
     assert isinstance(result["wind_farm"]["turbine_powers"], np.ndarray)
-    assert len(result["wind_farm"]["turbine_powers"]) == wind_sim.n_turbines
+    assert len(result["wind_farm"]["turbine_powers"]) == wind_sim.turbine_count
     np.testing.assert_array_equal(result["wind_farm"]["turbine_powers"], wind_sim.turbine_powers)
 
     # Verify that the original h_dict structure is preserved
@@ -342,7 +342,7 @@ def test_wind_farm_scada_power_multiple_file_formats():
     """Test that SCADA data can be loaded from different file formats."""
     # Test CSV (already tested above, but included for completeness)
     wind_sim_csv = WindFarmSCADAPower(h_dict_wind_scada, "wind_farm")
-    assert wind_sim_csv.n_turbines == 3
+    assert wind_sim_csv.turbine_count == 3
 
     # Test pickle format
     current_dir = os.path.dirname(__file__)
@@ -358,7 +358,7 @@ def test_wind_farm_scada_power_multiple_file_formats():
         test_h_dict["wind_farm"]["scada_filename"] = temp_pickle_file
 
         wind_sim_pkl = WindFarmSCADAPower(test_h_dict, "wind_farm")
-        assert wind_sim_pkl.n_turbines == 3
+        assert wind_sim_pkl.turbine_count == 3
 
     finally:
         if os.path.exists(temp_pickle_file):
@@ -374,7 +374,7 @@ def test_wind_farm_scada_power_multiple_file_formats():
         test_h_dict["wind_farm"]["scada_filename"] = temp_feather_file
 
         wind_sim_ftr = WindFarmSCADAPower(test_h_dict, "wind_farm")
-        assert wind_sim_ftr.n_turbines == 3
+        assert wind_sim_ftr.turbine_count == 3
 
     finally:
         if os.path.exists(temp_feather_file):

@@ -31,7 +31,7 @@ class PowerCurtailmentController:
         Args:
             h_dict (dict): The hercules input dictionary.
         """
-        self.n_turbines = h_dict["wind_farm"]["n_turbines"]
+        self.turbine_count = h_dict["wind_farm"]["turbine_count"]
         self.curtailment_time = 10 * 60 * 60  # seconds
         self.turbine_curtail_power = 1000  # kW
 
@@ -48,13 +48,13 @@ class PowerCurtailmentController:
 
         # Set all turbines to full rating initially
         h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-            h_dict["wind_farm"]["n_turbines"]
+            h_dict["wind_farm"]["turbine_count"]
         )
 
         # Apply curtailment after 500 minutes
         if current_time >= self.curtailment_time:
             # Simple proportional curtailment to reduce power output
-            for t_idx in range(self.n_turbines):
+            for t_idx in range(self.turbine_count):
                 # Reduce power
                 h_dict["wind_farm"]["turbine_power_setpoints"][t_idx] = self.turbine_curtail_power
 

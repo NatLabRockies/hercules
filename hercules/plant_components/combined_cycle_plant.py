@@ -63,7 +63,7 @@ class CombinedCyclePlant(ComponentBase):
             h_dict_ccgt["starttime"] = h_dict["starttime"]
             h_dict_ccgt["endtime"] = h_dict["endtime"]
             h_dict_ccgt["verbose"] = h_dict["verbose"]
-            unit_type = h_dict["combined_cycle_plant"][unit_name]["component_type"]
+            unit_type = h_dict[component_name][unit_name]["component_type"]
             unit_class = hp.COMPONENT_REGISTRY[unit_type]
             if unit_class is None:
                 raise ValueError(f"Unit type {unit_type} not found in component registry.")
@@ -76,29 +76,29 @@ class CombinedCyclePlant(ComponentBase):
                 self.unit_types.append(unit_type)
 
         # Extract initial conditions
-        self.power_output = 0.0
+        self.power = 0.0
         for unit_name in self.unit_names:
             initial_conditions = h_dict[component_name][unit_name]["initial_conditions"]
-            self.power_output += initial_conditions["power"]  # kW
+            self.power += initial_conditions["power"]  # kW
 
-        h_dict[component_name]["power"] = self.power_output
+        h_dict[component_name]["power"] = self.power
 
         self.steam_turbine_index = self.unit_types.index("SteamTurbine")
         self.gas_turbine_index = self.unit_types.index("OpenCycleGasTurbine")
 
         # Check that initial conditions are valid
         if (
-            self.units[self.gas_turbine_index].power_output == 0
-            and self.units[self.steam_turbine_index].power_output > 0
+            self.units[self.gas_turbine_index].power == 0
+            and self.units[self.steam_turbine_index].power > 0
         ):
             raise ValueError(
                 "Invalid initial conditions: steam turbine cannot be producing power if "
                 "the open cycle gas turbine is not producing power."
             )
 
-        self.gas_power_ratio = self.units[self.gas_turbine_index].rated_capacity / (
-            self.units[self.steam_turbine_index].rated_capacity
-            + self.units[self.gas_turbine_index].rated_capacity
+        self.power_ratio_gas = self.units[self.gas_turbine_index].capacity_rated / (
+            self.units[self.steam_turbine_index].capacity_rated
+            + self.units[self.gas_turbine_index].capacity_rated
         )
 
         # Default HHV net plant efficiency table based on [2]:
@@ -173,25 +173,25 @@ class CombinedCyclePlant(ComponentBase):
         self.efficiency_power_fraction = self.efficiency_power_fraction[sort_idx]
         self.efficiency_values = self.efficiency_values[sort_idx]
 
-        self.rated_capacity = (
-            self.units[self.gas_turbine_index].rated_capacity
-            + self.units[self.steam_turbine_index].rated_capacity
+        self.capacity_rated = (
+            self.units[self.gas_turbine_index].capacity_rated
+            + self.units[self.steam_turbine_index].capacity_rated
         )
-        h_dict[component_name]["rated_capacity"] = self.rated_capacity
+        h_dict[component_name]["capacity_rated"] = self.capacity_rated
 
         # Derive initial state from power: if power > 0 then ON, else OFF
         for unit in self.units:
-            if unit.power_output > 0:
+            if unit.power > 0:
                 unit.state = unit.STATES.ON
                 # Set time_in_state so the unit is immediately ready to stop
-                unit.time_in_state = float(unit.min_up_time)  # s
+                unit.time_in_state = float(unit.up_time_min)  # s
             else:
                 unit.state = unit._is_off()
                 # Set time_in_state so the unit is immediately ready to start
                 if "time_in_shutdown" in initial_conditions:
                     unit.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
                 else:
-                    unit.time_in_state = float(unit.min_down_time)  # s
+                    unit.time_in_state = float(unit.down_time_min)  # s
 
         # Call the base class init (sets self.component_name and self.component_type)
         super().__init__(h_dict, component_name)
@@ -205,22 +205,22 @@ class CombinedCyclePlant(ComponentBase):
             unit.time_in_state += unit.dt
 
         # Apply control
-        self.power_output = sum(self.control(power_setpoint))
+        self.power = sum(self.control(power_setpoint))
 
         for unit, unit_name in zip(self.units, self.unit_names):
             h_dict_ccgt = h_dict[self.component_name]
             h_dict_ccgt = unit.get_initial_conditions_and_meta_data(h_dict_ccgt)
             h_dict_ccgt[unit_name]["power_setpoint"] = unit.power_setpoint
 
-        self.efficiency = self.calculate_efficiency(self.power_output)
+        self.efficiency = self.calculate_efficiency(self.power)
 
-        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power_output)
+        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power)
         self.fuel_mass_rate = (
             self.fuel_volume_rate * self.units[self.gas_turbine_index].fuel_density
         )
 
         # Update h_dict with outputs
-        h_dict[self.component_name]["power"] = self.power_output
+        h_dict[self.component_name]["power"] = self.power
         # h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
@@ -238,7 +238,7 @@ class CombinedCyclePlant(ComponentBase):
             h_dict_ccgt = h_dict[self.component_name]
             h_dict_ccgt = unit.get_initial_conditions_and_meta_data(h_dict_ccgt)
 
-        h_dict[self.component_name]["power"] = self.power_output
+        h_dict[self.component_name]["power"] = self.power
 
         # TODO: we likely want to save off data for the individual units to the
         # h_dict as well. Will need to figure out how to do that.
@@ -253,20 +253,18 @@ class CombinedCyclePlant(ComponentBase):
             raise ValueError("power_setpoint must be a number")
 
         # Set gas turbine power setpoint
-        self.units[self.gas_turbine_index].power_setpoint = self.gas_power_ratio * power_setpoint
+        self.units[self.gas_turbine_index].power_setpoint = self.power_ratio_gas * power_setpoint
         self.units[self.steam_turbine_index].power_setpoint = (
-            1 - self.gas_power_ratio
+            1 - self.power_ratio_gas
         ) * power_setpoint
 
         # TODO: we probably want to add an actual controller for the gas turbine
-        self.units[self.gas_turbine_index].power_output = self.units[
-            self.gas_turbine_index
-        ]._control(self.units[self.gas_turbine_index].power_setpoint)
-        self.units[self.steam_turbine_index].power_output = self.control_steam_turbine(
-            self.units[self.steam_turbine_index].power_setpoint
-        )
+        gas_turbine = self.units[self.gas_turbine_index]
+        steam_turbine = self.units[self.steam_turbine_index]
+        gas_turbine.power = gas_turbine._control(gas_turbine.power_setpoint)
+        steam_turbine.power = self.control_steam_turbine(steam_turbine.power_setpoint)
 
-        return [unit.power_output for unit in self.units]
+        return [unit.power for unit in self.units]
 
     def control_steam_turbine(self, power_setpoint):
         """
@@ -276,71 +274,54 @@ class CombinedCyclePlant(ComponentBase):
         - If the gas turbine goes from startup to on, the steam turbine startup process should begin
         - Otherwise, use regular control based on the power setpoint.
         """
-        if self.units[self.gas_turbine_index].state != (
-            self.units[self.gas_turbine_index].STATES.ON
-            or self.units[self.gas_turbine_index].STATES.STOPPING
-        ):
+        gas_turbine = self.units[self.gas_turbine_index]
+        steam_turbine = self.units[self.steam_turbine_index]
+        if gas_turbine.state != (gas_turbine.STATES.ON or gas_turbine.STATES.STOPPING):
             # If the gas turbine is off or starting up, the steam turbine should be off
-            self.units[self.steam_turbine_index].can_start = False
-            self.units[self.steam_turbine_index].power_output = self.units[
-                self.steam_turbine_index
-            ]._control(0.0)
+            steam_turbine.can_start = False
+            steam_turbine.power = steam_turbine._control(0.0)
         elif (
-            self.units[self.gas_turbine_index].state == "STOPPING"
-            and self.units[self.steam_turbine_index].power_output > 0
-            or self.units[self.steam_turbine_index].state
-            == self.units[self.steam_turbine_index].STATES.STOPPING
+            gas_turbine.state == "STOPPING"
+            and steam_turbine.power > 0
+            or steam_turbine.state == steam_turbine.STATES.STOPPING
         ):
             # If the gas turbine is stopping but the steam turbine is still producing power,
             # we need to turn off the steam turbine
-            self.units[self.steam_turbine_index].power_output = self.units[
-                self.steam_turbine_index
-            ]._control(0.0)
+            steam_turbine.power = steam_turbine._control(0.0)
         elif (
-            self.units[self.gas_turbine_index].state == self.units[self.gas_turbine_index].STATES.ON
-            and self.units[self.steam_turbine_index].state
-            == self.units[self.steam_turbine_index]._is_off()
+            gas_turbine.state == gas_turbine.STATES.ON
+            and steam_turbine.state == steam_turbine._is_off()
         ):
             # If the gas turbine just turned on and the steam turbine is still off,
             # we need to start up the steam turbine
-            self.units[self.steam_turbine_index].can_start = (
-                self.units[self.steam_turbine_index].time_in_state
-                >= self.units[self.steam_turbine_index].min_down_time
-            )
-            self.units[self.steam_turbine_index].power_output = self.units[
-                self.steam_turbine_index
-            ]._control(power_setpoint)
+            steam_turbine.can_start = steam_turbine.time_in_state >= steam_turbine.down_time_min
+            steam_turbine.power = steam_turbine._control(power_setpoint)
         else:
             # Normal operation
-            self.units[self.steam_turbine_index].power_output = self.units[
-                self.steam_turbine_index
-            ]._control(power_setpoint)
+            steam_turbine.power = steam_turbine._control(power_setpoint)
 
-        return self.units[self.steam_turbine_index].power_output
+        return steam_turbine.power
 
-    def calculate_efficiency(self, power_output):
+    def calculate_efficiency(self, power):
         """Calculate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
         table range are clamped to the nearest endpoint.
 
         Args:
-            power_output (float): Current power output in kW.
+            power (float): Current power output in kW.
 
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        if self.units[self.gas_turbine_index].state == (
-            self.units[self.gas_turbine_index]._is_off()
-        ):
+        gas_turbine = self.units[self.gas_turbine_index]
+        if gas_turbine.state == (gas_turbine._is_off()):
             # Efficiency is not defined when off
             return np.nan
-        elif self.units[self.gas_turbine_index].state == (
-            self.units[self.gas_turbine_index].STATES.STOPPING
-        ):
+        elif gas_turbine.state == (gas_turbine.STATES.STOPPING):
             # Efficiency is not defined when stopping
             return np.nan
-        elif power_output <= 0:
+        elif power <= 0:
             # Efficiency is 0 when gas turbine not producing power (but not off)
             return 0.0
         elif (
@@ -349,25 +330,19 @@ class CombinedCyclePlant(ComponentBase):
         ):
             # If the steam turbine is not on, we are just running the gas turbine,
             # so efficiency is based on gas turbine power output
-            return self.units[self.gas_turbine_index].calculate_efficiency(
-                self.units[self.gas_turbine_index].power_output
-            )
+            return gas_turbine.calculate_efficiency(gas_turbine.power)
         elif self.units[self.steam_turbine_index].state != (
             self.units[self.steam_turbine_index].STATES.ON
             or self.units[self.steam_turbine_index].STATES.STOPPING
         ):
             # If the steam turbine is starting up, it might be producing power,
             # increasing the overall efficiency
-            efficiency_gas = self.units[self.gas_turbine_index].calculate_efficiency(
-                self.units[self.gas_turbine_index].power_output
-            )
-            fuel_used = (self.units[self.gas_turbine_index].power_output * 1000.0) / (
-                efficiency_gas * self.units[self.gas_turbine_index].hhv
-            )
-            return power_output * 1000.0 / (fuel_used * self.units[self.gas_turbine_index].hhv)
+            efficiency_gas = gas_turbine.calculate_efficiency(gas_turbine.power)
+            fuel_used = (gas_turbine.power * 1000.0) / (efficiency_gas * gas_turbine.HHV)
+            return power * 1000.0 / (fuel_used * gas_turbine.HHV)
 
         # Calculate power fraction
-        power_fraction = power_output / self.rated_capacity
+        power_fraction = power / self.capacity_rated
 
         # Interpolate efficiency (numpy.interp clamps to endpoints by default)
         efficiency = np.interp(
@@ -376,26 +351,22 @@ class CombinedCyclePlant(ComponentBase):
 
         return efficiency
 
-    def calculate_fuel_volume_rate(self, power_output):
+    def calculate_fuel_volume_rate(self, power):
         """Calculate fuel volume flow rate based on power output and HHV net efficiency.
 
         Args:
-            power_output (float): Current power output in kW.
+            power (float): Current power output in kW.
 
         Returns:
             float: Fuel volume flow rate in m³/s.
         """
-        if power_output <= 0:
+        if power <= 0:
             return 0.0
 
         # Calculate current HHV net efficiency
-        efficiency = self.calculate_efficiency(power_output)
+        efficiency = self.calculate_efficiency(power)
 
-        # Calculate fuel volume rate using HHV net efficiency
-        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
-        # Convert power from kW to W (multiply by 1000)
-        fuel_m3_per_s = (power_output * 1000.0) / (
-            efficiency * self.units[self.gas_turbine_index].hhv
-        )
+        # fuel_volume_rate (m³/s) = power (W) / (efficiency * HHV (J/m³))
+        fuel_volume_rate = (power * 1000.0) / (efficiency * self.units[self.gas_turbine_index].HHV)
 
-        return fuel_m3_per_s
+        return fuel_volume_rate

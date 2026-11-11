@@ -16,6 +16,7 @@ from hercules.hercules_model import HerculesModel
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")
 
+
 # Define your controller class
 class MyController:
     def __init__(self, h_dict):
@@ -25,6 +26,7 @@ class MyController:
     def step(self, h_dict):
         # Implement control logic
         return h_dict
+
 
 # Assign the controller to the model
 hmodel.assign_controller(MyController(hmodel.h_dict))

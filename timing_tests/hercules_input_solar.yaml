@@ -26,14 +26,14 @@ solar_farm:
   losses: 0
   log_channels:
     - power
-    - dni
-    - poa
-    - aoi
+    - DNI
+    - POA
+    - AOI
 
 
   initial_conditions:
     power: 100000 # kW
-    dni: 1000
-    poa: 1000
+    DNI: 1000
+    POA: 1000
 
 controller:

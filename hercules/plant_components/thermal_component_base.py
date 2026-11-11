@@ -50,7 +50,7 @@ class ThermalComponentBase(ComponentBase):
     State Machine:
         state values (IntEnum) and their meanings:
         - 0 (OFF_HOT): Thermal Component is off and still hot
-            (time_in_state < hot_to_warm_time)
+            (time_in_state < cooldown_time_warm)
         - 1 (HOT_STARTING): Thermal Component is readying or ramping up to minimum
             stable load from off state (hot start)
         - 2 (WARM_STARTING): Thermal Component is readying or ramping up to minimum
@@ -60,9 +60,9 @@ class ThermalComponentBase(ComponentBase):
         - 4 (ON): Thermal Component is operating normally
         - 5 (STOPPING): Thermal Component is ramping down to shutdown
         - 6 (OFF_WARM): Thermal Component is off and warm
-            (hot_to_warm_time <= time_in_state < hot_to_cold_time)
+            (cooldown_time_warm <= time_in_state < cooldown_time_cold)
         - 7 (OFF_COLD): Thermal Component is off and cold
-            (time_in_state >= hot_to_cold_time)
+            (time_in_state >= cooldown_time_cold)
 
 
     """
@@ -96,9 +96,9 @@ class ThermalComponentBase(ComponentBase):
 
     def _classify_off_state(self):
         """Set the OFF substate based on time_in_state and cooldown thresholds."""
-        if self.time_in_state < self.hot_to_warm_time:
+        if self.time_in_state < self.cooldown_time_warm:
             self.state = self.STATES.OFF_HOT
-        elif self.time_in_state < self.hot_to_cold_time:
+        elif self.time_in_state < self.cooldown_time_cold:
             self.state = self.STATES.OFF_WARM
         else:
             self.state = self.STATES.OFF_COLD
@@ -108,27 +108,27 @@ class ThermalComponentBase(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
-                - rated_capacity: Maximum power output in kW
-                - min_stable_load_fraction: Minimum operating point as fraction (0-1)
-                - ramp_rate_fraction: Maximum rate of power increase/decrease
+                - capacity_rated: Maximum power output in kW
+                - load_stable_min_fraction: Minimum operating point as fraction (0-1)
+                - ramp_rate_fraction_per_min: Maximum rate of power increase/decrease
                     as fraction of rated capacity per minute
-                - run_up_rate_fraction: Maximum rate of power increase during startup
+                - run_up_rate_fraction_per_min: Maximum rate of power increase during startup
                     as fraction of rated capacity per minute.
-                - hot_startup_time: Time to reach min_stable_load_fraction from off in s.
+                - startup_time_hot: Time to reach load_stable_min_fraction from off in s.
                     Includes both readying time and ramping time.
-                - warm_startup_time: Time to reach min_stable_load_fraction from off in s.
+                - startup_time_warm: Time to reach load_stable_min_fraction from off in s.
                     Includes both readying time and ramping time.
-                - cold_startup_time: Time to reach min_stable_load_fraction from off in s.
+                - startup_time_cold: Time to reach load_stable_min_fraction from off in s.
                     Includes both readying time and ramping time.
-                - min_up_time: Minimum time unit must remain on in s.
-                - min_down_time: Minimum time unit must remain off in s.
-                - hot_to_warm_time: Optional, time after shutdown before the unit
+                - up_time_min: Minimum time unit must remain on in s.
+                - down_time_min: Minimum time unit must remain off in s.
+                - cooldown_time_warm: Optional, time after shutdown before the unit
                     transitions from hot to warm state in s. Default: 28800.0 (8 hours).
-                - hot_to_cold_time: Optional, time after shutdown before the unit
+                - cooldown_time_cold: Optional, time after shutdown before the unit
                     transitions from warm to cold state in s. Default: 172800.0 (48 hours).
                 - initial_conditions: Dictionary with initial power (state is
                     derived automatically: power > 0 means ON, power == 0 means OFF)
-                - hhv: Higher heating value of fuel in J/m³
+                - HHV: Higher heating value of fuel in J/m³
                 - fuel_density: Fuel density in kg/m³
                 - efficiency_table: Dictionary with power_fraction and efficiency arrays
                     (both as fractions 0-1). Efficiency values must be HHV net plant
@@ -141,147 +141,131 @@ class ThermalComponentBase(ComponentBase):
 
         # Extract parameters from the h_dict
         component_dict = h_dict[self.component_name]
-        self.rated_capacity = component_dict["rated_capacity"]  # kW
-        self.min_stable_load_fraction = component_dict["min_stable_load_fraction"]
-        self.ramp_rate_fraction = component_dict["ramp_rate_fraction"]
-        self.run_up_rate_fraction = component_dict["run_up_rate_fraction"]
-        self.hot_startup_time = component_dict["hot_startup_time"]  # s
-        self.warm_startup_time = component_dict["warm_startup_time"]  # s
-        self.cold_startup_time = component_dict["cold_startup_time"]  # s
-        self.min_up_time = component_dict["min_up_time"]  # s
-        self.min_down_time = component_dict["min_down_time"]  # s
+        self.capacity_rated = component_dict["capacity_rated"]  # kW
+        self.load_stable_min_fraction = component_dict["load_stable_min_fraction"]
+        self.ramp_rate_fraction_per_min = component_dict["ramp_rate_fraction_per_min"]
+        self.run_up_rate_fraction_per_min = component_dict["run_up_rate_fraction_per_min"]
+        self.startup_time_hot = component_dict["startup_time_hot"]  # s
+        self.startup_time_warm = component_dict["startup_time_warm"]  # s
+        self.startup_time_cold = component_dict["startup_time_cold"]  # s
+        self.up_time_min = component_dict["up_time_min"]  # s
+        self.down_time_min = component_dict["down_time_min"]  # s
 
         # Cooldown threshold times (optional, with defaults matching [5])
-        self.hot_to_warm_time = component_dict.get("hot_to_warm_time", 28800.0)  # s (8h)
-        self.hot_to_cold_time = component_dict.get("hot_to_cold_time", 172800.0)  # s (48h)
+        self.cooldown_time_warm = component_dict.get("cooldown_time_warm", 28800.0)  # s (8h)
+        self.cooldown_time_cold = component_dict.get("cooldown_time_cold", 172800.0)  # s (48h)
         # Extract optional parameters for startup and shutdown fuel fractions
-        self.startup_fuel_fraction = component_dict.get("startup_fuel_fraction", None)
-        self.shutdown_fuel_fraction = component_dict.get("shutdown_fuel_fraction", None)
+        self.fuel_startup_fraction = component_dict.get("fuel_startup_fraction", None)
+        self.fuel_shutdown_fraction = component_dict.get("fuel_shutdown_fraction", None)
 
         # Check all required parameters are numbers
-        if not isinstance(self.rated_capacity, (int, float, hercules_float_type)):
-            raise ValueError("rated_capacity must be a number")
-        if not isinstance(self.min_stable_load_fraction, (int, float, hercules_float_type)):
-            raise ValueError("min_stable_load_fraction must be a number")
-        if not isinstance(self.ramp_rate_fraction, (int, float, hercules_float_type)):
-            raise ValueError("ramp_rate_fraction must be a number")
-        if not isinstance(self.run_up_rate_fraction, (int, float, hercules_float_type)):
-            raise ValueError("run_up_rate_fraction must be a number")
-        if not isinstance(self.hot_startup_time, (int, float, hercules_float_type)):
-            raise ValueError("hot_startup_time must be a number")
-        if not isinstance(self.warm_startup_time, (int, float, hercules_float_type)):
-            raise ValueError("warm_startup_time must be a number")
-        if not isinstance(self.cold_startup_time, (int, float, hercules_float_type)):
-            raise ValueError("cold_startup_time must be a number")
-        if not isinstance(self.min_up_time, (int, float, hercules_float_type)):
-            raise ValueError("min_up_time must be a number")
-        if not isinstance(self.min_down_time, (int, float, hercules_float_type)):
-            raise ValueError("min_down_time must be a number")
-        if not isinstance(self.hot_to_warm_time, (int, float, hercules_float_type)):
-            raise ValueError("hot_to_warm_time must be a number")
-        if not isinstance(self.hot_to_cold_time, (int, float, hercules_float_type)):
-            raise ValueError("hot_to_cold_time must be a number")
+        numeric_params = {
+            "capacity_rated": self.capacity_rated,
+            "load_stable_min_fraction": self.load_stable_min_fraction,
+            "ramp_rate_fraction_per_min": self.ramp_rate_fraction_per_min,
+            "run_up_rate_fraction_per_min": self.run_up_rate_fraction_per_min,
+            "startup_time_hot": self.startup_time_hot,
+            "startup_time_warm": self.startup_time_warm,
+            "startup_time_cold": self.startup_time_cold,
+            "up_time_min": self.up_time_min,
+            "down_time_min": self.down_time_min,
+            "cooldown_time_warm": self.cooldown_time_warm,
+            "cooldown_time_cold": self.cooldown_time_cold,
+        }
+        for name, value in numeric_params.items():
+            if not isinstance(value, (int, float, hercules_float_type)):
+                raise ValueError(f"{name} must be a number")
 
         # Check parameters
-        if self.rated_capacity <= 0:
-            raise ValueError("rated_capacity must be greater than 0")
-        if self.min_stable_load_fraction < 0 or self.min_stable_load_fraction > 1:
-            raise ValueError("min_stable_load_fraction must be between 0 and 1 (inclusive)")
-        if self.ramp_rate_fraction <= 0:
-            raise ValueError("ramp_rate_fraction must be greater than 0")
-        if self.run_up_rate_fraction <= 0:
-            raise ValueError("run_up_rate_fraction must be greater than 0")
-        if self.hot_startup_time < 0:
-            raise ValueError("hot_startup_time must be greater than or equal to 0")
-        if self.warm_startup_time < 0:
-            raise ValueError("warm_startup_time must be greater than or equal to 0")
-        if self.cold_startup_time < 0:
-            raise ValueError("cold_startup_time must be greater than or equal to 0")
-        if self.min_up_time < 0:
-            raise ValueError("min_up_time must be greater than or equal to 0")
-        if self.min_down_time < 0:
-            raise ValueError("min_down_time must be greater than or equal to 0")
-        if self.hot_to_warm_time < 0:
-            raise ValueError("hot_to_warm_time must be greater than or equal to 0")
-        if self.hot_to_cold_time < 0:
-            raise ValueError("hot_to_cold_time must be greater than or equal to 0")
-        if self.hot_to_cold_time < self.hot_to_warm_time:
-            raise ValueError("hot_to_cold_time must be greater than or equal to hot_to_warm_time")
+        if self.capacity_rated <= 0:
+            raise ValueError("capacity_rated must be greater than 0")
+        if self.load_stable_min_fraction < 0 or self.load_stable_min_fraction > 1:
+            raise ValueError("load_stable_min_fraction must be between 0 and 1 (inclusive)")
+        if self.ramp_rate_fraction_per_min <= 0:
+            raise ValueError("ramp_rate_fraction_per_min must be greater than 0")
+        if self.run_up_rate_fraction_per_min <= 0:
+            raise ValueError("run_up_rate_fraction_per_min must be greater than 0")
+        for name in [
+            "startup_time_hot",
+            "startup_time_warm",
+            "startup_time_cold",
+            "up_time_min",
+            "down_time_min",
+            "cooldown_time_warm",
+            "cooldown_time_cold",
+        ]:
+            if numeric_params[name] < 0:
+                raise ValueError(f"{name} must be greater than or equal to 0")
+        if self.cooldown_time_cold < self.cooldown_time_warm:
+            raise ValueError(
+                "cooldown_time_cold must be greater than or equal to cooldown_time_warm"
+            )
 
         # Compute derived power limits
-        self.P_min = self.min_stable_load_fraction * self.rated_capacity  # kW
-        self.P_max = self.rated_capacity  # kW
+        self.power_min = self.load_stable_min_fraction * self.capacity_rated  # kW
+        self.power_max = self.capacity_rated  # kW
 
         # Compute ramp_rate and run_up_rate in kW/s
-        self.ramp_rate = self.ramp_rate_fraction * self.rated_capacity / 60.0  # kW/s
-        self.run_up_rate = self.run_up_rate_fraction * self.rated_capacity / 60.0  # kW/s
+        self.ramp_rate = self.ramp_rate_fraction_per_min * self.capacity_rated / 60.0  # kW/s
+        self.run_up_rate = self.run_up_rate_fraction_per_min * self.capacity_rated / 60.0  # kW/s
 
-        # Compute the ramp_time, which is the time to ramp from 0 to P_min
+        # Compute the ramp_time, which is the time to ramp from 0 to power_min
         # using the run_up_rate
-        self.ramp_time = self.P_min / self.run_up_rate  # s
+        self.ramp_time = self.power_min / self.run_up_rate  # s
 
-        # Check that hot_startup_time is greater than or equal to the ramp_time
-        if self.hot_startup_time < self.ramp_time:
-            raise ValueError("hot_startup_time must be greater than or equal to the ramp_time")
+        # Check that each startup time is at least the ramp_time
+        for name in ["startup_time_hot", "startup_time_warm", "startup_time_cold"]:
+            if numeric_params[name] < self.ramp_time:
+                raise ValueError(f"{name} must be greater than or equal to the ramp_time")
 
-        # Check that warm_startup_time is greater than or equal to the ramp_time
-        if self.warm_startup_time < self.ramp_time:
-            raise ValueError("warm_startup_time must be greater than or equal to the ramp_time")
+        if self.startup_time_cold < self.startup_time_warm:
+            raise ValueError("startup_time_cold must be greater than or equal to startup_time_warm")
 
-        # Check that cold_startup_time is greater than or equal to the ramp_time
-        if self.cold_startup_time < self.ramp_time:
-            raise ValueError("cold_startup_time must be greater than or equal to the ramp_time")
-
-        # Check that the cold_startup_time is at least as long as the warm_startup_time
-        if self.cold_startup_time < self.warm_startup_time:
-            raise ValueError("cold_startup_time must be greater than or equal to warm_startup_time")
-
-        # Check that the warm_startup_time is at least as long as the hot_startup_time
-        if self.warm_startup_time < self.hot_startup_time:
-            raise ValueError("warm_startup_time must be greater than or equal to hot_startup_time")
+        if self.startup_time_warm < self.startup_time_hot:
+            raise ValueError("startup_time_warm must be greater than or equal to startup_time_hot")
 
         # Compute the hot, warm, and cold readying times, which is the startup time minus
         # the ramp_time
-        self.hot_readying_time = self.hot_startup_time - self.ramp_time  # s
-        self.warm_readying_time = self.warm_startup_time - self.ramp_time  # s
-        self.cold_readying_time = self.cold_startup_time - self.ramp_time  # s
+        self.readying_time_hot = self.startup_time_hot - self.ramp_time  # s
+        self.readying_time_warm = self.startup_time_warm - self.ramp_time  # s
+        self.readying_time_cold = self.startup_time_cold - self.ramp_time  # s
 
         # Extract initial conditions
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
-        self.power_output = initial_conditions["power"]  # kW
+        self.power = initial_conditions["power"]  # kW
 
         # Check that initial conditions are valid
-        if self.power_output < 0 or self.power_output > self.rated_capacity:
+        if self.power < 0 or self.power > self.capacity_rated:
             raise ValueError(
                 "initial_conditions['power'] (initial power) "
-                "must be between 0 and rated_capacity (inclusive)"
+                "must be between 0 and capacity_rated (inclusive)"
             )
 
         # Derive initial state from power: if power > 0 then ON, else OFF
-        if self.power_output > 0:
+        if self.power > 0:
             self.state = self.STATES.ON
             # Set time_in_state so the unit is immediately ready to stop
-            self.time_in_state = float(self.min_up_time)  # s
+            self.time_in_state = float(self.up_time_min)  # s
         else:
             # Set time_in_state so the unit is immediately ready to start
             if "time_in_shutdown" in initial_conditions:
                 self.time_in_state = float(initial_conditions["time_in_shutdown"])  # s
             else:
-                self.time_in_state = float(self.min_down_time)  # s
+                self.time_in_state = float(self.down_time_min)  # s
             # Classify into the appropriate OFF substate
             self._classify_off_state()
 
         # Extract efficiency table (HHV net efficiency), HHV, and fuel density
         # for fuel consumption calculations
-        self.hhv = component_dict["hhv"]  # J/m³
+        self.HHV = component_dict["HHV"]  # J/m³
         self.fuel_density = component_dict["fuel_density"]  # kg/m³
         efficiency_table = component_dict["efficiency_table"]
 
-        # Validate hhv
-        if not isinstance(self.hhv, (int, float, hercules_float_type)):
-            raise ValueError("hhv must be a number")
-        if self.hhv <= 0:
-            raise ValueError("hhv must be greater than 0")
+        # Validate HHV
+        if not isinstance(self.HHV, (int, float, hercules_float_type)):
+            raise ValueError("HHV must be a number")
+        if self.HHV <= 0:
+            raise ValueError("HHV must be greater than 0")
 
         # Validate fuel_density
         if not isinstance(self.fuel_density, (int, float, hercules_float_type)):
@@ -327,15 +311,15 @@ class ThermalComponentBase(ComponentBase):
         self.efficiency_values = self.efficiency_values[sort_idx]
 
         # Initialize HHV net efficiency and fuel consumption rate
-        self.efficiency = self.calculate_efficiency(self.power_output)
+        self.efficiency = self.calculate_efficiency(self.power)
         self.fuel_volume_rate = 0.0  # m³/s
         self.fuel_mass_rate = 0.0  # kg/s
 
         # Initialize number of starts
-        self.n_total_starts = 0
-        self.n_hot_starts = 0
-        self.n_warm_starts = 0
-        self.n_cold_starts = 0
+        self.start_count = 0
+        self.start_count_hot = 0
+        self.start_count_warm = 0
+        self.start_count_cold = 0
 
         # Saved off-duration before a startup attempt (for restore on abort)
         self._time_off_before_start = None
@@ -349,15 +333,15 @@ class ThermalComponentBase(ComponentBase):
         Returns:
             dict: Updated dictionary with initial conditions and meta data.
         """
-        h_dict[self.component_name]["power"] = self.power_output
+        h_dict[self.component_name]["power"] = self.power
         h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
         h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
-        h_dict[self.component_name]["n_total_starts"] = self.n_total_starts
-        h_dict[self.component_name]["n_hot_starts"] = self.n_hot_starts
-        h_dict[self.component_name]["n_warm_starts"] = self.n_warm_starts
-        h_dict[self.component_name]["n_cold_starts"] = self.n_cold_starts
+        h_dict[self.component_name]["start_count"] = self.start_count
+        h_dict[self.component_name]["start_count_hot"] = self.start_count_hot
+        h_dict[self.component_name]["start_count_warm"] = self.start_count_warm
+        h_dict[self.component_name]["start_count_cold"] = self.start_count_cold
         return h_dict
 
     def step(self, h_dict):
@@ -393,30 +377,30 @@ class ThermalComponentBase(ComponentBase):
         self.time_in_state += self.dt
 
         # Determine actual power output based on constraints and state
-        self.power_output = self._control(power_setpoint)
+        self.power = self._control(power_setpoint)
 
         # Re-classify OFF substate based on time_in_state
         if self._is_off():
             self._classify_off_state()
 
         # Calculate HHV net efficiency and fuel consumption rate
-        self.efficiency = self.calculate_efficiency(self.power_output)
-        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power_output)
+        self.efficiency = self.calculate_efficiency(self.power)
+        self.fuel_volume_rate = self.calculate_fuel_volume_rate(self.power)
         # Compute fuel mass rate from volume rate using density [6]
         self.fuel_mass_rate = self.fuel_volume_rate * self.fuel_density
 
         # Update h_dict with outputs
-        h_dict[self.component_name]["power"] = self.power_output
+        h_dict[self.component_name]["power"] = self.power
         h_dict[self.component_name]["state"] = self.state.value
         h_dict[self.component_name]["efficiency"] = self.efficiency
         h_dict[self.component_name]["fuel_volume_rate"] = self.fuel_volume_rate
         h_dict[self.component_name]["fuel_mass_rate"] = self.fuel_mass_rate
 
         # Update start counts in h_dict for tracking purposes
-        h_dict[self.component_name]["n_total_starts"] = self.n_total_starts
-        h_dict[self.component_name]["n_hot_starts"] = self.n_hot_starts
-        h_dict[self.component_name]["n_warm_starts"] = self.n_warm_starts
-        h_dict[self.component_name]["n_cold_starts"] = self.n_cold_starts
+        h_dict[self.component_name]["start_count"] = self.start_count
+        h_dict[self.component_name]["start_count_hot"] = self.start_count_hot
+        h_dict[self.component_name]["start_count_warm"] = self.start_count_warm
+        h_dict[self.component_name]["start_count_cold"] = self.start_count_cold
 
         return h_dict
 
@@ -427,39 +411,39 @@ class ThermalComponentBase(ComponentBase):
         based on the current state (state) and time in that state.
 
         The startup type (hot/warm/cold) is determined by the parameterized
-        cooldown thresholds hot_to_warm_time and hot_to_cold_time.
+        cooldown thresholds cooldown_time_warm and cooldown_time_cold.
 
         State Machine:
             STATE_OFF_HOT/OFF_WARM/OFF_COLD (0/6/7):
-                - If setpoint > 0 and min_down_time satisfied and
-                  time_in_state < hot_to_warm_time: begin HOT_STARTING
-                - If setpoint > 0 and min_down_time satisfied and
-                  time_in_state >= hot_to_cold_time: begin COLD_STARTING
-                - If setpoint > 0 and min_down_time satisfied and
-                  time_in_state >= hot_to_warm_time and
-                  time_in_state < hot_to_cold_time: begin WARM_STARTING
+                - If setpoint > 0 and down_time_min satisfied and
+                  time_in_state < cooldown_time_warm: begin HOT_STARTING
+                - If setpoint > 0 and down_time_min satisfied and
+                  time_in_state >= cooldown_time_cold: begin COLD_STARTING
+                - If setpoint > 0 and down_time_min satisfied and
+                  time_in_state >= cooldown_time_warm and
+                  time_in_state < cooldown_time_cold: begin WARM_STARTING
                 - Otherwise: remain OFF, output 0
 
             STATE_HOT_STARTING (1):
                 - If setpoint <= 0: abort startup, return to OFF_HOT
-                - If time in state is less than hot_readying_time output 0
-                - After hot_readying_time, ramp up to P_min using run_up_rate
-                - When power output >= P_min: transition to STATE_ON
+                - If time in state is less than readying_time_hot output 0
+                - After readying_time_hot, ramp up to power_min using run_up_rate
+                - When power output >= power_min: transition to STATE_ON
 
             STATE_WARM_STARTING (2):
                 - If setpoint <= 0: abort startup, return to OFF_HOT
-                - If time in state is less than warm_readying_time output 0
-                - After warm_readying_time, ramp up to P_min using run_up_rate
-                - When power output >= P_min: transition to STATE_ON
+                - If time in state is less than readying_time_warm output 0
+                - After readying_time_warm, ramp up to power_min using run_up_rate
+                - When power output >= power_min: transition to STATE_ON
 
             STATE_COLD_STARTING (3):
                 - If setpoint <= 0: abort startup, return to OFF_HOT
-                - If time in state is less than cold_readying_time output 0
-                - After cold_readying_time, ramp up to P_min using run_up_rate
-                - When power output >= P_min: transition to STATE_ON
+                - If time in state is less than readying_time_cold output 0
+                - After readying_time_cold, ramp up to power_min using run_up_rate
+                - When power output >= power_min: transition to STATE_ON
 
             STATE_ON (4):
-                - If setpoint <= 0 and min_up_time satisfied: begin STOPPING
+                - If setpoint <= 0 and up_time_min satisfied: begin STOPPING
                 - Otherwise: apply power limits and ramp rate constraints
 
             STATE_STOPPING (5):
@@ -476,24 +460,24 @@ class ThermalComponentBase(ComponentBase):
         # STATE: OFF (OFF_HOT, OFF_WARM, OFF_COLD)
         # ====================================================================
         if self._is_off():
-            # Check if we can start (min_down_time satisfied)
+            # Check if we can start (down_time_min satisfied)
             if not hasattr(self, "can_start"):
-                can_start = self.time_in_state >= self.min_down_time
+                can_start = self.time_in_state >= self.down_time_min
             else:
                 can_start = self.can_start
 
             if power_setpoint > 0 and can_start:
-                self.n_total_starts += 1
+                self.start_count += 1
                 # Check if hot, warm, or cold starting is implied
-                if self.time_in_state < self.hot_to_warm_time:
+                if self.time_in_state < self.cooldown_time_warm:
                     self.state = self.STATES.HOT_STARTING
-                    self.n_hot_starts += 1
-                elif self.time_in_state < self.hot_to_cold_time:
+                    self.start_count_hot += 1
+                elif self.time_in_state < self.cooldown_time_cold:
                     self.state = self.STATES.WARM_STARTING
-                    self.n_warm_starts += 1
+                    self.start_count_warm += 1
                 else:
                     self.state = self.STATES.COLD_STARTING
-                    self.n_cold_starts += 1
+                    self.start_count_cold += 1
                 self._time_off_before_start = self.time_in_state
                 self.time_in_state = 0.0
                 if hasattr(self, "can_start"):
@@ -510,25 +494,25 @@ class ThermalComponentBase(ComponentBase):
                 # Restore off-duration: saved pre-start time + time spent starting
                 self.time_in_state = self._time_off_before_start + self.time_in_state
                 self.state = self.STATES.OFF_HOT
-                self.power_output = 0.0
+                self.power = 0.0
                 return 0.0
 
             # Check if readying time is complete
-            if self.time_in_state < self.hot_readying_time:
+            if self.time_in_state < self.readying_time_hot:
                 return 0.0
 
             # Ramp up using run_up_rate
-            startup_power = (self.time_in_state - self.hot_readying_time) * self.run_up_rate
+            startup_power = (self.time_in_state - self.readying_time_hot) * self.run_up_rate
 
             # Check if ramping is complete
-            if startup_power >= self.P_min:
+            if startup_power >= self.power_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 self._time_off_before_start = None
                 return startup_power
 
-            # Limit to below P_max (edge case)
-            startup_power = np.clip(startup_power, 0, self.P_max)
+            # Limit to below power_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.power_max)
 
             return startup_power
 
@@ -541,25 +525,25 @@ class ThermalComponentBase(ComponentBase):
                 # Restore off-duration: saved pre-start time + time spent starting
                 self.time_in_state = self._time_off_before_start + self.time_in_state
                 self._classify_off_state()
-                self.power_output = 0.0
+                self.power = 0.0
                 return 0.0
 
             # Check if readying time is complete
-            if self.time_in_state < self.warm_readying_time:
+            if self.time_in_state < self.readying_time_warm:
                 return 0.0
 
             # Ramp up using run_up_rate
-            startup_power = (self.time_in_state - self.warm_readying_time) * self.run_up_rate
+            startup_power = (self.time_in_state - self.readying_time_warm) * self.run_up_rate
 
             # Check if ramping is complete
-            if startup_power >= self.P_min:
+            if startup_power >= self.power_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 self._time_off_before_start = None
                 return startup_power
 
-            # Limit to below P_max (edge case)
-            startup_power = np.clip(startup_power, 0, self.P_max)
+            # Limit to below power_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.power_max)
 
             return startup_power
 
@@ -572,25 +556,25 @@ class ThermalComponentBase(ComponentBase):
                 # Restore off-duration: saved pre-start time + time spent starting
                 self.time_in_state = self._time_off_before_start + self.time_in_state
                 self._classify_off_state()
-                self.power_output = 0.0
+                self.power = 0.0
                 return 0.0
 
             # Check if readying time is complete
-            if self.time_in_state < self.cold_readying_time:
+            if self.time_in_state < self.readying_time_cold:
                 return 0.0
 
             # Ramp up using run_up_rate
-            startup_power = (self.time_in_state - self.cold_readying_time) * self.run_up_rate
+            startup_power = (self.time_in_state - self.readying_time_cold) * self.run_up_rate
 
             # Check if ramping is complete
-            if startup_power >= self.P_min:
+            if startup_power >= self.power_min:
                 self.state = self.STATES.ON
                 self.time_in_state = 0.0
                 self._time_off_before_start = None
                 return startup_power
 
-            # Limit to below P_max (edge case)
-            startup_power = np.clip(startup_power, 0, self.P_max)
+            # Limit to below power_max (edge case)
+            startup_power = np.clip(startup_power, 0, self.power_max)
 
             return startup_power
 
@@ -598,8 +582,8 @@ class ThermalComponentBase(ComponentBase):
         # STATE: ON
         # ====================================================================
         elif self.state == self.STATES.ON:
-            # Check if we can shut down (min_up_time satisfied)
-            can_shutdown = self.time_in_state >= self.min_up_time
+            # Check if we can shut down (up_time_min satisfied)
+            can_shutdown = self.time_in_state >= self.up_time_min
 
             if power_setpoint <= 0 and can_shutdown:
                 # Transition to shutdown sequence
@@ -607,7 +591,7 @@ class ThermalComponentBase(ComponentBase):
                 self.time_in_state = 0.0
 
                 # Immediately apply stopping-state ramp-down behavior
-                shutdown_power = self.power_output - self.ramp_rate * self.dt
+                shutdown_power = self.power - self.ramp_rate * self.dt
 
                 # Check if shutdown is complete in this timestep
                 if shutdown_power <= 0:
@@ -625,7 +609,7 @@ class ThermalComponentBase(ComponentBase):
         # ====================================================================
         elif self.state == self.STATES.STOPPING:
             # Ramp the power output down using ramp_rate
-            shutdown_power = self.power_output - self.ramp_rate * self.dt
+            shutdown_power = self.power - self.ramp_rate * self.dt
 
             # Check if shutdown is complete
             if shutdown_power <= 0:
@@ -648,53 +632,44 @@ class ThermalComponentBase(ComponentBase):
             float: Constrained power output in kW.
         """
         # Apply power limits
-        P_constrained = np.clip(power_setpoint, self.P_min, self.P_max)
+        power_constrained = np.clip(power_setpoint, self.power_min, self.power_max)
 
         # Apply ramp rate constraints
-        max_ramp_up = self.power_output + self.ramp_rate * self.dt
-        max_ramp_down = self.power_output - self.ramp_rate * self.dt
-        P_constrained = np.clip(P_constrained, max_ramp_down, max_ramp_up)
+        max_ramp_up = self.power + self.ramp_rate * self.dt
+        max_ramp_down = self.power - self.ramp_rate * self.dt
+        power_constrained = np.clip(power_constrained, max_ramp_down, max_ramp_up)
 
-        return P_constrained
+        return power_constrained
 
-    def calculate_efficiency(self, power_output):
+    def calculate_efficiency(self, power):
         """Calculate HHV net efficiency based on current power output and state.
 
         Args:
-            power_output (float): Current power output in kW.
+            power (float): Current power output in kW.
 
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        fuel_consumption_rate = self.calculate_fuel_volume_rate(power_output)  # m³/s
+        fuel_consumption_rate = self.calculate_fuel_volume_rate(power)  # m³/s
 
         if fuel_consumption_rate == 0:
             return np.nan  # Efficiency is undefined when fuel consumption is zero
 
-        return (power_output * 1000.0) / (fuel_consumption_rate * self.hhv)
+        return (power * 1000.0) / (fuel_consumption_rate * self.HHV)
 
-    def interpolate_efficiency(self, power_output):
+    def interpolate_efficiency(self, power):
         """Interpolate HHV net efficiency based on current power output.
 
         Uses linear interpolation from the efficiency table. Values outside the
         table range are clamped to the nearest endpoint.
 
         Args:
-            power_output (float): Current power output in kW.
+            power (float): Current power output in kW.
 
         Returns:
             float: HHV net efficiency as a fraction (0-1).
         """
-        # NOTE: Not sure if we need this code
-        # if self.state == self._is_off():
-        #     # Efficiency is not defined when off
-        #     return np.nan
-        # elif power_output <= 0:
-        #     # Efficiency is 0 when not producing power (but not off)
-        #     return 0.0
-
-        # Calculate power fraction
-        power_fraction = power_output / self.rated_capacity
+        power_fraction = power / self.capacity_rated
 
         # Interpolate efficiency (numpy.interp clamps to endpoints by default)
         efficiency = np.interp(
@@ -703,27 +678,27 @@ class ThermalComponentBase(ComponentBase):
 
         return efficiency
 
-    def calculate_fuel_volume_rate(self, power_output):
+    def calculate_fuel_volume_rate(self, power):
         """Calculate fuel volume flow rate based on power output and HHV net efficiency.
 
         Args:
-            power_output (float): Current power output in kW.
+            power (float): Current power output in kW.
 
         Returns:
             float: Fuel volume flow rate in m³/s.
         """
-        rated_fuel_consumption_rate = (self.rated_capacity * 1000.0) / (
-            self.hhv * self.interpolate_efficiency(self.rated_capacity)
+        fuel_volume_rate_rated = (self.capacity_rated * 1000.0) / (
+            self.HHV * self.interpolate_efficiency(self.capacity_rated)
         )  # m³/s at rated capacity
 
         if self._is_off():
             # When off, fuel flow is zero
             return 0.0
-        elif self.state == self.STATES.STOPPING and self.shutdown_fuel_fraction is not None:
+        elif self.state == self.STATES.STOPPING and self.fuel_shutdown_fraction is not None:
             # When stopping, use shutdown fuel fraction if provided
             return max(
-                self.shutdown_fuel_fraction * rated_fuel_consumption_rate,
-                power_output * 1000.0 / (self.hhv * self.interpolate_efficiency(power_output)),
+                self.fuel_shutdown_fraction * fuel_volume_rate_rated,
+                power * 1000.0 / (self.HHV * self.interpolate_efficiency(power)),
             )
 
         elif (
@@ -733,15 +708,13 @@ class ThermalComponentBase(ComponentBase):
                 self.STATES.WARM_STARTING,
                 self.STATES.COLD_STARTING,
             ]
-            and self.startup_fuel_fraction is not None
+            and self.fuel_startup_fraction is not None
         ):
             # During startup (HOT_STARTING, WARM_STARTING, COLD_STARTING), use startup fuel fraction
-            return self.startup_fuel_fraction * rated_fuel_consumption_rate
+            return self.fuel_startup_fraction * fuel_volume_rate_rated
 
         # When on, calculate fuel rate based on current HHV net efficiency
-        efficiency = self.interpolate_efficiency(power_output)
+        efficiency = self.interpolate_efficiency(power)
 
-        # Calculate fuel volume rate using HHV net efficiency
-        # fuel_volume_rate (m³/s) = power (W) / (efficiency * hhv (J/m³))
-        # Convert power from kW to W (multiply by 1000)
-        return (power_output * 1000.0) / (efficiency * self.hhv)
+        # fuel_volume_rate (m³/s) = power (W) / (efficiency * HHV (J/m³))
+        return (power * 1000.0) / (efficiency * self.HHV)

@@ -172,7 +172,6 @@ class HerculesOutput:
 
         print("Model Setup----")
 
-        # Plant interconnect limit
         h_dict = self.metadata.get("h_dict", {})
         plant_config = h_dict.get("plant", {})
         interconnect_limit = plant_config.get("interconnect_limit", 0)
@@ -180,40 +179,30 @@ class HerculesOutput:
             print(f"   Interconnect Limit: {interconnect_limit / 1000:.1f} MW")
         else:
             print("   Interconnect Limit: Not available")
+        print(f"   Bus to POI Efficiency: {plant_config.get('eta_bus_to_poi', 1.0)}")
 
-        # Wind farm information
-        if "wind_farm" in h_dict:
-            wind_config = h_dict["wind_farm"]
-            n_turbines = wind_config.get("n_turbines", 0)
-            rated_turbine_power = wind_config.get("rated_turbine_power", 0)
-            if n_turbines > 0 and rated_turbine_power > 0:
+        for name in h_dict.get("component_names", []):
+            config = h_dict.get(name, {})
+            component_type = config.get("component_type", "")
+            if "turbine_count" in config and "turbine_power_rated" in config:
                 print(
-                    f"   Wind Farm: {n_turbines} turbines @ "
-                    f"{rated_turbine_power / 1000:.1f} MW each"
+                    f"   {name} ({component_type}): {config['turbine_count']} turbines @ "
+                    f"{config['turbine_power_rated'] / 1000:.1f} MW each"
                 )
-                print(f"   Wind Farm Total: {n_turbines * rated_turbine_power / 1000:.1f} MW")
-            else:
-                print("   Wind Farm: Configuration incomplete")
-
-        # Solar farm information
-        if "solar_farm" in h_dict:
-            solar_config = h_dict["solar_farm"]
-            if "system_capacity" not in solar_config:
-                raise KeyError(
-                    "Missing required field 'system_capacity' in solar_farm configuration. "
-                    "Please specify the DC system capacity of the solar farm in kW."
+            elif "DC_capacity_rated" in config:
+                print(
+                    f"   {name} ({component_type}): {config['capacity_rated'] / 1000:.1f} MW AC, "
+                    f"{config['DC_capacity_rated'] / 1000:.1f} MW DC"
                 )
-            pv_capacity = solar_config["system_capacity"]
-            print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
-
-        # Battery information
-        if "battery" in h_dict:
-            battery_config = h_dict["battery"]
-            battery_capacity = battery_config.get("size", 0)
-            if battery_capacity > 0:
-                print(f"   Battery: {battery_capacity / 1000:.1f} MW")
+            elif "energy_capacity" in config:
+                print(
+                    f"   {name} ({component_type}): {config['energy_capacity'] / 1000:.1f} MWh, "
+                    f"{config.get('power_discharge_max', 0) / 1000:.1f} MW discharge"
+                )
+            elif "capacity_rated" in config:
+                print(f"   {name} ({component_type}): {config['capacity_rated'] / 1000:.1f} MW")
             else:
-                print("   Battery: Capacity not specified")
+                print(f"   {name} ({component_type})")
 
     def __repr__(self) -> str:
         """String representation of the HerculesOutput object.

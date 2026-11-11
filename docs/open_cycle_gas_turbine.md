@@ -12,28 +12,28 @@ The OCGT class provides default values for natural gas properties from [6]:
 
 | Parameter | Units | Default | Description |
 |-----------|-------|---------|-------------|
-| `hhv` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [6] |
+| `HHV` | J/m³ | 39050000 | Higher heating value of natural gas (39.05 MJ/m³) [6] |
 | `fuel_density` | kg/m³ | 0.768 | Fuel density for mass calculations [6] |
 
 The `efficiency_table` parameter is **optional**. If not provided, default values based on approximate readings from the SC1A curve in Exhibit ES-4 of [5] are used. All efficiency values are **HHV (Higher Heating Value) net plant efficiencies**. See {doc}`thermal_component_base` for details on the efficiency table format.
 
 ## Default Parameter Values
 
-The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `rated_capacity` and `initial_conditions.power` are required in the YAML configuration.
+The `OpenCycleGasTurbine` class provides default values for base class parameters based on References [1-5]. Only `capacity_rated` and `initial_conditions.power` are required in the YAML configuration.
 
 | Parameter | Default Value | Source |
 |-----------|---------------|--------|
-| `min_stable_load_fraction` | 0.40 (40%) | [4] |
-| `ramp_rate_fraction` | 0.10 (10%/min) | [1] |
-| `run_up_rate_fraction` | Same as `ramp_rate_fraction` | — |
-| `hot_startup_time` | 420 s (7 minutes) | [1], [5] |
-| `warm_startup_time` | 480 s (8 minutes) | [1], [5] |
-| `cold_startup_time` | 480 s (8 minutes) | [1], [5] |
-| `min_up_time` | 1800 s (30 minutes) | [4] |
-| `min_down_time` | 3600 s (1 hour) | [4] |
-| `hot_to_warm_time` | 28800 s (8 hours) | [5] |
-| `hot_to_cold_time` | 172800 s (48 hours) | [5] |
-| `hhv` | 39050000 J/m³ (39.05 MJ/m³) | [6] |
+| `load_stable_min_fraction` | 0.40 (40%) | [4] |
+| `ramp_rate_fraction_per_min` | 0.10 (10%/min) | [1] |
+| `run_up_rate_fraction_per_min` | Same as `ramp_rate_fraction_per_min` | — |
+| `startup_time_hot` | 420 s (7 minutes) | [1], [5] |
+| `startup_time_warm` | 480 s (8 minutes) | [1], [5] |
+| `startup_time_cold` | 480 s (8 minutes) | [1], [5] |
+| `up_time_min` | 1800 s (30 minutes) | [4] |
+| `down_time_min` | 3600 s (1 hour) | [4] |
+| `cooldown_time_warm` | 28800 s (8 hours) | [5] |
+| `cooldown_time_cold` | 172800 s (48 hours) | [5] |
+| `HHV` | 39050000 J/m³ (39.05 MJ/m³) | [6] |
 | `fuel_density` | 0.768 kg/m³ | [6] |
 | `efficiency_table` | SC1A HHV net efficiency (see below) | Exhibit ES-4 of [5] |
 
@@ -65,13 +65,13 @@ The OCGT model provides the following outputs (inherited from base class):
 HHV net plant efficiency varies with load based on the `efficiency_table`. The fuel volume rate is calculated as:
 
 $$
-\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{hhv}}
+\text{fuel\_volume\_rate} = \frac{\text{power}}{\text{efficiency} \times \text{HHV}}
 $$
 
 Where:
 - `power` is in W (converted from kW internally)
 - `efficiency` is the HHV net efficiency interpolated from the efficiency table
-- `hhv` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])
+- `HHV` is the higher heating value in J/m³ (default 39.05 MJ/m³ for natural gas [6])
 - Result is fuel volume rate in m³/s
 
 The fuel mass rate is then computed from the volume rate using the fuel density [6]:
@@ -89,12 +89,12 @@ Where:
 
 ### Minimal Configuration
 
-Required parameters only (uses defaults for `hhv`, `efficiency_table`, and other parameters):
+Required parameters only (uses defaults for `HHV`, `efficiency_table`, and other parameters):
 
 ```yaml
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
-  rated_capacity: 100000  # kW (100 MW)
+  capacity_rated: 100000  # kW (100 MW)
   initial_conditions:
     power: 0  # 0 kW means OFF; power > 0 means ON
 ```
@@ -106,18 +106,18 @@ All parameters explicitly specified:
 ```yaml
 open_cycle_gas_turbine:
   component_type: OpenCycleGasTurbine
-  rated_capacity: 100000  # kW (100 MW)
-  min_stable_load_fraction: 0.4  # 40% minimum operating point
-  ramp_rate_fraction: 0.1  # 10%/min ramp rate
-  run_up_rate_fraction: 0.05  # 5%/min run up rate
-  hot_startup_time: 420.0  # 7 minutes
-  warm_startup_time: 480.0  # 8 minutes
-  cold_startup_time: 480.0  # 8 minutes
-  min_up_time: 1800  # 30 minutes
-  min_down_time: 3600  # 1 hour
-  hot_to_warm_time: 28800.0  # 8 hours
-  hot_to_cold_time: 172800.0  # 48 hours
-  hhv: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
+  capacity_rated: 100000  # kW (100 MW)
+  load_stable_min_fraction: 0.4  # 40% minimum operating point
+  ramp_rate_fraction_per_min: 0.1  # 10%/min ramp rate
+  run_up_rate_fraction_per_min: 0.05  # 5%/min run up rate
+  startup_time_hot: 420.0  # 7 minutes
+  startup_time_warm: 480.0  # 8 minutes
+  startup_time_cold: 480.0  # 8 minutes
+  up_time_min: 1800  # 30 minutes
+  down_time_min: 3600  # 1 hour
+  cooldown_time_warm: 28800.0  # 8 hours
+  cooldown_time_cold: 172800.0  # 48 hours
+  HHV: 39050000  # J/m³ for natural gas (39.05 MJ/m³) [6]
   fuel_density: 0.768  # kg/m³ for natural gas [6]
   efficiency_table:
     power_fraction:

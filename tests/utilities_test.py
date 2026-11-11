@@ -265,9 +265,9 @@ def test_load_hercules_input_verbose_default():
 
 
 def test_load_hercules_input_external_data_without_file():
-    """Test that external_data without external_data_file is silently ignored.
+    """Test that external_data without external_data_filename is silently ignored.
 
-    Verifies that if external_data is specified but external_data_file is missing,
+    Verifies that if external_data is specified but external_data_filename is missing,
     the external_data key is removed (treated as blank).
     """
     import tempfile
@@ -281,7 +281,7 @@ def test_load_hercules_input_external_data_without_file():
         "plant": {"interconnect_limit": 30000.0},
         "external_data": {
             "log_channels": ["channel1", "channel2"],
-            # Note: external_data_file is missing
+            # Note: external_data_filename is missing
         },
     }
 
@@ -311,8 +311,8 @@ def test_load_h_dict_from_text_valid_file():
         "starttime": 0.0,
         "endtime": 3600.0,
         "plant": {"interconnect_limit": 30000.0, "location": "test_site"},
-        "wind_farm": {"component_type": "WindFarm", "capacity": 100.0},
-        "solar_farm": {"component_type": "SolarPySAMPVWatts", "capacity": 50.0},
+        "wind_farm": {"component_type": "WindFarm", "capacity_rated": 100.0},
+        "solar_farm": {"component_type": "SolarPySAMPVWatts", "capacity_rated": 50.0},
         "verbose": False,
         "time": 1800.0,
         "step": 1800,
@@ -335,7 +335,7 @@ def test_load_h_dict_from_text_valid_file():
         assert result["plant"]["interconnect_limit"] == 30000.0
         assert result["plant"]["location"] == "test_site"
         assert result["wind_farm"]["component_type"] == "WindFarm"
-        assert result["solar_farm"]["capacity"] == 50.0
+        assert result["solar_farm"]["capacity_rated"] == 50.0
         assert result["external_signals"]["wind_speed"] == 8.5
 
     finally:
@@ -459,6 +459,38 @@ def load_hercules_input_from_dict(h_dict):
         return load_hercules_input(temp_file)
     finally:
         os.unlink(temp_file)
+
+
+def test_load_hercules_input_old_names_raise():
+    """Old (pre-nomenclature) input keys and log channels raise an error naming the new key."""
+    config = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00Z",
+        "endtime_utc": "2020-01-01T01:00:00Z",
+        "plant": {"interconnect_limit": 30000.0},
+        "battery": {
+            "component_type": "BatteryDynamic",
+            "charge_rate": 50.0,
+            "log_channels": ["power", "soc"],
+        },
+    }
+    with pytest.raises(ValueError, match="'charge_rate' -> 'power_charge_max'.*'soc' -> 'SOC'"):
+        load_hercules_input_from_dict(config)
+
+
+def test_load_hercules_input_eta_bus_to_poi_validation():
+    """plant.eta_bus_to_poi must be in (0, 1]."""
+    config = {
+        "dt": 1.0,
+        "starttime_utc": "2020-01-01T00:00:00Z",
+        "endtime_utc": "2020-01-01T01:00:00Z",
+        "plant": {"interconnect_limit": 30000.0, "eta_bus_to_poi": 0.97},
+    }
+    assert load_hercules_input_from_dict(config)["plant"]["eta_bus_to_poi"] == 0.97
+
+    config["plant"]["eta_bus_to_poi"] = 1.2
+    with pytest.raises(ValueError, match="eta_bus_to_poi"):
+        load_hercules_input_from_dict(config)
 
 
 # ==================== INTERPOLATION COMPARISON TESTS ====================
@@ -592,7 +624,8 @@ def test_read_hercules_hdf5_external_signals():
             f["data/clock_time"] = np.array([0.0, 1.0, 2.0])
 
             # Add plant data
-            f["data/plant_power"] = np.array([100, 200, 300])
+            f["data/plant_power_bus"] = np.array([100, 200, 300])
+            f["data/plant_power_export"] = np.array([100, 200, 300])
             f["data/plant_locally_generated_power"] = np.array([90, 180, 270])
 
             # Add components group (required)
@@ -748,7 +781,7 @@ def test_setup_logging_overwrites_existing_log_file():
 
         logger = setup_logging(
             logger_name="overwrite_log_test",
-            log_file=log_path.name,
+            log_filename=log_path.name,
             logging_dir=tmpdir,
             console_output=False,
         )
@@ -770,7 +803,7 @@ def test_setup_logging_custom_logger_name():
         try:
             os.chdir(tmpdir)
 
-            logger = setup_logging(logger_name="wind_farm", log_file="log_wind.log")
+            logger = setup_logging(logger_name="wind_farm", log_filename="log_wind.log")
 
             assert logger.name == "wind_farm"
             assert Path("outputs/log_wind.log").exists()
@@ -839,18 +872,18 @@ def test_setup_logging_custom_console_prefix():
 def test_setup_logging_full_path():
     """Test setup_logging with full file path and use_outputs_dir=False."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        log_file = str(Path(tmpdir) / "custom_logs" / "test.log")
-        log_dir = Path(log_file).parent
-        log_fname = Path(log_file).name
-        logger = setup_logging(logger_name="battery", log_file=log_fname, logging_dir=log_dir)
+        log_filename = str(Path(tmpdir) / "custom_logs" / "test.log")
+        log_dir = Path(log_filename).parent
+        log_fname = Path(log_filename).name
+        logger = setup_logging(logger_name="battery", log_filename=log_fname, logging_dir=log_dir)
 
         # Verify log file was created at specified path
-        assert Path(log_file).exists()
-        assert Path(log_file).parent.name == "custom_logs"
+        assert Path(log_filename).exists()
+        assert Path(log_filename).parent.name == "custom_logs"
 
         # Test logging
         logger.info("Battery test message")
-        with open(log_file) as f:
+        with open(log_filename) as f:
             content = f.read()
             assert "Battery test message" in content
 
@@ -916,8 +949,8 @@ def test_setup_logging_multiple_loggers():
         try:
             os.chdir(tmpdir)
 
-            logger1 = setup_logging(logger_name="logger1", log_file="log1.log")
-            logger2 = setup_logging(logger_name="logger2", log_file="log2.log")
+            logger1 = setup_logging(logger_name="logger1", log_filename="log1.log")
+            logger2 = setup_logging(logger_name="logger2", log_filename="log2.log")
 
             # Verify they are different loggers
             assert logger1 is not logger2

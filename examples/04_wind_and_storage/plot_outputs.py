@@ -80,7 +80,7 @@ ax.set_ylabel("Power [kW]")
 # Plot the battery SOC
 ax = axarr[1]
 
-ax.plot(time_hours, df["battery.soc"], label="Battery SOC", color="k")
+ax.plot(time_hours, df["battery.SOC"], label="Battery SOC", color="k")
 ax.set_ylabel("SOC")
 
 # Plot the battery power and power setpoint

@@ -37,7 +37,7 @@ class ControllerToggleTurbine000:
         """
         # Set deratings to full rating
         h_dict["wind_farm"]["turbine_power_setpoints"] = 5000 * np.ones(
-            h_dict["wind_farm"]["n_turbines"]
+            h_dict["wind_farm"]["turbine_count"]
         )
 
         # Lower t0 derating to 500 every other 100 seconds
