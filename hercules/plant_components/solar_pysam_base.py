@@ -137,9 +137,7 @@ class SolarPySAMBase(ComponentBase):
         self.use_resource_solar_dt = h_dict[self.component_name].get("use_resource_solar_dt", True)
 
         # Hercules-grid time steps (used by the upsample helper).
-        self._hercules_time_steps = np.arange(
-            self.starttime, self.endtime, self.dt, dtype=hercules_float_type
-        )
+        self._hercules_time_steps = np.arange(self.starttime, self.endtime, self.dt)
 
         # Decide the compute (PySAM) grid. In the use_resource_solar_dt case runPySAM
         # at the resource dt and upsample its outputs; use resource weather-file

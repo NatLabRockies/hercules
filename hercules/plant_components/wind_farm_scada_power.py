@@ -127,7 +127,7 @@ class WindFarmSCADAPower(ComponentBase):
         self.logger.info("Interpolating SCADA file...")
 
         # Interpolate df_scada on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
         df_scada = interpolate_df(
             df_scada, time_steps_all, interpolation_method="averaged_to_instantaneous"
         )
