@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from hercules.hercules_model import HerculesModel
+from hercules.utilities import read_hercules_hdf5
 
 from tests.test_inputs.h_dict import h_dict_battery, h_dict_solar, h_dict_wind
 
@@ -808,3 +809,36 @@ def test_external_data_log_none_with_empty_list():
         # Remove temporary CSV file
         if os.path.exists(csv_path):
             os.remove(csv_path)
+
+
+def test_output_time_is_exact_for_long_simulations():
+    # Times beyond 2**24 s are not exactly representable in float32
+    class ZeroController:
+        def step(self, h_dict):
+            h_dict["battery"]["power_setpoint"] = 0.0
+            return h_dict
+
+    dt = 1_000_001.0
+    start = pd.Timestamp("2020-01-01T00:00:00Z")
+    with TemporaryDirectory() as tmp:
+        h_dict = {
+            "dt": dt,
+            "starttime_utc": start,
+            "endtime_utc": start + pd.Timedelta(seconds=19 * dt),
+            "output_dir": tmp,
+            "plant": {"interconnect_limit": 1000},
+            "battery": {
+                "component_type": "BatteryReservoir",
+                "energy_capacity": 100.0,
+                "power_charge_max": 10.0,
+                "power_discharge_max": 10.0,
+                "initial_conditions": {"SOC": 0.5},
+            },
+        }
+        hmodel = HerculesModel(h_dict)
+        hmodel.assign_controller(ZeroController())
+        hmodel.run()
+        df = read_hercules_hdf5(hmodel.output_filename)
+
+    assert (df["time"] == df["step"] * dt).all()
+    assert df["time_utc"].iloc[17] == start + pd.Timedelta(seconds=17 * dt)

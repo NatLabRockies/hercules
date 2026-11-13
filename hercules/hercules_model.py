@@ -250,7 +250,6 @@ class HerculesModel:
             self.starttime,
             self.endtime + (2 * self.dt),
             self.dt,
-            dtype=hercules_float_type,
         )
 
         # Interpolate using the utility function
@@ -324,7 +323,7 @@ class HerculesModel:
         self.hdf5_datasets["time"] = data_group.create_dataset(
             "time",
             shape=(total_rows,),
-            dtype=hercules_float_type,
+            dtype=np.float64,
             **compression_params,
         )
 
@@ -793,6 +792,8 @@ class HerculesModel:
             if dataset_name == "step":
                 # Integer buffer for step
                 self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.int32)
+            elif dataset_name == "time":
+                self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.float64)
             else:
                 # Float buffer for everything else
                 self.data_buffers[dataset_name] = np.zeros(

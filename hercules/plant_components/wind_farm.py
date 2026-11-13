@@ -188,7 +188,7 @@ class WindFarm(ComponentBase):
         self.logger.info("Interpolating wind input file...")
 
         # Interpolate df_wi on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt)
         df_wi = interpolate_df(
             df_wi, time_steps_all, interpolation_method="averaged_to_instantaneous"
         )
