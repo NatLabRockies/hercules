@@ -42,7 +42,8 @@ dependencies = [
 "openmeteo_requests",
 "requests_cache",
 "retry_requests",
-"electrolyzer"
+"electrolyzer",
+"plotly"
 ]
 
 [project.optional-dependencies]
@@ -58,6 +59,9 @@ develop = [
 
 [tool.setuptools.packages.find]
 include = ["hercules*"]
+
+[tool.setuptools.package-data]
+"hercules.analysis.regions" = ["*.yaml", "*_data/*"]
 
 [coverage.run]
 # Coverage.py configuration file

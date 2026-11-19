@@ -1,0 +1,3 @@
+# MISO region data for hercules.analysis (zones, seasons, UCAP fractions, PRA prices).
+# Populated in Step 5 of the analysis merge; read with hercules.analysis.regions.load_region.
+name: MISO

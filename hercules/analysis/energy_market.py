@@ -1,1 +1,5 @@
-"""Functions for analyzing and post-processing energy market data in Hercules."""
+"""Energy market revenue: real-time, day-ahead, two-settlement and TBX benchmarks.
+
+Revenue uses POI-limited power. Offers and cleared amounts are read from logged columns,
+never reconstructed.
+"""
