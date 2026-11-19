@@ -1,1 +1,1 @@
-"""Functions for post-processing storage components."""
+"""Functions for post-processing (physical) of storage components."""
