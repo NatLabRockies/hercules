@@ -62,6 +62,23 @@ def test_POI_limit_curtailment_order(tmp_path):
     np.testing.assert_allclose(ho.df["analysis.battery.power_POI_limited"], [10.0])
 
 
+def test_POI_limit_uses_curtailment_order_logged_by_Hycon(tmp_path):
+    # Hycon logs solar as rank 0 (curtailed first), so solar takes the whole 20 kW cut.
+    ho = build_hercules_output(
+        tmp_path,
+        {
+            "solar.power": [90.0],
+            "battery.power": [30.0],
+            "controller.supervisor.curtailment_rank_solar": [0],
+            "controller.supervisor.curtailment_rank_battery": [1],
+        },
+        {"plant": {"interconnect_limit": 100.0}, "solar": SOLAR, "battery": BATTERY},
+    )
+    utilities.add_POI_limited_columns(ho, warn_fraction=1.0)
+    np.testing.assert_allclose(ho.df["analysis.solar.power_POI_limited"], [70.0])
+    np.testing.assert_allclose(ho.df["analysis.battery.power_POI_limited"], [30.0])
+
+
 def test_POI_limit_charging_storage_unchanged(tmp_path):
     # A charging battery is not cut; the 10 kW excess comes from solar.
     ho = build_hercules_output(

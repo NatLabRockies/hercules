@@ -73,6 +73,25 @@ def _annualize(ho: HerculesOutput, total: float, hours_per_year: float) -> float
     return total * hours_per_year / compute_simulation_hours(ho)
 
 
+def _logged_curtailment_order(ho: HerculesOutput, components: list[str]) -> list[str]:
+    """Return components sorted by a logged ``controller.*.curtailment_rank_<component>``.
+
+    Hycon's ``HybridSupervisoryControllerGeneric`` logs these ranks (0 is curtailed first).
+    Components without a logged rank are omitted.
+    """
+    ranks = {}
+    for c in components:
+        suffix = f".curtailment_rank_{c}"
+        columns = [
+            col for col in ho.df.columns if col.startswith("controller.") and col.endswith(suffix)
+        ]
+        if columns:
+            values = ho.df[columns[0]].dropna()
+            if not values.empty:
+                ranks[c] = values.iloc[0]
+    return sorted(ranks, key=ranks.get)
+
+
 def add_POI_limited_columns(
     ho: HerculesOutput,
     curtailment_order: list[str] | None = None,
@@ -83,10 +102,10 @@ def add_POI_limited_columns(
     Hercules lets ``plant.power_export`` exceed ``plant.interconnect_limit``; analysis
     assumes delivered power never does. The excess at the POI is converted to the bus with
     ``plant.efficiency_bus_to_poi`` and removed only from components with positive power
-    (generators and discharging storage). Components in ``curtailment_order`` are cut first,
-    in order (first entry cut first, as in Hycon's ``HybridSupervisoryControllerGeneric``).
-    Any remaining cut is shared in proportion to each component's remaining positive power.
-    Charging storage and loads are unchanged.
+    (generators and discharging storage). Components in the curtailment order are cut
+    first, in order (first entry cut first, as in Hycon's
+    ``HybridSupervisoryControllerGeneric``). Any remaining cut is shared in proportion to
+    each component's remaining positive power. Charging storage and loads are unchanged.
 
     Adds (in kW) ``analysis.plant.power_export_POI_limited``,
     ``analysis.plant.power_export_POI_excess`` and ``analysis.<component>.power_POI_limited``
@@ -95,7 +114,9 @@ def add_POI_limited_columns(
     Args:
         ho (HerculesOutput): Hercules output; every component must have a logged ``power``.
         curtailment_order (list[str] | None): Component names in curtailment order.
-            Defaults to None (proportional only).
+            Defaults to None: the order logged by Hycon
+            (``controller.*.curtailment_rank_<component>``) if present, else proportional
+            only.
         warn_fraction (float): Warn when the energy removed exceeds this fraction of the
             exported energy. Defaults to 1e-3.
 
@@ -113,6 +134,8 @@ def add_POI_limited_columns(
     components = _component_names(ho)
 
     order = list(curtailment_order or [])
+    if curtailment_order is None:
+        order = _logged_curtailment_order(ho, components)
     unknown = sorted(set(order) - set(components))
     if unknown:
         raise ValueError(f"curtailment_order has unknown components {unknown}.")
