@@ -109,7 +109,7 @@ Hercules supports loading external time series data from CSV files (e.g., electr
 external_data:
   external_data_filename: path/to/data.csv
   log_channels:
-    - lmp_rt
+    - LMP_RT
     - wind_forecast
 ```
 
@@ -127,11 +127,11 @@ The pre-v3 top-level `external_data_file` key is no longer accepted.
 
 The CSV file must contain:
 - A `time_utc` column with UTC timestamps in ISO 8601 format. Unlike wind/solar/SCADA/playback inputs (which are treated as start-of-period period averages), external data values are treated as **instantaneous** samples at their timestamps and are upsampled to the simulation time grid via `"instantaneous_to_instantaneous"` (linear interpolation). If you need zero-order-hold (piecewise-constant) behaviour -- e.g. for LMP prices -- pre-process the file to include an extra row at the end of each interval carrying the previous value; see [Achieving zero-order-hold (ZOH) behaviour](timing.md#achieving-zero-order-hold-zoh-behaviour) and the [`generate_locational_marginal_price_dataframe_from_gridstatus`](../hercules/grid/grid_utilities.py) helper.
-- One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `lmp_rt`, `lmp_da`, `wind_forecast`, etc.
+- One or more data columns with external signals. Note that the names of the other columns are arbitrary; any column names will be carried forward and interpolated. However, the values must be floats. Additionally, some controllers and plotting utilities that work on external signals may require specific column names like `LMP_RT`, `LMP_DA`, `wind_forecast`, etc.
 
 Example `lmp_data.csv`:
 ```csv
-time_utc,lmp_rt,lmp_da,wind_forecast
+time_utc,LMP_RT,LMP_DA,wind_forecast
 2024-06-24T16:59:08Z,25.5,20.0,12.3
 2024-06-24T17:04:08Z,26.1,20.0,12.5
 2024-06-24T17:09:08Z,27.3,20.0,12.8
@@ -148,8 +148,8 @@ All external data channels are accessible in the controller through `h_dict["ext
 class MyController:
     def step(self, h_dict):
         # Access external signals (all channels available)
-        lmp_rt = h_dict["external_signals"]["lmp_rt"]
-        lmp_da = h_dict["external_signals"]["lmp_da"]
+        lmp_rt = h_dict["external_signals"]["LMP_RT"]
+        lmp_da = h_dict["external_signals"]["LMP_DA"]
         wind_forecast = h_dict["external_signals"]["wind_forecast"]
 
         # Use signals for control logic
@@ -163,7 +163,7 @@ class MyController:
         return h_dict
 ```
 
-Even if `log_channels` only specifies `["lmp_rt"]`, the controller can still access all channels. The `log_channels` setting only controls what gets written to the HDF5 output file.
+Even if `log_channels` only specifies `["LMP_RT"]`, the controller can still access all channels. The `log_channels` setting only controls what gets written to the HDF5 output file.
 
 ### Selective Logging Examples
 
@@ -179,9 +179,9 @@ external_data:
 external_data:
   external_data_filename: data.csv
   log_channels:
-    - lmp_rt
+    - LMP_RT
     - wind_forecast
-  # Only logs lmp_rt and wind_forecast (but all channels available to controller)
+  # Only logs LMP_RT and wind_forecast (but all channels available to controller)
 ```
 
 **Example 3: Log no channels**
