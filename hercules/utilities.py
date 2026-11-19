@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import warnings
 from pathlib import Path
 
 import h5py
@@ -14,6 +13,90 @@ from scipy.interpolate import interp1d
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
 hercules_complex_type = np.csingle
+
+# Names changed by the v3 nomenclature refactor, see docs/nomenclature.md
+RENAMED_KEYS = {
+    "output_file": "output_filename",
+    "log_file": "log_filename",
+    "log_file_name": "log_filename",
+    "external_data_file": "external_data_filename",
+    "floris_input_file": "floris_input_filename",
+    "turbine_file_name": "turbine_filename",
+    "cq_table_file": "cq_table_filename",
+    "floris_update_time_s": "floris_update_time",
+    "capacity": "capacity_rated",
+    "rated_capacity": "capacity_rated",
+    "rated_turbine_power": "turbine_power_rated",
+    "rated_rotor_speed": "rotor_speed_rated",
+    "rated_torque": "torque_rated",
+    "initial_rpm": "rotor_speed_initial_rpm",
+    "filterfreq_rotor_speed": "rotor_speed_filter_frequency",
+    "gen_efficiency": "generator_efficiency",
+    "max_pitch_rate": "pitch_rate_max",
+    "max_torque_rate": "torque_rate_max",
+    "ac_power_available": "power_hypothetical",
+    "dc_power_available": "DC_power_hypothetical",
+    "power_hyp": "power_hypothetical",
+    "DC_power_hyp": "DC_power_hypothetical",
+    "turbine_powers_hyp": "turbine_powers_hypothetical",
+    "dni": "DNI",
+    "poa": "POA",
+    "aoi": "AOI",
+    "charge_rate": "power_charge_max",
+    "discharge_rate": "power_discharge_max",
+    "max_SOC": "SOC_max",
+    "min_SOC": "SOC_min",
+    "soc": "SOC",
+    "self_discharge_time_constant": "time_constant_self_discharge",
+    "eta_bus_to_poi": "efficiency_bus_to_poi",
+    "reject": "power_reject",
+    "electrolyzer_signal": "power_setpoint (negative for consumption)",
+    "power_input_kw": "power_allocated",
+    "H2_mfr": "H2_MFR",
+    "stacks_on": "stack_count_on",
+    "min_stable_load_fraction": "load_stable_min_fraction",
+    "ramp_rate_fraction": "ramp_rate_fraction_per_min",
+    "run_up_rate_fraction": "run_up_rate_fraction_per_min",
+    "hot_startup_time": "startup_time_hot",
+    "warm_startup_time": "startup_time_warm",
+    "cold_startup_time": "startup_time_cold",
+    "min_up_time": "up_time_min",
+    "min_down_time": "down_time_min",
+    "hot_to_warm_time": "cooldown_time_warm",
+    "hot_to_cold_time": "cooldown_time_cold",
+    "startup_fuel_fraction": "fuel_startup_fraction",
+    "shutdown_fuel_fraction": "fuel_shutdown_fraction",
+    "hhv": "HHV",
+    "n_total_starts": "start_count",
+    "n_hot_starts": "start_count_hot",
+    "n_warm_starts": "start_count_warm",
+    "n_cold_starts": "start_count_cold",
+    "power_available_kw": "(removed, unused)",
+}
+
+
+def check_renamed_keys(section, where):
+    """Raise an error if a dictionary uses names changed by the v3 nomenclature refactor.
+
+    Checks the keys of ``section``, its ``initial_conditions`` keys and its
+    ``log_channels`` entries.
+
+    Args:
+        section (dict): Input dictionary section to check.
+        where (str): Description of the section, used in the error message.
+
+    Raises:
+        ValueError: If any old names are found.
+    """
+    names = list(section)
+    names += list(section.get("initial_conditions") or {})
+    names += [re.sub(r"\.\d{3}$", "", c) for c in section.get("log_channels") or []]
+    old = sorted({n for n in names if n in RENAMED_KEYS})
+    if old:
+        renames = ", ".join(f"'{n}' -> '{RENAMED_KEYS[n]}'" for n in old)
+        raise ValueError(
+            f"{where} uses names changed in Hercules v3 (see docs/nomenclature.md): {renames}"
+        )
 
 
 class Loader(yaml.SafeLoader):
@@ -68,41 +151,61 @@ def load_yaml(filename, loader=Loader):
         return yaml.load(fid, loader)
 
 
-def make_unique_folder_name(parent_folder: str | Path, proposed_dirname: str):
-    """Generate a folder that does not already exist in a user-defined parent folder.
+def make_unique_name(parent_folder: str | Path, proposed_name: str, input_type: str):
+    """Generate a folder or file name that does not already exist in a user-defined parent folder.
 
     Args:
         parent_folder (str | Path): directory that a folder is expected to be created in.
-        proposed_dirname (str): folder name to check for existence and
-            to use as the base folder description of a new an unique folder name.
+        proposed_name (str): folder or file name to check for existence and
+            to use as the base folder or file description of a new an unique folder or file name.
+        input_type (str): Type of input requesting the unique name ["folder" or "file"]
 
     Returns:
-        str: unique direcoty that does not yet exist in parent_folder.
+        str: unique directory or file name that does not yet exist in parent_folder.
     """
 
-    # if folder(s) exist with the same base name, make a new unique directory name
+    # if folder(s) or file(s) exist with the same base name, make a new unique directory name
     # file_base = proposed_fname.split(fext)[0]
-    existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_dirname}*") if f.is_dir()]
+
+    if input_type == "folder":
+        existing_files = [f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_dir()]
+    elif input_type == "file":
+        # Remove only the .h5 suffix so other periods in the name are preserved.
+        if proposed_name.endswith(".h5"):
+            proposed_name = proposed_name[:-3]
+
+        existing_files = [
+            f for f in Path(parent_folder).glob(f"**/{proposed_name}*") if f.is_file()
+        ]
+    else:
+        raise ValueError(f"Invalid input_type: {input_type}. Must be 'folder' or 'file'.")
+
     if len(existing_files) == 0:
-        return Path(parent_folder) / proposed_dirname
+        return Path(parent_folder) / proposed_name
 
     # get past numbers that were used to make unique folders by matching
     # folder names against the file base name followed by a number
     past_numbers = [
-        int(re.findall(f"{proposed_dirname}[0-9]+", str(fname))[0].split(proposed_dirname)[-1])
+        int(re.findall(f"{proposed_name}[0-9]+", str(fname))[0].split(proposed_name)[-1])
         for fname in existing_files
-        if len(re.findall(f"{proposed_dirname}[0-9]+", str(fname))) > 0
+        if len(re.findall(f"{proposed_name}[0-9]+", str(fname))) > 0
     ]
 
     if len(past_numbers) > 0:
         # if multiple folders have the same basename followed by a number,
         # take the maximum unique number and add one
         unique_number = int(max(past_numbers) + 1)
-        return Path(parent_folder) / f"{proposed_dirname}{unique_number}"
+        if input_type == "file":
+            proposed_name = f"{proposed_name}{unique_number}"
+            return Path(parent_folder) / proposed_name
+        return Path(parent_folder) / f"{proposed_name}{unique_number}"
     else:
         # if no folders have the same basename followed by a number,
         # but do have the same basename, then add a zero to the folder basename
-        return Path(parent_folder) / f"{proposed_dirname}0"
+        if input_type == "file":
+            proposed_name = f"{proposed_name}0"
+            return Path(parent_folder) / proposed_name
+        return Path(parent_folder) / f"{proposed_name}0"
 
 
 def _validate_utc_datetime_string(dt_str, field_name):
@@ -259,20 +362,31 @@ def load_hercules_input(filename):
         "controller",
         "verbose",
         "output_dir",
-        "output_file",
-        "overwrite_outputs",
-        "log_every_n",
-        "external_data_file",
+        "output_filename",
+        "auto_increment_filenames",
         "external_data",
         "output_use_compression",
         "output_buffer_size",
-        "power_setpoint_schedule",
     ]
 
     # Discover component entries: any top-level dict entry containing "component_type"
     component_names = [
         key for key, val in h_dict.items() if isinstance(val, dict) and "component_type" in val
     ]
+
+    # Reject names changed by the v3 nomenclature refactor
+    check_renamed_keys({k: v for k, v in h_dict.items() if k != "log_channels"}, filename)
+    for key in ["plant", "logging", "external_data"]:
+        if isinstance(h_dict.get(key), dict):
+            check_renamed_keys(
+                {k: v for k, v in h_dict[key].items() if k != "log_channels"},
+                f"{key} in input file {filename}",
+            )
+    for key in component_names:
+        check_renamed_keys(h_dict[key], f"{key} in input file {filename}")
+        for sub_key, sub_val in h_dict[key].items():
+            if isinstance(sub_val, dict) and "component_type" in sub_val:
+                check_renamed_keys(sub_val, f"{key}.{sub_key} in input file {filename}")
 
     # Validate required keys
     for key in required_keys:
@@ -309,6 +423,13 @@ def load_hercules_input(filename):
     if not isinstance(h_dict["plant"]["interconnect_limit"], (float, int)):
         raise ValueError(f"Interconnect limit must be a float in input file {filename}")
 
+    if "efficiency_bus_to_poi" in h_dict["plant"]:
+        efficiency = h_dict["plant"]["efficiency_bus_to_poi"]
+        if not isinstance(efficiency, (float, int)) or not 0 < efficiency <= 1:
+            raise ValueError(
+                f"plant.efficiency_bus_to_poi must be a number in (0, 1] in input file {filename}"
+            )
+
     # Pass through optional power setpoint schedule
     if "power_setpoint_schedule" in h_dict["plant"]:
         schedule = h_dict["plant"]["power_setpoint_schedule"]
@@ -340,6 +461,12 @@ def load_hercules_input(filename):
                 f"must be floats, ints, lists, or tuples in input file {filename}"
             )
 
+    if "log_every_n" in h_dict:
+        raise ValueError(
+            f"log_every_n was removed in Hercules v3 (found in input file {filename}). "
+            "Every simulation step is now logged; handle any downsampling in postprocessing."
+        )
+
     # Validate all keys are valid: required, known other keys, or a discovered component entry
     for key in h_dict:
         if key not in required_keys + component_names + other_keys:
@@ -364,10 +491,11 @@ def load_hercules_input(filename):
     elif not isinstance(h_dict["verbose"], bool):
         raise ValueError(f"Verbose must be a boolean in input file {filename}")
 
-    # Validate log_every_n if present
-    if "log_every_n" in h_dict:
-        if not isinstance(h_dict["log_every_n"], int) or h_dict["log_every_n"] <= 0:
-            raise ValueError(f"log_every_n must be a positive integer in input file {filename}")
+    # Set auto_increment_filenames default and validate
+    if "auto_increment_filenames" not in h_dict:
+        h_dict["auto_increment_filenames"] = False
+    elif not isinstance(h_dict["auto_increment_filenames"], bool):
+        raise ValueError(f"auto_increment_filenames must be a boolean in input file {filename}")
 
     # Validate no components have verbose key
     for key in component_names:
@@ -384,42 +512,17 @@ def load_hercules_input(filename):
                 "(Did you forget to add a new component_type to the COMPONENT_REGISTRY?)"
             )
 
-    # Handle external_data structure normalization
-
-    # First ensure that not both external_data_file and external_data appear
-    if "external_data_file" in h_dict and "external_data" in h_dict:
-        raise ValueError(
-            f"Cannot specify both external_data_file and external_data in input file {filename}. "
-            "Preferred is to specify external_data_file within external_data "
-            "and specify log_channels within external_data. "
-            "The old format is still supported for backward compatibility "
-            "but will show a deprecation warning."
-        )
-
-    # If old-style external_data_file is used at top level, convert to new structure with warning
-    if "external_data_file" in h_dict:
-        warnings.warn(
-            "Specifying 'external_data_file' at the top level is deprecated. "
-            "Please use 'external_data: {external_data_file: ...}' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        h_dict["external_data"] = {
-            "external_data_file": h_dict.pop("external_data_file"),
-            "log_channels": None,  # None means log all
-        }
-
     # Validate external_data structure if present
     if "external_data" in h_dict:
         if not isinstance(h_dict["external_data"], dict):
             raise ValueError(f"external_data must be a dictionary in input file {filename}")
 
-        # If external_data_file is not specified, treat external_data as blank (remove it)
-        if "external_data_file" not in h_dict["external_data"]:
+        # If external_data_filename is not specified, treat external_data as blank (remove it)
+        if "external_data_filename" not in h_dict["external_data"]:
             h_dict.pop("external_data")
         else:
             # Validate and set default for log_channels
-            # (only if external_data_file is present)
+            # (only if external_data_filename is present)
             if "log_channels" in h_dict["external_data"]:
                 log_channels = h_dict["external_data"]["log_channels"]
                 # Allow None (from backward compatibility conversion) or list
@@ -439,7 +542,7 @@ def load_hercules_input(filename):
 
 def setup_logging(
     logger_name="hercules",
-    log_file="log_hercules.log",
+    log_filename="log_hercules.log",
     console_output=True,
     console_prefix=None,
     log_level=logging.INFO,
@@ -454,7 +557,7 @@ def setup_logging(
 
     Args:
         logger_name (str, optional): Name for the logger instance. Defaults to "hercules".
-        log_file (str, optional): Log file name or full path. Defaults to "log_hercules.log".
+        log_filename (str, optional): Log file name or full path. Defaults to "log_hercules.log".
         console_output (bool, optional): Enable console output. Defaults to True.
         console_prefix (str, optional): Prefix for console messages. If None, uses
             logger_name in uppercase. Defaults to None.
@@ -468,17 +571,17 @@ def setup_logging(
 
     """
 
-    if Path(log_file).suffix != ".log":
-        log_file += ".log"
+    if Path(log_filename).suffix != ".log":
+        log_filename += ".log"
 
     # Determine the log file path
-    if os.sep not in log_file and "/" not in log_file:
+    if os.sep not in log_filename and "/" not in log_filename:
         # Simple filename - use outputs directory
         os.makedirs(logging_dir, exist_ok=True)
-        log_file_path = os.path.join(logging_dir, log_file)
+        log_file_path = os.path.join(logging_dir, log_filename)
     else:
         # Partial path, use as subdirectories within logging_dir
-        log_file_parts = log_file.split("/")
+        log_file_parts = log_filename.split("/")
         log_fpath_parts = [logging_dir] + log_file_parts
         log_file_path = Path(*log_fpath_parts)
         log_dir = Path(log_file_path).parent.absolute()
@@ -498,7 +601,7 @@ def setup_logging(
         logger.setLevel(log_level)
 
     # Add file handler
-    file_handler = logging.FileHandler(log_file_path)
+    file_handler = logging.FileHandler(log_file_path, mode="w")
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(file_handler)
 
@@ -773,7 +876,13 @@ def read_hercules_hdf5(filename):
         data["time_utc"] = starttime_utc + time
 
         # Read plant data
-        data["plant.power"] = f["data/plant_power"][:]
+        if "plant_power_bus" not in f["data"]:
+            raise ValueError(
+                f"{filename} was written by Hercules before v3 (no plant_power_bus dataset); "
+                "rerun the simulation with the current version."
+            )
+        data["plant.power_bus"] = f["data/plant_power_bus"][:]
+        data["plant.power_export"] = f["data/plant_power_export"][:]
         data["plant.locally_generated_power"] = f["data/plant_locally_generated_power"][:]
 
         # Read component data

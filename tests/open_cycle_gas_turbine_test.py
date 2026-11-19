@@ -21,75 +21,75 @@ def test_default_inputs():
     """Test that OpenCycleGasTurbine uses default inputs when not provided."""
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
 
-    # Test that the ramp_rate_fraction is 0.5 (from test fixture)
+    # Test that the ramp_rate_fraction_per_min is 0.5 (from test fixture)
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.ramp_rate_fraction == 0.5
+    assert ocgt.ramp_rate_fraction_per_min == 0.5
 
-    # Test that the run_up_rate_fraction is 0.2 (from test fixture)
-    assert ocgt.run_up_rate_fraction == 0.2
+    # Test that the run_up_rate_fraction_per_min is 0.2 (from test fixture)
+    assert ocgt.run_up_rate_fraction_per_min == 0.2
 
-    # Test that if the run_up_rate_fraction is not provided,
-    # it defaults to the ramp_rate_fraction
+    # Test that if the run_up_rate_fraction_per_min is not provided,
+    # it defaults to the ramp_rate_fraction_per_min
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction"]
+    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction_per_min"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.run_up_rate_fraction == ocgt.ramp_rate_fraction
+    assert ocgt.run_up_rate_fraction_per_min == ocgt.ramp_rate_fraction_per_min
 
-    # Now test that the default value of the ramp_rate_fraction is
-    # applied to both the ramp_rate_fraction and the run_up_rate_fraction
+    # Now test that the default value of the ramp_rate_fraction_per_min is
+    # applied to both the ramp_rate_fraction_per_min and the run_up_rate_fraction_per_min
     # if they are both not provided
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["ramp_rate_fraction"]
-    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction"]
+    del h_dict["open_cycle_gas_turbine"]["ramp_rate_fraction_per_min"]
+    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction_per_min"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.ramp_rate_fraction == 0.1
-    assert ocgt.run_up_rate_fraction == 0.1
+    assert ocgt.ramp_rate_fraction_per_min == 0.1
+    assert ocgt.run_up_rate_fraction_per_min == 0.1
 
     # Test the remaining default values
-    # Delete startup times first, since changing min_stable_load_fraction and
+    # Delete startup times first, since changing load_stable_min_fraction and
     # ramp rates affects ramp_time validation against startup times
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["ramp_rate_fraction"]
-    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction"]
-    del h_dict["open_cycle_gas_turbine"]["cold_startup_time"]
-    del h_dict["open_cycle_gas_turbine"]["warm_startup_time"]
-    del h_dict["open_cycle_gas_turbine"]["hot_startup_time"]
-    del h_dict["open_cycle_gas_turbine"]["min_stable_load_fraction"]
+    del h_dict["open_cycle_gas_turbine"]["ramp_rate_fraction_per_min"]
+    del h_dict["open_cycle_gas_turbine"]["run_up_rate_fraction_per_min"]
+    del h_dict["open_cycle_gas_turbine"]["startup_time_cold"]
+    del h_dict["open_cycle_gas_turbine"]["startup_time_warm"]
+    del h_dict["open_cycle_gas_turbine"]["startup_time_hot"]
+    del h_dict["open_cycle_gas_turbine"]["load_stable_min_fraction"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.min_stable_load_fraction == 0.40
-    assert ocgt.hot_startup_time == 7 * 60.0
-    assert ocgt.warm_startup_time == 8 * 60.0
-    assert ocgt.cold_startup_time == 8 * 60.0
+    assert ocgt.load_stable_min_fraction == 0.40
+    assert ocgt.startup_time_hot == 7 * 60.0
+    assert ocgt.startup_time_warm == 8 * 60.0
+    assert ocgt.startup_time_cold == 8 * 60.0
 
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["min_up_time"]
+    del h_dict["open_cycle_gas_turbine"]["up_time_min"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.min_up_time == 30 * 60.0
+    assert ocgt.up_time_min == 30 * 60.0
 
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["min_down_time"]
+    del h_dict["open_cycle_gas_turbine"]["down_time_min"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.min_down_time == 60 * 60.0
+    assert ocgt.down_time_min == 60 * 60.0
 
     # Test cooldown threshold defaults
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["hot_to_warm_time"]
+    del h_dict["open_cycle_gas_turbine"]["cooldown_time_warm"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.hot_to_warm_time == 28800.0  # 8 hours
+    assert ocgt.cooldown_time_warm == 28800.0  # 8 hours
 
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["hot_to_cold_time"]
+    del h_dict["open_cycle_gas_turbine"]["cooldown_time_cold"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
-    assert ocgt.hot_to_cold_time == 172800.0  # 48 hours
+    assert ocgt.cooldown_time_cold == 172800.0  # 48 hours
 
 
 def test_default_hhv():
     """Test that OpenCycleGasTurbine provides default HHV for natural gas from [6]."""
     h_dict = copy.deepcopy(h_dict_open_cycle_gas_turbine)
-    del h_dict["open_cycle_gas_turbine"]["hhv"]
+    del h_dict["open_cycle_gas_turbine"]["HHV"]
     ocgt = OpenCycleGasTurbine(h_dict, "open_cycle_gas_turbine")
     # Default HHV for natural gas is 39.05 MJ/m³ = 39,050,000 J/m³ from [6]
-    assert ocgt.hhv == 39050000
+    assert ocgt.HHV == 39050000
 
 
 def test_default_fuel_density():

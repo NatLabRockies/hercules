@@ -36,22 +36,22 @@ class LinearGenerator(ThermalComponentBase):
     Class Attributes:
         DEFAULTS (dict): Default parameter values applied when a key is absent from
             the input dictionary. Tests should reference this dict directly rather
-            than hardcoding expected values. Note that ``run_up_rate_fraction`` is
+            than hardcoding expected values. Note that ``run_up_rate_fraction_per_min`` is
             not included here because its default is derived from
-            ``ramp_rate_fraction`` at runtime.
+            ``ramp_rate_fraction_per_min`` at runtime.
     """
 
     DEFAULTS = {
-        "min_stable_load_fraction": 0.0,
-        "ramp_rate_fraction": 1.2,  # fraction of rated capacity per minute [2]
-        "hot_startup_time": 90.0,  # s (1.5 minutes)
-        "warm_startup_time": 450.0,  # s (7.5 minutes)
-        "cold_startup_time": 900.0,  # s (15 minutes)
-        "min_up_time": 300.0,  # s (5 minutes)
-        "min_down_time": 300.0,  # s (5 minutes)
-        "hot_to_warm_time": 2700.0,  # s (45 minutes)
-        "hot_to_cold_time": 10800.0,  # s (3 hours)
-        "hhv": 39050000,  # J/m³ (39.05 MJ/m³) for natural gas [3]
+        "load_stable_min_fraction": 0.0,
+        "ramp_rate_fraction_per_min": 1.2,  # fraction of rated capacity per minute [2]
+        "startup_time_hot": 90.0,  # s (1.5 minutes)
+        "startup_time_warm": 450.0,  # s (7.5 minutes)
+        "startup_time_cold": 900.0,  # s (15 minutes)
+        "up_time_min": 300.0,  # s (5 minutes)
+        "down_time_min": 300.0,  # s (5 minutes)
+        "cooldown_time_warm": 2700.0,  # s (45 minutes)
+        "cooldown_time_cold": 10800.0,  # s (3 hours)
+        "HHV": 39050000,  # J/m³ (39.05 MJ/m³) for natural gas [3]
         "fuel_density": 0.768,  # kg/m³ for natural gas [3]
         "efficiency_table": {  # HHV net plant efficiency from [1]
             # Mainspring reports a single peak efficiency value (41.44% HHV) valid across
@@ -67,26 +67,27 @@ class LinearGenerator(ThermalComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
-                - rated_capacity: Maximum power output in kW
-                - min_stable_load_fraction: Optional, minimum operating point as fraction (0-1).
+                - capacity_rated: Maximum power output in kW
+                - load_stable_min_fraction: Optional, minimum operating point as fraction (0-1).
                     Default: 0.0
-                - ramp_rate_fraction: Optional, maximum rate of power increase/decrease
+                - ramp_rate_fraction_per_min: Optional, maximum rate of power increase/decrease
                     as fraction of rated capacity per minute. Default: 1.2
-                - run_up_rate_fraction: Optional, maximum rate of power increase during startup
-                    as fraction of rated capacity per minute. Default: ramp_rate_fraction
-                - hot_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - run_up_rate_fraction_per_min: Optional, maximum rate of power increase during
+                    startup as fraction of rated capacity per minute.
+                    Default: ramp_rate_fraction_per_min
+                - startup_time_hot: Optional, time to reach load_stable_min_fraction from off
                     in s. Default: 90.0 s (1.5 minutes)
-                - warm_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - startup_time_warm: Optional, time to reach load_stable_min_fraction from off
                     in s. Default: 450.0 s (7.5 minutes)
-                - cold_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - startup_time_cold: Optional, time to reach load_stable_min_fraction from off
                     in s. Default: 900.0 s (15 minutes)
-                - min_up_time: Optional, minimum time unit must remain on in s.
+                - up_time_min: Optional, minimum time unit must remain on in s.
                     Default: 300.0 s (5 minutes)
-                - min_down_time: Optional, minimum time unit must remain off in s.
+                - down_time_min: Optional, minimum time unit must remain off in s.
                     Default: 300.0 s (5 minutes)
                 - initial_conditions: Dictionary with initial power (state is
                     derived automatically: power > 0 means ON, power == 0 means OFF)
-                - hhv: Optional, higher heating value of natural gas in J/m³.
+                - HHV: Optional, higher heating value of natural gas in J/m³.
                     Default: 39050000 J/m³ (39.05 MJ/m³) [3]
                 - fuel_density: Optional, fuel density in kg/m³.
                     Default: 0.768 kg/m³ [3]
@@ -107,10 +108,10 @@ class LinearGenerator(ThermalComponentBase):
             if key not in h_dict[component_name]:
                 h_dict[component_name][key] = value
 
-        # run_up_rate_fraction is not in DEFAULTS because it derives from ramp_rate_fraction
-        if "run_up_rate_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["run_up_rate_fraction"] = h_dict[component_name][
-                "ramp_rate_fraction"
+        # run_up_rate_fraction_per_min is not in DEFAULTS because it derives from the ramp rate
+        if "run_up_rate_fraction_per_min" not in h_dict[component_name]:
+            h_dict[component_name]["run_up_rate_fraction_per_min"] = h_dict[component_name][
+                "ramp_rate_fraction_per_min"
             ]
 
         # Call the base class init (sets self.component_name and self.component_type)

@@ -10,9 +10,6 @@ The following thermal power plants are currently available for simulation:
 """
 
 from hercules.hercules_model import HerculesModel
-from hercules.utilities_examples import prepare_output_directory
-
-prepare_output_directory()
 
 # Initialize the Hercules model
 # Select which thermal plant you want to simulate by changing the yaml file
@@ -33,7 +30,7 @@ class ControllerPassthrough:
 
         """
         self.component_name = h_dict["component_names"][0]
-        self.rated_capacity = h_dict[self.component_name]["rated_capacity"]
+        self.capacity_rated = h_dict[self.component_name]["capacity_rated"]
 
     def step(self, h_dict):
         """Execute one control step.
@@ -53,7 +50,7 @@ class ControllerPassthrough:
         )
         power_setpoint = (
             h_dict["plant"]["power_setpoint_schedule"]["power_setpoint_fraction"][time_index]
-            * self.rated_capacity
+            * self.capacity_rated
         )
 
         h_dict[self.component_name]["power_setpoint"] = power_setpoint

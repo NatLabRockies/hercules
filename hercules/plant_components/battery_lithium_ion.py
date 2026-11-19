@@ -88,20 +88,22 @@ class BatteryLithiumIon(ComponentBase):
     """
 
     component_category = "storage"
+    consumer_sign_outputs = ("power", "DC_power", "power_reject")
 
     def __init__(self, h_dict, component_name):
         """Initialize the BatteryLithiumIon class.
 
         This model represents a detailed lithium-ion battery with diffusion transients
-        and losses modeled as an equivalent circuit model.
+        and losses modeled as an equivalent circuit model. Within this class charging
+        is positive.
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
                 - energy_capacity: Battery energy capacity in kWh
-                - charge_rate: Maximum charge rate in kW
-                - discharge_rate: Maximum discharge rate in kW
-                - max_SOC: Maximum state of charge (0-1)
-                - min_SOC: Minimum state of charge (0-1)
+                - power_charge_max: Maximum charge power in kW
+                - power_discharge_max: Maximum discharge power in kW
+                - SOC_max: Maximum state of charge (0-1)
+                - SOC_min: Minimum state of charge (0-1)
                 - initial_conditions: Dictionary with initial SOC
                 - allow_grid_power_consumption: Optional, defaults to False
             component_name (str): Unique name for this instance (the YAML top-level key).
@@ -114,13 +116,13 @@ class BatteryLithiumIon(ComponentBase):
         self.C_cell = 15.756  # [Ah] mean value from [1] Table 1
 
         self.energy_capacity = h_dict[self.component_name]["energy_capacity"]  # [kWh]
-        self.max_charge_power = h_dict[self.component_name]["charge_rate"]  # [kW]
-        self.max_discharge_power = h_dict[self.component_name]["discharge_rate"]  # [kW]
+        self.power_charge_max = h_dict[self.component_name]["power_charge_max"]  # [kW]
+        self.power_discharge_max = h_dict[self.component_name]["power_discharge_max"]  # [kW]
 
         initial_conditions = h_dict[self.component_name]["initial_conditions"]
         self.SOC = initial_conditions["SOC"]  # [fraction]
-        self.SOC_max = h_dict[self.component_name]["max_SOC"]
-        self.SOC_min = h_dict[self.component_name]["min_SOC"]
+        self.SOC_max = h_dict[self.component_name]["SOC_max"]
+        self.SOC_min = h_dict[self.component_name]["SOC_min"]
 
         # Flag for allowing grid to charge the battery
         if "allow_grid_power_consumption" in h_dict[self.component_name].keys():
@@ -150,6 +152,9 @@ class BatteryLithiumIon(ComponentBase):
 
         # Add what we want later
         h_dict[self.component_name]["power"] = 0
+        h_dict[self.component_name]["DC_power"] = 0
+        h_dict[self.component_name]["power_reject"] = 0
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         return h_dict
 
@@ -172,17 +177,17 @@ class BatteryLithiumIon(ComponentBase):
         # C-rate = 1 means the cell discharges fully in one hour
         self.C = self.C_cell * self.n_p  # [Ah] capacity
 
-        C_rate_charge = self.max_charge_power / self.energy_capacity
-        C_rate_discharge = self.max_discharge_power / self.energy_capacity
-        self.max_C_rate = np.max([C_rate_charge, C_rate_discharge])  # [A] [capacity/hr]
+        C_rate_charge = self.power_charge_max / self.energy_capacity
+        C_rate_discharge = self.power_discharge_max / self.energy_capacity
+        self.C_rate_max = np.max([C_rate_charge, C_rate_discharge])  # [A] [capacity/hr]
 
         # Nominal battery voltage and current
         self.V_bat_nom = self.V_cell_nom * self.n_s  # [V]
-        self.I_bat_max = self.C_cell * self.max_C_rate * self.n_p  # [A]
+        self.I_bat_max = self.C_cell * self.C_rate_max * self.n_p  # [A]
 
-        # Max charge/discharge in kW
-        self.P_max = self.C * self.max_C_rate * self.V_bat_nom * 1e-3  # [kW]
-        self.P_min = -self.P_max  # [kW]
+        # Charge-positive power limits [kW]
+        self.power_max = self.C * self.C_rate_max * self.V_bat_nom * 1e-3  # [kW]
+        self.power_min = -self.power_max  # [kW]
 
         # Max and min charge level in Ah
         self.charge = self.SOC * self.C  # [Ah]
@@ -224,9 +229,8 @@ class BatteryLithiumIon(ComponentBase):
         )
 
         # initial state of battery outputs for hercules
-        self.power_kw = 0
-        self.P_reject = 0
-        self.P_charge = 0
+        self.power_charge = 0
+        self.power_reject_charge = 0
 
     def OCV(self):
         """Calculate cell open circuit voltage (OCV) as a function of SOC.
@@ -323,26 +327,28 @@ class BatteryLithiumIon(ComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation state including:
-                - battery.power_setpoint: Requested charging/discharging power [kW]
+                - <component_name>.power_setpoint: Requested power in kW (positive is
+                  charging)
                 - plant.locally_generated_power: Available power for charging [kW]
 
         Returns:
-            dict: Updated h_dict with battery outputs:
-                - power: Actual charging/discharging power [kW]
-                - reject: Rejected power due to constraints [kW]
-                - soc: State of charge [0-1]
+            dict: Updated h_dict with battery outputs (positive is charging):
+                - power: Actual power [kW]
+                - DC_power: Terminal power, equal to power (no PCS model) [kW]
+                - power_reject: power_setpoint minus power [kW]
+                - SOC: State of charge [0-1]
         """
 
-        P_signal = h_dict[self.component_name]["power_setpoint"]  # [kW] requested power
-        if np.isnan(P_signal):
+        power_setpoint = h_dict[self.component_name]["power_setpoint"]  # [kW]
+        if np.isnan(power_setpoint):
             raise ValueError(f"{self.component_name}: power_setpoint is NaN")
         if self.allow_grid_power_consumption:
-            P_avail = np.inf
+            power_charge_available = np.inf
         else:
-            P_avail = h_dict["plant"]["locally_generated_power"]  # [kW] available power
+            power_charge_available = h_dict["plant"]["locally_generated_power"]  # [kW]
 
         # Calculate charging/discharging current [A] from power
-        I_charge, I_reject = self.control(P_signal, P_avail)
+        I_charge, I_reject = self.control(power_setpoint, power_charge_available)
         i_charge = I_charge / self.n_p  # [A] Cell current
 
         # Update charge
@@ -353,30 +359,31 @@ class BatteryLithiumIon(ComponentBase):
         self.step_cell(i_charge)
 
         # Calculate actual power
-        self.power_kw = self.calc_power(I_charge) * 1e-3
-        self.P_reject = P_signal - self.power_kw
+        self.power_charge = self.calc_power(I_charge) * 1e-3
+        self.power_reject_charge = power_setpoint - self.power_charge
 
-        # Update power signal error integral
-        if (P_signal < self.max_charge_power) & (P_signal > self.max_discharge_power):
-            self.error_sum += self.P_reject * self.dt
+        # Update power signal error integral only when the request is within power limits
+        if (power_setpoint < self.power_charge_max) & (power_setpoint > -self.power_discharge_max):
+            self.error_sum += self.power_reject_charge * self.dt
 
         # Update the outputs
-        h_dict[self.component_name]["power"] = self.power_kw
-        h_dict[self.component_name]["reject"] = self.P_reject
-        h_dict[self.component_name]["soc"] = self.SOC
+        h_dict[self.component_name]["power"] = self.power_charge
+        h_dict[self.component_name]["DC_power"] = self.power_charge
+        h_dict[self.component_name]["power_reject"] = self.power_reject_charge
+        h_dict[self.component_name]["SOC"] = self.SOC
 
         # Return the updated dictionary
         return h_dict
 
-    def control(self, P_signal, P_avail):
+    def control(self, power_setpoint, power_charge_available):
         """Calculate charging/discharging current from requested power.
 
         Uses an iterative approach to account for errors between nominal and actual
         battery voltage. Includes integral control to correct for persistent voltage errors.
 
         Args:
-            P_signal (float): Requested charging/discharging power in kW.
-            P_avail (float): Power available for charging/discharging in kW.
+            power_setpoint (float): Requested power in kW (positive is charging).
+            power_charge_available (float): Power available for charging in kW.
 
         Returns:
             tuple: (I_charge, I_reject) where:
@@ -385,15 +392,15 @@ class BatteryLithiumIon(ComponentBase):
         """
 
         # Current according to nominal voltage
-        I_signal = P_signal * 1e3 / self.V_bat_nom
+        I_signal = power_setpoint * 1e3 / self.V_bat_nom
 
         # Iteratively adjust setpoint to account for inherent error in V_nom
-        error = P_signal - self.calc_power(I_signal) * 1e-3
+        error = power_setpoint - self.calc_power(I_signal) * 1e-3
         count = 0  # safety count
         tol = self.V_bat_nom * self.I_bat_max * 1e-9
         while np.abs(error) > tol:
             count += 1
-            error = P_signal - self.calc_power(I_signal) * 1e-3
+            error = power_setpoint - self.calc_power(I_signal) * 1e-3
             I_signal += error * 1e3 / self.V_bat_nom
 
             if count > 100:
@@ -404,7 +411,7 @@ class BatteryLithiumIon(ComponentBase):
         # actual battery voltage.
         I_signal += self.error_sum * 1e3 / self.V_bat_nom * 0.01
         # Is this calc just as accurate as iterative?
-        I_avail = P_avail * 1e3 / (self.V_cell() * self.n_s)
+        I_avail = power_charge_available * 1e3 / (self.V_cell() * self.n_s)
 
         # Check charging, discharging, and amperage constraints.
         I_charge, I_reject = self.constraints(I_signal, I_avail)

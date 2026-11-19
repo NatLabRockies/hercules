@@ -45,13 +45,13 @@ def modify_input_file_for_precom_floris(temp_dir, input_file):
     with open(input_path, "r") as f:
         h_dict = yaml.safe_load(f)
 
-    # Modify the wind farm component type and ensure floris_update_time_s is present
+    # Modify the wind farm component type and ensure floris_update_time is present
     if "wind_farm" in h_dict:
         h_dict["wind_farm"]["component_type"] = "WindFarm"
         h_dict["wind_farm"]["wake_method"] = "precomputed"
-        # Ensure a reasonable floris_update_time_s value exists
-        h_dict["wind_farm"]["floris_update_time_s"] = h_dict["wind_farm"].get(
-            "floris_update_time_s", 300.0
+        # Ensure a reasonable floris_update_time value exists
+        h_dict["wind_farm"]["floris_update_time"] = h_dict["wind_farm"].get(
+            "floris_update_time", 300.0
         )
 
     # Write the modified YAML file back
@@ -88,7 +88,7 @@ def print_expected_values():
 
             # Print the final values
             final_wind_power = df["wind_farm.power"].iloc[-1]
-            final_plant_power = df["plant.power"].iloc[-1]
+            final_plant_power = df["plant.power_bus"].iloc[-1]
 
             print(f"Expected values for {EXAMPLE_NAME}:")
             print(f"EXPECTED_FINAL_WIND_POWER = {final_wind_power}")

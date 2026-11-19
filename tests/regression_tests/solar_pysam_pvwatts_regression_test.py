@@ -88,7 +88,7 @@ def get_solar_params():
             "system_capacity": 100000.0,  # kW (100 MW)
             "tilt": 0,  # degrees
             "losses": 0,
-            "initial_conditions": {"power": 25, "dni": 1000, "poa": 1000},
+            "initial_conditions": {"power": 25, "DNI": 1000, "POA": 1000},
             "verbose": False,
         },
     }
@@ -122,8 +122,8 @@ def test_SolarPySAM_regression_control():
     for step in steps_test:
         out = SPS.step({"step": step, "solar_farm": {"power_setpoint": power_setpoint}})
         powers_test[step] = out["solar_farm"]["power"]
-        dni_test[step] = out["solar_farm"]["dni"]
-        aoi_test[step] = out["solar_farm"]["aoi"]
+        dni_test[step] = out["solar_farm"]["DNI"]
+        aoi_test[step] = out["solar_farm"]["AOI"]
 
     if PRINT_VALUES:
         print("Powers: ", powers_test)

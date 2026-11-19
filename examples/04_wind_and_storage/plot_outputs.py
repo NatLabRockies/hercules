@@ -27,13 +27,14 @@ df_battery_negative = df.copy()
 # 0 negative power from df_battery_positive and vice versa
 df_battery_positive.loc[df_battery_positive["battery.power"] < 0, "battery.power"] = 0
 df_battery_negative.loc[df_battery_negative["battery.power"] > 0, "battery.power"] = 0
+time_hours = df["time"] / 3600.0
 
 # Plot the farm power
 ax = axarr[0]
 
 # Plot the hybrid plant power
 ax.plot(
-    df["time"],
+    time_hours,
     df["wind_farm.power"],
     label="Wind Power",
     color="b",
@@ -43,7 +44,7 @@ ax.plot(
 # Only plot battery discharging if there are any positive battery power values
 
 ax.fill_between(
-    df_battery_positive["time"],
+    time_hours,
     df_battery_positive["wind_farm.power"],
     df_battery_positive["wind_farm.power"] + df_battery_positive["battery.power"],
     label="Battery Discharging",
@@ -54,7 +55,7 @@ ax.fill_between(
 # Only plot battery charging if there are any negative battery power values
 
 ax.fill_between(
-    df_battery_negative["time"],
+    time_hours,
     df_battery_negative["wind_farm.power"],
     df_battery_negative["wind_farm.power"] + df_battery_negative["battery.power"],
     label="Battery Charging",
@@ -64,7 +65,7 @@ ax.fill_between(
 
 # Plot total hybrid plant power (wind + battery)
 ax.plot(
-    df["time"],
+    time_hours,
     df["wind_farm.power"] + df["battery.power"],
     label="Hybrid Plant Total",
     color="k",
@@ -79,15 +80,15 @@ ax.set_ylabel("Power [kW]")
 # Plot the battery SOC
 ax = axarr[1]
 
-ax.plot(df["time"], df["battery.soc"], label="Battery SOC", color="k")
+ax.plot(time_hours, df["battery.SOC"], label="Battery SOC", color="k")
 ax.set_ylabel("SOC")
 
 # Plot the battery power and power setpoint
 ax = axarr[2]
-ax.plot(df["time"], df["battery.power"], label="Battery Power", color="k")
-ax.plot(df["time"], df["battery.power_setpoint"], label="Battery Power Setpoint", color="r")
+ax.plot(time_hours, df["battery.power"], label="Battery Power", color="k")
+ax.plot(time_hours, df["battery.power_setpoint"], label="Battery Power Setpoint", color="r")
 
-ax.set_xlabel("Time [s]")
+ax.set_xlabel("Time [hours]")
 ax.set_ylabel("Power [kW]")
 
 for ax in axarr:

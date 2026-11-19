@@ -34,7 +34,7 @@ ax.plot(
     linestyle="--",
 )
 ax.axhline(
-    h_dict["linear_generator"]["rated_capacity"],
+    h_dict["linear_generator"]["capacity_rated"],
     color="gray",
     linestyle=":",
     label="Rated Capacity",

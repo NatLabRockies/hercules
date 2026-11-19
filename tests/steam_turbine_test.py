@@ -20,74 +20,74 @@ def test_default_inputs():
     """Test that SteamTurbine uses default inputs when not provided."""
     h_dict = copy.deepcopy(h_dict_steam_turbine)
 
-    # Test that the ramp_rate_fraction input is correct from input dict
+    # Test that the ramp_rate_fraction_per_min input is correct from input dict
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.ramp_rate_fraction == 0.04
+    assert hcst.ramp_rate_fraction_per_min == 0.04
 
-    # Test that the run_up_rate_fraction input is correct from input dict
-    assert hcst.run_up_rate_fraction == 0.02
+    # Test that the run_up_rate_fraction_per_min input is correct from input dict
+    assert hcst.run_up_rate_fraction_per_min == 0.02
 
-    # Test that if the run_up_rate_fraction is not provided,
-    # it defaults to the ramp_rate_fraction
+    # Test that if the run_up_rate_fraction_per_min is not provided,
+    # it defaults to the ramp_rate_fraction_per_min
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["run_up_rate_fraction"]
+    del h_dict["steam_turbine"]["run_up_rate_fraction_per_min"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.run_up_rate_fraction == hcst.ramp_rate_fraction
+    assert hcst.run_up_rate_fraction_per_min == hcst.ramp_rate_fraction_per_min
 
-    # Now test that the default value of the ramp_rate_fraction is
-    # applied to both the ramp_rate_fraction and the run_up_rate_fraction
+    # Now test that the default value of the ramp_rate_fraction_per_min is
+    # applied to both the ramp_rate_fraction_per_min and the run_up_rate_fraction_per_min
     # if they are both not provided
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["ramp_rate_fraction"]
-    del h_dict["steam_turbine"]["run_up_rate_fraction"]
+    del h_dict["steam_turbine"]["ramp_rate_fraction_per_min"]
+    del h_dict["steam_turbine"]["run_up_rate_fraction_per_min"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.ramp_rate_fraction == 0.03
-    assert hcst.run_up_rate_fraction == 0.03
+    assert hcst.ramp_rate_fraction_per_min == 0.03
+    assert hcst.run_up_rate_fraction_per_min == 0.03
 
     # Test the remaining default values
-    # Delete startup times first, since changing min_stable_load_fraction and
+    # Delete startup times first, since changing load_stable_min_fraction and
     # ramp rates affects ramp_time validation against startup times
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["ramp_rate_fraction"]
-    del h_dict["steam_turbine"]["run_up_rate_fraction"]
-    del h_dict["steam_turbine"]["cold_startup_time"]
-    del h_dict["steam_turbine"]["warm_startup_time"]
-    del h_dict["steam_turbine"]["hot_startup_time"]
-    del h_dict["steam_turbine"]["min_stable_load_fraction"]
+    del h_dict["steam_turbine"]["ramp_rate_fraction_per_min"]
+    del h_dict["steam_turbine"]["run_up_rate_fraction_per_min"]
+    del h_dict["steam_turbine"]["startup_time_cold"]
+    del h_dict["steam_turbine"]["startup_time_warm"]
+    del h_dict["steam_turbine"]["startup_time_hot"]
+    del h_dict["steam_turbine"]["load_stable_min_fraction"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.min_stable_load_fraction == 0.30
-    assert hcst.hot_startup_time == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
-    assert hcst.warm_startup_time == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
-    assert hcst.cold_startup_time == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
+    assert hcst.load_stable_min_fraction == 0.30
+    assert hcst.startup_time_hot == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
+    assert hcst.startup_time_warm == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
+    assert hcst.startup_time_cold == 7.5 * 60.0 * 60.0  # 7.5 hours in seconds
 
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["min_up_time"]
+    del h_dict["steam_turbine"]["up_time_min"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.min_up_time == 48 * 60.0 * 60.0  # 48 hours in seconds
+    assert hcst.up_time_min == 48 * 60.0 * 60.0  # 48 hours in seconds
 
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["min_down_time"]
+    del h_dict["steam_turbine"]["down_time_min"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.min_down_time == 48 * 60.0 * 60.0  # 48 hours in seconds
+    assert hcst.down_time_min == 48 * 60.0 * 60.0  # 48 hours in seconds
 
     # Test cooldown threshold defaults
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["hot_to_warm_time"]
+    del h_dict["steam_turbine"]["cooldown_time_warm"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.hot_to_warm_time == 28800.0  # 8 hours
+    assert hcst.cooldown_time_warm == 28800.0  # 8 hours
 
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["hot_to_cold_time"]
+    del h_dict["steam_turbine"]["cooldown_time_cold"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.hot_to_cold_time == 172800.0  # 48 hours
+    assert hcst.cooldown_time_cold == 172800.0  # 48 hours
 
 
 def test_default_hhv():
     """Test that SteamTurbine provides default HHV for bituminous coal from [4]."""
     h_dict = copy.deepcopy(h_dict_steam_turbine)
-    del h_dict["steam_turbine"]["hhv"]
+    del h_dict["steam_turbine"]["HHV"]
     hcst = SteamTurbine(h_dict, "steam_turbine")
-    assert hcst.hhv == 29310000000
+    assert hcst.HHV == 29310000000
 
 
 def test_default_fuel_density():

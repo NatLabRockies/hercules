@@ -25,11 +25,11 @@
 
   <!-- Arrow: Arrays -> Inverters -->
   <line x1="220" y1="120" x2="365" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>
-  <text x="292" y="110" font-size="15" fill="#1f4f6f" font-weight="bold" text-anchor="middle">dc_power_available</text>
+  <text x="292" y="110" font-size="12" fill="#1f4f6f" font-weight="bold" text-anchor="middle">DC_power_hypothetical</text>
 
   <!-- Arrow: Inverters -> Controller -->
   <line x1="550" y1="120" x2="695" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>
-  <text x="622" y="110" font-size="15" fill="#1f4f6f" font-weight="bold" text-anchor="middle">ac_power_available</text>
+  <text x="622" y="110" font-size="12" fill="#1f4f6f" font-weight="bold" text-anchor="middle">power_hypothetical</text>
 
   <!-- Arrow: Controller -> output -->
   <line x1="880" y1="120" x2="900" y2="120" stroke="#1f4f6f" stroke-width="2.5" marker-end="url(#arrow)"/>

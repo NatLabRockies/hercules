@@ -56,7 +56,7 @@ def print_expected_values():
 
             # Print the final values
             final_wind_power = df["wind_farm.power"].iloc[-1]
-            final_plant_power = df["plant.power"].iloc[-1]
+            final_plant_power = df["plant.power_bus"].iloc[-1]
 
             print(f"Expected values for {EXAMPLE_NAME}:")
             print(f"EXPECTED_FINAL_WIND_POWER = {final_wind_power}")

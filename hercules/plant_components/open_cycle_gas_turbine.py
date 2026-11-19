@@ -51,29 +51,30 @@ class OpenCycleGasTurbine(ThermalComponentBase):
 
         Args:
             h_dict (dict): Dictionary containing simulation parameters including:
-                - rated_capacity: Maximum power output in kW
-                - min_stable_load_fraction: Optional, minimum operating point as fraction (0-1).
+                - capacity_rated: Maximum power output in kW
+                - load_stable_min_fraction: Optional, minimum operating point as fraction (0-1).
                     Default: 0.40 (40%) [4]
-                - ramp_rate_fraction: Optional, maximum rate of power increase/decrease
+                - ramp_rate_fraction_per_min: Optional, maximum rate of power increase/decrease
                     as fraction of rated capacity per minute. Default: 0.1 (10%)
-                - run_up_rate_fraction: Optional, maximum rate of power increase during startup
-                    as fraction of rated capacity per minute. Default: ramp_rate_fraction
-                - hot_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - run_up_rate_fraction_per_min: Optional, maximum rate of power increase during
+                    startup as fraction of rated capacity per minute.
+                    Default: ramp_rate_fraction_per_min
+                - startup_time_hot: Optional, time to reach load_stable_min_fraction from off
                     in s. Includes both readying time and ramping time.
                     Default: 420.0 s (7 minutes) [1, 5]
-                - warm_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - startup_time_warm: Optional, time to reach load_stable_min_fraction from off
                     in s. Includes both readying time and ramping time.
                     Default: 480.0 s (8 minutes) [1, 5]
-                - cold_startup_time: Optional, time to reach min_stable_load_fraction from off
+                - startup_time_cold: Optional, time to reach load_stable_min_fraction from off
                     in s. Includes both readying time and ramping time.
                     Default: 480.0 s (8 minutes) [1, 5]
-                - min_up_time: Optional, minimum time unit must remain on in s.
+                - up_time_min: Optional, minimum time unit must remain on in s.
                     Default: 1800.0 s (30 minutes) [4]
-                - min_down_time: Optional, minimum time unit must remain off in s.
+                - down_time_min: Optional, minimum time unit must remain off in s.
                     Default: 3600.0 s (1 hour) [4]
                 - initial_conditions: Dictionary with initial power (state is
                     derived automatically: power > 0 means ON, power == 0 means OFF)
-                - hhv: Optional, higher heating value of natural gas in J/m³.
+                - HHV: Optional, higher heating value of natural gas in J/m³.
                     Default: 39050000 J/m³ (39.05 MJ/m³) [6]
                 - fuel_density: Optional, fuel density in kg/m³.
                     Default: 0.768 kg/m³ [6]
@@ -88,36 +89,36 @@ class OpenCycleGasTurbine(ThermalComponentBase):
 
         # Apply fixed default parameters based on [1], [2] and [3]
         # back into the h_dict if they are not provided
-        if "min_stable_load_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["min_stable_load_fraction"] = 0.40
-        if "ramp_rate_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["ramp_rate_fraction"] = 0.1
-        if "hot_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["hot_startup_time"] = 420.0
-        if "warm_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["warm_startup_time"] = 480.0
-        if "cold_startup_time" not in h_dict[component_name]:
-            h_dict[component_name]["cold_startup_time"] = 480.0
-        if "min_up_time" not in h_dict[component_name]:
-            h_dict[component_name]["min_up_time"] = 1800.0
-        if "min_down_time" not in h_dict[component_name]:
-            h_dict[component_name]["min_down_time"] = 3600.0
+        if "load_stable_min_fraction" not in h_dict[component_name]:
+            h_dict[component_name]["load_stable_min_fraction"] = 0.40
+        if "ramp_rate_fraction_per_min" not in h_dict[component_name]:
+            h_dict[component_name]["ramp_rate_fraction_per_min"] = 0.1
+        if "startup_time_hot" not in h_dict[component_name]:
+            h_dict[component_name]["startup_time_hot"] = 420.0
+        if "startup_time_warm" not in h_dict[component_name]:
+            h_dict[component_name]["startup_time_warm"] = 480.0
+        if "startup_time_cold" not in h_dict[component_name]:
+            h_dict[component_name]["startup_time_cold"] = 480.0
+        if "up_time_min" not in h_dict[component_name]:
+            h_dict[component_name]["up_time_min"] = 1800.0
+        if "down_time_min" not in h_dict[component_name]:
+            h_dict[component_name]["down_time_min"] = 3600.0
 
         # Default cooldown threshold times (8 hours / 48 hours) from [5]
-        if "hot_to_warm_time" not in h_dict[component_name]:
-            h_dict[component_name]["hot_to_warm_time"] = 28800.0  # 8 hours
-        if "hot_to_cold_time" not in h_dict[component_name]:
-            h_dict[component_name]["hot_to_cold_time"] = 172800.0  # 48 hours
+        if "cooldown_time_warm" not in h_dict[component_name]:
+            h_dict[component_name]["cooldown_time_warm"] = 28800.0  # 8 hours
+        if "cooldown_time_cold" not in h_dict[component_name]:
+            h_dict[component_name]["cooldown_time_cold"] = 172800.0  # 48 hours
 
-        # If the run_up_rate_fraction is not provided, it defaults to the ramp_rate_fraction
-        if "run_up_rate_fraction" not in h_dict[component_name]:
-            h_dict[component_name]["run_up_rate_fraction"] = h_dict[component_name][
-                "ramp_rate_fraction"
+        # If not provided, run_up_rate_fraction_per_min defaults to ramp_rate_fraction_per_min
+        if "run_up_rate_fraction_per_min" not in h_dict[component_name]:
+            h_dict[component_name]["run_up_rate_fraction_per_min"] = h_dict[component_name][
+                "ramp_rate_fraction_per_min"
             ]
 
         # Default HHV for natural gas (39.05 MJ/m³) from [6]
-        if "hhv" not in h_dict[component_name]:
-            h_dict[component_name]["hhv"] = 39050000  # J/m³ (39.05 MJ/m³)
+        if "HHV" not in h_dict[component_name]:
+            h_dict[component_name]["HHV"] = 39050000  # J/m³ (39.05 MJ/m³)
 
         # Default fuel density for natural gas (0.768 kg/m³) from [6]
         if "fuel_density" not in h_dict[component_name]:

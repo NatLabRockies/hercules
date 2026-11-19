@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import os
-import shutil
 import sys
 import time as _time
 from pathlib import Path
@@ -17,7 +16,7 @@ from hercules.utilities import (
     hercules_float_type,
     interpolate_df,
     load_hercules_input,
-    make_unique_folder_name,
+    make_unique_name,
     setup_logging,
 )
 
@@ -41,34 +40,7 @@ class HerculesModel:
         # set default output directory to cwd / "outputs"
         output_dir = Path(h_dict.get("output_dir", "outputs")).absolute()
 
-        # If the output directory exists, and overwrite_outputs is True
-        # The output folder will be deleted and recreated.
-        if h_dict.get("overwrite_outputs", True):
-            if output_dir.exists():
-                shutil.rmtree(output_dir)
-        else:
-            # Make a unique foldername with the same basename as the output_dir
-            proposed_dirname = str(output_dir.name)
-            output_dir = make_unique_folder_name(output_dir.parent, output_dir.name)
-            # If the proposed directory already existed and a new folder was proposed,
-            # update the logger directory to have the same unique number
-            if output_dir.name != proposed_dirname:
-                unique_folder_id_parts = output_dir.name.split(proposed_dirname)
-                unique_folder_id = "".join(p for p in unique_folder_id_parts)
-                if h_dict.get("logging", {}).get("logging_dir", None) is not None:
-                    if isinstance(h_dict["logging"]["logging_dir"], str):
-                        h_dict["logging"].update(
-                            {"logging_dir": Path(h_dict["logging"]["logging_dir"])}
-                        )
-
-                    logging_parent_dir = h_dict["logging"]["logging_dir"].parent
-                    logging_dir_basename = h_dict["logging"]["logging_dir"].name
-                    new_log_fpath = logging_parent_dir / f"{logging_dir_basename}{unique_folder_id}"
-
-                    h_dict["logging"].update({"logging_dir": new_log_fpath})
-
-        # Make sure output folder exists
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         # Set up logging
         logging_inputs = {"logging_dir": output_dir} | h_dict.get("logging", {})
@@ -86,10 +58,6 @@ class HerculesModel:
         self.starttime_utc = h_dict["starttime_utc"]
         self.endtime_utc = h_dict["endtime_utc"]
 
-        # Initialize logging configuration
-        self.log_every_n = h_dict.get("log_every_n", 1)
-        self.dt_log = self.dt * self.log_every_n
-
         # Initialize the hybrid plant
         self.hybrid_plant = HybridPlant(h_dict)
 
@@ -104,28 +72,41 @@ class HerculesModel:
         self.external_data_log_channels = None
         self.h_dict["external_signals"] = {}
         if "external_data" in self.h_dict:
-            self._read_external_data_file(self.h_dict["external_data"]["external_data_file"])
+            self._read_external_data_file(self.h_dict["external_data"]["external_data_filename"])
             self.external_data_log_channels = self.h_dict["external_data"]["log_channels"]
 
         # Initialize HDF5 output configuration
-        if "output_file" in self.h_dict:
-            self.output_file = self.h_dict["output_file"]
-            # Ensure .h5 extension
-            if not self.output_file.endswith(".h5"):
-                self.output_file = self.output_file.rsplit(".", 1)[0] + ".h5"
-
-            if "/" in self.output_file:
-                # check if folder was specfied in output_file
-                if Path(self.output_file).parent != output_dir:
-                    # if folder of output_file does not match output_dir, then
-                    # just use the name of the output file
-                    self.output_file = output_dir / self.output_file.split("/")[-1]
-            else:
-                self.output_file = output_dir / self.output_file
+        if "output_filename" in self.h_dict:
+            if "/" in self.h_dict["output_filename"] or "\\" in self.h_dict["output_filename"]:
+                self.logger.info(
+                    "Directory specified in output_filename will be ignored, "
+                    "using output_dir instead."
+                )
+            output_filename = Path(self.h_dict["output_filename"]).name
         else:
-            self.output_file = output_dir / "hercules_output.h5"
+            output_filename = "hercules_output.h5"
 
-        self.output_file = Path(self.output_file).absolute()
+        output_file_path = Path(output_filename)
+        if output_file_path.suffix.lower() != ".h5":
+            if output_file_path.suffix:
+                output_file_path = output_file_path.with_suffix(output_file_path.suffix + ".h5")
+            else:
+                output_file_path = Path(f"{output_file_path.name}.h5")
+
+        self.output_filename = output_dir / output_file_path.name
+        if self.output_filename.is_file():
+            # If the output file already exists, handle it based on auto_increment_filenames flag
+            if self.h_dict.get("auto_increment_filenames", False):
+                # Generate a unique output file name to avoid overwriting existing files
+                output_file_unique = make_unique_name(
+                    output_dir, Path(self.output_filename).name, "file"
+                )
+                self.output_filename = output_file_unique.with_name(f"{output_file_unique.name}.h5")
+            else:
+                # If auto_increment_filenames is not enabled, delete the existing file
+                self.output_filename.unlink()
+
+        self.output_filename = Path(self.output_filename).absolute()
 
         # Initialize HDF5 output system
         self.hdf5_file = None
@@ -165,14 +146,14 @@ class HerculesModel:
         # starttime_utc is required and should already be set, but ensure it's still present
         self.starttime_utc = self.h_dict["starttime_utc"]
 
-    def _setup_logging(self, log_file_name="log_hercules.log", **kwargs):
+    def _setup_logging(self, log_filename="log_hercules.log", **kwargs):
         """Set up logging to file and console.
 
         Creates 'outputs' directory and configures file/console logging with timestamps.
         This method wraps the utilities.setup_logging function for backward compatibility.
 
         Args:
-            log_file_name (str, optional): Log file name. Defaults to "log_hercules.log".
+            log_filename (str, optional): Log file name. Defaults to "log_hercules.log".
             **kwargs (dict, optional): Extra arguments passed to setup_logging
 
         Returns:
@@ -181,7 +162,7 @@ class HerculesModel:
 
         logging_defaults = {
             "logger_name": "hercules",
-            "log_file": log_file_name,
+            "log_filename": log_filename,
         }
 
         # Update the defaults with any input kwargs
@@ -285,11 +266,11 @@ class HerculesModel:
         """Initialize HDF5 file with metadata and data structure."""
 
         # Create output directory if it doesn't exist
-        output_dir = os.path.dirname(os.path.abspath(self.output_file))
+        output_dir = os.path.dirname(os.path.abspath(self.output_filename))
         os.makedirs(output_dir, exist_ok=True)
 
         # Open HDF5 file
-        self.hdf5_file = h5py.File(self.output_file, "w")
+        self.hdf5_file = h5py.File(self.output_filename, "w")
 
         # Create metadata group
         metadata_group = self.hdf5_file.create_group("metadata")
@@ -311,8 +292,6 @@ class HerculesModel:
         metadata_group.attrs["starttime"] = self.starttime
         metadata_group.attrs["endtime"] = self.endtime
         metadata_group.attrs["dt_sim"] = self.dt
-        metadata_group.attrs["dt_log"] = self.dt_log
-        metadata_group.attrs["log_every_n"] = self.log_every_n
         metadata_group.attrs["total_simulation_time"] = self.total_simulation_time
         metadata_group.attrs["total_simulation_days"] = self.total_simulation_days
 
@@ -326,10 +305,8 @@ class HerculesModel:
         # Create data group
         data_group = self.hdf5_file.create_group("data")
 
-        # Calculate total number of rows with logging stride
-        total_rows = self.n_steps // self.log_every_n
-        if self.n_steps % self.log_every_n != 0:
-            total_rows += 1
+        # Every simulation step is logged
+        total_rows = self.n_steps
 
         # Set compression parameters based on configuration
         if self.use_compression:
@@ -359,19 +336,13 @@ class HerculesModel:
         )
 
         # Create plant-level datasets
-        self.hdf5_datasets["plant_power"] = data_group.create_dataset(
-            "plant_power",
-            shape=(total_rows,),
-            dtype=hercules_float_type,
-            **compression_params,
-        )
-
-        self.hdf5_datasets["plant_locally_generated_power"] = data_group.create_dataset(
-            "plant_locally_generated_power",
-            shape=(total_rows,),
-            dtype=hercules_float_type,
-            **compression_params,
-        )
+        for name in ("plant_power_bus", "plant_power_export", "plant_locally_generated_power"):
+            self.hdf5_datasets[name] = data_group.create_dataset(
+                name,
+                shape=(total_rows,),
+                dtype=hercules_float_type,
+                **compression_params,
+            )
 
         # Create component datasets
         components_group = data_group.create_group("components")
@@ -481,7 +452,7 @@ class HerculesModel:
         # to see full dictionary in interpreting log
 
         original_stdout = sys.stdout
-        echo_file_fpath = self.output_file.parent / "h_dict.echo"
+        echo_file_fpath = self.output_filename.parent / "h_dict.echo"
         with open(echo_file_fpath, "w") as f_i:
             sys.stdout = f_i  # Change the standard output to the file we created.
             print(self.h_dict)
@@ -636,9 +607,18 @@ class HerculesModel:
             raise
 
         finally:
-            # Ensure output data is written to file
-            self.logger.info("Finalizing HDF5 output file")
-            self._finalize_hdf5_file()
+            try:
+                if hasattr(self.controller, "write_log"):
+                    self.logger.info("Writing controller log file")
+                    controller_log_file = self.output_filename.with_name(
+                        self.output_filename.stem + "_controller_log.pkl"
+                    )
+                    self.controller.write_log(controller_log_file, output_type="pickle")
+                else:
+                    self.logger.info("No controller log available")
+            finally:
+                self.logger.info("Finalizing HDF5 output file")
+                self._finalize_hdf5_file()
 
     def _finalize_hdf5_file(self):
         """Finalize HDF5 file with proper compression and metadata."""
@@ -670,9 +650,9 @@ class HerculesModel:
                 )
 
             if self.verbose:
-                file_size = os.path.getsize(self.output_file) / (1024 * 1024)  # MB
+                file_size = os.path.getsize(self.output_filename) / (1024 * 1024)  # MB
                 self.logger.info(
-                    f"Finalized HDF5 file: {self.output_file} "
+                    f"Finalized HDF5 file: {self.output_filename} "
                     f"({file_size:.2f} MB, {self.total_rows_written} rows)"
                 )
 
@@ -718,10 +698,6 @@ class HerculesModel:
         if not self.output_structure_determined:
             self._initialize_hdf5_file()
 
-        # Apply  logging stride
-        if self.step % self.log_every_n != 0:
-            return
-
         # Initialize buffers on first call
         if not self.data_buffers:
             self._initialize_data_buffers()
@@ -731,8 +707,10 @@ class HerculesModel:
         self.data_buffers["step"][self.buffer_row] = self.h_dict["step"]
 
         # Buffer plant-level outputs
-        self.data_buffers["plant_power"][self.buffer_row] = self.h_dict["plant"]["power"]
-        self.data_buffers["plant_locally_generated_power"][self.buffer_row] = self.h_dict["plant"][
+        plant = self.h_dict["plant"]
+        self.data_buffers["plant_power_bus"][self.buffer_row] = plant["power_bus"]
+        self.data_buffers["plant_power_export"][self.buffer_row] = plant["power_export"]
+        self.data_buffers["plant_locally_generated_power"][self.buffer_row] = plant[
             "locally_generated_power"
         ]
 

@@ -9,6 +9,7 @@ from hercules.hercules_model import HerculesModel
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")
 
+
 # Define your controller class
 class MyController:
     def __init__(self, h_dict):
@@ -19,6 +20,7 @@ class MyController:
         # Implement your control logic here
         # Set power setpoints, etc.
         return h_dict
+
 
 # Assign the controller to the Hercules model
 hmodel.assign_controller(MyController(hmodel.h_dict))

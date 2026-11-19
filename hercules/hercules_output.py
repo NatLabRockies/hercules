@@ -4,9 +4,45 @@ This module provides a convenient interface for reading Hercules simulation outp
 The HerculesOutput class allows easy access to both data and metadata with dot notation.
 """
 
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
 
 from .utilities import get_hercules_metadata, read_hercules_hdf5
+
+
+def _merge_controller_log(df: pd.DataFrame, controller_df: pd.DataFrame) -> pd.DataFrame:
+    """Merge a controller log into the Hercules output DataFrame on ``time``.
+
+    Array-valued signals are expanded to ``{col}.{i:03d}`` columns and all controller
+    columns are prefixed with ``controller.``.
+
+    Args:
+        df (pd.DataFrame): Hercules output data with a ``time`` column (s).
+        controller_df (pd.DataFrame): Controller log with a ``time`` column (s).
+
+    Returns:
+        pd.DataFrame: ``df`` with controller columns left-joined on ``time``.
+    """
+    if controller_df.empty or "time" not in controller_df.columns:
+        return df
+
+    controller_time = controller_df["time"]
+    if df["time"].dtype == np.float32:
+        controller_time = controller_time.astype(np.float32)
+    columns = {"time": controller_time}
+    for col in controller_df.columns.drop("time"):
+        series = controller_df[col]
+        is_array = series.map(lambda v: isinstance(v, (list, tuple, np.ndarray)))
+        if is_array.any():
+            expanded = pd.DataFrame(series[is_array].tolist(), index=series.index[is_array])
+            for i in expanded.columns:
+                columns[f"controller.{col}.{i:03d}"] = expanded[i].reindex(series.index)
+        else:
+            columns[f"controller.{col}"] = series
+
+    return df.merge(pd.DataFrame(columns), on="time", how="left", validate="one_to_one")
 
 
 class HerculesOutput:
@@ -15,8 +51,13 @@ class HerculesOutput:
     This class provides easy access to Hercules simulation output data and metadata.
     Users can still use the underlying utility functions directly if preferred.
 
+    If a controller log ``<stem>_controller_log.pkl`` exists next to the output file, its
+    signals are merged into ``df`` as ``controller.*`` columns aligned on ``time``.
+
     Args:
         filename (str): Path to Hercules HDF5 output file.
+        load_controller_log (bool): Whether to merge the controller log if present.
+            Defaults to True.
 
     Attributes:
         filename (str): Path to the output file.
@@ -24,17 +65,25 @@ class HerculesOutput:
         metadata (dict): Simulation metadata including h_dict and simulation info.
     """
 
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, load_controller_log: bool = True):
         """Initialize HerculesOutput with a filename.
 
         Args:
             filename (str): Path to Hercules HDF5 output file.
+            load_controller_log (bool): Whether to merge the controller log if present.
+                Defaults to True.
         """
         self.filename = filename
 
         # Read metadata and data at initialization
         self.metadata = get_hercules_metadata(filename)
         self.df = read_hercules_hdf5(filename)
+
+        if load_controller_log:
+            path = Path(filename)
+            controller_log_file = path.with_name(path.stem + "_controller_log.pkl")
+            if controller_log_file.exists():
+                self.df = _merge_controller_log(self.df, pd.read_pickle(controller_log_file))
 
         # Make metadata attributes accessible via dot notation
         for key, value in self.metadata.items():
@@ -62,7 +111,7 @@ class HerculesOutput:
 
         print(f"  Total Simulation Time (seconds): {total_simulation_time_s}")
         print(f"   Total Simulation Time: {time_str}")
-        print(f"   Time Step: {self.metadata.get('dt_log', 'Not available')} seconds")
+        print(f"   Time Step: {self.metadata.get('dt_sim', 'Not available')} seconds")
         print(f"   Num Steps: {len(self.df)}")
 
         # Wall time information
@@ -123,7 +172,6 @@ class HerculesOutput:
 
         print("Model Setup----")
 
-        # Plant interconnect limit
         h_dict = self.metadata.get("h_dict", {})
         plant_config = h_dict.get("plant", {})
         interconnect_limit = plant_config.get("interconnect_limit", 0)
@@ -131,40 +179,30 @@ class HerculesOutput:
             print(f"   Interconnect Limit: {interconnect_limit / 1000:.1f} MW")
         else:
             print("   Interconnect Limit: Not available")
+        print(f"   Bus to POI Efficiency: {plant_config.get('efficiency_bus_to_poi', 1.0)}")
 
-        # Wind farm information
-        if "wind_farm" in h_dict:
-            wind_config = h_dict["wind_farm"]
-            n_turbines = wind_config.get("n_turbines", 0)
-            rated_turbine_power = wind_config.get("rated_turbine_power", 0)
-            if n_turbines > 0 and rated_turbine_power > 0:
+        for name in h_dict.get("component_names", []):
+            config = h_dict.get(name, {})
+            component_type = config.get("component_type", "")
+            if "n_turbines" in config and "turbine_power_rated" in config:
                 print(
-                    f"   Wind Farm: {n_turbines} turbines @ "
-                    f"{rated_turbine_power / 1000:.1f} MW each"
+                    f"   {name} ({component_type}): {config['n_turbines']} turbines @ "
+                    f"{config['turbine_power_rated'] / 1000:.1f} MW each"
                 )
-                print(f"   Wind Farm Total: {n_turbines * rated_turbine_power / 1000:.1f} MW")
-            else:
-                print("   Wind Farm: Configuration incomplete")
-
-        # Solar farm information
-        if "solar_farm" in h_dict:
-            solar_config = h_dict["solar_farm"]
-            if "system_capacity" not in solar_config:
-                raise KeyError(
-                    "Missing required field 'system_capacity' in solar_farm configuration. "
-                    "Please specify the DC system capacity of the solar farm in kW."
+            elif "DC_capacity_rated" in config:
+                print(
+                    f"   {name} ({component_type}): {config['capacity_rated'] / 1000:.1f} MW AC, "
+                    f"{config['DC_capacity_rated'] / 1000:.1f} MW DC"
                 )
-            pv_capacity = solar_config["system_capacity"]
-            print(f"   Solar Farm: {pv_capacity / 1000:.1f} MW")
-
-        # Battery information
-        if "battery" in h_dict:
-            battery_config = h_dict["battery"]
-            battery_capacity = battery_config.get("size", 0)
-            if battery_capacity > 0:
-                print(f"   Battery: {battery_capacity / 1000:.1f} MW")
+            elif "energy_capacity" in config:
+                print(
+                    f"   {name} ({component_type}): {config['energy_capacity'] / 1000:.1f} MWh, "
+                    f"{config.get('power_discharge_max', 0) / 1000:.1f} MW discharge"
+                )
+            elif "capacity_rated" in config:
+                print(f"   {name} ({component_type}): {config['capacity_rated'] / 1000:.1f} MW")
             else:
-                print("   Battery: Capacity not specified")
+                print(f"   {name} ({component_type})")
 
     def __repr__(self) -> str:
         """String representation of the HerculesOutput object.

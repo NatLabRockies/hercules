@@ -28,7 +28,7 @@ The **component category** is a class-level attribute defined in each component 
 
 - **Source**: `component_category = "..."` class variable in the Python class
 - **Valid values**: `"generator"`, `"load"`, or `"storage"`
-- **Used by**: `HybridPlant` to classify components as generators vs. load/storage, and to apply the storage sign convention
+- **Used by**: `HybridPlant` to classify components as generators vs. load/storage. The sign flip for storage and load components is driven by `consumer_sign_outputs` (see [Nomenclature](nomenclature.md#sign-convention))
 - **Available as**: `self.component_category` on the component object (and `ComponentBase.component_category` as a class attribute)
 
 Every `ComponentBase` subclass **must** define `component_category`; a `TypeError` is raised at class-definition time if it is missing.
@@ -38,7 +38,7 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | Concept | Set by | Example value | Used for |
 |---|---|---|---|
 | `component_name` | User (YAML key) | `"battery_unit_1"` | Accessing `h_dict[name]`; unique instance ID |
-| `component_type` | User (`component_type:` field) | `"BatterySimple"` | Registry lookup to select the Python class |
+| `component_type` | User (`component_type:` field) | `"BatteryDynamic"` | Registry lookup to select the Python class |
 | `component_category` | Developer (class variable) | `"storage"` | Generator classification; sign convention |
 
 ---
@@ -51,7 +51,8 @@ Every `ComponentBase` subclass **must** define `component_category`; a `TypeErro
 | `WindFarmSCADAPower` | `generator` | [Wind](wind.md) |
 | `PowerPlayback` | `generator` | [Power Playback](power_playback.md) |
 | `SolarPySAMPVWatts` | `generator` | [Solar PV](solar_pv.md) |
-| `BatterySimple` | `storage` | [Battery](battery.md) |
+| `BatteryDynamic` | `storage` | [Battery](battery.md) |
+| `BatteryReservoir` | `storage` | [Battery](battery.md) |
 | `BatteryLithiumIon` | `storage` | [Battery](battery.md) |
 | `ElectrolyzerPlant` | `load` | [Electrolyzer](electrolyzer.md) |
 | `OpenCycleGasTurbine` | `generator` | [Open Cycle Gas Turbine](open_cycle_gas_turbine.md) |
@@ -72,24 +73,24 @@ Because `component_name` is user-chosen, you can include multiple instances of t
 
 ```yaml
 battery_unit_1:
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 100.0  # kWh
-  charge_rate: 50.0       # kW
-  discharge_rate: 50.0    # kW
-  # max_SOC and min_SOC default to 1.0 and 0.0 (full nameplate).
+  power_charge_max: 50.0       # kW
+  power_discharge_max: 50.0    # kW
+  # SOC_max and SOC_min default to 1.0 and 0.0 (full nameplate).
   # Set to other values to model degradation:
-  # max_SOC: 0.9
-  # min_SOC: 0.1
+  # SOC_max: 0.9
+  # SOC_min: 0.1
   initial_conditions:
     SOC: 0.5
 
 battery_unit_2:
-  component_type: BatterySimple
+  component_type: BatteryDynamic
   energy_capacity: 200.0  # kWh
-  charge_rate: 100.0      # kW
-  discharge_rate: 100.0   # kW
-  max_SOC: 0.95  # degraded from nameplate
-  min_SOC: 0.05  # degraded from nameplate
+  power_charge_max: 100.0      # kW
+  power_discharge_max: 100.0   # kW
+  SOC_max: 0.95  # degraded from nameplate
+  SOC_min: 0.05  # degraded from nameplate
   initial_conditions:
     SOC: 0.8
 ```

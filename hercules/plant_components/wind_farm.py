@@ -7,6 +7,7 @@ from floris.core import average_velocity
 from floris.uncertain_floris_model import map_turbine_powers_uncertain
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
+    check_renamed_keys,
     hercules_float_type,
     interpolate_df,
     load_yaml,
@@ -72,25 +73,25 @@ class WindFarm(ComponentBase):
         self.num_floris_calcs = 0
 
         # Read in the input file names
-        self.floris_input_file = h_dict[self.component_name]["floris_input_file"]
+        self.floris_input_filename = h_dict[self.component_name]["floris_input_filename"]
         self.wind_input_filename = h_dict[self.component_name]["wind_input_filename"]
-        self.turbine_file_name = h_dict[self.component_name]["turbine_file_name"]
+        self.turbine_filename = h_dict[self.component_name]["turbine_filename"]
 
-        # Require floris_update_time_s for interface consistency
+        # Require floris_update_time for interface consistency
         # TODO: Why is there a minimum of 1 second?
-        # TODO: Consider adding option (e.g. floris_update_time_s = -1) to
-        # compute FLORIS at every time step (i.e. floris_update_time_s = dt)
+        # TODO: Consider adding option (e.g. floris_update_time = -1) to
+        # compute FLORIS at every time step (i.e. floris_update_time = dt)
         if wake_method in ["dynamic", "precomputed"]:
-            if "floris_update_time_s" not in h_dict[self.component_name]:
+            if "floris_update_time" not in h_dict[self.component_name]:
                 raise ValueError(
-                    f"floris_update_time_s must be specified for wake_method='{self.wake_method}'"
+                    f"floris_update_time must be specified for wake_method='{self.wake_method}'"
                 )
-            elif h_dict[self.component_name]["floris_update_time_s"] < 1:
+            elif h_dict[self.component_name]["floris_update_time"] < 1:
                 raise ValueError("FLORIS update time must be at least 1 second")
             else:
-                self.floris_update_time_s = h_dict[self.component_name]["floris_update_time_s"]
+                self.floris_update_time = h_dict[self.component_name]["floris_update_time"]
         else:
-            self.floris_update_time_s = None
+            self.floris_update_time = None
 
         self.logger.info("Reading in wind input file...")
 
@@ -204,7 +205,10 @@ class WindFarm(ComponentBase):
         self.logger.info("Initializing turbines...")
 
         # Get the turbine information
-        self.turbine_dict = load_yaml(self.turbine_file_name)
+        self.turbine_dict = load_yaml(self.turbine_filename)
+        check_renamed_keys(
+            self.turbine_dict.get("dof1_model", {}), f"Turbine file {self.turbine_filename}"
+        )
         self.turbine_model_type = self.turbine_dict["turbine_model_type"]
 
         # Initialize the turbine array
@@ -233,15 +237,16 @@ class WindFarm(ComponentBase):
                 [self.turbine_array[t_idx].prev_power for t_idx in range(self.n_turbines)],
                 dtype=hercules_float_type,
             )
+        self.turbine_powers_hypothetical = self.turbine_powers.copy()
 
         # Get the rated power of the turbines
         if self.use_vectorized_turbines:
-            self.rated_turbine_power = self.turbine_array.get_rated_power()
+            self.turbine_power_rated = self.turbine_array.get_power_rated()
         else:
-            self.rated_turbine_power = self.turbine_array[0].get_rated_power()
+            self.turbine_power_rated = self.turbine_array[0].get_power_rated()
 
         # Get the capacity of the farm
-        self.capacity = self.n_turbines * self.rated_turbine_power
+        self.capacity_rated = self.n_turbines * self.turbine_power_rated
 
         # Update the user
         self.logger.info(
@@ -259,7 +264,7 @@ class WindFarm(ComponentBase):
 
         # Initialize the FLORIS model as an ApproxFlorisModel
         self.fmodel = ApproxFlorisModel(
-            self.floris_input_file,
+            self.floris_input_filename,
             wd_resolution=1.0,
             ws_resolution=1.0,
         )
@@ -306,11 +311,11 @@ class WindFarm(ComponentBase):
         else:
             self.ti_mat_mean = 0.08 * np.ones_like(self.ws_mat_mean, dtype=hercules_float_type)
 
-        # Precompute the wake deficits at the cadence specified by floris_update_time_s
+        # Precompute the wake deficits at the cadence specified by floris_update_time
         self.logger.info("Precomputing FLORIS wake deficits...")
 
         # Derived step count
-        self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
+        self.floris_update_steps = max(1, int(self.floris_update_time / self.dt))
 
         # Determine update step cadence and indices to evaluate FLORIS
         update_steps = self.floris_update_steps
@@ -420,7 +425,7 @@ class WindFarm(ComponentBase):
         self.logger.info("Initializing FLORIS (dynamic mode)...")
 
         # Initialize the FLORIS model
-        self.fmodel = FlorisModel(self.floris_input_file)
+        self.fmodel = FlorisModel(self.floris_input_filename)
 
         # Change to the mixed operation model
         self.fmodel.set_operation_model("mixed")
@@ -431,7 +436,7 @@ class WindFarm(ComponentBase):
         self.n_turbines = self.fmodel.n_turbines
 
         # How often to update the wake deficits
-        self.floris_update_steps = int(self.floris_update_time_s / self.dt)
+        self.floris_update_steps = int(self.floris_update_time / self.dt)
         self.floris_update_steps = max(1, self.floris_update_steps)
 
         # Declare the power_setpoint buffer to hold previous power_setpoint commands
@@ -513,7 +518,7 @@ class WindFarm(ComponentBase):
         self.logger.info("Initializing FLORIS (no wake modeling)...")
 
         # Initialize the FLORIS model (still needed for turbine power curve)
-        self.fmodel = FlorisModel(self.floris_input_file)
+        self.fmodel = FlorisModel(self.floris_input_filename)
 
         # Get the layout and number of turbines from FLORIS
         self.layout_x = self.fmodel.layout_x
@@ -521,7 +526,7 @@ class WindFarm(ComponentBase):
         self.n_turbines = self.fmodel.n_turbines
 
         # floris_update_steps not used but set for consistency
-        # self.floris_update_steps = max(1, int(self.floris_update_time_s / self.dt))
+        # self.floris_update_steps = max(1, int(self.floris_update_time / self.dt))
 
         # Convert the wind directions and wind speeds and ti to numpy matrices
         if "ws_mean" in df_wi.columns and "ws_000" not in df_wi.columns:
@@ -583,12 +588,16 @@ class WindFarm(ComponentBase):
             dict: Dictionary containing simulation parameters with initial conditions and meta data.
         """
         h_dict[self.component_name]["n_turbines"] = self.n_turbines
-        h_dict[self.component_name]["capacity"] = self.capacity
-        h_dict[self.component_name]["rated_turbine_power"] = self.rated_turbine_power
+        h_dict[self.component_name]["capacity_rated"] = self.capacity_rated
+        h_dict[self.component_name]["turbine_power_rated"] = self.turbine_power_rated
         h_dict[self.component_name]["wind_direction_mean"] = self.wd_mat_mean[0]
         h_dict[self.component_name]["wind_speed_mean_background"] = self.ws_mat_mean[0]
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = (
+            self.turbine_powers_hypothetical
+        )
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers_hypothetical)
 
         # Log the start time UTC if available
         if hasattr(self, "starttime_utc"):
@@ -715,16 +724,18 @@ class WindFarm(ComponentBase):
         # Update the turbine powers (common for all wake models)
         if self.use_vectorized_turbines:
             # Vectorized calculation for all turbines at once
-            self.turbine_powers = self.turbine_array.step(
+            self.turbine_powers, self.turbine_powers_hypothetical = self.turbine_array.step(
                 self.wind_speeds_withwakes,
                 turbine_power_setpoints,
             )
         else:
             # Original loop-based calculation
             for t_idx in range(self.n_turbines):
-                self.turbine_powers[t_idx] = self.turbine_array[t_idx].step(
-                    self.wind_speeds_withwakes[t_idx],
-                    power_setpoint=turbine_power_setpoints[t_idx],
+                self.turbine_powers[t_idx], self.turbine_powers_hypothetical[t_idx] = (
+                    self.turbine_array[t_idx].step(
+                        self.wind_speeds_withwakes[t_idx],
+                        power_setpoint=turbine_power_setpoints[t_idx],
+                    )
                 )
 
         # Update instantaneous wind direction and wind speed
@@ -733,8 +744,11 @@ class WindFarm(ComponentBase):
 
         # Update the h_dict with outputs
         h_dict[self.component_name]["power"] = np.sum(self.turbine_powers)
+        h_dict[self.component_name]["power_hypothetical"] = np.sum(self.turbine_powers_hypothetical)
         h_dict[self.component_name]["turbine_powers"] = self.turbine_powers
-        h_dict[self.component_name]["turbine_power_setpoints"] = turbine_power_setpoints
+        h_dict[self.component_name]["turbine_powers_hypothetical"] = (
+            self.turbine_powers_hypothetical
+        )
         h_dict[self.component_name]["wind_direction_mean"] = self.wind_direction_mean
         h_dict[self.component_name]["wind_speed_mean_background"] = self.wind_speed_mean_background
         h_dict[self.component_name]["wind_speed_mean_withwakes"] = np.mean(
@@ -794,8 +808,9 @@ class TurbineFilterModelVectorized:
         self.prev_powers = np.interp(
             initial_wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
         ).astype(hercules_float_type)
+        self.prev_powers_hypothetical = self.prev_powers.copy()
 
-    def get_rated_power(self):
+    def get_power_rated(self):
         """Get the rated power of the turbine.
 
         Returns:
@@ -809,34 +824,38 @@ class TurbineFilterModelVectorized:
         This method calculates the power output of all wind turbines based on the
         given wind speeds and power setpoints. The power outputs are
         smoothed using an exponential moving average to simulate the turbines'
-        response to changing wind conditions.
+        response to changing wind conditions. The uncurtailed power is filtered
+        the same way without the setpoint limit.
 
         Args:
             wind_speeds (np.ndarray): Current wind speeds in m/s for all turbines.
             power_setpoints (np.ndarray): Maximum allowable power outputs in kW for all turbines.
 
         Returns:
-            np.ndarray: Calculated power outputs of all wind turbines, constrained
-                by the power setpoints and smoothed using the exponential moving average.
+            tuple: (powers, powers_hypothetical) arrays in kW of actual and uncurtailed power.
         """
         # Vectorized instantaneous power calculation using numpy interpolation
-        instant_powers = np.interp(
+        instant_powers_hypothetical = np.interp(
             wind_speeds, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
         )
 
-        # Vectorized limiting: current power not greater than power_setpoint
-        instant_powers = np.minimum(instant_powers, power_setpoints)
-
         # Vectorized limiting: instant power not less than 0
-        instant_powers = np.maximum(instant_powers, 0.0)
+        instant_powers_hypothetical = np.maximum(instant_powers_hypothetical, 0.0)
 
         # Handle NaNs by replacing with previous power values
-        nan_mask = np.isnan(instant_powers)
+        nan_mask = np.isnan(instant_powers_hypothetical)
         if np.any(nan_mask):
-            instant_powers[nan_mask] = self.prev_powers[nan_mask]
+            instant_powers_hypothetical[nan_mask] = self.prev_powers_hypothetical[nan_mask]
+
+        # Vectorized limiting: current power not greater than power_setpoint
+        instant_powers = np.minimum(instant_powers_hypothetical, power_setpoints)
 
         # Vectorized exponential filter update
         powers = self.alpha * instant_powers + (1 - self.alpha) * self.prev_powers
+        powers_hypothetical = (
+            self.alpha * instant_powers_hypothetical
+            + (1 - self.alpha) * self.prev_powers_hypothetical
+        )
 
         # Vectorized limiting: power not greater than power_setpoint
         powers = np.minimum(powers, power_setpoints)
@@ -846,9 +865,9 @@ class TurbineFilterModelVectorized:
 
         # Update the previous powers for all turbines
         self.prev_powers = powers.copy()
+        self.prev_powers_hypothetical = powers_hypothetical.copy()
 
-        # Return the powers
-        return powers
+        return powers, powers_hypothetical
 
 
 class Turbine1dofModel:
@@ -876,31 +895,31 @@ class Turbine1dofModel:
         self.turbine_dict = turbine_dict
 
         # Obtain required data from turbine_dict
-        self.rotor_inertia = self.turbine_dict["dof1_model"]["rotor_inertia"]
-        self.rated_rotor_speed = self.turbine_dict["dof1_model"]["rated_rotor_speed"]
-        self.rated_torque = self.turbine_dict["dof1_model"]["rated_torque"]
-        self.perffile = turbine_dict["dof1_model"]["cq_table_file"]
+        dof1 = self.turbine_dict["dof1_model"]
+        self.rotor_inertia = dof1["rotor_inertia"]
+        self.rotor_speed_rated = dof1["rotor_speed_rated"]  # [rad/s]
+        self.torque_rated = dof1["torque_rated"]
+        self.cq_table_filename = dof1["cq_table_filename"]
 
         # Set default values of optional parameters
-        self.rho = self.turbine_dict["dof1_model"].get("rho", 1.225)
-        self.filterfreq_rotor_speed = self.turbine_dict["dof1_model"].get(
-            "filterfreq_rotor_speed", 1.5708
-        )
-        self.gearbox_ratio = self.turbine_dict["dof1_model"].get("gearbox_ratio", 1.0)
-        self.initial_rpm = self.turbine_dict["dof1_model"].get("initial_rpm", 10)
-        self.gen_efficiency = self.turbine_dict["dof1_model"].get("gen_efficiency", 1.0)
-        self.max_pitch_rate = self.turbine_dict["dof1_model"].get("max_pitch_rate", np.inf)
-        self.max_torque_rate = self.turbine_dict["dof1_model"].get("max_torque_rate", np.inf)
+        self.rho = dof1.get("rho", 1.225)
+        self.rotor_speed_filter_frequency = dof1.get("rotor_speed_filter_frequency", 1.5708)
+        self.gearbox_ratio = dof1.get("gearbox_ratio", 1.0)
+        self.rotor_speed_initial_rpm = dof1.get("rotor_speed_initial_rpm", 10)
+        self.generator_efficiency = dof1.get("generator_efficiency", 1.0)
+        self.pitch_rate_max = dof1.get("pitch_rate_max", np.inf)
+        self.torque_rate_max = dof1.get("torque_rate_max", np.inf)
 
-        # Calculate rated power
-        self.rated_power = (
-            self.rated_torque * self.rated_rotor_speed * self.gearbox_ratio * self.gen_efficiency
+        # Calculate rated power [W]
+        self.power_rated = (
+            self.torque_rated
+            * self.rotor_speed_rated
+            * self.gearbox_ratio
+            * self.generator_efficiency
         )
 
         # Set filter parameter for rotor speed
-        self.filteralpha = np.exp(
-            -self.dt * self.turbine_dict["dof1_model"]["filterfreq_rotor_speed"]
-        )
+        self.filteralpha = np.exp(-self.dt * self.rotor_speed_filter_frequency)
 
         # Initialize the integrated controller error to 0
         self.omegaferror_integrated = 0.0
@@ -910,14 +929,18 @@ class Turbine1dofModel:
         self.rotor_radius = turbine_type["rotor_diameter"] / 2
         self.rotor_area = np.pi * self.rotor_radius**2
 
-        # Save performance data functions
-        perffile = turbine_dict["dof1_model"]["cq_table_file"]
-        self.perffuncs = self.load_perffile(perffile)
+        # Steady-state power curve, used for the uncurtailed power_hypothetical
+        self.wind_speed_lut = np.array(
+            turbine_type["power_thrust_table"]["wind_speed"], dtype=hercules_float_type
+        )
+        self.power_lut = np.array(
+            turbine_type["power_thrust_table"]["power"], dtype=hercules_float_type
+        )
 
-        self.rho = self.turbine_dict["dof1_model"]["rho"]
-        self.max_pitch_rate = self.turbine_dict["dof1_model"]["max_pitch_rate"]
-        self.max_torque_rate = self.turbine_dict["dof1_model"]["max_torque_rate"]
-        omega0 = self.turbine_dict["dof1_model"]["initial_rpm"] * RPM2RADperSec
+        # Save performance data functions
+        self.perffuncs = self.load_perffile(self.cq_table_filename)
+
+        omega0 = self.rotor_speed_initial_rpm * RPM2RADperSec
         pitch, gentq = self.simplecontroller(omega0)
         tsr = self.rotor_radius * omega0 / initial_wind_speed
         prev_power = (
@@ -926,7 +949,7 @@ class Turbine1dofModel:
             * self.rho
             * self.rotor_area
             * initial_wind_speed**3
-            * self.gen_efficiency
+            * self.generator_efficiency
         )
         self.prev_power = np.array(prev_power[0] / 1000.0, dtype=hercules_float_type)
         self.prev_omega = omega0
@@ -942,13 +965,13 @@ class Turbine1dofModel:
         self.prev_gentq = gentq
         self.prev_pitch = pitch
 
-    def get_rated_power(self):
+    def get_power_rated(self):
         """Get the rated power of the turbine.
 
         Returns:
             float: The rated power of the turbine in kW.
         """
-        return self.rated_power / 1000
+        return self.power_rated / 1000
 
     def step(self, wind_speed, power_setpoint):
         """Execute one simulation step for the 1-DOF turbine model.
@@ -961,7 +984,8 @@ class Turbine1dofModel:
             power_setpoint (float): Maximum allowable power output in kW.
 
         Returns:
-            float: Calculated turbine power output in kW.
+            tuple: (power, power_hypothetical) in kW, where power_hypothetical is the steady-state
+                uncurtailed power from the turbine power curve.
         """
         omega = (
             self.prev_omega
@@ -973,23 +997,23 @@ class Turbine1dofModel:
         pitch, gentq = self.simplecontroller(omegaf)
         tsr = float(omegaf * self.rotor_radius / wind_speed)
         desiredcp = 0
-        if power_setpoint < self.rated_power / 1000:
+        if power_setpoint < self.power_rated / 1000:
             desiredcp = (
                 power_setpoint
                 * 1000
-                / self.gen_efficiency
+                / self.generator_efficiency
                 / (0.5 * self.rho * self.rotor_area * wind_speed**3)
             )
             pitch = self.perffuncs["pitch"]([desiredcp, tsr])[0]
         pitch = np.clip(
             pitch,
-            self.prev_pitch - self.max_pitch_rate * self.dt,
-            self.prev_pitch + self.max_pitch_rate * self.dt,
+            self.prev_pitch - self.pitch_rate_max * self.dt,
+            self.prev_pitch + self.pitch_rate_max * self.dt,
         )
         gentq = np.clip(
             gentq,
-            self.prev_gentq - self.max_torque_rate * self.dt,
-            self.prev_gentq + self.max_torque_rate * self.dt,
+            self.prev_gentq - self.torque_rate_max * self.dt,
+            self.prev_gentq + self.torque_rate_max * self.dt,
         )
 
         aerotq = (
@@ -1001,7 +1025,7 @@ class Turbine1dofModel:
             * self.perffuncs["Cq"]([tsr, pitch])[0]
         )
 
-        power = gentq * omega * self.gearbox_ratio * self.gen_efficiency
+        power = gentq * omega * self.gearbox_ratio * self.generator_efficiency
 
         self.prev_omega = omega
         self.prev_aerotq = aerotq
@@ -1010,7 +1034,11 @@ class Turbine1dofModel:
         self.prev_omegaf = omegaf
         self.prev_power = power / 1000.0
 
-        return self.prev_power
+        power_hypothetical = np.interp(
+            wind_speed, self.wind_speed_lut, self.power_lut, left=0.0, right=0.0
+        )
+
+        return self.prev_power, power_hypothetical
 
     def simplecontroller(self, omegaf):
         """Simple controller to command pitch and generator torque.
@@ -1031,17 +1059,17 @@ class Turbine1dofModel:
         """
         omegaf_gen = omegaf * self.gearbox_ratio
 
-        if omegaf >= self.rated_rotor_speed:
+        if omegaf >= self.rotor_speed_rated:
             # Region-3
-            gentorque = self.rated_torque * self.rated_rotor_speed / omegaf
-            self.omegaferror_integrated += omegaf - self.rated_rotor_speed
+            gentorque = self.torque_rated * self.rotor_speed_rated / omegaf
+            self.omegaferror_integrated += omegaf - self.rotor_speed_rated
             pitch_i = (
                 self.turbine_dict["dof1_model"]["controller"]["ki_pitch"]
                 * self.dt
                 * self.omegaferror_integrated
             )
             pitch_p = self.turbine_dict["dof1_model"]["controller"]["kp_pitch"] * (
-                omegaf - self.rated_rotor_speed
+                omegaf - self.rotor_speed_rated
             )
             pitch = pitch_i + pitch_p
         else:
@@ -1051,7 +1079,7 @@ class Turbine1dofModel:
             self.omegaferror_integrated = 0.0
         return pitch, gentorque
 
-    def load_perffile(self, perffile):
+    def load_perffile(self, cq_table_filename):
         """Load and parse a wind turbine performance file.
 
         This function reads a performance file containing wind turbine coefficient data
@@ -1063,7 +1091,7 @@ class Turbine1dofModel:
         during simulation.
 
         Args:
-            perffile (str): Path to the performance file containing turbine coefficient data.
+            cq_table_filename (str): Path to the performance file with turbine coefficient data.
 
         Returns:
             dict: A dictionary containing RegularGridInterpolator objects for 'Cp', 'Ct', and 'Cq'
@@ -1071,7 +1099,7 @@ class Turbine1dofModel:
         """
         perffuncs = {}
 
-        with open(perffile) as pfile:
+        with open(cq_table_filename) as pfile:
             for line in pfile:
                 # Read Blade Pitch Angles (degrees)
                 if "Pitch angle" in line:

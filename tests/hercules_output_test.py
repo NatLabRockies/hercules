@@ -26,7 +26,8 @@ def create_test_hdf5_file(filename: str):
         f["data/step"] = np.array([0, 1, 2, 3, 4, 5])
 
         # Add plant data
-        f["data/plant_power"] = np.array([100, 200, 300, 400, 500, 600])
+        f["data/plant_power_bus"] = np.array([100, 200, 300, 400, 500, 600])
+        f["data/plant_power_export"] = np.array([100, 200, 300, 400, 500, 600])
         f["data/plant_locally_generated_power"] = np.array([90, 180, 270, 360, 450, 540])
 
         # Add components group
@@ -45,8 +46,6 @@ def create_test_hdf5_file(filename: str):
 
         # Add metadata
         f["metadata"].attrs["dt_sim"] = 1.0
-        f["metadata"].attrs["dt_log"] = 5.0
-        f["metadata"].attrs["log_every_n"] = 5
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567895.0
         f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
@@ -55,7 +54,7 @@ def create_test_hdf5_file(filename: str):
         import json
 
         test_h_dict = {
-            "simulation": {"dt_sim": 1.0, "dt_log": 5.0, "t_final": 30.0},
+            "simulation": {"dt_sim": 1.0, "t_final": 30.0},
             "plant": {"name": "test_plant"},
         }
         f["metadata"].attrs["h_dict"] = json.dumps(test_h_dict)
@@ -90,8 +89,6 @@ def test_hercules_output_metadata_access():
 
         # Test dot notation access
         assert ho.dt_sim == 1.0
-        assert ho.dt_log == 5.0
-        assert ho.log_every_n == 5
         assert ho.start_clock_time == 1234567890.0
         assert ho.end_clock_time == 1234567895.0
 
@@ -120,7 +117,8 @@ def test_hercules_output_data_access():
         assert len(data) == 6  # 6 time steps
         assert "time" in data.columns
         assert "step" in data.columns
-        assert "plant.power" in data.columns
+        assert "plant.power_bus" in data.columns
+        assert "plant.power_export" in data.columns
         assert "plant.locally_generated_power" in data.columns
         assert "wind_farm.power" in data.columns
         assert "solar_farm.power" in data.columns
@@ -129,7 +127,7 @@ def test_hercules_output_data_access():
 
         # Test some values
         np.testing.assert_array_equal(data["time"], [0, 1, 2, 3, 4, 5])
-        np.testing.assert_array_equal(data["plant.power"], [100, 200, 300, 400, 500, 600])
+        np.testing.assert_array_equal(data["plant.power_bus"], [100, 200, 300, 400, 500, 600])
 
     finally:
         os.unlink(temp_file)
@@ -174,3 +172,30 @@ def test_hercules_output_print_metadata():
 
     finally:
         os.unlink(temp_file)
+
+
+def test_hercules_output_merges_controller_log():
+    """Controller log is prefixed, arrays expanded, and aligned on time with NaN gaps."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        h5_file = os.path.join(tmp_dir, "out.h5")
+        create_test_hdf5_file(h5_file)
+        # Time 3 deliberately missing; name collides with a possible Hercules column
+        pd.DataFrame(
+            {
+                "time": [0, 1, 2, 4, 5],
+                "battery.power_setpoint": [10.0, 11.0, 12.0, 14.0, 15.0],
+                "wind_farm.turbine_setpoints": [np.array([1.0, 2.0])] * 5,
+            }
+        ).to_pickle(os.path.join(tmp_dir, "out_controller_log.pkl"))
+
+        df = HerculesOutput(h5_file).df
+
+        assert len(df) == 6
+        assert "battery.power_setpoint" not in df.columns
+        np.testing.assert_array_equal(
+            df["controller.battery.power_setpoint"], [10.0, 11.0, 12.0, np.nan, 14.0, 15.0]
+        )
+        np.testing.assert_array_equal(
+            df["controller.wind_farm.turbine_setpoints.001"], [2.0, 2.0, 2.0, np.nan, 2.0, 2.0]
+        )
+        assert "controller.wind_farm.turbine_setpoints.000" in df.columns

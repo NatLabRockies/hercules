@@ -6,6 +6,7 @@ from tests.test_inputs.h_dict import h_dict_electrolyzer
 
 
 def test_allow_grid_power_consumption():
+    # Calls step() directly, so power_setpoint uses the internal sign (consumption positive)
     # Test with allow_grid_power_consumption = False
     test_h_dict = copy.deepcopy(h_dict_electrolyzer)
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
@@ -15,7 +16,7 @@ def test_allow_grid_power_consumption():
             "locally_generated_power": 3000,
         },
         "electrolyzer": {
-            "electrolyzer_signal": 2000,
+            "power_setpoint": 2000,
         },
     }
 
@@ -26,7 +27,7 @@ def test_allow_grid_power_consumption():
     # Match locally available power
     test_h_dict = copy.deepcopy(h_dict_electrolyzer)
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
-    step_inputs["electrolyzer"]["electrolyzer_signal"] = 3000
+    step_inputs["electrolyzer"]["power_setpoint"] = 3000
     for _ in range(100):  # Run 100 steps
         out = electrolyzer.step(step_inputs)
     H2_output_3000 = out["electrolyzer"]["H2_output"]
@@ -36,7 +37,7 @@ def test_allow_grid_power_consumption():
     # Ask exceeds locally available power
     test_h_dict = copy.deepcopy(h_dict_electrolyzer)
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
-    step_inputs["electrolyzer"]["electrolyzer_signal"] = 4000
+    step_inputs["electrolyzer"]["power_setpoint"] = 4000
     for _ in range(100):  # Run 100 steps
         out = electrolyzer.step(step_inputs)
     H2_output_4000 = out["electrolyzer"]["H2_output"]
@@ -47,7 +48,7 @@ def test_allow_grid_power_consumption():
     test_h_dict["electrolyzer"]["allow_grid_power_consumption"] = True
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
 
-    step_inputs["electrolyzer"]["electrolyzer_signal"] = 2000
+    step_inputs["electrolyzer"]["power_setpoint"] = 2000
     for _ in range(100):  # Run 100 steps
         out = electrolyzer.step(step_inputs)
     H2_output_2000 = out["electrolyzer"]["H2_output"]
@@ -55,7 +56,7 @@ def test_allow_grid_power_consumption():
     test_h_dict = copy.deepcopy(h_dict_electrolyzer)
     test_h_dict["electrolyzer"]["allow_grid_power_consumption"] = True
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
-    step_inputs["electrolyzer"]["electrolyzer_signal"] = 3000
+    step_inputs["electrolyzer"]["power_setpoint"] = 3000
     for _ in range(100):  # Run 100 steps
         out = electrolyzer.step(step_inputs)
     H2_output_3000 = out["electrolyzer"]["H2_output"]
@@ -64,7 +65,7 @@ def test_allow_grid_power_consumption():
     test_h_dict = copy.deepcopy(h_dict_electrolyzer)
     test_h_dict["electrolyzer"]["allow_grid_power_consumption"] = True
     electrolyzer = ElectrolyzerPlant(test_h_dict, "electrolyzer")
-    step_inputs["electrolyzer"]["electrolyzer_signal"] = 4000
+    step_inputs["electrolyzer"]["power_setpoint"] = 4000
     for _ in range(100):  # Run 100 steps
         out = electrolyzer.step(step_inputs)
     H2_output_4000 = out["electrolyzer"]["H2_output"]

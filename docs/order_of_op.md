@@ -26,5 +26,6 @@ For each time step:
 Within each hybrid plant step:
 - All components execute their `step()` method in parallel
 - Each component updates its internal state and outputs
-- Plant-level power is computed as sum of all component powers
-- Locally generated power is computed as sum of generator component powers (excluding storage/electrolyzer)
+- `plant.power_bus` is computed as the sum of all component powers
+- `plant.power_export` applies `plant.efficiency_bus_to_poi` to `plant.power_bus`
+- `plant.locally_generated_power` is computed as the sum of generator component powers (excluding storage/electrolyzer)

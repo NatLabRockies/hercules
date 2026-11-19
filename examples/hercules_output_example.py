@@ -30,13 +30,14 @@ def create_example_hdf5_file(filename: str):
         f["data/step"] = np.arange(len(time_steps))
 
         # Add plant data (simulated power output)
-        plant_power = (
+        plant_power_bus = (
             100
             + 50 * np.sin(time_steps / 3600 * 2 * np.pi)
             + np.random.normal(0, 5, len(time_steps))
         )
-        f["data/plant_power"] = plant_power
-        f["data/plant_locally_generated_power"] = plant_power * 0.95
+        f["data/plant_power_bus"] = plant_power_bus
+        f["data/plant_power_export"] = plant_power_bus
+        f["data/plant_locally_generated_power"] = plant_power_bus * 0.95
 
         # Add components group
         components_group = f.create_group("data/components")
@@ -67,9 +68,7 @@ def create_example_hdf5_file(filename: str):
         external_signals_group["external_signals.temperature"] = temperature
 
         # Add metadata
-        f["metadata"].attrs["dt_sim"] = 1.0
-        f["metadata"].attrs["dt_log"] = 300.0
-        f["metadata"].attrs["log_every_n"] = 300
+        f["metadata"].attrs["dt_sim"] = 300.0
         f["metadata"].attrs["start_clock_time"] = 1234567890.0
         f["metadata"].attrs["end_clock_time"] = 1234567890.0 + 21600
         f["metadata"].attrs["starttime_utc"] = 1234567890.0  # Unix timestamp for UTC time
@@ -77,7 +76,7 @@ def create_example_hdf5_file(filename: str):
 
         # Add h_dict as JSON string
         example_h_dict = {
-            "simulation": {"dt_sim": 1.0, "dt_log": 300.0, "t_final": 21600.0},
+            "simulation": {"dt_sim": 300.0, "t_final": 21600.0},
             "plant": {"name": "example_hybrid_plant", "components": ["wind_farm", "solar_farm"]},
             "wind_farm": {"type": "wind_meso_to_power", "capacity_mw": 100.0},
             "solar_farm": {"type": "solar_pysam_pvwatts", "capacity_mw": 50.0},
@@ -108,8 +107,6 @@ def main():
         # Access metadata with dot notation
         print("Metadata Access:")
         print(f"  Simulation time step: {ho.dt_sim} seconds")
-        print(f"  Logging time step: {ho.dt_log} seconds")
-        print(f"  Log every N steps: {ho.log_every_n}")
         print(f"  Simulation duration: {ho.end_clock_time - ho.start_clock_time:.1f} seconds")
         print()
 
@@ -136,8 +133,8 @@ def main():
 
         # Show some data statistics
         print("Data Statistics:")
-        print(f"  Plant power - Mean: {data['plant.power'].mean():.1f} MW")
-        print(f"  Plant power - Max: {data['plant.power'].max():.1f} MW")
+        print(f"  Plant power - Mean: {data['plant.power_bus'].mean():.1f} MW")
+        print(f"  Plant power - Max: {data['plant.power_bus'].max():.1f} MW")
         print(f"  Wind farm power - Mean: {data['wind_farm.power'].mean():.1f} MW")
         print(f"  Solar farm power - Mean: {data['solar_farm.power'].mean():.1f} MW")
         print(f"  Wind speed - Mean: {data['external_signals.wind_speed'].mean():.1f} m/s")

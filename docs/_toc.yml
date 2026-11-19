@@ -16,6 +16,7 @@ parts:
     chapters:
     - file: key_concepts
     - file: units
+    - file: nomenclature
     - file: timing
     - file: h_dict
     - file: hybrid_plant

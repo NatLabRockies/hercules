@@ -117,12 +117,12 @@ def update_input_file_paths_for_test(temp_dir, input_file, test_inputs_dir):
 
     # Update paths in wind_farm section to use test inputs
     if "wind_farm" in h_dict:
-        if "floris_input_file" in h_dict["wind_farm"]:
+        if "floris_input_filename" in h_dict["wind_farm"]:
             # Use absolute path to centralized FLORIS config (it's not modified by tests)
             repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
             centralized_inputs_dir = os.path.join(repo_root, "examples", "inputs")
-            filename = os.path.basename(h_dict["wind_farm"]["floris_input_file"])
-            h_dict["wind_farm"]["floris_input_file"] = os.path.join(
+            filename = os.path.basename(h_dict["wind_farm"]["floris_input_filename"])
+            h_dict["wind_farm"]["floris_input_filename"] = os.path.join(
                 centralized_inputs_dir, filename
             )
 
@@ -131,14 +131,12 @@ def update_input_file_paths_for_test(temp_dir, input_file, test_inputs_dir):
             filename = os.path.basename(h_dict["wind_farm"]["wind_input_filename"])
             h_dict["wind_farm"]["wind_input_filename"] = os.path.join(test_inputs_dir, filename)
 
-        if "turbine_file_name" in h_dict["wind_farm"]:
+        if "turbine_filename" in h_dict["wind_farm"]:
             # Use absolute path to centralized turbine config (it's not modified by tests)
             repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
             centralized_inputs_dir = os.path.join(repo_root, "examples", "inputs")
-            filename = os.path.basename(h_dict["wind_farm"]["turbine_file_name"])
-            h_dict["wind_farm"]["turbine_file_name"] = os.path.join(
-                centralized_inputs_dir, filename
-            )
+            filename = os.path.basename(h_dict["wind_farm"]["turbine_filename"])
+            h_dict["wind_farm"]["turbine_filename"] = os.path.join(centralized_inputs_dir, filename)
 
     # Update paths in solar_farm section to use test inputs
     if "solar_farm" in h_dict:
@@ -196,7 +194,7 @@ def print_expected_values():
             # Print the final values
             final_wind_power = df["wind_farm.power"].iloc[-1]
             final_solar_power = df["solar_farm.power"].iloc[-1]
-            final_plant_power = df["plant.power"].iloc[-1]
+            final_plant_power = df["plant.power_bus"].iloc[-1]
 
             print(f"Expected values for {EXAMPLE_NAME}:")
             print(f"EXPECTED_FINAL_WIND_POWER = {final_wind_power}")

@@ -43,7 +43,7 @@ for k, unit_name in enumerate(unit_names):
         color="C" + str(k),
     )
     ax.axhline(
-        h_dict[component_name][unit_name]["rated_capacity"] / 1000,
+        h_dict[component_name][unit_name]["capacity_rated"] / 1000,
         color="gray",
         linestyle=":",
         label="Unit rated capacity",
@@ -63,7 +63,7 @@ for k, unit_name in enumerate(unit_names):
 
 ax = axarr[0]
 ax.axhline(
-    h_dict[component_name]["rated_capacity"] / 1000,
+    h_dict[component_name]["capacity_rated"] / 1000,
     color="black",
     linestyle=":",
     label="Plant rated capacity",

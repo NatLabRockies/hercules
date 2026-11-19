@@ -83,17 +83,18 @@ class MyComponent(ComponentBase):
 | Requirement | Description |
 |---|---|
 | `component_category` | Must be `"generator"`, `"storage"`, or `"load"`. Generators contribute to `locally_generated_power`. |
+| Naming | All inputs and outputs must follow [Nomenclature](nomenclature.md). |
 | `super().__init__()` | Sets `self.component_name`, `self.component_type`, `self.dt`, `self.starttime`, and configures logging. |
 | `power` output | All components must write a `power` value to `h_dict[self.component_name]["power"]` in the `step` method. |
 | Return `h_dict` | Both `get_initial_conditions_and_meta_data` and `step` must return the modified `h_dict`. |
 
 ### Component Categories
 
-- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`.  Generator power should be positive signed to represent production.
-- **`storage`**: Stores and releases power (batteries). Sign convention is automatically handled by `HybridPlant` in the following way.  It is assumed at the component model level, battery dischage is negatively signed.  At the plant level `HybridPlant` inverts the sign of the setpoint going into the battery component model, and inverts the power output coming out of the battery component model.  This way at the plant level, positive power represents discharge/production, consistent with the generator category.
-- **`load`**: Consumes power (electrolyzers).  Power of loads should be negative signed to represent consumption.
+- **`generator`**: Produces power (wind, solar, gas turbine). Power is summed into `locally_generated_power`. Generator power is positive.
+- **`storage`**: Stores and releases power (batteries). Inside the component, charging is positive. List the outputs that carry this sign in the `consumer_sign_outputs` class attribute; `HybridPlant` passes the component a negated `power_setpoint` and negates those outputs, so that outside the component discharge is positive (see [Nomenclature](nomenclature.md#sign-convention)).
+- **`load`**: Consumes power (electrolyzers). Same as storage: consumption is positive inside the component and negative outside.
 
-While only generator power is included in `locally_generated_power`, all categories' power are combined into the total plant power in the `HybridPlant` class.
+While only generator power is included in `locally_generated_power`, all categories' power are summed into `plant.power_bus` in the `HybridPlant` class.
 
 ## Step 2: Register the Component
 

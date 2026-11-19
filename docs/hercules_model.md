@@ -16,6 +16,7 @@ from hercules.hercules_model import HerculesModel
 # Initialize the Hercules model
 hmodel = HerculesModel("hercules_input.yaml")
 
+
 # Define your controller class
 class MyController:
     def __init__(self, h_dict):
@@ -25,6 +26,7 @@ class MyController:
     def step(self, h_dict):
         # Implement control logic
         return h_dict
+
 
 # Assign the controller to the model
 hmodel.assign_controller(MyController(hmodel.h_dict))
@@ -56,21 +58,14 @@ For each time step:
 
 ### Logging Configuration
 
-The HerculesModel supports configurable logging frequency through the `log_every_n` parameter:
-
-- **`log_every_n`** (int, optional): Controls how often simulation data is logged to the output file.
-  - Default: 1 (log every simulation step)
-  - Example: `log_every_n: 5` logs data every 5 simulation steps
-  - This reduces output file size and improves performance for long simulations
+HerculesModel logs every simulation step to the output file. This is a fixed assumption: the logging time step always equals the simulation time step `dt`.
 
 ### Output File Generation
 
 The HerculesModel generates HDF5 output files containing comprehensive simulation data for analysis and visualization.
 
 The output file includes metadata with:
-- `dt_sim`: Simulation time step (seconds)
-- `dt_log`: Logging time step (seconds) = `dt_sim * log_every_n`
-- `log_every_n`: Logging stride value
+- `dt_sim`: Simulation time step (seconds), which is also the output time step
 - `start_clock_time` and `end_clock_time`: Wall clock timing information
 
 

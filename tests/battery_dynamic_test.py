@@ -2,8 +2,8 @@ import copy
 
 import numpy as np
 import pytest
+from hercules.plant_components.battery_dynamic import BatteryDynamic
 from hercules.plant_components.battery_lithium_ion import BatteryLithiumIon
-from hercules.plant_components.battery_simple import BatterySimple
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 from tests.test_inputs.h_dict import h_dict_lib_battery, h_dict_simple_battery
@@ -11,7 +11,7 @@ from tests.test_inputs.h_dict import h_dict_lib_battery, h_dict_simple_battery
 
 def create_simple_battery():
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    return BatterySimple(test_h_dict, "battery")
+    return BatteryDynamic(test_h_dict, "battery")
 
 
 def create_LIB():
@@ -40,82 +40,91 @@ def step_inputs(P_avail, P_signal):
 
 def test_SB_init():
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     assert SB.dt == test_h_dict["dt"]
     assert SB.SOC == test_h_dict["battery"]["initial_conditions"]["SOC"]
     assert SB.SOC_min == 0.0
     assert SB.SOC_max == 1.0
-    assert SB.P_min == -2000
-    assert SB.P_max == 2000
-    assert SB.P_max > SB.P_min
+    assert SB.power_min == -2000
+    assert SB.power_max == 2000
+    assert SB.power_max > SB.power_min
     assert SB.energy_capacity == test_h_dict["battery"]["energy_capacity"]
-    assert SB.eta_charge == 1
-    assert SB.eta_discharge == 1
-    assert SB.tau_self_discharge == np.inf
-    assert not SB.track_usage
-    assert SB.usage_calc_interval == np.inf
-    assert SB.power_kw == 0
-    assert SB.P_reject == 0
-    assert SB.P_charge == 0
+    assert SB.efficiency_charge == 1
+    assert SB.efficiency_discharge == 1
+    assert SB.time_constant_self_discharge == np.inf
+    assert SB.power_charge == 0
+    assert SB.power_reject_charge == 0
+    assert SB.power_charge == 0
 
-    # Test with additional parameters
+    # Roundtrip efficiency is applied entirely on charging
     test_h_dict2 = copy.deepcopy(test_h_dict)
     test_h_dict2["battery"]["roundtrip_efficiency"] = 0.9
-    test_h_dict2["battery"]["self_discharge_time_constant"] = 100
-    test_h_dict2["battery"]["track_usage"] = True
-    test_h_dict2["battery"]["usage_calc_interval"] = 100
-    test_h_dict2["battery"]["usage_lifetime"] = 0.1
-    test_h_dict2["battery"]["usage_cycles"] = 10
-    SB = BatterySimple(test_h_dict2, "battery")
-    assert SB.eta_charge == np.sqrt(0.9)
-    assert SB.eta_discharge == np.sqrt(0.9)
-    assert SB.tau_self_discharge == 100
-    assert SB.track_usage
-    assert SB.usage_calc_interval == 100 / test_h_dict2["dt"]
-    assert SB.usage_time_rate == 1 / (0.1 * 365 * 24 * 3600 / test_h_dict2["dt"])
-    assert SB.usage_cycles_rate == 1 / 10
+    test_h_dict2["battery"]["time_constant_self_discharge"] = 100
+    SB = BatteryDynamic(test_h_dict2, "battery")
+    assert SB.efficiency_charge == 0.9
+    assert SB.efficiency_discharge == 1
+    assert SB.time_constant_self_discharge == 100
 
 
-def test_SB_control_power_constraint(SB: BatterySimple):
+def test_SB_removed_usage_keys_raise():
+    # Removed usage-tracking inputs fail loudly rather than being silently ignored
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["track_usage"] = True
+    with pytest.raises(ValueError, match="track_usage"):
+        BatteryDynamic(test_h_dict, "battery")
+
+
+def test_SB_control_power_constraint(SB: BatteryDynamic):
     out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
     assert out["battery"]["power"] == 2e3
-    assert out["battery"]["reject"] == 0.5e3
+    assert out["battery"]["power_reject"] == 0.5e3
     out = SB.step(step_inputs(P_avail=3e3, P_signal=-2.5e3))
     assert out["battery"]["power"] == -2e3
-    assert out["battery"]["reject"] == -0.5e3
+    assert out["battery"]["power_reject"] == -0.5e3
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
     assert out["battery"]["power"] == 0.25e3
-    assert out["battery"]["reject"] == 0.75e3
+    assert out["battery"]["power_reject"] == 0.75e3
 
 
-def test_SB_control_energy_constraint(SB: BatterySimple):
-    SB.E = SB.E_min + 500
-    SB.x[0, 0] = SB.E
+def test_SB_control_energy_constraint(SB: BatteryDynamic):
+    SB.energy_kJ = SB.energy_min_kJ + 500
+    SB.x[0, 0] = SB.energy_kJ
     out = SB.step(step_inputs(P_avail=3e3, P_signal=-1.5e3))
     assert out["battery"]["power"] == -500
-    assert out["battery"]["reject"] == -1000
-    SB.E = SB.E_max - 500
-    SB.x[0, 0] = SB.E
+    assert out["battery"]["power_reject"] == -1000
+    SB.energy_kJ = SB.energy_max_kJ - 500
+    SB.x[0, 0] = SB.energy_kJ
     out = SB.step(step_inputs(P_avail=3e3, P_signal=1.5e3))
     assert out["battery"]["power"] == 500
-    assert out["battery"]["reject"] == 1000
+    assert out["battery"]["power_reject"] == 1000
 
 
-def test_SB_step(SB: BatterySimple):
+def test_SB_step(SB: BatteryDynamic):
     SB.step(step_inputs(P_avail=1e3, P_signal=1e3))
-    assert_almost_equal(SB.E, 144001000, decimal=-2)
-    assert_almost_equal(SB.current_batt_state, 40000.277, decimal=1)
+    assert_almost_equal(SB.energy_kJ, 144001000, decimal=-2)
+    assert_almost_equal(SB.energy, 40000.277, decimal=1)
     assert_almost_equal(SB.SOC, 0.50000347, decimal=6)
-    assert SB.P_charge == 1e3
-    SB.E = SB.E_min + 5e3
-    SB.x[0, 0] = SB.E
+    assert SB.power_charge == 1e3
+    SB.energy_kJ = SB.energy_min_kJ + 5e3
+    SB.x[0, 0] = SB.energy_kJ
     for i in range(4):
         SB.step(step_inputs(P_avail=1e3, P_signal=-2e3))
-    assert SB.E == 0
-    assert SB.current_batt_state == 0
+    assert SB.energy_kJ == 0
+    assert SB.energy == 0
     assert SB.SOC == 0
-    assert SB.P_charge == 0
+    assert SB.power_charge == 0
+
+
+def test_SB_small_charge_is_stored():
+    # A 2 kW charge on an 80 MWh battery must still accumulate energy (no float32 rounding)
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
+    SB = BatteryDynamic(test_h_dict, "battery")
+    E0 = SB.x[0, 0]
+    for _ in range(10):
+        SB.step(step_inputs(P_avail=1e6, P_signal=2.0))
+    assert_almost_equal(SB.x[0, 0] - E0, 10 * 2.0 * 0.9 * test_h_dict["dt"], decimal=6)
 
 
 def test_LI_init():
@@ -124,11 +133,11 @@ def test_LI_init():
     LI = BatteryLithiumIon(test_h_dict, "battery")
     assert LI.dt == test_h_dict["dt"]
     assert LI.SOC == test_h_dict["battery"]["initial_conditions"]["SOC"]
-    assert LI.SOC_min == test_h_dict["battery"]["min_SOC"]
-    assert LI.SOC_max == test_h_dict["battery"]["max_SOC"]
-    assert_almost_equal(LI.P_min, -2000, 6)
-    assert_almost_equal(LI.P_max, 2000, 6)
-    assert LI.P_max > LI.P_min
+    assert LI.SOC_min == test_h_dict["battery"]["SOC_min"]
+    assert LI.SOC_max == test_h_dict["battery"]["SOC_max"]
+    assert_almost_equal(LI.power_min, -2000, 6)
+    assert_almost_equal(LI.power_max, 2000, 6)
+    assert LI.power_max > LI.power_min
     assert LI.energy_capacity == test_h_dict["battery"]["energy_capacity"]
 
 
@@ -226,7 +235,7 @@ def test_LI_control(LI):
         LI.step(step_inputs(P_avail, P_signal))
     out2 = LI.step(step_inputs(P_avail, P_signal))
 
-    assert np.abs(out1["battery"]["reject"]) >= np.abs(out2["battery"]["reject"])
+    assert np.abs(out1["battery"]["power_reject"]) >= np.abs(out2["battery"]["power_reject"])
 
 
 def test_LI_constraints(LI):
@@ -263,44 +272,71 @@ def test_LI_constraints(LI):
     assert I_reject == -220.0000000001637
 
 
-def test_allow_grid_power_consumption(SB: BatterySimple):
+def test_allow_grid_power_consumption(SB: BatteryDynamic):
     # Test with allow_grid_power_consumption = True
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     # Ask exceeds rated power
     out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
     assert out["battery"]["power"] == 2e3
-    assert out["battery"]["reject"] == 0.5e3
+    assert out["battery"]["power_reject"] == 0.5e3
 
     test_h_dict["battery"]["allow_grid_power_consumption"] = False
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     out = SB.step(step_inputs(P_avail=3e3, P_signal=2.5e3))
     assert out["battery"]["power"] == 2e3
-    assert out["battery"]["reject"] == 0.5e3
+    assert out["battery"]["power_reject"] == 0.5e3
 
     out = SB.step(step_inputs(P_avail=1e3, P_signal=2.5e3))
     assert out["battery"]["power"] == 1e3
-    assert out["battery"]["reject"] == 1.5e3
+    assert out["battery"]["power_reject"] == 1.5e3
 
     # Ask is under rated power
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
     assert out["battery"]["power"] == 1e3  # Ignores P_avail, as expected
-    assert out["battery"]["reject"] == 0
+    assert out["battery"]["power_reject"] == 0
 
     test_h_dict["battery"]["allow_grid_power_consumption"] = False
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
     out = SB.step(step_inputs(P_avail=0.25e3, P_signal=1e3))
     assert out["battery"]["power"] == 0.25e3  # Uses P_avail
-    assert out["battery"]["reject"] == 0.75e3  # "Rejects" the rest of the signal ask
+    assert out["battery"]["power_reject"] == 0.75e3  # "Rejects" the rest of the signal ask
+
+
+def test_SB_charge_and_discharge_time():
+    # Full discharge lasts energy_capacity / power_discharge_max = 4 h; full charge lasts
+    # energy_capacity / (roundtrip_efficiency * power_charge_max) = 4000 / (0.8 * 500) = 10 h
+    test_h_dict = copy.deepcopy(h_dict_simple_battery)
+    test_h_dict["dt"] = 60.0
+    test_h_dict["battery"]["energy_capacity"] = 4000.0
+    test_h_dict["battery"]["power_charge_max"] = 500.0
+    test_h_dict["battery"]["power_discharge_max"] = 1000.0
+    test_h_dict["battery"]["roundtrip_efficiency"] = 0.8
+
+    test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
+    SB = BatteryDynamic(copy.deepcopy(test_h_dict), "battery")
+    powers = [
+        SB.step(step_inputs(P_avail=0.0, P_signal=-1000.0))["battery"]["power"] for _ in range(300)
+    ]
+    assert sum(abs(p) > 1e-6 for p in powers) * 60.0 / 3600 == pytest.approx(4.0)
+    assert SB.SOC == pytest.approx(0.0, abs=1e-9)
+
+    test_h_dict["battery"]["initial_conditions"] = {"SOC": 0.0}
+    SB = BatteryDynamic(copy.deepcopy(test_h_dict), "battery")
+    powers = [
+        SB.step(step_inputs(P_avail=1e6, P_signal=500.0))["battery"]["power"] for _ in range(700)
+    ]
+    assert sum(abs(p) > 1e-6 for p in powers) * 60.0 / 3600 == pytest.approx(10.0)
+    assert SB.SOC == pytest.approx(1.0)
 
 
 def test_SB_roundtrip_efficiency():
-    """Test round-trip efficiency for BatterySimple.
+    """Test round-trip efficiency for BatteryDynamic.
 
     Tests that a complete charge-discharge cycle returns the expected
     amount of energy based on the specified round-trip efficiency.
@@ -310,15 +346,15 @@ def test_SB_roundtrip_efficiency():
     test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
-    # Verify efficiency parameters are set correctly
-    assert_almost_equal(SB.eta_charge, np.sqrt(0.9), 6)
-    assert_almost_equal(SB.eta_discharge, np.sqrt(0.9), 6)
-    assert_almost_equal(SB.eta_charge * SB.eta_discharge, 0.9, 6)
+    # Roundtrip efficiency is applied entirely on charging
+    assert_almost_equal(SB.efficiency_charge, 0.9, 6)
+    assert_almost_equal(SB.efficiency_discharge, 1.0, 6)
+    assert_almost_equal(SB.efficiency_charge * SB.efficiency_discharge, 0.9, 6)
 
     # Record initial state
-    initial_energy = SB.current_batt_state
+    initial_energy = SB.energy
 
     # Use a smaller test that won't hit SOC limits
     # Charge with 500 kW for 30 minutes (250 kWh input)
@@ -329,11 +365,11 @@ def test_SB_roundtrip_efficiency():
         SB.step(step_inputs(P_avail=charge_power, P_signal=charge_power))
 
     # Record state after charging
-    charged_energy = SB.current_batt_state
+    charged_energy = SB.energy
     energy_stored = charged_energy - initial_energy
 
-    # Expected stored energy should be charge_power * 0.5hr * eta_charge
-    expected_stored = charge_power * 0.5 * SB.eta_charge  # 250 * sqrt(0.9)
+    # Expected stored energy should be charge_power * 0.5hr * efficiency_charge
+    expected_stored = charge_power * 0.5 * SB.efficiency_charge  # 250 * 0.9
     assert_almost_equal(energy_stored, expected_stored, 1)
 
     # Now discharge the battery with the same power magnitude for the same time
@@ -343,7 +379,7 @@ def test_SB_roundtrip_efficiency():
         SB.step(step_inputs(P_avail=0, P_signal=discharge_power))
 
     # Record final state
-    final_energy = SB.current_batt_state
+    final_energy = SB.energy
 
     # Calculate net energy change
     net_energy_change = final_energy - initial_energy
@@ -366,19 +402,19 @@ def test_SB_roundtrip_efficiency():
 
 
 def test_SB_roundtrip_efficiency_perfect():
-    """Test that BatterySimple with perfect efficiency (1.0) has no losses."""
+    """Test that BatteryDynamic with perfect efficiency (1.0) has no losses."""
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
     test_h_dict["battery"]["roundtrip_efficiency"] = 1.0
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     # Verify perfect efficiency
-    assert SB.eta_charge == 1.0
-    assert SB.eta_discharge == 1.0
+    assert SB.efficiency_charge == 1.0
+    assert SB.efficiency_discharge == 1.0
 
     # Record initial state
-    initial_energy = SB.current_batt_state
+    initial_energy = SB.energy
 
     # Charge and discharge cycle
     charge_power = 300  # kW
@@ -393,7 +429,7 @@ def test_SB_roundtrip_efficiency_perfect():
         SB.step(step_inputs(P_avail=0, P_signal=-charge_power))
 
     # Final energy should equal initial energy (no losses)
-    final_energy = SB.current_batt_state
+    final_energy = SB.energy
     assert_almost_equal(final_energy, initial_energy, 2)
 
 
@@ -406,10 +442,10 @@ def test_SB_roundtrip_efficiency_various_values():
         test_h_dict["battery"]["roundtrip_efficiency"] = rte
         test_h_dict["battery"]["allow_grid_power_consumption"] = True
         test_h_dict["battery"]["initial_conditions"]["SOC"] = 0.5  # Start at middle SOC
-        SB = BatterySimple(test_h_dict, "battery")
+        SB = BatteryDynamic(test_h_dict, "battery")
 
         # Small charge-discharge cycle to avoid SOC limits
-        initial_energy = SB.current_batt_state
+        initial_energy = SB.energy
 
         charge_power = 200  # kW
         time_steps = int(900 / SB.dt)  # 15 minutes
@@ -423,7 +459,7 @@ def test_SB_roundtrip_efficiency_various_values():
             SB.step(step_inputs(P_avail=0, P_signal=-charge_power))
 
         # Verify the round-trip efficiency
-        final_energy = SB.current_batt_state
+        final_energy = SB.energy
         energy_loss = initial_energy - final_energy
         energy_throughput = charge_power * (time_steps * SB.dt / 3600)  # kWh
 
@@ -438,7 +474,7 @@ def test_SB_roundtrip_efficiency_various_values():
 
 
 def test_SB_discharge_duration_invariant():
-    """Test that discharge duration equals energy_capacity / discharge_rate regardless of RTE.
+    """Test that discharge duration equals energy_capacity / power_discharge_max regardless of RTE.
 
     A 4 MWh battery with 1 MW discharge rate should take exactly 4 hours to fully
     discharge, even when roundtrip efficiency < 1. The RTE losses should not reduce
@@ -446,16 +482,16 @@ def test_SB_discharge_duration_invariant():
     """
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
     test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
-    test_h_dict["battery"]["charge_rate"] = 1000  # 1 MW
-    test_h_dict["battery"]["discharge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["power_charge_max"] = 1000  # 1 MW
+    test_h_dict["battery"]["power_discharge_max"] = 1000  # 1 MW
     test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
-    test_h_dict["battery"]["max_SOC"] = 1.0
-    test_h_dict["battery"]["min_SOC"] = 0.0
+    test_h_dict["battery"]["SOC_max"] = 1.0
+    test_h_dict["battery"]["SOC_min"] = 0.0
     test_h_dict["battery"]["initial_conditions"] = {"SOC": 1.0}
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["dt"] = 1.0
 
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     # Discharge at full rated power and count how many steps until empty
     expected_steps = 14400  # 4 hours * 3600 s/hr / 1 s/step
@@ -477,25 +513,25 @@ def test_SB_discharge_duration_invariant():
 def test_SB_discharge_duration_with_degraded_soc_window():
     """Test that non-default SOC limits reduce deliverable duration proportionally.
 
-    min_SOC and max_SOC represent deviations from nameplate performance (e.g.,
+    SOC_min and SOC_max represent deviations from nameplate performance (e.g.,
     degradation). When the usable SOC window is less than 0-1, the deliverable
     energy and thus discharge duration are reduced proportionally.
     """
     test_h_dict = copy.deepcopy(h_dict_simple_battery)
     test_h_dict["battery"]["energy_capacity"] = 4000  # 4 MWh
-    test_h_dict["battery"]["charge_rate"] = 1000  # 1 MW
-    test_h_dict["battery"]["discharge_rate"] = 1000  # 1 MW
+    test_h_dict["battery"]["power_charge_max"] = 1000  # 1 MW
+    test_h_dict["battery"]["power_discharge_max"] = 1000  # 1 MW
     test_h_dict["battery"]["roundtrip_efficiency"] = 0.9
-    test_h_dict["battery"]["max_SOC"] = 0.9  # degraded: can only use 80% of capacity
-    test_h_dict["battery"]["min_SOC"] = 0.1
+    test_h_dict["battery"]["SOC_max"] = 0.9  # degraded: can only use 80% of capacity
+    test_h_dict["battery"]["SOC_min"] = 0.1
     test_h_dict["battery"]["initial_conditions"] = {"SOC": 0.9}
     test_h_dict["battery"]["allow_grid_power_consumption"] = True
     test_h_dict["dt"] = 1.0
 
-    SB = BatterySimple(test_h_dict, "battery")
+    SB = BatteryDynamic(test_h_dict, "battery")
 
     # With SOC window of 0.8 (0.1 to 0.9), deliverable duration should be
-    # 0.8 * energy_capacity / discharge_rate = 0.8 * 4 hours = 3.2 hours
+    # 0.8 * energy_capacity / power_discharge_max = 0.8 * 4 hours = 3.2 hours
     expected_steps = int(0.8 * 14400)  # 11520 steps
     steps_taken = 0
     for i in range(expected_steps + 1000):
