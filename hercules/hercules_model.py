@@ -250,6 +250,7 @@ class HerculesModel:
             self.starttime,
             self.endtime + (2 * self.dt),
             self.dt,
+            dtype=np.float64,
         )
 
         # Interpolate using the utility function
