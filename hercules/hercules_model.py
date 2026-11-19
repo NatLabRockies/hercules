@@ -14,6 +14,7 @@ from hercules.hybrid_plant import HybridPlant
 from hercules.utilities import (
     close_logging,
     hercules_float_type,
+    hercules_time_type,
     interpolate_df,
     load_hercules_input,
     make_unique_name,
@@ -250,7 +251,7 @@ class HerculesModel:
             self.starttime,
             self.endtime + (2 * self.dt),
             self.dt,
-            dtype=np.float64,
+            dtype=hercules_time_type,
         )
 
         # Interpolate using the utility function
@@ -324,7 +325,7 @@ class HerculesModel:
         self.hdf5_datasets["time"] = data_group.create_dataset(
             "time",
             shape=(total_rows,),
-            dtype=np.float64,
+            dtype=hercules_time_type,
             **compression_params,
         )
 
@@ -794,7 +795,9 @@ class HerculesModel:
                 # Integer buffer for step
                 self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.int32)
             elif dataset_name == "time":
-                self.data_buffers[dataset_name] = np.zeros(self.buffer_size, dtype=np.float64)
+                self.data_buffers[dataset_name] = np.zeros(
+                    self.buffer_size, dtype=hercules_time_type
+                )
             else:
                 # Float buffer for everything else
                 self.data_buffers[dataset_name] = np.zeros(

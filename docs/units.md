@@ -36,6 +36,10 @@ While the external interface uses kWh, some components use different units inter
 
 While internal calculations use kW/kWh, output plots and analysis may display results in MW/MWh for better readability when dealing with large-scale systems. This conversion is performed only at the presentation layer.
 
+## Numeric Precision
+
+Data channels and inputs use `hercules_float_type` (float32) to save memory and output size. Time (`time` and any arrays of time values) uses `hercules_time_type` (float64), since float32 cannot resolve sub-second time steps over long simulations. Both are defined in `hercules/utilities.py`.
+
 ## Historical Note
 
 Prior to this standardization, some components used MW/MWh units in their input specifications and performed internal conversions to kW/kWh. This approach has been deprecated to improve code clarity and maintainability.

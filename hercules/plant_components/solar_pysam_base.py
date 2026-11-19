@@ -5,6 +5,7 @@ import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
     hercules_float_type,
+    hercules_time_type,
     interpolate_df,
 )
 
@@ -138,7 +139,7 @@ class SolarPySAMBase(ComponentBase):
 
         # Hercules-grid time steps (used by the upsample helper).
         self._hercules_time_steps = np.arange(
-            self.starttime, self.endtime, self.dt, dtype=np.float64
+            self.starttime, self.endtime, self.dt, dtype=hercules_time_type
         )
 
         # Decide the compute (PySAM) grid. In the use_resource_solar_dt case runPySAM
@@ -158,7 +159,7 @@ class SolarPySAMBase(ComponentBase):
         # exactly, preserving the pre-existing behaviour.
         if self.use_resource_solar_dt and self.dt_solar > self.dt:
             self._compute_dt = self.dt_solar
-            resource_time = df_solar["time"].to_numpy(dtype=hercules_float_type)
+            resource_time = df_solar["time"].to_numpy(dtype=hercules_time_type)
             i_start = max(np.searchsorted(resource_time, self.starttime, side="left") - 1, 0)
             i_end = min(
                 np.searchsorted(resource_time, self.endtime, side="left"), len(resource_time) - 1
