@@ -197,7 +197,6 @@ class CombinedCyclePlant(ComponentBase):
         super().__init__(h_dict, component_name)
 
     def step(self, h_dict):
-
         power_setpoint = h_dict[self.component_name]["power_setpoint"]
 
         # Update time in state

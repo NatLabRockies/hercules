@@ -2,6 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import h5py
 import numpy as np
 import pandas as pd
 import pytest
@@ -838,7 +839,9 @@ def test_output_time_is_exact_for_long_simulations():
         hmodel = HerculesModel(h_dict)
         hmodel.assign_controller(ZeroController())
         hmodel.run()
+        with h5py.File(hmodel.output_filename, "r") as f:
+            assert f["data/time"].dtype == np.float64
         df = read_hercules_hdf5(hmodel.output_filename)
 
-    assert (df["time"] == df["step"] * dt).all()
+    np.testing.assert_array_equal(df["time"], df["step"] * dt)
     assert df["time_utc"].iloc[17] == start + pd.Timedelta(seconds=17 * dt)

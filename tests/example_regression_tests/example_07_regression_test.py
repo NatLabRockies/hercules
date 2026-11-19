@@ -63,7 +63,6 @@ class ControllerOCGT:
 
 
 def run_hercules_example(hercules_dict):
-
     # Initialize the Hercules model
     hmodel = HerculesModel(hercules_dict)
 
