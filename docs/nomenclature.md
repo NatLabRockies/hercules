@@ -269,7 +269,8 @@ with logged channels. Dollar amounts end in `_USD`.
 | `analysis.plant.power_export_POI_limited` | analysis column | `plant.power_export` limited to `plant.interconnect_limit` |
 | `analysis.plant.power_export_POI_excess` | analysis column | Power removed at the POI (kW) |
 | `analysis.<component>.power_POI_limited` | analysis column | Component `power` after its share of the POI cut |
-| `analysis.is_peak` | analysis column | 1 inside a region's actual daily peak-load blocks (MISO) |
+| `analysis.<name>_revenue_DA`, `analysis.<name>_revenue_RT` | analysis column | Per-step two-settlement revenue ($) of power column `<name>` |
+| `analysis.is_peak` | analysis column | 1 inside a region's forecast daily peak-load blocks (MISO) |
 | `analysis.RA_hour`, `analysis.AAOC_hour` | analysis column | 1 in MISO RA (AAOC) hours of the zone's subregion |
 | `analysis.season` | analysis column | MISO season of each hour (MISO market time) |
 

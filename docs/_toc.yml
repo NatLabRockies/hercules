@@ -37,6 +37,12 @@ parts:
     - file: combined_cycle_plant
     - file: thermal_plant
     - file: linear_generator
+  - caption: Analysis
+    chapters:
+    - file: analysis
+    - file: analysis_regions
+    - file: analysis_enpax
+    - file: analysis_crosswalk
   - caption: Inputs
     chapters:
     - file: hercules_input

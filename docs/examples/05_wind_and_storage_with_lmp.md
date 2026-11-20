@@ -40,4 +40,11 @@ The plot shows:
 3. Battery power vs setpoint
 4. LMP prices and control thresholds
 
+To post-process with `hercules.analysis` (POI limiting, energy, revenue, battery cycles
+and an interactive plot saved to `outputs/timeseries.html`), run:
+
+```bash
+python analyze_outputs.py
+```
+
 Note that `LMP_RT` appears in the HDF5 output file, but `LMP_DA` does not (as specified in `log_channels`), even though both were available to the controller.
