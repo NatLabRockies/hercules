@@ -269,6 +269,15 @@ with logged channels. Dollar amounts end in `_USD`.
 | `analysis.plant.power_export_POI_limited` | analysis column | `plant.power_export` limited to `plant.interconnect_limit` |
 | `analysis.plant.power_export_POI_excess` | analysis column | Power removed at the POI (kW) |
 | `analysis.<component>.power_POI_limited` | analysis column | Component `power` after its share of the POI cut |
+| `analysis.is_peak` | analysis column | 1 inside a region's actual daily peak-load blocks (MISO) |
+| `analysis.RA_hour`, `analysis.AAOC_hour` | analysis column | 1 in MISO RA (AAOC) hours of the zone's subregion |
+| `analysis.season` | analysis column | MISO season of each hour (MISO market time) |
+
+Region data YAML keys (`hercules/analysis/regions/<region>.yaml`): `seasons` (months),
+`zones`, `accreditation_fraction` (by resource class and season),
+`capacity_price_USD_per_MW_day` (by year, zone and season), `peak_block_duration_hours`,
+`data_files`; MISO also has `sources`, `market_time_offset_hours` and
+`RA_hours_coverage_utc`.
 
 ENPAX case block fields (written by `hercules.analysis.enpax`):
 

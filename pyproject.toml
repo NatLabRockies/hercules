@@ -43,7 +43,8 @@ dependencies = [
 "requests_cache",
 "retry_requests",
 "electrolyzer",
-"plotly"
+"plotly",
+"pyyaml"
 ]
 
 [project.optional-dependencies]

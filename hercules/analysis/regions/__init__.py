@@ -6,3 +6,4 @@ per region (e.g. ``miso.yaml``), read with ``load_region``. Each region module (
 """
 
 from . import miso
+from .region_data import load_region
