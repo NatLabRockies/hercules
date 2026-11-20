@@ -32,13 +32,18 @@ __MACOSX/
 # CSV files (except test inputs)
 *.csv
 !tests/test_inputs/*.csv
+!hercules/analysis/regions/*_data/*.csv
 
 # Binary data formats
 *.h5
 *.hdf5
 *.feather
 *.ftr
+!hercules/analysis/regions/*_data/*.ftr
 *.parquet
+
+# Raw files used to regenerate region data
+hercules/analysis/regions/*_data/untracked_raw_files/
 
 # Pickle files (generated input data)
 *.p

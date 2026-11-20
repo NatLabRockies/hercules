@@ -98,9 +98,9 @@ ax.grid(True)
 
 # Plot the LMP data
 ax = axarr[3]
-# Plot lmp_rt from HDF5 output (this was logged)
-if "external_signals.lmp_rt" in df.columns:
-    ax.plot(df["time"] / 3600, df["external_signals.lmp_rt"], label="LMP RT (logged)", color="b")
+# Plot LMP_RT from HDF5 output (this was logged)
+if "external_signals.LMP_RT" in df.columns:
+    ax.plot(df["time"] / 3600, df["external_signals.LMP_RT"], label="LMP RT (logged)", color="b")
 
 
 ax.axhline(15, color="green", linestyle=":", label="Charge Threshold ($15)")

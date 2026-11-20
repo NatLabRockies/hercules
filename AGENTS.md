@@ -49,6 +49,9 @@ This file contains additional guidance for AI agents and other AI editors includ
   inline inputs (no fixtures) and a short comment stating the purpose.
 - Focus on core behavior and catching regressions rather than exhaustive edge cases;
   prefer fewer, targeted tests.
+- Exception for `hercules.analysis` tests: analysis functions read a saved output file, so
+  tests may use one shared builder that writes a small temporary HDF5 file and returns a
+  `HerculesOutput`. Keep the data values inline in each test.
 
 ## Important references in docs
 

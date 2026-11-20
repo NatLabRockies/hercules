@@ -83,7 +83,7 @@ If you need to combine both real-time and day-ahead LMP data for use with Hycon,
 The `generate_locational_marginal_price_dataframe_from_griddstatus()` function combines the real-time and day-ahead LMP data into a format optimized for Hycon:
 
 - Merges real-time and day-ahead data at the base interval of the real-time data
-- Creates hourly day-ahead LMP columns (`lmp_da_00` through `lmp_da_23`) for each hour of the day
+- Creates hourly day-ahead LMP columns (`LMP_DA_00` through `LMP_DA_23`) for each hour of the day
 - Forward-fills any missing values
 - Generates "end" rows for each time interval for Hercules interpolation
 
@@ -94,7 +94,7 @@ See `examples/grid/process_grid_status_results.py` for a complete example.
 The resulting DataFrame contains:
 - `time_utc`: UTC timestamp
 - ``: Real-time LMP at the base time interval
-- `lmp_da`: Day-ahead LMP (forward-filled to the base interval)
-- `lmp_da_00` through `lmp_da_23`: Day-ahead LMP for each hour of the day
+- `LMP_DA`: Day-ahead LMP (forward-filled to the base interval)
+- `LMP_DA_00` through `LMP_DA_23`: Day-ahead LMP for each hour of the day
 
 This format is optimized for use with Hycon in Hercules simulations.

@@ -7,7 +7,7 @@ Example of a wind and storage hybrid plant with a controller that responds to Lo
 - Discharges the battery when real-time LMP is above $35/MWh (high prices)
 - Keeps the battery idle for intermediate prices
 
-This example also demonstrates the new **selective external data logging** feature. Both `lmp_rt` and `lmp_da` are available to the controller via `h_dict["external_signals"]`, but only `lmp_rt` is logged to the HDF5 output file as specified in `log_channels`.
+This example also demonstrates the new **selective external data logging** feature. Both `LMP_RT` and `LMP_DA` are available to the controller via `h_dict["external_signals"]`, but only `LMP_RT` is logged to the HDF5 output file as specified in `log_channels`.
 
 ## Setup
 
@@ -40,4 +40,11 @@ The plot shows:
 3. Battery power vs setpoint
 4. LMP prices and control thresholds
 
-Note that `lmp_rt` appears in the HDF5 output file, but `lmp_da` does not (as specified in `log_channels`), even though both were available to the controller.
+To post-process with `hercules.analysis` (POI limiting, energy, revenue, battery cycles
+and an interactive plot saved to `outputs/timeseries.html`), run:
+
+```bash
+python analyze_outputs.py
+```
+
+Note that `LMP_RT` appears in the HDF5 output file, but `LMP_DA` does not (as specified in `log_channels`), even though both were available to the controller.

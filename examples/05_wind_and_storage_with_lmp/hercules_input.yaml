@@ -46,6 +46,6 @@ battery:
 external_data:
   external_data_filename: external_data_lmp.csv
   log_channels:
-    - lmp_rt
+    - LMP_RT
 
 controller:

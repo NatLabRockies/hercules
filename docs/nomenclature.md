@@ -160,7 +160,7 @@ fractions in [0, 1] of another quantity end in `_fraction`. See [Units](units.md
 
 | Name | Kind | Description |
 |---|---|---|
-| `plant.interconnect_limit` | input | POI limit in kW (not enforced by Hercules) |
+| `plant.interconnect_limit` | input | POI limit in kW (not enforced by Hercules; applied in post-processing, see Analysis below) |
 | `plant.efficiency_bus_to_poi` | input | Bus-to-POI efficiency, default 1.0 |
 | `plant.power_bus` | output | Sum of component `power` |
 | `plant.locally_generated_power` | output | Sum of generator `power` |
@@ -245,6 +245,53 @@ model, so its `DC_power` equals `power`.
 ### Power playback (`PowerPlayback`)
 
 `power` only. It has no setpoint and does not yet report a `_hypothetical` quantity.
+
+### Markets
+
+Market acronyms are uppercase: `LMP`, `DA` (day-ahead), `RT` (real-time), `UCAP`, `PRA`,
+`RA`. Prices are in $/MWh unless the name says otherwise.
+
+| Name | Kind | Description |
+|---|---|---|
+| `external_signals.LMP_DA`, `external_signals.LMP_RT` | external signal | Day-ahead and real-time LMP ($/MWh); previously `lmp_da`, `lmp_rt` |
+
+Signals logged by a Hycon controller appear in `HerculesOutput` as
+`controller.<cname>.<name>`. Hycon may use its own names; `HerculesInterface` translates
+between Hercules and Hycon names.
+
+### Analysis (post-processing)
+
+Columns added by `hercules.analysis` are prefixed `analysis.`, so they are never confused
+with logged channels. Dollar amounts end in `_USD`.
+
+| Name | Kind | Description |
+|---|---|---|
+| `analysis.plant.power_export_POI_limited` | analysis column | `plant.power_export` limited to `plant.interconnect_limit` |
+| `analysis.plant.power_export_POI_excess` | analysis column | Power removed at the POI (kW) |
+| `analysis.<component>.power_POI_limited` | analysis column | Component `power` after its share of the POI cut |
+| `analysis.<name>_revenue_DA`, `analysis.<name>_revenue_RT` | analysis column | Per-step two-settlement revenue ($) of power column `<name>` |
+| `analysis.is_peak` | analysis column | 1 inside a region's forecast daily peak-load blocks (MISO) |
+| `analysis.RA_hour`, `analysis.AAOC_hour` | analysis column | 1 in MISO RA (AAOC) hours of the zone's subregion |
+| `analysis.season` | analysis column | MISO season of each hour (MISO market time) |
+
+Region data YAML keys (`hercules/analysis/regions/<region>.yaml`): `seasons` (months),
+`zones`, `accreditation_fraction` (by resource class and season),
+`capacity_price_USD_per_MW_day` (by year, zone and season), `peak_block_duration_hours`,
+`data_files`; MISO also has `sources`, `market_time_offset_hours` and
+`RA_hours_coverage_utc`.
+
+ENPAX case block fields (written by `hercules.analysis.enpax`):
+
+| Name | Applies to | Description |
+|---|---|---|
+| `interconnect_limit_MW`, `energy_annual_MWh`, `price_year` | plant | POI limit, POI-limited annual energy, price base year |
+| `type` | component | Cost model type (`solar`, `battery`) |
+| `capacity_rated_MW`, `DC_capacity_rated_MW` | component | AC and DC ratings |
+| `energy_annual_MWh` | component | POI-limited annual energy |
+| `revenue_energy_annual_USD`, `revenue_capacity_annual_USD` | component | Annual energy (two-settlement) and capacity revenue |
+| `capacity_accredited_MW` | component | Day-weighted mean of seasonal accredited capacity |
+| `energy_capacity_MWh`, `duration_hours` | battery | Energy capacity and duration |
+| `energy_discharged_annual_MWh`, `cycle_count_equivalent_annual` | battery | AC energy discharged per year and equivalent full cycles (discharged / capacity) |
 
 ## Exceptions
 

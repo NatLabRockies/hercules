@@ -1,0 +1,81 @@
+# MISO region data for hercules.analysis; read with hercules.analysis.regions.load_region("miso").
+# A copy of this file with edited values can be passed to load_region by path.
+name: MISO
+
+sources:
+  accreditation_fraction: MISO class-level accreditation by season (hercules-toolkit ucap_percent.csv)
+  capacity_price_USD_per_MW_day: MISO Planning Resource Auction results, planning years 2025 and 2026
+  RA_hours: >-
+    MISO RA-hour spreadsheets "RA Hours PY 26723002.xlsx" and
+    "PY 27-28 RA Hours (FALL)743792.xlsx", read 2026-09-03; sparse format 2026-11-19
+  daily_peak_hours: >-
+    MISO Historical Daily Forecast and Actual Load by Local Resource Zone
+    (20231231, 20241231, 20251231 and 20260821 dfal_HIST.xls); hour of the daily peak MTLF
+
+# Months of each season (MISO planning-year seasons)
+seasons:
+  spring: [3, 4, 5]
+  summer: [6, 7, 8]
+  fall: [9, 10, 11]
+  winter: [12, 1, 2]
+
+# MISO market time is EST (UTC-5, no daylight saving); RA-hour seasons follow it
+market_time_offset_hours: -5
+
+# Local resource zone -> subregion (RA hours) and zone in the daily peak-load file
+zones:
+  1: {subregion: central_north, peak_zone: LRZ1}
+  2: {subregion: central_north, peak_zone: LRZ2_7}
+  3: {subregion: central_north, peak_zone: LRZ3_5}
+  4: {subregion: central_north, peak_zone: LRZ4}
+  5: {subregion: central_north, peak_zone: LRZ3_5}
+  6: {subregion: central_north, peak_zone: LRZ6}
+  7: {subregion: central_north, peak_zone: LRZ2_7}
+  8: {subregion: south, peak_zone: LRZ8_9_10}
+  9: {subregion: south, peak_zone: LRZ8_9_10}
+  10: {subregion: south, peak_zone: LRZ8_9_10}
+
+# Accredited fraction of rated power (UCAP) by resource class and season
+accreditation_fraction:
+  solar: {spring: 0.024, summer: 0.041, fall: 0.024, winter: 0.006}
+  wind: {spring: 0.106, summer: 0.094, fall: 0.108, winter: 0.124}
+  battery: {spring: 0.82, summer: 0.895, fall: 0.874, winter: 0.546}
+
+# PRA clearing price ($/MW-day) by planning year, zone and season
+capacity_price_USD_per_MW_day:
+  2025:
+    1: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    2: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    3: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    4: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    5: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    6: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    7: {spring: 69.88, summer: 666.50, fall: 91.60, winter: 33.20}
+    8: {spring: 69.88, summer: 666.50, fall: 74.09, winter: 33.20}
+    9: {spring: 69.88, summer: 666.50, fall: 74.09, winter: 33.20}
+    10: {spring: 69.88, summer: 666.50, fall: 74.09, winter: 33.20}
+  2026:
+    1: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    2: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    3: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    4: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    5: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    6: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    7: {spring: 7.61, summer: 424.30, fall: 33.92, winter: 35.97}
+    8: {spring: 7.61, summer: 384.10, fall: 33.92, winter: 35.97}
+    9: {spring: 7.61, summer: 412.10, fall: 33.92, winter: 35.97}
+    10: {spring: 7.61, summer: 384.10, fall: 33.92, winter: 35.97}
+
+# Each daily peak-load time starts a block of this length (h)
+peak_block_duration_hours: 4
+
+# Time series, relative to this file
+data_files:
+  RA_hours: miso_data/miso_ra_hours.csv
+  daily_peak_hours: miso_data/miso_daily_peak_hours.ftr
+
+# Hours covered by the RA-hours file, [start, end) in UTC, by hour type; printed by
+# miso_data/generate_miso_ra_hours.py
+RA_hours_coverage_utc:
+  RA: ["2022-09-01T05:00:00Z", "2025-12-01T05:00:00Z"]
+  AAOC: ["2022-09-01T05:00:00Z", "2025-09-01T05:00:00Z"]

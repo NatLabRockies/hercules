@@ -22,8 +22,8 @@ time_points = pd.date_range(start=start_time, periods=49, freq="5min")
 df = pd.DataFrame(
     {
         "time_utc": time_points,
-        "lmp_da": np.full(49, 10.0),  # Constant $10
-        "lmp_rt": np.linspace(0, 50, 49),  # Ramp from $0 to $50
+        "LMP_DA": np.full(49, 10.0),  # Constant $10
+        "LMP_RT": np.linspace(0, 50, 49),  # Ramp from $0 to $50
     }
 )
 
@@ -67,7 +67,7 @@ class ControllerLMPBased:
         wind_farm_power = h_dict["wind_farm"]["power"]
 
         # Get the real-time LMP from external signals
-        lmp_rt = h_dict["external_signals"]["lmp_rt"]
+        lmp_rt = h_dict["external_signals"]["LMP_RT"]
 
         # Battery control based on LMP
         # With hybrid plant sign convention: Positive = discharge, Negative = charge
