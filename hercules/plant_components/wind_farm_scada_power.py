@@ -8,6 +8,7 @@ import pandas as pd
 from hercules.plant_components.component_base import ComponentBase
 from hercules.utilities import (
     hercules_float_type,
+    hercules_time_type,
     interpolate_df,
 )
 
@@ -127,7 +128,7 @@ class WindFarmSCADAPower(ComponentBase):
         self.logger.info("Interpolating SCADA file...")
 
         # Interpolate df_scada on to the time steps
-        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_float_type)
+        time_steps_all = np.arange(self.starttime, self.endtime, self.dt, dtype=hercules_time_type)
         df_scada = interpolate_df(
             df_scada, time_steps_all, interpolation_method="averaged_to_instantaneous"
         )
