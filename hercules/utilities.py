@@ -13,6 +13,8 @@ from scipy.interpolate import interp1d
 # Hercules float type for consistent precision
 hercules_float_type = np.float32
 hercules_complex_type = np.csingle
+# Time must stay float64; float32 cannot resolve sub-second steps over long runs
+hercules_time_type = np.float64
 
 # Names changed by the v3 nomenclature refactor, see docs/nomenclature.md
 RENAMED_KEYS = {
@@ -745,7 +747,7 @@ def _compute_interval_midpoints(time_values):
     if len(time_values) < 2:
         return time_values
     # Compute midpoints
-    midpoints = np.empty_like(time_values, dtype=np.float64)
+    midpoints = np.empty_like(time_values, dtype=hercules_time_type)
     midpoints[:-1] = (time_values[:-1] + time_values[1:]) / 2.0
     midpoints[-1] = (
         time_values[-1] + (time_values[-1] - time_values[-2]) / 2.0
