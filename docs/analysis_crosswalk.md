@@ -1,6 +1,6 @@
 # Analysis crosswalk (hercules-toolkit)
 
-Draft. `hercules.analysis` replaces hercules-toolkit. Each public toolkit function is
+`hercules.analysis` replaces hercules-toolkit. Each public toolkit function is
 listed with its replacement, or the reason it was dropped. Toolkit LMP columns
 `external_signals.lmp_da`/`lmp_rt` are now `external_signals.LMP_DA`/`LMP_RT`.
 
